@@ -17,6 +17,8 @@
 #ifndef PHP_DRIVER_HASH_H
 #define PHP_DRIVER_HASH_H
 
+#include "php_driver.h"
+
 #define uthash_malloc(sz) emalloc(sz)
 #define uthash_free(ptr,sz) efree(ptr)
 

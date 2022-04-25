@@ -19,7 +19,7 @@ set(CASSANDRA_LINK_LIBRARIES cassandra)
 execute_process(COMMAND phpize WORKING_DIRECTORY ..)
 execute_process(COMMAND ./configure WORKING_DIRECTORY ..)
 
-file(READ ./config.h CASSANDRA_CONFIG_FILE)
+# file(READ ./config.h CASSANDRA_CONFIG_FILE)
 
 add_definitions(-DHAVE_CONFIG_H)
 
