@@ -951,11 +951,12 @@ php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output TSRMLS_D
 }
 
 int
-php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_type_value,
-	CassUserType** output TSRMLS_DC)
+php_driver_user_type_from_user_type_value(
+  php_driver_user_type_value* user_type_value,
+  CassUserType** output)
 {
-	int result = 1;
-	char* name;
+  int result = 1;
+  char* name;
 	php5to7_zval* current;
 	php_driver_type* type;
 	CassUserType* ut;
@@ -992,4 +993,3 @@ php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_type_
 
 	return result;
 }
-

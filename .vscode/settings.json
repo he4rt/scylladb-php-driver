@@ -3,7 +3,9 @@
         "php_driver.h": "c",
         "php.h": "c",
         "bytes.h": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "tinyint.h": "c",
+        "types.h": "c"
     },
     "php.suggest.basic": false,
     "php.validate.enable": true,
@@ -30,5 +32,5 @@
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
     },
-    "cmake.sourceDirectory": "${workspaceFolder}/ext",
+    "cmake.sourceDirectory": "${workspaceFolder}/.",
 }

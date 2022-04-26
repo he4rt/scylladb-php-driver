@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(libphpcassandra LANGUAGES C)
 
-#find_package(Corrosion REQUIRED)
+find_package(Corrosion REQUIRED)
 
 set(PHP_CASSANDRA_DRIVER_VERSION 1.3.7)
 set(CMAKE_CXX_STANDARD 20)
@@ -14,10 +14,15 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_BUILD_TYPE Release)
 set(PHP_INI_DIR /usr/local/lib/php)
 
-set(CASSANDRA_LINK_LIBRARIES cassandra)
+option(LINK_STATICALLY "Links LibCassandra and LibUV statically" ON)
 
-execute_process(COMMAND phpize WORKING_DIRECTORY ext/)
-execute_process(COMMAND ext/configure WORKING_DIRECTORY ext/)
+if(${LINK_STATICALLY})
+    set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a)
+else()
+    set(CASSANDRA_LINK_LIBRARIES cassandra uv)
+endif()
+execute_process(COMMAND phpize WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
+execute_process(COMMAND ext/configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
 
 # file(READ ./config.h CASSANDRA_CONFIG_FILE)
 
@@ -33,11 +38,10 @@ file(GLOB_RECURSE HEAD_FILES FOLLOW_SYMLINKS ext/include/*.h)
 file(GLOB_RECURSE SRC_LIST FOLLOW_SYMLINKS ext/src/*.c)
 file(GLOB_RECURSE UTILS_LIST FOLLOW_SYMLINKS ext/util/*.c)
 
-SET(LIBRARY_OUTPUT_PATH ext/lib)
+SET(LIBRARY_OUTPUT_PATH lib)
 
 link_directories(${LIBRARY_OUTPUT_PATH})
 include_directories(BEFORE ext/include ext)
-# set_target_properties(lib-cassandra PROPERTIES OUTPUT_NAME "cassandra" VERSION ${PHP_CASSANDRA_DRIVER_VERSION})
 
 set(php_cassandra_sources ${UTILS_LIST} ${SRC_LIST} ext/php_driver.c)
 

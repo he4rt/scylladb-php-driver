@@ -6,6 +6,7 @@ ENV EXT_CASSANDRA_VERSION=master
 ENV LDFLAGS="-L/usr/local/lib"
 ENV LIBS="-lssl -lz -luv -lm -lgmp -lstdc++"
 ENV PHP_INI_SCAN_DIR=":/usr/local/lib/php"
+ENV CMAKE_GENERATOR=Ninja
 
 RUN docker-php-source extract \
     && apt-get update -y \
@@ -55,6 +56,7 @@ ENV PHP_INI_SCAN_DIR=":/usr/local/lib/php"
 ENV JAVA_HOME=/usr/lib/jvm/default-java
 ENV CASSANDRA_HOST=cassandra
 ENV PHP_INI_SCAN_DIR=":/usr/local/lib/php"
+ENV CMAKE_GENERATOR=Ninja
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php && php -r "unlink('composer-setup.php');" \

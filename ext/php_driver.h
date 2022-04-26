@@ -5,8 +5,13 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_GMPLIB
 #include <gmp.h>
+#endif
+
+#ifdef HAVE_CASSANDRALIB
 #include <cassandra.h>
+#endif
 
 #include <php.h>
 #include <Zend/zend_exceptions.h>
