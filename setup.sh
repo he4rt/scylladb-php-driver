@@ -84,5 +84,13 @@ EOF
 
 
 echo "${rc_snippet}" >> /etc/bash.bashrc
+echo 'export PATH=$PATH:/root/.cargo/bin' >> /etc/bash.bashrc
 echo "${codespaces_bash}" >> "/root/.bashrc"
 echo 'export PROMPT_DIRTRIM=4' >> "/root/.bashrc"
+echo 'export PATH=$PATH:/root/.cargo/bin' >> "/root/.bashrc"
+
+
+echo '#!bin/bash' > "/etc/profile.d/rust.sh"
+echo 'export PATH=$PATH:/root/.cargo/bin' >> "/etc/profile.d/rust.sh"
+
+chmod +x /etc/profile.d/rust.sh

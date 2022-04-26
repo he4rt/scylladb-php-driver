@@ -17,6 +17,7 @@ RUN docker-php-source extract \
     build-essential \
     git \
     libuv1-dev \
+    ninja-build \
     libssl-dev \
     libgmp-dev \
     zlib1g-dev \
@@ -44,7 +45,12 @@ RUN docker-php-source extract \
 
 CMD ["bash"]
 
-FROM production as dev
+FROM ${IMAGE} as dev
+ARG CPP_DRIVER_VERSION=2.16.2
+ENV EXT_CASSANDRA_VERSION=master
+ENV LDFLAGS="-L/usr/local/lib"
+ENV LIBS="-lssl -lz -luv -lm -lgmp -lstdc++"
+ENV PHP_INI_SCAN_DIR=":/usr/local/lib/php"
 
 ENV JAVA_HOME=/usr/lib/jvm/default-java
 ENV CASSANDRA_HOST=cassandra
@@ -117,6 +123,25 @@ RUN docker-php-source extract \
     manpages-dev \
     init-system-helpers \
     default-jdk \
+    && git clone --recursive https://github.com/datastax/cpp-driver /cpp-driver \
+    && cd /cpp-driver && git checkout tags/$CPP_DRIVER_VERSION -b v$CPP_DRIVER_VERSION \
+    && mkdir -p build && cd build \
+    && cmake \
+    -DCMAKE_CXX_FLAGS="-fPIC" \
+    -DCASS_BUILD_STATIC=ON \
+    -DCASS_BUILD_SHARED=ON \
+    -DCMAKE_BUILD_TYPE=RELEASE \
+    -DCMAKE_INSTALL_LIBDIR:PATH=lib \
+    -DCASS_USE_ZLIB=ON .. \
+    && make -j8 && make install \
+    && cd / && rm -rf /cpp-driver \
+    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs >> /tmp/install-rust \
+    && chmod +x /tmp/install-rust \
+    && sh /tmp/install-rust --profile default --default-toolchain stable -y \
+    && git clone https://github.com/corrosion-rs/corrosion.git /tmp/corrosion \
+    && cd /tmp && cmake -Scorrosion -Bbuild -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build --config Release \
+    && cmake --install build --config Release \
     && install-php-extensions intl zip pcntl gmp ast xdebug \
     && mkdir -p /ccm \
     && git clone https://github.com/riptano/ccm.git /ccm \
@@ -131,4 +156,6 @@ COPY ./setup.sh /setup.sh
 
 RUN chmod +x /setup.sh && bash /setup.sh && php-config --ini-path | xargs echo | xargs cp /php.ini
 
+RUN apt-get install -y ninja-build
+SHELL ["/bin/bash", "-c"]
 CMD ["bash"]
