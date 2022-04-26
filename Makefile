@@ -20,7 +20,7 @@ docker-dev-image:
 docker-production-image:
 	@docker build \
 		--build-arg "IMAGE=malusevd99/php-ext-dev:8.1" \
-		-t "ghcr.io/nano-interactive/cassandra-php-driver:dev" \
-		--target dev \
+		-t "ghcr.io/nano-interactive/cassandra-php-driver" \
+		--target production \
 		--compress .
 
