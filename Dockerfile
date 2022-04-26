@@ -12,7 +12,7 @@ RUN docker-php-source extract \
     && apt-get update -y \
     && apt-get upgrade -y \
     && mkdir -p /cpp-driver \
-    && apt-get install -y \
+    && apt-get install \
     cmake \
     unzip \
     build-essential \
@@ -23,7 +23,7 @@ RUN docker-php-source extract \
     libgmp-dev \
     zlib1g-dev \
     openssl \
-    libpcre3-dev \
+    libpcre3-dev -y \
     && git clone --recursive https://github.com/datastax/cpp-driver /cpp-driver \
     && cd /cpp-driver && git checkout tags/$CPP_DRIVER_VERSION -b v$CPP_DRIVER_VERSION \
     && mkdir -p build && cd build \
@@ -66,7 +66,7 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 
 RUN docker-php-source extract \
     && apt-get update -y \
-    && apt-get install -y \
+    && apt-get install \
     cmake \
     unzip \
     mlocate \
@@ -112,7 +112,7 @@ RUN docker-php-source extract \
     libgcc1 \
     libkrb5-3 \
     libgssapi-krb5-2 \
-    libicu[0-9][0-9] \
+    libicu-dev \
     liblttng-ust0 \
     libstdc++6 \
     zlib1g \
@@ -124,7 +124,7 @@ RUN docker-php-source extract \
     manpages \
     manpages-dev \
     init-system-helpers \
-    default-jdk \
+    default-jdk -y \
     && git clone --recursive https://github.com/datastax/cpp-driver /cpp-driver \
     && cd /cpp-driver && git checkout tags/$CPP_DRIVER_VERSION -b v$CPP_DRIVER_VERSION \
     && mkdir -p build && cd build \
