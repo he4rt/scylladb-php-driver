@@ -97,7 +97,7 @@ jobs:
           target: production
           build-args: |
             IMAGE=${{ matrix.image }}
-          tags: ghcr.io/nano-interactive/cassandra-php-driver:${{ steps.version_tag.outputs.tag }}
+          tags: ghcr.io/nano-interactive/cassandra-php-driver
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
