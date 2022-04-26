@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: [malusevd99/php-ext-dev:8.1]
+        image: ["malusevd99/php-ext-dev:8.1-debug"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: [malusevd99/php-ext-dev:8.1]
+        image: ["malusevd99/php-ext-dev:8.1"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
