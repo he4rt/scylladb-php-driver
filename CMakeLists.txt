@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(libphpcassandra LANGUAGES C)
 
-find_package(Corrosion REQUIRED)
+# find_package(Corrosion REQUIRED)
 
 set(PHP_CASSANDRA_DRIVER_VERSION 1.3.7)
 set(CMAKE_CXX_STANDARD 20)
