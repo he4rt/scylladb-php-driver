@@ -60,6 +60,8 @@ RUN git clone --recursive https://github.com/datastax/cpp-driver /cpp-driver \
     -DCASS_BUILD_STATIC=ON \
     -DCASS_BUILD_SHARED=ON \
     -DCMAKE_BUILD_TYPE=RELEASE \
+    -DCASS_USE_STATIC_LIBS=ON \
+    -DCASS_USE_TIMERFD=ON \
     -DCMAKE_INSTALL_LIBDIR:PATH=lib \
     -DCASS_USE_ZLIB=ON .. \
     && ninja && ninja install \

@@ -27,7 +27,17 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_C_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE=RELEASE -DLINK_STATICALLY=ON ..
+          cmake -G Ninja \
+            -DCMAKE_CXX_FLAGS="-fPIC" \
+            -DCMAKE_C_FLAGS="-fPIC" \
+            -DCMAKE_BUILD_TYPE=RELEASE \
+            -DCASS_USE_STATIC_LIBS=ON \
+            -DCASS_BUILD_STATIC=ON \
+            -DCASS_BUILD_SHARED=ON \
+            -DCASS_USE_TIMERFD=ON \
+            -DLIBUV_LIBRARY=. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLINK_STATICALLY=ON ..
           ninja
           ninja install
       - uses: actions/upload-artifact@v2

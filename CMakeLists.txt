@@ -4,17 +4,25 @@ project(libphpcassandra LANGUAGES C)
 
 # find_package(Corrosion REQUIRED)
 
+set(LIBUV_ROOT_DIR ${PROJECT_SOURCE_DIR}/lib/libuv)
+
 set(PHP_CASSANDRA_DRIVER_VERSION 1.3.7)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu17 -Wall")
-set(LIBRARY_OUTPUT_PATH ext/lib)
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_BUILD_TYPE Release)
 set(PHP_INI_DIR /usr/local/lib/php)
 
 option(LINK_STATICALLY "Links LibCassandra and LibUV statically" ON)
+
+include_directories(${PROJECT_SOURCE_DIR}/lib/cpp-driver/include)
+include_directories(${PROJECT_SOURCE_DIR}/lib/libuv/include)
+include_directories(${PROJECT_SOURCE_DIR}/ext/include)
+
+add_subdirectory(${PROJECT_SOURCE_DIR}/lib/libuv)
+add_subdirectory(${PROJECT_SOURCE_DIR}/lib/cpp-driver)
 
 if(${LINK_STATICALLY})
     set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a)
@@ -45,6 +53,7 @@ include_directories(BEFORE ext/include ext)
 
 set(php_cassandra_sources ${UTILS_LIST} ${SRC_LIST} ext/php_driver.c)
 
+
 add_library(ext-cassandra SHARED ${php_cassandra_sources})
 
 
@@ -57,7 +66,9 @@ set_target_properties(ext-cassandra PROPERTIES PREFIX "")
 set_target_properties(ext-cassandra PROPERTIES OUTPUT_NAME "cassandra")
 
 target_link_libraries(ext-cassandra ${CASSANDRA_LINK_LIBRARIES})
-target_link_libraries(ext-cassandra cassandra)
+# target_link_libraries(ext-cassandra cassandra)
+# target_link_libraries(ext-cassandra libuv)
+# target_link_libraries(ext-cassandra cpp-driver)
 
 install(TARGETS ext-cassandra LIBRARY DESTINATION ${PHP_EXTENSION_DIR})
 install(FILES ${HEAD_FILES} DESTINATION include/cassandra)
