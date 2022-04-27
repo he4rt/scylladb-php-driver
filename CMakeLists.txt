@@ -22,7 +22,7 @@ else()
     set(CASSANDRA_LINK_LIBRARIES cassandra uv)
 endif()
 execute_process(COMMAND phpize WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
-execute_process(COMMAND ext/configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
+execute_process(COMMAND ./configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
 
 # file(READ ./config.h CASSANDRA_CONFIG_FILE)
 
