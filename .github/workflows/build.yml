@@ -27,7 +27,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=RELEASE -DLINK_STATICALLY=ON ..
+          cmake -G Ninja -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_C_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE=RELEASE -DLINK_STATICALLY=ON ..
           ninja
           ninja install
       - uses: actions/upload-artifact@v2
