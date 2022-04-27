@@ -33,4 +33,7 @@
         "editor.defaultFormatter": "ms-vscode.cpptools"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/.",
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": "file:///workspaces/cassandra-php-driver/.github/workflows/build.yml"
+    },
 }
