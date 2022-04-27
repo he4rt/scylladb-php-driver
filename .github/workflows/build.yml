@@ -38,8 +38,9 @@ jobs:
             -DLIBUV_LIBRARY=. \
             -DCMAKE_BUILD_TYPE=Release \
             -DLINK_STATICALLY=ON ..
-          ninja
-          ninja install
+          ninja libuv_a.a
+          ninja cassandra_static
+          ninja ext-cassandra
       - uses: actions/upload-artifact@v2
         if: ${{ inputs.upload_to_artifact }}
         with:
