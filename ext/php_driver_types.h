@@ -17,7 +17,8 @@
 #ifndef PHP_DRIVER_TYPES_H
 #define PHP_DRIVER_TYPES_H
 
-#define PHP_DRIVER_GET_NUMERIC(obj) php_driver_numeric_object_fetch(Z_OBJ_P(obj))
+#include "src/Numeric/numeric.h"
+
 #define PHP_DRIVER_GET_BLOB(obj) php_driver_blob_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_TIMESTAMP(obj) php_driver_timestamp_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_DATE(obj) php_driver_date_object_fetch(Z_OBJ_P(obj))
@@ -55,54 +56,6 @@
 #define PHP_DRIVER_GET_TIMESTAMP_GEN(obj) php_driver_timestamp_gen_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_DURATION(obj) php_driver_duration_object_fetch(Z_OBJ_P(obj))
 
-typedef enum {
-  PHP_DRIVER_BIGINT,
-  PHP_DRIVER_DECIMAL,
-  PHP_DRIVER_FLOAT,
-  PHP_DRIVER_VARINT,
-  PHP_DRIVER_SMALLINT,
-  PHP_DRIVER_TINYINT
-} php_driver_numeric_type;
-
-typedef struct php_driver_numeric_ {
-  php_driver_numeric_type type;
-  union {
-    struct
-    {
-      cass_int8_t value;
-    } tinyint;
-    struct
-    {
-      cass_int16_t value;
-    } smallint;
-    struct
-    {
-      cass_int64_t value;
-    } bigint;
-    struct
-    {
-      cass_float_t value;
-    } floating;
-    struct
-    {
-      mpz_t value;
-    } varint;
-    struct
-    {
-      mpz_t value;
-      long scale;
-    } decimal;
-  } data;
-  zend_object zval;
-} php_driver_numeric;
-
-static zend_always_inline
-  php_driver_numeric*
-  php_driver_numeric_object_fetch(zend_object* obj)
-{
-  return (php_driver_numeric*) ((char*) obj - XtOffsetOf(php_driver_numeric, zval));
-}
-
 typedef struct php_driver_timestamp_ {
   cass_int64_t timestamp;
   zend_object zval;
@@ -111,7 +64,7 @@ static zend_always_inline
   php_driver_timestamp*
   php_driver_timestamp_object_fetch(zend_object* obj)
 {
-  return (php_driver_timestamp*) ((char*) obj - ((size_t)(&(((php_driver_timestamp*) 0)->zval))));
+  return (php_driver_timestamp*) ((char*) obj - XtOffsetOf(php_driver_timestamp, zval));
 }
 
 typedef struct php_driver_date_ {
@@ -121,7 +74,7 @@ typedef struct php_driver_date_ {
 static zend_always_inline php_driver_date*
 php_driver_date_object_fetch(zend_object* obj)
 {
-  return (php_driver_date*) ((char*) obj - ((size_t)(&(((php_driver_date*) 0)->zval))));
+  return (php_driver_date*) ((char*) obj - XtOffsetOf(php_driver_date, zval));
 }
 
 typedef struct php_driver_time_ {
@@ -133,7 +86,7 @@ static zend_always_inline
   php_driver_time*
   php_driver_time_object_fetch(zend_object* obj)
 {
-  return (php_driver_time*) ((char*) obj - ((size_t)(&(((php_driver_time*) 0)->zval))));
+  return (php_driver_time*) ((char*) obj - XtOffsetOf(php_driver_time, zval));
 }
 
 typedef struct php_driver_blob_ {
@@ -145,7 +98,7 @@ static zend_always_inline
   php_driver_blob*
   php_driver_blob_object_fetch(zend_object* obj)
 {
-  return (php_driver_blob*) ((char*) obj - ((size_t)(&(((php_driver_blob*) 0)->zval))));
+  return (php_driver_blob*) ((char*) obj - XtOffsetOf(php_driver_blob, zval));
 }
 
 typedef struct php_driver_uuid_ {
@@ -156,7 +109,7 @@ static zend_always_inline
   php_driver_uuid*
   php_driver_uuid_object_fetch(zend_object* obj)
 {
-  return (php_driver_uuid*) ((char*) obj - ((size_t)(&(((php_driver_uuid*) 0)->zval))));
+  return (php_driver_uuid*) ((char*) obj - XtOffsetOf(php_driver_uuid, zval));
 }
 
 typedef struct php_driver_inet_ {
@@ -167,7 +120,7 @@ static zend_always_inline
   php_driver_inet*
   php_driver_inet_object_fetch(zend_object* obj)
 {
-  return (php_driver_inet*) ((char*) obj - ((size_t)(&(((php_driver_inet*) 0)->zval))));
+  return (php_driver_inet*) ((char*) obj - XtOffsetOf(php_driver_inet, zval));
 }
 
 typedef struct php_driver_duration_ {
@@ -180,7 +133,7 @@ static zend_always_inline
   php_driver_duration*
   php_driver_duration_object_fetch(zend_object* obj)
 {
-  return (php_driver_duration*) ((char*) obj - ((size_t)(&(((php_driver_duration*) 0)->zval))));
+  return (php_driver_duration*) ((char*) obj - XtOffsetOf(php_driver_duration, zval));
 }
 
 typedef struct php_driver_collection_ {
@@ -194,7 +147,7 @@ static zend_always_inline
   php_driver_collection*
   php_driver_collection_object_fetch(zend_object* obj)
 {
-  return (php_driver_collection*) ((char*) obj - ((size_t)(&(((php_driver_collection*) 0)->zval))));
+  return (php_driver_collection*) ((char*) obj - XtOffsetOf(php_driver_collection, zval));
 }
 
 typedef struct php_driver_map_entry_ php_driver_map_entry;
@@ -212,7 +165,7 @@ static zend_always_inline
   php_driver_map*
   php_driver_map_object_fetch(zend_object* obj)
 {
-  return (php_driver_map*) ((char*) obj - ((size_t)(&(((php_driver_map*) 0)->zval))));
+  return (php_driver_map*) ((char*) obj - XtOffsetOf(php_driver_map, zval));
 }
 
 typedef struct php_driver_set_entry_ php_driver_set_entry;
@@ -231,7 +184,7 @@ static zend_always_inline
   php_driver_set*
   php_driver_set_object_fetch(zend_object* obj)
 {
-  return (php_driver_set*) ((char*) obj - ((size_t)(&(((php_driver_set*) 0)->zval))));
+  return (php_driver_set*) ((char*) obj - XtOffsetOf(php_driver_set, zval));
 }
 
 typedef struct php_driver_tuple_ {
@@ -246,7 +199,7 @@ static zend_always_inline
   php_driver_tuple*
   php_driver_tuple_object_fetch(zend_object* obj)
 {
-  return (php_driver_tuple*) ((char*) obj - ((size_t)(&(((php_driver_tuple*) 0)->zval))));
+  return (php_driver_tuple*) ((char*) obj - XtOffsetOf(php_driver_tuple, zval));
 }
 
 typedef struct php_driver_user_type_value_ {
@@ -261,7 +214,7 @@ static zend_always_inline
   php_driver_user_type_value*
   php_driver_user_type_value_object_fetch(zend_object* obj)
 {
-  return (php_driver_user_type_value*) ((char*) obj - ((size_t)(&(((php_driver_user_type_value*) 0)->zval))));
+  return (php_driver_user_type_value*) ((char*) obj - XtOffsetOf(php_driver_user_type_value, zval));
 }
 
 typedef struct php_driver_cluster_ {
@@ -279,7 +232,7 @@ static zend_always_inline
   php_driver_cluster*
   php_driver_cluster_object_fetch(zend_object* obj)
 {
-  return (php_driver_cluster*) ((char*) obj - ((size_t)(&(((php_driver_cluster*) 0)->zval))));
+  return (php_driver_cluster*) ((char*) obj - XtOffsetOf(php_driver_cluster, zval));
 }
 
 typedef enum {
@@ -311,7 +264,7 @@ static zend_always_inline
   php_driver_statement*
   php_driver_statement_object_fetch(zend_object* obj)
 {
-  return (php_driver_statement*) ((char*) obj - ((size_t)(&(((php_driver_statement*) 0)->zval))));
+  return (php_driver_statement*) ((char*) obj - XtOffsetOf(php_driver_statement, zval));
 }
 
 typedef struct
@@ -336,7 +289,7 @@ static zend_always_inline
   php_driver_execution_options*
   php_driver_execution_options_object_fetch(zend_object* obj)
 {
-  return (php_driver_execution_options*) ((char*) obj - ((size_t)(&(((php_driver_execution_options*) 0)->zval))));
+  return (php_driver_execution_options*) ((char*) obj - XtOffsetOf(php_driver_execution_options, zval));
 }
 
 typedef enum {
@@ -369,7 +322,7 @@ static zend_always_inline
   php_driver_rows*
   php_driver_rows_object_fetch(zend_object* obj)
 {
-  return (php_driver_rows*) ((char*) obj - ((size_t)(&(((php_driver_rows*) 0)->zval))));
+  return (php_driver_rows*) ((char*) obj - XtOffsetOf(php_driver_rows, zval));
 }
 
 typedef struct php_driver_future_rows_ {
@@ -384,7 +337,7 @@ static zend_always_inline
   php_driver_future_rows*
   php_driver_future_rows_object_fetch(zend_object* obj)
 {
-  return (php_driver_future_rows*) ((char*) obj - ((size_t)(&(((php_driver_future_rows*) 0)->zval))));
+  return (php_driver_future_rows*) ((char*) obj - XtOffsetOf(php_driver_future_rows, zval));
 }
 
 typedef struct php_driver_cluster_builder_ {
@@ -429,7 +382,7 @@ static zend_always_inline
   php_driver_cluster_builder*
   php_driver_cluster_builder_object_fetch(zend_object* obj)
 {
-  return (php_driver_cluster_builder*) ((char*) obj - ((size_t)(&(((php_driver_cluster_builder*) 0)->zval))));
+  return (php_driver_cluster_builder*) ((char*) obj - XtOffsetOf(php_driver_cluster_builder, zval));
 }
 
 typedef struct php_driver_future_prepared_statement_ {
@@ -442,7 +395,7 @@ static zend_always_inline
   php_driver_future_prepared_statement_object_fetch(zend_object* obj)
 {
   return (php_driver_future_prepared_statement*) ((char*) obj
-                                                  - ((size_t)(&(((php_driver_future_prepared_statement*) 0)->zval))));
+                                                  - XtOffsetOf(php_driver_future_prepared_statement, zval));
 }
 
 typedef struct php_driver_future_value_ {
@@ -453,7 +406,7 @@ static zend_always_inline
   php_driver_future_value*
   php_driver_future_value_object_fetch(zend_object* obj)
 {
-  return (php_driver_future_value*) ((char*) obj - ((size_t)(&(((php_driver_future_value*) 0)->zval))));
+  return (php_driver_future_value*) ((char*) obj - XtOffsetOf(php_driver_future_value, zval));
 }
 
 typedef struct php_driver_future_close_ {
@@ -464,7 +417,7 @@ static zend_always_inline
   php_driver_future_close*
   php_driver_future_close_object_fetch(zend_object* obj)
 {
-  return (php_driver_future_close*) ((char*) obj - ((size_t)(&(((php_driver_future_close*) 0)->zval))));
+  return (php_driver_future_close*) ((char*) obj - XtOffsetOf(php_driver_future_close, zval));
 }
 
 typedef struct php_driver_future_session_ {
@@ -484,7 +437,7 @@ static zend_always_inline
   php_driver_future_session*
   php_driver_future_session_object_fetch(zend_object* obj)
 {
-  return (php_driver_future_session*) ((char*) obj - ((size_t)(&(((php_driver_future_session*) 0)->zval))));
+  return (php_driver_future_session*) ((char*) obj - XtOffsetOf(php_driver_future_session, zval));
 }
 
 typedef struct
@@ -513,7 +466,7 @@ static zend_always_inline
   php_driver_session*
   php_driver_session_object_fetch(zend_object* obj)
 {
-  return (php_driver_session*) ((char*) obj - ((size_t)(&(((php_driver_session*) 0)->zval))));
+  return (php_driver_session*) ((char*) obj - XtOffsetOf(php_driver_session, zval));
 }
 
 typedef struct php_driver_ssl_ {
@@ -524,7 +477,7 @@ static zend_always_inline
   php_driver_ssl*
   php_driver_ssl_object_fetch(zend_object* obj)
 {
-  return (php_driver_ssl*) ((char*) obj - ((size_t)(&(((php_driver_ssl*) 0)->zval))));
+  return (php_driver_ssl*) ((char*) obj - XtOffsetOf(php_driver_ssl, zval));
 }
 
 typedef struct php_driver_ssl_builder_ {
@@ -540,7 +493,7 @@ static zend_always_inline
   php_driver_ssl_builder*
   php_driver_ssl_builder_object_fetch(zend_object* obj)
 {
-  return (php_driver_ssl_builder*) ((char*) obj - ((size_t)(&(((php_driver_ssl_builder*) 0)->zval))));
+  return (php_driver_ssl_builder*) ((char*) obj - XtOffsetOf(php_driver_ssl_builder, zval));
 }
 
 typedef struct php_driver_schema_ {
@@ -551,7 +504,7 @@ static zend_always_inline
   php_driver_schema*
   php_driver_schema_object_fetch(zend_object* obj)
 {
-  return (php_driver_schema*) ((char*) obj - ((size_t)(&(((php_driver_schema*) 0)->zval))));
+  return (php_driver_schema*) ((char*) obj - XtOffsetOf(php_driver_schema, zval));
 }
 
 typedef struct php_driver_keyspace_ {
@@ -563,7 +516,7 @@ static zend_always_inline
   php_driver_keyspace*
   php_driver_keyspace_object_fetch(zend_object* obj)
 {
-  return (php_driver_keyspace*) ((char*) obj - ((size_t)(&(((php_driver_keyspace*) 0)->zval))));
+  return (php_driver_keyspace*) ((char*) obj - XtOffsetOf(php_driver_keyspace, zval));
 }
 
 typedef struct php_driver_table_ {
@@ -581,7 +534,7 @@ static zend_always_inline
   php_driver_table*
   php_driver_table_object_fetch(zend_object* obj)
 {
-  return (php_driver_table*) ((char*) obj - ((size_t)(&(((php_driver_table*) 0)->zval))));
+  return (php_driver_table*) ((char*) obj - XtOffsetOf(php_driver_table, zval));
 }
 
 typedef struct php_driver_materialized_view_ {
@@ -600,7 +553,7 @@ static zend_always_inline
   php_driver_materialized_view*
   php_driver_materialized_view_object_fetch(zend_object* obj)
 {
-  return (php_driver_materialized_view*) ((char*) obj - ((size_t)(&(((php_driver_materialized_view*) 0)->zval))));
+  return (php_driver_materialized_view*) ((char*) obj - XtOffsetOf(php_driver_materialized_view, zval));
 }
 
 typedef struct php_driver_column_ {
@@ -616,7 +569,7 @@ static zend_always_inline
   php_driver_column*
   php_driver_column_object_fetch(zend_object* obj)
 {
-  return (php_driver_column*) ((char*) obj - ((size_t)(&(((php_driver_column*) 0)->zval))));
+  return (php_driver_column*) ((char*) obj - XtOffsetOf(php_driver_column, zval));
 }
 
 typedef struct php_driver_index_ {
@@ -632,7 +585,7 @@ static zend_always_inline
   php_driver_index*
   php_driver_index_object_fetch(zend_object* obj)
 {
-  return (php_driver_index*) ((char*) obj - ((size_t)(&(((php_driver_index*) 0)->zval))));
+  return (php_driver_index*) ((char*) obj - XtOffsetOf(php_driver_index, zval));
 }
 
 typedef struct php_driver_function_ {
@@ -650,7 +603,7 @@ static zend_always_inline
   php_driver_function*
   php_driver_function_object_fetch(zend_object* obj)
 {
-  return (php_driver_function*) ((char*) obj - ((size_t)(&(((php_driver_function*) 0)->zval))));
+  return (php_driver_function*) ((char*) obj - XtOffsetOf(php_driver_function, zval));
 }
 
 typedef struct php_driver_aggregate_ {
@@ -670,7 +623,7 @@ static zend_always_inline
   php_driver_aggregate*
   php_driver_aggregate_object_fetch(zend_object* obj)
 {
-  return (php_driver_aggregate*) ((char*) obj - ((size_t)(&(((php_driver_aggregate*) 0)->zval))));
+  return (php_driver_aggregate*) ((char*) obj - XtOffsetOf(php_driver_aggregate, zval));
 }
 
 typedef struct php_driver_type_ {
@@ -711,7 +664,7 @@ static zend_always_inline
   php_driver_type*
   php_driver_type_object_fetch(zend_object* obj)
 {
-  return (php_driver_type*) ((char*) obj - ((size_t)(&(((php_driver_type*) 0)->zval))));
+  return (php_driver_type*) ((char*) obj - XtOffsetOf(php_driver_type, zval));
 }
 
 typedef struct php_driver_retry_policy_ {
@@ -722,7 +675,7 @@ static zend_always_inline
   php_driver_retry_policy*
   php_driver_retry_policy_object_fetch(zend_object* obj)
 {
-  return (php_driver_retry_policy*) ((char*) obj - ((size_t)(&(((php_driver_retry_policy*) 0)->zval))));
+  return (php_driver_retry_policy*) ((char*) obj - XtOffsetOf(php_driver_retry_policy, zval));
 }
 
 typedef struct php_driver_timestamp_gen_ {
@@ -733,7 +686,7 @@ static zend_always_inline
   php_driver_timestamp_gen*
   php_driver_timestamp_gen_object_fetch(zend_object* obj)
 {
-  return (php_driver_timestamp_gen*) ((char*) obj - ((size_t)(&(((php_driver_timestamp_gen*) 0)->zval))));
+  return (php_driver_timestamp_gen*) ((char*) obj - XtOffsetOf(php_driver_timestamp_gen, zval));
 }
 
 typedef unsigned (*php_driver_value_hash_t)(zval* obj TSRMLS_DC);
@@ -746,7 +699,6 @@ typedef struct
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_value_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_numeric_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_bigint_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_smallint_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_tinyint_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_blob_ce;
@@ -799,7 +751,6 @@ void php_driver_define_RangeException(TSRMLS_D);
 /* Types */
 void php_driver_define_Value(TSRMLS_D);
 void php_driver_define_Numeric(TSRMLS_D);
-void php_driver_define_Bigint(TSRMLS_D);
 void php_driver_define_Smallint(TSRMLS_D);
 void php_driver_define_Tinyint(TSRMLS_D);
 void php_driver_define_Blob(TSRMLS_D);

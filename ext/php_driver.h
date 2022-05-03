@@ -93,12 +93,13 @@ typedef unsigned long ulong;
 #endif
 
 static inline int
-php5to7_string_compare(php5to7_string s1, php5to7_string s2)
+php5to7_string_compare(zend_string* s1, zend_string* s2)
 {
 	if (s1->len != s2->len)
 	{
 		return s1->len < s2->len ? -1 : 1;
 	}
+
 	return memcmp(s1->val, s2->val, s1->len);
 }
 

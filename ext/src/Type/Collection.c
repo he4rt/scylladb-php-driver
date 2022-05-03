@@ -20,20 +20,17 @@
 #include "src/Collection.h"
 #include "util/collections.h"
 
-#if PHP_MAJOR_VERSION >= 7
 #include <zend_smart_str.h>
-#else
-#include <ext/standard/php_smart_str.h>
-#endif
 
 zend_class_entry *php_driver_type_collection_ce = NULL;
 
 PHP_METHOD(TypeCollection, __construct)
 {
-  zend_throw_exception_ex(php_driver_logic_exception_ce, 0 TSRMLS_CC,
+  zend_throw_exception_ex(
+    php_driver_logic_exception_ce,
+    0,
     "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Type\\Collection type is not supported."
   );
-  return;
 }
 
 PHP_METHOD(TypeCollection, name)
@@ -42,7 +39,7 @@ PHP_METHOD(TypeCollection, name)
     return;
   }
 
-  PHP5TO7_RETVAL_STRING("list");
+  RETVAL_STRING("list");
 }
 
 PHP_METHOD(TypeCollection, valueType)
@@ -54,13 +51,13 @@ PHP_METHOD(TypeCollection, valueType)
   }
 
   self = PHP_DRIVER_GET_TYPE(getThis());
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->data.collection.value_type), 1, 0);
+  RETURN_ZVAL(&self->data.collection.value_type, 1, 0);
 }
 
 PHP_METHOD(TypeCollection, __toString)
 {
   php_driver_type *self;
-  smart_str string = PHP5TO7_SMART_STR_INIT;
+  smart_str string = { NULL, 0 };
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;

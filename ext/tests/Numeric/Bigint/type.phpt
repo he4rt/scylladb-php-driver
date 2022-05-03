@@ -3,8 +3,10 @@
 <?php if (!extension_loaded("cassandra")) die("Skipped: cassandra extension required."); ?>
 --FILE--
 <?php
-$statement = new Cassandra\SimpleStatement("SELECT * FROM system.schema_keyspaces");
-echo "success";
+$bigint = new Cassandra\Bigint(10);
+
+echo $bigint->type();
+
 ?>
 --EXPECT--
-success
+bigint

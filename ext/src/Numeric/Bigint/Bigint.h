@@ -17,6 +17,12 @@
 #ifndef PHP_DRIVER_BIGINT_H
 #define PHP_DRIVER_BIGINT_H
 
-void php_driver_bigint_init(INTERNAL_FUNCTION_PARAMETERS);
+#include "php_driver.h"
+#include <php.h>
+
+
+extern PHP_DRIVER_API zend_class_entry* php_driver_bigint_ce;
+
+void php_driver_define_Bigint();
 
 #endif /* PHP_DRIVER_BIGINT_H */

@@ -18,13 +18,13 @@
 #include "php_driver.h"
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
-#include "src/Bigint.h"
 #include "src/Blob.h"
 #include "src/Date.h"
 #include "src/Decimal.h"
 #include "src/Duration.h"
 #include "src/Float.h"
 #include "src/Inet.h"
+#include "src/Numeric/Bigint/Bigint.h"
 #include "src/Smallint.h"
 #include "src/Time.h"
 #include "src/Timestamp.h"
@@ -518,7 +518,7 @@ php_driver_type_string(php_driver_type* type, smart_str* string TSRMLS_DC)
     break;
 
   default:
-    smart_str_appendl(string, "invalid", 7);
+    smart_str_appendl_ex(string, ZEND_STRL("invalid"), 0);
     break;
   }
 }
@@ -529,9 +529,9 @@ php_driver_type_scalar_new(CassValueType type TSRMLS_DC)
   php5to7_zval ztype;
   php_driver_type* scalar;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
-  object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_scalar_ce);
-  scalar            = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
+  object_init_ex(&ztype, php_driver_type_scalar_ce);
+
+  scalar            = PHP_DRIVER_GET_TYPE(&ztype);
   scalar->type      = type;
   scalar->data_type = cass_data_type_new(type);
 
@@ -553,7 +553,7 @@ php_driver_scalar_type_name(CassValueType type TSRMLS_DC)
 }
 
 static void
-  php_driver_varchar_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_varchar_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   char* string;
   php5to7_size string_len;
@@ -566,13 +566,13 @@ static void
 }
 
 static void
-  php_driver_ascii_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_ascii_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   php_driver_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 static void
-  php_driver_boolean_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_boolean_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   zend_bool value;
 
@@ -584,13 +584,13 @@ static void
 }
 
 static void
-  php_driver_counter_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_counter_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   php_driver_bigint_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 static void
-  php_driver_double_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_double_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   double value;
 
@@ -602,7 +602,7 @@ static void
 }
 
 static void
-  php_driver_int_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_int_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   long value;
 
@@ -614,7 +614,7 @@ static void
 }
 
 static void
-  php_driver_text_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_text_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   php_driver_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
@@ -622,7 +622,7 @@ static void
 #define TYPE_INIT_METHOD(t) php_driver_##t##_init
 
 void
-  php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS)
+php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   php_driver_type* self = PHP_DRIVER_GET_TYPE(getThis());
 
@@ -687,8 +687,8 @@ php_driver_type_map(zval* key_type,
   map->data.map.key_type   = *key_type;
   map->data.map.value_type = *value_type;
 #else
-  map->data.map.key_type                 = key_type;
-  map->data.map.value_type               = value_type;
+  map->data.map.key_type   = key_type;
+  map->data.map.value_type = value_type;
 #endif
 
   return ztype;
@@ -735,7 +735,7 @@ php_driver_type_set(zval* value_type TSRMLS_DC)
 #if PHP_MAJOR_VERSION >= 7
   set->data.set.value_type = *value_type;
 #else
-  set->data.set.value_type               = value_type;
+  set->data.set.value_type = value_type;
 #endif
 
   return ztype;
@@ -775,46 +775,40 @@ php_driver_type_collection(zval* value_type TSRMLS_DC)
     cass_data_type_add_sub_type(collection->data_type, sub_type->data_type);
   }
 
-#if PHP_MAJOR_VERSION >= 7
   collection->data.collection.value_type = *value_type;
-#else
-  collection->data.collection.value_type = value_type;
-#endif
 
   return ztype;
 }
 
 php5to7_zval
-php_driver_type_collection_from_value_type(CassValueType type TSRMLS_DC)
+php_driver_type_collection_from_value_type(CassValueType type)
 {
   php5to7_zval ztype;
   php_driver_type* collection;
   php_driver_type* sub_type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
-  object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_collection_ce);
+  object_init_ex(&ztype, php_driver_type_collection_ce);
   collection                             = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
-  collection->data.collection.value_type = php_driver_type_scalar(type TSRMLS_CC);
+  collection->data.collection.value_type = php_driver_type_scalar(type);
 
-  sub_type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(collection->data.collection.value_type));
+  sub_type = PHP_DRIVER_GET_TYPE(&collection->data.collection.value_type);
   cass_data_type_add_sub_type(collection->data_type, sub_type->data_type);
 
   return ztype;
 }
 
 php5to7_zval
-  php_driver_type_tuple(TSRMLS_D)
+php_driver_type_tuple(TSRMLS_D)
 {
   php5to7_zval ztype;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
-  object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_tuple_ce);
+  object_init_ex(&ztype, php_driver_type_tuple_ce);
 
   return ztype;
 }
 
 php5to7_zval
-  php_driver_type_user_type(TSRMLS_D)
+php_driver_type_user_type(TSRMLS_D)
 {
   php5to7_zval ztype;
   php_driver_type* user_type;
@@ -828,13 +822,12 @@ php5to7_zval
 }
 
 php5to7_zval
-php_driver_type_custom(const char* name, size_t name_length TSRMLS_DC)
+php_driver_type_custom(const char* name, size_t name_length)
 {
   php5to7_zval ztype;
   php_driver_type* custom;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
-  object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_custom_ce);
+  object_init_ex(&ztype, php_driver_type_custom_ce);
   custom                         = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   custom->data.custom.class_name = estrndup(name, name_length);
 
@@ -870,25 +863,18 @@ describe_token(enum token_type token)
   switch (token) {
   case TOKEN_ILLEGAL:
     return "illegal character";
-    break;
   case TOKEN_PAREN_OPEN:
     return "opening parenthesis";
-    break;
   case TOKEN_PAREN_CLOSE:
     return "closing parenthesis";
-    break;
   case TOKEN_COMMA:
     return "comma";
-    break;
   case TOKEN_COLON:
     return "colon";
-    break;
   case TOKEN_NAME:
     return "alphanumeric character";
-    break;
   case TOKEN_END:
     return "end of string";
-    break;
   default:
     return "unknown token";
   }
