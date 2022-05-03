@@ -6,6 +6,7 @@
 /docs/
 /vendor/
 /venv/
+utils/target/
 
 # Files to ignore
 /cassandra.log
