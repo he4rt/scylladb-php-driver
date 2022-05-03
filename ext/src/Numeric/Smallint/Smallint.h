@@ -17,6 +17,6 @@
 #ifndef PHP_DRIVER_SMALLINT_H
 #define PHP_DRIVER_SMALLINT_H
 
-void php_driver_smallint_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_driver_define_Smallint();
 
 #endif /* PHP_DRIVER_SMALLINT_H */

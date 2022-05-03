@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#ifndef PHP_DRIVER_DECIMAL_H
-#define PHP_DRIVER_DECIMAL_H
+#ifndef PHP_DRIVER_TINYINT_H
+#define PHP_DRIVER_TINYINT_H
 
-void php_driver_decimal_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_driver_define_Tinyint();
 
-#endif /* PHP_DRIVER_DECIMAL_H */
+#endif /* PHP_DRIVER_TINYINT_H */

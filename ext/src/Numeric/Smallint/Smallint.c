@@ -20,6 +20,8 @@
 #include "util/math.h"
 #include "util/types.h"
 
+#include <Numeric/Numeric.h>
+
 #if !defined(HAVE_STDINT_H) && !defined(_MSC_STDINT_H_)
 #  define INT16_MAX 32767
 #  define INT16_MIN (-INT16_MAX-1)

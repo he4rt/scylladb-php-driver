@@ -20,6 +20,7 @@
 #include "util/math.h"
 #include "util/types.h"
 
+#include <Numeric/Numeric.h>
 #include <float.h>
 
 zend_class_entry* php_driver_varint_ce = NULL;

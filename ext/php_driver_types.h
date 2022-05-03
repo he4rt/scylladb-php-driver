@@ -698,12 +698,7 @@ typedef struct
 } php_driver_value_handlers;
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_value_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_numeric_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_smallint_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_tinyint_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_blob_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_decimal_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_float_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_inet_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_date_ce;
@@ -711,7 +706,6 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_time_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_uuid_interface_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_uuid_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_timeuuid_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_varint_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_custom_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_duration_ce;
 
@@ -750,13 +744,10 @@ void php_driver_define_RangeException(TSRMLS_D);
 
 /* Types */
 void php_driver_define_Value(TSRMLS_D);
-void php_driver_define_Numeric(TSRMLS_D);
-void php_driver_define_Smallint(TSRMLS_D);
-void php_driver_define_Tinyint(TSRMLS_D);
+
 void php_driver_define_Blob(TSRMLS_D);
 void php_driver_define_Collection(TSRMLS_D);
-void php_driver_define_Decimal(TSRMLS_D);
-void php_driver_define_Float(TSRMLS_D);
+
 void php_driver_define_Inet(TSRMLS_D);
 void php_driver_define_Map(TSRMLS_D);
 void php_driver_define_Set(TSRMLS_D);
@@ -768,7 +759,6 @@ void php_driver_define_UserTypeValue(TSRMLS_D);
 void php_driver_define_UuidInterface(TSRMLS_D);
 void php_driver_define_Uuid(TSRMLS_D);
 void php_driver_define_Timeuuid(TSRMLS_D);
-void php_driver_define_Varint(TSRMLS_D);
 void php_driver_define_Custom(TSRMLS_D);
 void php_driver_define_Duration(TSRMLS_D);
 

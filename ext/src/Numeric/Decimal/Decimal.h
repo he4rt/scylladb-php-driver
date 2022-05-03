@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#ifndef PHP_DRIVER_VARINT_H
-#define PHP_DRIVER_VARINT_H
+#ifndef PHP_DRIVER_DECIMAL_H
+#define PHP_DRIVER_DECIMAL_H
 
-void php_driver_varint_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_driver_define_Decimal();
 
-#endif /* PHP_DRIVER_VARINT_H */
+#endif /* PHP_DRIVER_DECIMAL_H */

@@ -17,11 +17,8 @@
 #ifndef PHP_DRIVER_BIGINT_H
 #define PHP_DRIVER_BIGINT_H
 
-#include "php_driver.h"
+#include <Numeric/Bigint.h>
 #include <php.h>
-
-
-extern PHP_DRIVER_API zend_class_entry* php_driver_bigint_ce;
 
 void php_driver_define_Bigint();
 

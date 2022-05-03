@@ -16,27 +16,27 @@
 
 #include "php_driver.h"
 
-zend_class_entry *php_driver_numeric_ce = NULL;
+zend_class_entry* php_driver_numeric_ce = NULL;
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, num)
+ZEND_ARG_INFO(0, num)
 ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_numeric_methods[] = {
   PHP_ABSTRACT_ME(Numeric, add, arginfo_num)
-  PHP_ABSTRACT_ME(Numeric, sub, arginfo_num)
-  PHP_ABSTRACT_ME(Numeric, mul, arginfo_num)
-  PHP_ABSTRACT_ME(Numeric, div, arginfo_num)
-  PHP_ABSTRACT_ME(Numeric, mod, arginfo_num)
-  PHP_ABSTRACT_ME(Numeric, abs, arginfo_none)
-  PHP_ABSTRACT_ME(Numeric, neg, arginfo_none)
-  PHP_ABSTRACT_ME(Numeric, sqrt, arginfo_none)
-  PHP_ABSTRACT_ME(Numeric, toInt, arginfo_none)
-  PHP_ABSTRACT_ME(Numeric, toDouble, arginfo_none)
-  PHP_FE_END
+    PHP_ABSTRACT_ME(Numeric, sub, arginfo_num)
+      PHP_ABSTRACT_ME(Numeric, mul, arginfo_num)
+        PHP_ABSTRACT_ME(Numeric, div, arginfo_num)
+          PHP_ABSTRACT_ME(Numeric, mod, arginfo_num)
+            PHP_ABSTRACT_ME(Numeric, abs, arginfo_none)
+              PHP_ABSTRACT_ME(Numeric, neg, arginfo_none)
+                PHP_ABSTRACT_ME(Numeric, sqrt, arginfo_none)
+                  PHP_ABSTRACT_ME(Numeric, toInt, arginfo_none)
+                    PHP_ABSTRACT_ME(Numeric, toDouble, arginfo_none)
+                      PHP_FE_END
 };
 
 void

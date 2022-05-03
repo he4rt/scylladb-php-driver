@@ -33,11 +33,20 @@ if test -z "$PHP_GMP"; then
 fi
 
 if test "$PHP_CASSANDRA" != "no"; then
+  CASSANDRA_NUMERIC="\
+      src/Numeric/Bigint/Bigint.c \
+      src/Numeric/Decimal.c \
+      src/Numeric/Flaot/Float.c \
+      src/Numeric/Tinyint/Tinyint.c \
+      src/Numeric/Smallint/Smallint.c \
+      src/Numeric/Numeric.c \
+      src/Numeric/Varint/Varint.c \
+  "
+
   CASSANDRA_CLASSES="\
     src/Core.c \
     src/Aggregate.c \
     src/BatchStatement.c \
-    src/Numeric/Bigint/Bigint.c \
     src/Blob.c \
     src/Cluster.c \
     src/Cluster/Builder.c \
@@ -45,7 +54,6 @@ if test "$PHP_CASSANDRA" != "no"; then
     src/Column.c \
     src/Custom.c \
     src/Date.c \
-    src/Decimal.c \
     src/DefaultAggregate.c \
     src/DefaultCluster.c \
     src/DefaultColumn.c \
@@ -59,7 +67,6 @@ if test "$PHP_CASSANDRA" != "no"; then
     src/Duration.c \
     src/Exception.c \
     src/ExecutionOptions.c \
-    src/Float.c \
     src/Function.c \
     src/Future.c \
     src/FutureClose.c \
@@ -72,7 +79,6 @@ if test "$PHP_CASSANDRA" != "no"; then
     src/Keyspace.c \
     src/Map.c \
     src/MaterializedView.c \
-    src/Numeric.c \
     src/PreparedStatement.c \
     src/RetryPolicy.c \
     src/Rows.c \
@@ -80,7 +86,6 @@ if test "$PHP_CASSANDRA" != "no"; then
     src/Session.c \
     src/Set.c \
     src/SimpleStatement.c \
-    src/Smallint.c \
     src/SSLOptions.c \
     src/SSLOptions/Builder.c \
     src/Statement.c \
@@ -91,14 +96,12 @@ if test "$PHP_CASSANDRA" != "no"; then
     src/TimestampGenerator/Monotonic.c \
     src/TimestampGenerator/ServerSide.c \
     src/Timeuuid.c \
-    src/Tinyint.c \
     src/Tuple.c \
     src/Type.c \
     src/UserTypeValue.c \
     src/Uuid.c \
     src/UuidInterface.c \
     src/Value.c \
-    src/Varint.c \
   ";
 
   CASSANDRA_EXCEPTIONS="\
@@ -170,6 +173,7 @@ if test "$PHP_CASSANDRA" != "no"; then
 
   PHP_NEW_EXTENSION(cassandra,
     php_driver.c \
+    $CASSANDRA_NUMERIC \
     $CASSANDRA_CLASSES \
     $CASSANDRA_EXCEPTIONS \
     $CASSANDRA_RETRY_POLICIES \
