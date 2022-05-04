@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+#include <Numeric/Bigint.h>
+#include <Numeric/Numeric.h>
+
 #include "Bigint.h"
-#include "../type.h"
 
 #include "util/math.h"
 #include "util/types.h"
@@ -37,12 +39,12 @@ to_double(zval* result, php_driver_numeric* bigint)
 static ZEND_RESULT_CODE
 to_long(zval* result, php_driver_numeric* bigint)
 {
-  if (bigint->data.bigint.value < (cass_int64_t) PHP5TO7_ZEND_LONG_MIN) {
+  if (bigint->data.bigint.value < (cass_int64_t) ZEND_LONG_MIN) {
     zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too small");
     return FAILURE;
   }
 
-  if (bigint->data.bigint.value > (cass_int64_t) PHP5TO7_ZEND_LONG_MAX) {
+  if (bigint->data.bigint.value > (cass_int64_t) ZEND_LONG_MAX) {
     zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too big");
     return FAILURE;
   }
@@ -445,11 +447,11 @@ php_driver_bigint_compare(zval* obj1, zval* obj2)
   return 1;
 }
 
-static unsigned
+static uint32_t
 php_driver_bigint_hash_value(zval* obj)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_ZVAL(obj);
-  return (unsigned) (self->data.bigint.value ^ (self->data.bigint.value >> 32));
+  return (uint32_t) (self->data.bigint.value ^ (self->data.bigint.value >> 32));
 }
 
 static int
@@ -488,8 +490,7 @@ php_driver_bigint_new(zend_class_entry* ce)
   self->type = PHP_DRIVER_BIGINT;
   zend_object_std_init(&self->zval, ce);
 
-  self->zval.handlers                   = &php_driver_bigint_handlers.std;
-  php_driver_bigint_handlers.std.offset = XtOffsetOf(php_driver_numeric, zval);
+  self->zval.handlers = &php_driver_bigint_handlers.std;
 
   return &self->zval;
 }
@@ -513,6 +514,7 @@ php_driver_define_Bigint()
   php_driver_bigint_handlers.std.cast_object    = php_driver_bigint_cast;
   php_driver_bigint_handlers.hash_value         = php_driver_bigint_hash_value;
   php_driver_bigint_handlers.std.free_obj       = php_driver_bigint_free;
+  php_driver_bigint_handlers.std.offset         = XtOffsetOf(php_driver_numeric, zval);
 
   php_driver_bigint_handlers.std.clone_obj = NULL;
 }

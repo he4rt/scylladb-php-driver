@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+#include <Numeric/Numeric.h>
+
+#include <Numeric/Bigint.h>
+#include <Numeric/Decimal.h>
+#include <Numeric/Float.h>
+#include <Numeric/Smallint.h>
+#include <Numeric/Tinyint.h>
+#include <Numeric/Varint.h>
+
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "util/collections.h"

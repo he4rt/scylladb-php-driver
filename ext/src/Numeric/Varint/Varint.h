@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#ifndef PHP_DRIVER_FLOAT_H
-#define PHP_DRIVER_FLOAT_H
+#ifndef PHP_DRIVER_VARINT_H
+#define PHP_DRIVER_VARINT_H
 
-void php_driver_float_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_driver_define_Varint();
 
-#endif /* PHP_DRIVER_FLOAT_H */
+#endif /* PHP_DRIVER_VARINT_H */

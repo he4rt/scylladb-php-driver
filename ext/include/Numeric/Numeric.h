@@ -1,12 +1,16 @@
+//
+// Created by Dusan Malusev on 5/3/22.
+//
 
-#ifndef LIBPHPCASSANDRA_EXT_SRC_NUMERIC_TYPE_H_
-#define LIBPHPCASSANDRA_EXT_SRC_NUMERIC_TYPE_H_
+#ifndef LIBPHPCASSANDRA_EXT_INCLUDE_NUMERIC_NUMERIC_H_
+#define LIBPHPCASSANDRA_EXT_INCLUDE_NUMERIC_NUMERIC_H_
 
-#include <cassandra.h>
-#include <gmp.h>
+#include "php_driver.h"
 #include <php.h>
 
-#define PHP_DRIVER_GET_NUMERIC(obj) ((php_driver_numeric*) (((char*) obj) - XtOffsetOf(php_driver_numeric, zval)))
+extern PHP_DRIVER_API zend_class_entry* php_driver_numeric_ce;
+
+#define PHP_DRIVER_GET_NUMERIC(obj) ((php_driver_numeric*) (((char*) (obj)) - XtOffsetOf(php_driver_numeric, zval)))
 #define PHP_DRIVER_GET_NUMERIC_ZVAL(obj) PHP_DRIVER_GET_NUMERIC(Z_OBJ_P(obj))
 
 #define PHP_DRIVER_GET_NUMERIC_THIS() PHP_DRIVER_GET_NUMERIC_ZVAL(ZEND_THIS)
@@ -20,7 +24,7 @@ typedef enum {
   PHP_DRIVER_TINYINT
 } php_driver_numeric_type;
 
-typedef struct php_driver_numeric_ {
+typedef struct {
   php_driver_numeric_type type;
   union {
     struct
@@ -52,4 +56,4 @@ typedef struct php_driver_numeric_ {
   zend_object zval;
 } php_driver_numeric;
 
-#endif // LIBPHPCASSANDRA_EXT_SRC_NUMERIC_TYPE_H_
+#endif // LIBPHPCASSANDRA_EXT_INCLUDE_NUMERIC_NUMERIC_H_

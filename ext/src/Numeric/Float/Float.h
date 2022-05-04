@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#ifndef PHP_DRIVER_TINYINT_H
-#define PHP_DRIVER_TINYINT_H
+#ifndef PHP_DRIVER_FLOAT_H
+#define PHP_DRIVER_FLOAT_H
 
-void php_driver_tinyint_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_driver_define_Float();
 
-#endif /* PHP_DRIVER_TINYINT_H */
+#endif /* PHP_DRIVER_FLOAT_H */

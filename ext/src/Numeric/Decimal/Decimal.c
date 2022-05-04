@@ -25,6 +25,8 @@
 #include <gmp.h>
 #include <math.h>
 
+#include <Numeric/Numeric.h>
+
 zend_class_entry* php_driver_decimal_ce = NULL;
 
 static void
