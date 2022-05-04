@@ -227,7 +227,6 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 #define PHP5TO7_ZVAL_STRING(zv, s) ZVAL_STRING(zv, s)
 #define PHP5TO7_ZVAL_STRINGL(zv, s, len) ZVAL_STRINGL(zv, s, len)
 #define PHP5TO7_RETVAL_STRING(s) RETVAL_STRING(s)
-#define PHP5TO7_RETURN_STRING(s) RETURN_STRING(s)
 #define PHP5TO7_RETVAL_STRINGL(s, len) RETVAL_STRINGL(s, len)
 #define PHP5TO7_RETURN_STRINGL(s, len) RETURN_STRINGL(s, len)
 
@@ -239,12 +238,9 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 #define PHP5TO7_Z_ARRVAL_MAYBE_P(zv) Z_ARRVAL(zv)
 #define PHP5TO7_Z_OBJCE_MAYBE_P(zv) Z_OBJCE(zv)
 #define PHP5TO7_Z_LVAL_MAYBE_P(zv) Z_LVAL(zv)
-#define PHP5TO7_Z_DVAL_MAYBE_P(zv) Z_DVAL(zv)
 #define PHP5TO7_Z_STRVAL_MAYBE_P(zv) Z_STRVAL(zv)
 #define PHP5TO7_Z_STRLEN_MAYBE_P(zv) Z_STRLEN(zv)
 
-#define PHP5TO7_ZEND_LONG_MAX ZEND_LONG_MAX
-#define PHP5TO7_ZEND_LONG_MIN ZEND_LONG_MIN
 
 extern zend_module_entry php_driver_module_entry;
 

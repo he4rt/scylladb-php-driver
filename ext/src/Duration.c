@@ -1,5 +1,6 @@
 #include "php_driver.h"
 #include <Numeric/Numeric.h>
+#include <Numeric/Bigint.h>
 
 #include "util/hash.h"
 #include "util/math.h"

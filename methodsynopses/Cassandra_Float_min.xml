@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <modifier>static</modifier> <type>float</type><methodname>Cassandra\Float::min</methodname>
+   <void/>
+  </methodsynopsis>

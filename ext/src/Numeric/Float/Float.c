@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
 #include "util/math.h"
 #include "util/types.h"
 #include <float.h>
 
 #include <Numeric/Numeric.h>
 
+#include "Float_arginfo.h"
+
 zend_class_entry* php_driver_float_ce = NULL;
 
-static ZEND_RESULT_CODE
+static zend_always_inline ZEND_RESULT_CODE
 to_string(zval* result, php_driver_numeric* flt)
 {
   smart_str string = { 0 };
@@ -35,7 +35,7 @@ to_string(zval* result, php_driver_numeric* flt)
   return SUCCESS;
 }
 
-void
+void zend_always_inline
 php_driver_float_init(php_driver_numeric* self, zval* value)
 {
   switch (Z_TYPE_P(value)) {
@@ -334,40 +334,6 @@ PHP_METHOD(Float, max)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, num)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_float_methods[] = {
-  PHP_ME(Float, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC)
-    PHP_ME(Float, __toString, arginfo_none, ZEND_ACC_PUBLIC)
-      PHP_ME(Float, type, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(Float, value, arginfo_none, ZEND_ACC_PUBLIC)
-          PHP_ME(Float, isInfinite, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(Float, isFinite, arginfo_none, ZEND_ACC_PUBLIC)
-              PHP_ME(Float, isNaN, arginfo_none, ZEND_ACC_PUBLIC)
-                PHP_ME(Float, add, arginfo_num, ZEND_ACC_PUBLIC)
-                  PHP_ME(Float, sub, arginfo_num, ZEND_ACC_PUBLIC)
-                    PHP_ME(Float, mul, arginfo_num, ZEND_ACC_PUBLIC)
-                      PHP_ME(Float, div, arginfo_num, ZEND_ACC_PUBLIC)
-                        PHP_ME(Float, mod, arginfo_num, ZEND_ACC_PUBLIC)
-                          PHP_ME(Float, abs, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(Float, neg, arginfo_none, ZEND_ACC_PUBLIC)
-                              PHP_ME(Float, sqrt, arginfo_none, ZEND_ACC_PUBLIC)
-                                PHP_ME(Float, toInt, arginfo_none, ZEND_ACC_PUBLIC)
-                                  PHP_ME(Float, toDouble, arginfo_none, ZEND_ACC_PUBLIC)
-                                    PHP_ME(Float, min, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-                                      PHP_ME(Float, max, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-                                        PHP_FE_END
-};
-
 static php_driver_value_handlers php_driver_float_handlers;
 
 static HashTable*
@@ -384,8 +350,8 @@ php_driver_float_gc(
 static HashTable*
 php_driver_float_properties(zend_object* object)
 {
-  php5to7_zval type;
-  php5to7_zval value;
+  zval type;
+  zval value;
 
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC(object);
   HashTable* props         = zend_std_get_properties(object);
@@ -399,7 +365,7 @@ php_driver_float_properties(zend_object* object)
   return props;
 }
 
-static inline cass_int32_t
+static zend_always_inline cass_int32_t
 float_to_bits(cass_float_t value)
 {
   cass_int32_t bits;
@@ -491,16 +457,9 @@ php_driver_float_new(zend_class_entry* ce)
 }
 
 void
-php_driver_define_Float()
+php_driver_define_Float(zend_class_entry* value_interface, zend_class_entry* numeric_interface)
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Float", php_driver_float_methods);
-
-  php_driver_float_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_float_ce, 2, php_driver_value_ce, php_driver_numeric_ce);
-
-  php_driver_float_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_float_ce                = register_class_Cassandra_Float(value_interface, numeric_interface);
   php_driver_float_ce->create_object = php_driver_float_new;
 
   memcpy(&php_driver_float_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

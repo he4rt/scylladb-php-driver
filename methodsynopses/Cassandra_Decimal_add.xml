@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Decimal</type><methodname>Cassandra\Decimal::add</methodname>
+   <methodparam><type>Cassandra\Decimal</type><parameter>num</parameter></methodparam>
+  </methodsynopsis>

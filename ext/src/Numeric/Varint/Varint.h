@@ -17,6 +17,8 @@
 #ifndef PHP_DRIVER_VARINT_H
 #define PHP_DRIVER_VARINT_H
 
-void php_driver_define_Varint();
+#include <php.h>
+
+void php_driver_define_Varint(zend_class_entry* value_interface, zend_class_entry* numeric_interface);
 
 #endif /* PHP_DRIVER_VARINT_H */

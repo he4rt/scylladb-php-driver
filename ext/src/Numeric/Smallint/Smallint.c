@@ -551,7 +551,7 @@ php_driver_smallint_new(zend_class_entry *ce TSRMLS_DC)
   PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, smallint, self, ce);
 }
 
-void php_driver_define_Smallint(TSRMLS_D)
+void php_driver_define_Smallint(zend_class_entry* value_interface, zend_class_entry* numeric_interface)
 {
   zend_class_entry ce;
 

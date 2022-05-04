@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Numeric</type><methodname>Cassandra\Numeric::neg</methodname>
+   <void/>
+  </methodsynopsis>

@@ -1,15 +1,20 @@
 <?php
-declare(strict_type=1);
 
-namespace Cassandra;
+/** @generate-class-entries */
 
-final class Bigint
-{
-    public function __construct(int|float|Bigint|string $value) { }
+namespace Cassandra {
+    final class Bigint implements Value, Numeric {
+        public function __construct(int|float|string|Bigint $value) { }
 
-    public function add(Bigint $other): Bigint { }
+        public function __toString(): string { }
 
-    public function value(Bigint $other): string { }
+        public function value(): string { }
 
-    public function __toString(): string { }
+        public static function min(): Bigint { }
+
+        public static function max(): Bigint { }
+    }
 }
+
+
+
