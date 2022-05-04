@@ -20,6 +20,6 @@
 #include <Numeric/Bigint.h>
 #include <php.h>
 
-void php_driver_define_Bigint();
+void php_driver_define_Bigint(zend_class_entry* value_interface, zend_class_entry* numeric_interface);
 
 #endif /* PHP_DRIVER_BIGINT_H */

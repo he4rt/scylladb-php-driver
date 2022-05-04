@@ -18,6 +18,7 @@
 #include <Numeric/Numeric.h>
 
 #include "Bigint.h"
+#include "Bigint_arginfo.h"
 
 #include "util/math.h"
 #include "util/types.h"
@@ -113,7 +114,7 @@ php_driver_bigint_init(php_driver_numeric* self, zval* value)
 }
 
 /* {{{ Bigint::__construct(string) */
-PHP_METHOD(Bigint, __construct)
+ZEND_METHOD(Cassandra_Bigint, __construct)
 {
   zval* value;
 
@@ -128,7 +129,7 @@ PHP_METHOD(Bigint, __construct)
 /* }}} */
 
 /* {{{ Bigint::__toString() */
-PHP_METHOD(Bigint, __toString)
+ZEND_METHOD(Cassandra_Bigint, __toString)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
 
@@ -137,7 +138,7 @@ PHP_METHOD(Bigint, __toString)
 /* }}} */
 
 /* {{{ Bigint::type() */
-PHP_METHOD(Bigint, type)
+ZEND_METHOD(Cassandra_Bigint, type)
 {
   zval type = php_driver_type_scalar(CASS_VALUE_TYPE_BIGINT);
   RETURN_ZVAL(&type, 1, 1);
@@ -145,7 +146,7 @@ PHP_METHOD(Bigint, type)
 /* }}} */
 
 /* {{{ Bigint::value() */
-PHP_METHOD(Bigint, value)
+ZEND_METHOD(Cassandra_Bigint, value)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
 
@@ -154,7 +155,7 @@ PHP_METHOD(Bigint, value)
 /* }}} */
 
 /* {{{ Bigint::add() */
-PHP_METHOD(Bigint, add)
+ZEND_METHOD(Cassandra_Bigint, add)
 {
   zval* num;
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
@@ -179,7 +180,7 @@ PHP_METHOD(Bigint, add)
 /* }}} */
 
 /* {{{ Bigint::sub() */
-PHP_METHOD(Bigint, sub)
+ZEND_METHOD(Cassandra_Bigint, sub)
 {
   zval* num;
 
@@ -202,7 +203,7 @@ PHP_METHOD(Bigint, sub)
 /* }}} */
 
 /* {{{ Bigint::mul() */
-PHP_METHOD(Bigint, mul)
+ZEND_METHOD(Cassandra_Bigint, mul)
 {
   zval* num;
 
@@ -225,7 +226,7 @@ PHP_METHOD(Bigint, mul)
 /* }}} */
 
 /* {{{ Bigint::div() */
-PHP_METHOD(Bigint, div)
+ZEND_METHOD(Cassandra_Bigint, div)
 {
   zval* num;
 
@@ -253,7 +254,7 @@ PHP_METHOD(Bigint, div)
 /* }}} */
 
 /* {{{ Bigint::mod() */
-PHP_METHOD(Bigint, mod)
+ZEND_METHOD(Cassandra_Bigint, mod)
 {
   zval* num;
   php_driver_numeric* result = NULL;
@@ -282,7 +283,7 @@ PHP_METHOD(Bigint, mod)
 /* }}} */
 
 /* {{{ Bigint::abs() */
-PHP_METHOD(Bigint, abs)
+ZEND_METHOD(Cassandra_Bigint, abs)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
 
@@ -298,7 +299,7 @@ PHP_METHOD(Bigint, abs)
 /* }}} */
 
 /* {{{ Bigint::neg() */
-PHP_METHOD(Bigint, neg)
+ZEND_METHOD(Cassandra_Bigint, neg)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
 
@@ -310,7 +311,7 @@ PHP_METHOD(Bigint, neg)
 /* }}} */
 
 /* {{{ Bigint::sqrt() */
-PHP_METHOD(Bigint, sqrt)
+ZEND_METHOD(Cassandra_Bigint, sqrt)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
 
@@ -328,7 +329,7 @@ PHP_METHOD(Bigint, sqrt)
 /* }}} */
 
 /* {{{ Bigint::toInt() */
-PHP_METHOD(Bigint, toInt)
+ZEND_METHOD(Cassandra_Bigint, toInt)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
 
@@ -337,7 +338,7 @@ PHP_METHOD(Bigint, toInt)
 /* }}} */
 
 /* {{{ Bigint::toDouble() */
-PHP_METHOD(Bigint, toDouble)
+ZEND_METHOD(Cassandra_Bigint, toDouble)
 {
   php_driver_numeric* self = PHP_DRIVER_GET_NUMERIC_THIS();
 
@@ -346,7 +347,7 @@ PHP_METHOD(Bigint, toDouble)
 /* }}} */
 
 /* {{{ Bigint::min() */
-PHP_METHOD(Bigint, min)
+ZEND_METHOD(Cassandra_Bigint, min)
 {
   object_init_ex(return_value, php_driver_bigint_ce);
   php_driver_numeric* bigint = PHP_DRIVER_GET_NUMERIC_ZVAL(return_value);
@@ -355,44 +356,13 @@ PHP_METHOD(Bigint, min)
 /* }}} */
 
 /* {{{ Bigint::max() */
-PHP_METHOD(Bigint, max)
+ZEND_METHOD(Cassandra_Bigint, max)
 {
   object_init_ex(return_value, php_driver_bigint_ce);
   php_driver_numeric* bigint = PHP_DRIVER_GET_NUMERIC_ZVAL(return_value);
   bigint->data.bigint.value  = INT64_MAX;
 }
 /* }}} */
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, num)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_bigint_methods[] = {
-  PHP_ME(Bigint, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC)
-    PHP_ME(Bigint, __toString, arginfo_none, ZEND_ACC_PUBLIC)
-      PHP_ME(Bigint, type, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(Bigint, value, arginfo_none, ZEND_ACC_PUBLIC)
-          PHP_ME(Bigint, add, arginfo_num, ZEND_ACC_PUBLIC)
-            PHP_ME(Bigint, sub, arginfo_num, ZEND_ACC_PUBLIC)
-              PHP_ME(Bigint, mul, arginfo_num, ZEND_ACC_PUBLIC)
-                PHP_ME(Bigint, div, arginfo_num, ZEND_ACC_PUBLIC)
-                  PHP_ME(Bigint, mod, arginfo_num, ZEND_ACC_PUBLIC)
-                    PHP_ME(Bigint, abs, arginfo_none, ZEND_ACC_PUBLIC)
-                      PHP_ME(Bigint, neg, arginfo_none, ZEND_ACC_PUBLIC)
-                        PHP_ME(Bigint, sqrt, arginfo_none, ZEND_ACC_PUBLIC)
-                          PHP_ME(Bigint, toInt, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(Bigint, toDouble, arginfo_none, ZEND_ACC_PUBLIC)
-                              PHP_ME(Bigint, min, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-                                PHP_ME(Bigint, max, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-                                  PHP_FE_END
-};
 
 static php_driver_value_handlers php_driver_bigint_handlers;
 
@@ -496,14 +466,9 @@ php_driver_bigint_new(zend_class_entry* ce)
 }
 
 void
-php_driver_define_Bigint()
+php_driver_define_Bigint(zend_class_entry* value_interface, zend_class_entry* numeric_interface)
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Bigint", php_driver_bigint_methods);
-  php_driver_bigint_ce = zend_register_internal_class(&ce TSRMLS_CC);
-  zend_class_implements(php_driver_bigint_ce, 2, php_driver_value_ce, php_driver_numeric_ce);
-  php_driver_bigint_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_bigint_ce                = register_class_Cassandra_Bigint(value_interface, numeric_interface);
   php_driver_bigint_ce->create_object = php_driver_bigint_new;
 
   memcpy(&php_driver_bigint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

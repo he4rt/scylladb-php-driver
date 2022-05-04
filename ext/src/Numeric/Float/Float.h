@@ -17,6 +17,8 @@
 #ifndef PHP_DRIVER_FLOAT_H
 #define PHP_DRIVER_FLOAT_H
 
-void php_driver_define_Float();
+#include <php.h>
+
+void php_driver_define_Float(zend_class_entry* value_interface, zend_class_entry* numeric_interface);
 
 #endif /* PHP_DRIVER_FLOAT_H */

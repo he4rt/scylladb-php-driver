@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<constructorsynopsis>
+   <modifier>public</modifier> <methodname>Cassandra\Float::__construct</methodname>
+   <methodparam><type class="union"><type>Cassandra\double</type><type>int</type><type>string</type><type>float</type></type><parameter>value</parameter></methodparam>
+  </constructorsynopsis>

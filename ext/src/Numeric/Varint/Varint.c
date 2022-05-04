@@ -481,7 +481,7 @@ php_driver_varint_new(zend_class_entry* ce)
 }
 
 void
-php_driver_define_Varint()
+php_driver_define_Varint(zend_class_entry* value_interface, zend_class_entry* numeric_interface)
 {
   zend_class_entry ce;
 

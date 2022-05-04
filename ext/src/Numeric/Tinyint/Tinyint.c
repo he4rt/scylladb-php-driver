@@ -543,7 +543,7 @@ php_driver_tinyint_new(zend_class_entry* ce TSRMLS_DC)
 }
 
 void
-php_driver_define_Tinyint(TSRMLS_D)
+php_driver_define_Tinyint(zend_class_entry* value_interface, zend_class_entry* numeric_interface)
 {
   zend_class_entry ce;
 

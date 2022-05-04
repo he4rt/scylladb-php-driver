@@ -17,6 +17,8 @@
 #ifndef PHP_DRIVER_TINYINT_H
 #define PHP_DRIVER_TINYINT_H
 
-void php_driver_define_Tinyint();
+#include <php.h>
+
+void php_driver_define_Tinyint(zend_class_entry* value_interface, zend_class_entry* numeric_interface);
 
 #endif /* PHP_DRIVER_TINYINT_H */

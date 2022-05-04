@@ -506,13 +506,8 @@ PHP_MINIT_FUNCTION(php_driver)
   php_driver_define_DivideByZeroException();
 
   php_driver_define_Value();
-  php_driver_define_Numeric();
-  php_driver_define_Bigint();
-  php_driver_define_Smallint();
-  php_driver_define_Tinyint();
+  php_driver_define_Numeric(php_driver_value_ce);
   php_driver_define_Blob();
-  php_driver_define_Decimal();
-  php_driver_define_Float();
   php_driver_define_Inet();
   php_driver_define_Timestamp();
   php_driver_define_Date();
@@ -520,7 +515,6 @@ PHP_MINIT_FUNCTION(php_driver)
   php_driver_define_UuidInterface();
   php_driver_define_Timeuuid();
   php_driver_define_Uuid();
-  php_driver_define_Varint();
   php_driver_define_Custom();
   php_driver_define_Duration();
 

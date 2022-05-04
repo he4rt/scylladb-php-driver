@@ -17,6 +17,8 @@
 #ifndef PHP_DRIVER_DECIMAL_H
 #define PHP_DRIVER_DECIMAL_H
 
-void php_driver_define_Decimal();
+#include <php.h>
+
+void php_driver_define_Decimal(zend_class_entry* value_interface, zend_class_entry* numeric_interface);
 
 #endif /* PHP_DRIVER_DECIMAL_H */

@@ -44,6 +44,15 @@ docker-production-image:
 php-test:
 	@cd ext && php run-tests.php -j6 -m -c ../php.ini -d "error_reporting=E_ALL&~E_NOTICE&~E_DEPRECATED" tests/
 
+.PHONY: php-arg-info
+php-arg-info:
+	@php $(shell pwd)/ext/build/gen_stub.php \
+		-f \
+		--generate-classsynopses \
+		--generate-methodsynopses \
+		--parameter-stats \
+		ext/src/
+
 .PHONY: run-dev-image
 run-dev-image:
 	@docker run \
