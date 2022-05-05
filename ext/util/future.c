@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "FutureInterface.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "future.h"
 
 int php_driver_future_wait_timed(CassFuture* future, zval* timeout TSRMLS_DC)
 {

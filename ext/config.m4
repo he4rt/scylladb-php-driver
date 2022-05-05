@@ -34,13 +34,16 @@ fi
 
 if test "$PHP_CASSANDRA" != "no"; then
   CASSANDRA_NUMERIC="\
-      src/Numeric/Bigint/Bigint.c \
-      src/Numeric/Decimal.c \
-      src/Numeric/Flaot/Float.c \
-      src/Numeric/Tinyint/Tinyint.c \
-      src/Numeric/Smallint/Smallint.c \
-      src/Numeric/Numeric.c \
-      src/Numeric/Varint/Varint.c \
+      src/Types/Numeric/Bigint/Bigint.c \
+      src/Types/Numeric/Decimal.c \
+      src/Types/Numeric/Float/Float.c \
+      src/Types/Numeric/Tinyint/Tinyint.c \
+      src/Types/Numeric/Smallint/Smallint.c \
+      src/Types/Numeric/Numeric.c \
+      src/Types/Numeric/Varint/Varint.c \
+  "
+
+  CASSANDRA_COLLECTIONS="\
   "
 
   CASSANDRA_CLASSES="\
@@ -174,6 +177,7 @@ if test "$PHP_CASSANDRA" != "no"; then
   PHP_NEW_EXTENSION(cassandra,
     php_driver.c \
     $CASSANDRA_NUMERIC \
+    $CASSANDRA_COLLECTIONS \
     $CASSANDRA_CLASSES \
     $CASSANDRA_EXCEPTIONS \
     $CASSANDRA_RETRY_POLICIES \

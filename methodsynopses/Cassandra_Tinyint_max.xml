@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <modifier>static</modifier> <type>Cassandra\Tinyint</type><methodname>Cassandra\Tinyint::max</methodname>
+   <void/>
+  </methodsynopsis>

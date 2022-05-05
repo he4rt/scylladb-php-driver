@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+#include "src/Types/Container/Tuple/Tuple.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/types.h"
-#include "src/Tuple.h"
 #include "util/collections.h"
+#include "util/types.h"
 #if PHP_MAJOR_VERSION >= 7
 #include <zend_smart_str.h>
 #else
@@ -45,7 +45,6 @@ PHP_METHOD(TypeTuple, __construct)
   zend_throw_exception_ex(php_driver_logic_exception_ce, 0 TSRMLS_CC,
     "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Type\\Tuple type is not supported."
   );
-  return;
 }
 
 PHP_METHOD(TypeTuple, name)
@@ -245,14 +244,8 @@ void php_driver_define_TypeTuple(TSRMLS_D)
   php_driver_type_tuple_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_type_ce);
   memcpy(&php_driver_type_tuple_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_type_tuple_handlers.get_properties  = php_driver_type_tuple_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_type_tuple_handlers.get_gc          = php_driver_type_tuple_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_type_tuple_handlers.compare = php_driver_type_tuple_compare;
-#else
-  php_driver_type_tuple_handlers.compare_objects = php_driver_type_tuple_compare;
-#endif
   php_driver_type_tuple_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
   php_driver_type_tuple_ce->create_object = php_driver_type_tuple_new;
 }
