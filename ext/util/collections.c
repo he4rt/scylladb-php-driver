@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include <Numeric/Numeric.h>
+#include <Types/Numeric/Numeric.h>
 
-#include <Numeric/Bigint.h>
-#include <Numeric/Decimal.h>
-#include <Numeric/Float.h>
-#include <Numeric/Smallint.h>
-#include <Numeric/Tinyint.h>
-#include <Numeric/Varint.h>
+
+
+
+
+
+
 
 #include "php_driver.h"
 #include "php_driver_types.h"
@@ -400,15 +400,15 @@ php_driver_collection_append(CassCollection* collection, zval* value, CassValueT
 		break;
 	case CASS_VALUE_TYPE_BIGINT:
 	case CASS_VALUE_TYPE_COUNTER:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_collection_append_int64(collection, numeric->data.bigint.value));
 		break;
 	case CASS_VALUE_TYPE_SMALL_INT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_collection_append_int16(collection, numeric->data.smallint.value));
 		break;
 	case CASS_VALUE_TYPE_TINY_INT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_collection_append_int8(collection, numeric->data.tinyint.value));
 		break;
 	case CASS_VALUE_TYPE_BLOB:
@@ -426,7 +426,7 @@ php_driver_collection_append(CassCollection* collection, zval* value, CassValueT
 	CHECK_ERROR(cass_collection_append_double(collection, Z_DVAL_P(value)));
 		break;
 	case CASS_VALUE_TYPE_FLOAT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_collection_append_float(collection, numeric->data.floating.value));
 		break;
 	case CASS_VALUE_TYPE_INT:
@@ -450,13 +450,13 @@ php_driver_collection_append(CassCollection* collection, zval* value, CassValueT
 		CHECK_ERROR(cass_collection_append_uuid(collection, uuid->uuid));
 		break;
 	case CASS_VALUE_TYPE_VARINT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
 		CHECK_ERROR(cass_collection_append_bytes(collection, data, size));
 		free(data);
 		break;
 	case CASS_VALUE_TYPE_DECIMAL:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
 		CHECK_ERROR(cass_collection_append_decimal(collection, data, size, numeric->data.decimal.scale));
 		free(data);
@@ -545,15 +545,15 @@ php_driver_tuple_set(CassTuple* tuple, php5to7_ulong index, zval* value, CassVal
 		break;
 	case CASS_VALUE_TYPE_BIGINT:
 	case CASS_VALUE_TYPE_COUNTER:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_tuple_set_int64(tuple, index, numeric->data.bigint.value));
 		break;
 	case CASS_VALUE_TYPE_SMALL_INT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_tuple_set_int16(tuple, index, numeric->data.smallint.value));
 		break;
 	case CASS_VALUE_TYPE_TINY_INT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_tuple_set_int8(tuple, index, numeric->data.tinyint.value));
 		break;
 	case CASS_VALUE_TYPE_BLOB:
@@ -567,7 +567,7 @@ php_driver_tuple_set(CassTuple* tuple, php5to7_ulong index, zval* value, CassVal
 		CHECK_ERROR(cass_tuple_set_double(tuple, index, Z_DVAL_P(value)));
 		break;
 	case CASS_VALUE_TYPE_FLOAT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_tuple_set_float(tuple, index, numeric->data.floating.value));
 		break;
 	case CASS_VALUE_TYPE_INT:
@@ -591,13 +591,13 @@ php_driver_tuple_set(CassTuple* tuple, php5to7_ulong index, zval* value, CassVal
 		CHECK_ERROR(cass_tuple_set_uuid(tuple, index, uuid->uuid));
 		break;
 	case CASS_VALUE_TYPE_VARINT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
 		CHECK_ERROR(cass_tuple_set_bytes(tuple, index, data, size));
 		free(data);
 		break;
 	case CASS_VALUE_TYPE_DECIMAL:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
 		CHECK_ERROR(cass_tuple_set_decimal(tuple, index, data, size, numeric->data.decimal.scale));
 		free(data);
@@ -688,15 +688,15 @@ php_driver_user_type_set(CassUserType* ut,
 		break;
 	case CASS_VALUE_TYPE_BIGINT:
 	case CASS_VALUE_TYPE_COUNTER:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_user_type_set_int64_by_name(ut, name, numeric->data.bigint.value));
 		break;
 	case CASS_VALUE_TYPE_SMALL_INT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_user_type_set_int16_by_name(ut, name, numeric->data.smallint.value));
 		break;
 	case CASS_VALUE_TYPE_TINY_INT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_user_type_set_int8_by_name(ut, name, numeric->data.tinyint.value));
 		break;
 	case CASS_VALUE_TYPE_BLOB:
@@ -714,7 +714,7 @@ php_driver_user_type_set(CassUserType* ut,
 	CHECK_ERROR(cass_user_type_set_double_by_name(ut, name, Z_DVAL_P(value)));
 		break;
 	case CASS_VALUE_TYPE_FLOAT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		CHECK_ERROR(cass_user_type_set_float_by_name(ut, name, numeric->data.floating.value));
 		break;
 	case CASS_VALUE_TYPE_INT:
@@ -738,13 +738,13 @@ php_driver_user_type_set(CassUserType* ut,
 		CHECK_ERROR(cass_user_type_set_uuid_by_name(ut, name, uuid->uuid));
 		break;
 	case CASS_VALUE_TYPE_VARINT:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
 		CHECK_ERROR(cass_user_type_set_bytes_by_name(ut, name, data, size));
 		free(data);
 		break;
 	case CASS_VALUE_TYPE_DECIMAL:
-		numeric = PHP_DRIVER_GET_NUMERIC(value);
+		numeric = PHP_DRIVER_NUMERIC_OBJECT(value);
 		data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
 		CHECK_ERROR(cass_user_type_set_decimal_by_name(ut, name, data, size, numeric->data.decimal.scale));
 		free(data);

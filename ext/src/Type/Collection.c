@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+#include "src/Types/Collections/Collection/Collection.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/types.h"
-#include "src/Collection.h"
 #include "util/collections.h"
+#include "util/types.h"
 
 #include <zend_smart_str.h>
 

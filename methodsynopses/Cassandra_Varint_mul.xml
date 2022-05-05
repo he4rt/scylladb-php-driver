@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Numeric</type><methodname>Cassandra\Varint::mul</methodname>
+   <methodparam><type>Cassandra\Numeric</type><parameter>num</parameter></methodparam>
+  </methodsynopsis>

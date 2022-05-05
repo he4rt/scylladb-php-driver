@@ -14,6 +14,7 @@
 #endif
 
 #include <php.h>
+
 #include <Zend/zend_exceptions.h>
 #include <Zend/zend_interfaces.h>
 #include <Zend/zend_types.h>
@@ -34,36 +35,29 @@
 #define TSRMLS_DC
 #define TSRMLS_C
 #define TSRMLS_CC
-#define TSRMLS_FETCH()
 #endif
 #endif
 
-#include <ext/spl/spl_iterators.h>
 #include <ext/spl/spl_exceptions.h>
+#include <ext/spl/spl_iterators.h>
 
 #include "version.h"
-
-#if defined(__GNUC__) && __GNUC__ >= 4
-#  define PHP_DRIVER_API __attribute__ ((visibility("default")))
-#else
-#  define PHP_DRIVER_API
-#endif
 
 #define PHP_DRIVER_NAMESPACE "Cassandra"
 
 #define PHP_DRIVER_NAMESPACE_ZEND_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null) \
   ZEND_ARG_OBJ_INFO(pass_by_ref, name, Cassandra\\classname, allow_null)
 
-#define SAFE_STR(a) ((a)?a:"")
+#define SAFE_STR(a) ((a) ? a : "")
 
 #ifdef ZTS
-#  include "TSRM.h"
+#include "TSRM.h"
 #endif
 
 #ifdef ZTS
-#  define PHP_DRIVER_G(v) TSRMG(php_driver_globals_id, zend_php_driver_globals *, v)
+#define PHP_DRIVER_G(v) TSRMG(php_driver_globals_id, zend_php_driver_globals*, v)
 #else
-#  define PHP_DRIVER_G(v) (php_driver_globals.v)
+#define PHP_DRIVER_G(v) (php_driver_globals.v)
 #endif
 
 #define CPP_DRIVER_VERSION(major, minor, patch) \
@@ -95,18 +89,20 @@ typedef unsigned long ulong;
 static inline int
 php5to7_string_compare(zend_string* s1, zend_string* s2)
 {
-	if (s1->len != s2->len)
-	{
-		return s1->len < s2->len ? -1 : 1;
-	}
+  if (s1->len != s2->len) {
+    return s1->len < s2->len ? -1 : 1;
+  }
 
-	return memcmp(s1->val, s2->val, s1->len);
+  return memcmp(s1->val, s2->val, s1->len);
 }
 
 #define PHP5TO7_ZEND_OBJECT_GET(type_name, object) \
   php_driver_##type_name##_object_fetch(object);
 
-#define PHP5TO7_SMART_STR_INIT { NULL, 0 }
+#define PHP5TO7_SMART_STR_INIT \
+  {                            \
+    NULL, 0                    \
+  }
 #define PHP5TO7_SMART_STR_VAL(ss) ((ss).s ? (ss).s->val : NULL)
 #define PHP5TO7_SMART_STR_LEN(ss) ((ss).s ? (ss).s->len : 0)
 
@@ -116,7 +112,7 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 #define PHP5TO7_ZEND_ACC_FINAL ZEND_ACC_FINAL
 
 #define PHP5TO7_ZEND_OBJECT_ECALLOC(type_name, ce) \
-  (php_driver_##type_name *) ecalloc(1, sizeof(php_driver_##type_name) + zend_object_properties_size(ce))
+  (php_driver_##type_name*) ecalloc(1, sizeof(php_driver_##type_name) + zend_object_properties_size(ce))
 
 #define PHP5TO7_ZEND_OBJECT_INIT(type_name, self, ce) \
   PHP5TO7_ZEND_OBJECT_INIT_EX(type_name, type_name, self, ce)
@@ -132,16 +128,16 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
     return &self->zval;                                                          \
   } while (0)
 
-#define PHP5TO7_MAYBE_EFREE(p) ((void)0)
+#define PHP5TO7_MAYBE_EFREE(p) ((void) 0)
 
 #define PHP5TO7_ADD_ASSOC_ZVAL_EX(zv, key, len, val) \
-  add_assoc_zval_ex((zv), (key), (size_t)(len - 1), val)
+  add_assoc_zval_ex((zv), (key), (size_t) (len - 1), val)
 
 #define PHP5TO7_ADD_ASSOC_STRINGL_EX(zv, key, key_len, str, str_len) \
-  add_assoc_stringl_ex((zv), (key), (size_t)(key_len - 1), (char *)(str), (size_t)(str_len))
+  add_assoc_stringl_ex((zv), (key), (size_t) (key_len - 1), (char*) (str), (size_t) (str_len))
 
 #define PHP5TO7_ADD_NEXT_INDEX_STRING(zv, str) \
-  add_next_index_string((zv), (char*)(str));
+  add_next_index_string((zv), (char*) (str));
 
 #define PHP5TO7_ZEND_HASH_FOREACH_VAL(ht, _val) \
   ZEND_HASH_FOREACH_VAL(ht, _val)
@@ -176,10 +172,10 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
   zend_hash_get_current_key_ex((ht), (str_index), (num_index), pos)
 
 #define PHP5TO7_ZEND_HASH_EXISTS(ht, key, len) \
-  zend_hash_str_exists((ht), (key), (size_t)(len - 1))
+  zend_hash_str_exists((ht), (key), (size_t) (len - 1))
 
 #define PHP5TO7_ZEND_HASH_FIND(ht, key, len, res) \
-  (((res) = zend_hash_str_find((ht), (key), (size_t)((len) - 1))) != NULL)
+  (((res) = zend_hash_str_find((ht), (key), (size_t) ((len) -1))) != NULL)
 
 #define PHP5TO7_ZEND_HASH_INDEX_FIND(ht, index, res) \
   (((res) = zend_hash_index_find((ht), (php5to7_ulong) (index))) != NULL)
@@ -188,16 +184,16 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
   ((void) zend_hash_next_index_insert((ht), (val)))
 
 #define PHP5TO7_ZEND_HASH_UPDATE(ht, key, len, val, val_size) \
-  ((void) zend_hash_str_update((ht), (key), (size_t)((len) - 1), (val)))
+  ((void) zend_hash_str_update((ht), (key), (size_t) ((len) -1), (val)))
 
 #define PHP5TO7_ZEND_HASH_INDEX_UPDATE(ht, index, val, val_size) \
   ((void) zend_hash_index_update((ht), (index), (val)))
 
 #define PHP5TO7_ZEND_HASH_ADD(ht, key, len, val, val_size) \
-  ((void) zend_hash_str_add((ht), (key), (size_t)((len) - 1), (val)))
+  ((void) zend_hash_str_add((ht), (key), (size_t) ((len) -1), (val)))
 
 #define PHP5TO7_ZEND_HASH_DEL(ht, key, len) \
-  ((zend_hash_str_del((ht), (key), (size_t)((len) - 1))) == SUCCESS)
+  ((zend_hash_str_del((ht), (key), (size_t) ((len) -1))) == SUCCESS)
 
 #define PHP5TO7_ZEND_HASH_ZVAL_COPY(dst, src) \
   zend_hash_copy((dst), (src), (copy_ctor_func_t) zval_add_ref);
@@ -205,24 +201,24 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 #define PHP5TO7_ZEND_HASH_SORT(ht, compare_func, renumber) \
   zend_hash_sort(ht, compare_func, renumber TSRMLS_CC)
 
-
 #define PHP5TO7_ZVAL_COPY(zv1, zv2) ZVAL_COPY(zv1, zv2)
 #define PHP5TO7_ZVAL_IS_UNDEF(zv) Z_ISUNDEF(zv)
 #define PHP5TO7_ZVAL_IS_UNDEF_P(zv) Z_ISUNDEF_P(zv)
 
 #define PHP5TO7_ZVAL_IS_BOOL_P(zv) \
-  (Z_TYPE_P(zv) == IS_TRUE  || Z_TYPE_P(zv) == IS_FALSE)
+  (Z_TYPE_P(zv) == IS_TRUE || Z_TYPE_P(zv) == IS_FALSE)
 #define PHP5TO7_ZVAL_IS_FALSE_P(zv) (Z_TYPE_P(zv) == IS_FALSE)
 #define PHP5TO7_ZVAL_IS_TRUE_P(zv) (Z_TYPE_P(zv) == IS_TRUE)
 
 #define PHP5TO7_ZVAL_UNDEF(zv) ZVAL_UNDEF(&(zv));
-#define PHP5TO7_ZVAL_MAYBE_MAKE(zv) ((void)0)
-#define PHP5TO7_ZVAL_MAYBE_DESTROY(zv) do { \
-  if (!Z_ISUNDEF(zv)) {                     \
-    zval_ptr_dtor(&(zv));                   \
-    ZVAL_UNDEF(&(zv));                      \
-  }                                         \
-} while(0)
+#define PHP5TO7_ZVAL_MAYBE_MAKE(zv) ((void) 0)
+#define PHP5TO7_ZVAL_MAYBE_DESTROY(zv) \
+  do {                                 \
+    if (!Z_ISUNDEF(zv)) {              \
+      zval_ptr_dtor(&(zv));            \
+      ZVAL_UNDEF(&(zv));               \
+    }                                  \
+  } while (0)
 
 #define PHP5TO7_ZVAL_STRING(zv, s) ZVAL_STRING(zv, s)
 #define PHP5TO7_ZVAL_STRINGL(zv, s, len) ZVAL_STRINGL(zv, s, len)
@@ -241,28 +237,27 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 #define PHP5TO7_Z_STRVAL_MAYBE_P(zv) Z_STRVAL(zv)
 #define PHP5TO7_Z_STRLEN_MAYBE_P(zv) Z_STRLEN(zv)
 
-
 extern zend_module_entry php_driver_module_entry;
 
 #define phpext_cassandra_ptr &php_driver_module_entry
 
-PHP_MINIT_FUNCTION (php_driver);
-PHP_MSHUTDOWN_FUNCTION (php_driver);
-PHP_RINIT_FUNCTION (php_driver);
-PHP_RSHUTDOWN_FUNCTION (php_driver);
-PHP_MINFO_FUNCTION (php_driver);
+PHP_MINIT_FUNCTION(php_driver);
+PHP_MSHUTDOWN_FUNCTION(php_driver);
+PHP_RINIT_FUNCTION(php_driver);
+PHP_RSHUTDOWN_FUNCTION(php_driver);
+PHP_MINFO_FUNCTION(php_driver);
 
 zend_class_entry* exception_class(CassError rc);
 
 void throw_invalid_argument(
-	zval* object,
-	const char* object_name,
-	const char* expected_type TSRMLS_DC);
+  zval* object,
+  const char* object_name,
+  const char* expected_type);
 
-#define INVALID_ARGUMENT(object, expected)                       \
-  {                                                              \
-    throw_invalid_argument(object, #object, expected TSRMLS_CC); \
-    return;                                                      \
+#define INVALID_ARGUMENT(object, expected)             \
+  {                                                    \
+    throw_invalid_argument(object, #object, expected); \
+    return;                                            \
   }
 
 #define INVALID_ARGUMENT_VALUE(object, expected, failed_value)   \
@@ -271,13 +266,13 @@ void throw_invalid_argument(
     return failed_value;                                         \
   }
 
-#define ASSERT_SUCCESS_BLOCK(rc, block)                          \
-  {                                                              \
-    if (rc != CASS_OK) {                                         \
-      zend_throw_exception_ex(exception_class(rc), rc TSRMLS_CC, \
-                              "%s", cass_error_desc(rc));        \
-      block                                                      \
-    }                                                            \
+#define ASSERT_SUCCESS_BLOCK(rc, block)                   \
+  {                                                       \
+    if ((rc) != CASS_OK) {                                \
+      zend_throw_exception_ex(exception_class(rc), rc,    \
+                              "%s", cass_error_desc(rc)); \
+      block                                               \
+    }                                                     \
   }
 
 #define ASSERT_SUCCESS(rc) ASSERT_SUCCESS_BLOCK(rc, return;)
@@ -286,7 +281,7 @@ void throw_invalid_argument(
 
 #define PHP_DRIVER_DEFAULT_CONSISTENCY CASS_CONSISTENCY_LOCAL_ONE
 
-#define PHP_DRIVER_DEFAULT_LOG       PHP_DRIVER_NAME ".log"
+#define PHP_DRIVER_DEFAULT_LOG PHP_DRIVER_NAME ".log"
 #define PHP_DRIVER_DEFAULT_LOG_LEVEL "ERROR"
 
 #define PHP_DRIVER_INI_ENTRY_LOG \
@@ -295,7 +290,7 @@ void throw_invalid_argument(
 #define PHP_DRIVER_INI_ENTRY_LOG_LEVEL \
   PHP_INI_ENTRY(PHP_DRIVER_NAME ".log_level", PHP_DRIVER_DEFAULT_LOG_LEVEL, PHP_INI_ALL, OnUpdateLogLevel)
 
-PHP_INI_MH (OnUpdateLogLevel);
-PHP_INI_MH (OnUpdateLog);
+PHP_INI_MH(OnUpdateLogLevel);
+PHP_INI_MH(OnUpdateLog);
 
 #endif /* PHP_DRIVER_H */

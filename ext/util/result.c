@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-#include <Numeric/Bigint.h>
-#include <Numeric/Decimal.h>
-#include <Numeric/Float.h>
-#include <Numeric/Numeric.h>
-#include <Numeric/Smallint.h>
-#include <Numeric/Tinyint.h>
-#include <Numeric/Varint.h>
+
+
+
+#include <Types/Numeric/Numeric.h>
 
 #include "math.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "result.h"
-#include "src/Collection.h"
-#include "src/Map.h"
-#include "src/Set.h"
-#include "src/Tuple.h"
-#include "src/UserTypeValue.h"
+#include "src/Types/Collections/Collection/Collection.h"
+#include "src/Types/Collections/Map/Map.h"
+#include "src/Types/Collections/Set/Set.h"
+#include "src/Types/Container/Tuple/Tuple.h"
+#include "src/Types/UserTypeValue/UserTypeValue.h"
 #include "types.h"
 
 int
@@ -89,21 +86,21 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, php5to7_
   case CASS_VALUE_TYPE_COUNTER:
   case CASS_VALUE_TYPE_BIGINT:
     object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_bigint_ce);
-    numeric = PHP_DRIVER_GET_NUMERIC(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_int64(value, &numeric->data.bigint.value),
                          zval_ptr_dtor(out);
                          return FAILURE;)
     break;
   case CASS_VALUE_TYPE_SMALL_INT:
     object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_smallint_ce);
-    numeric = PHP_DRIVER_GET_NUMERIC(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_int16(value, &numeric->data.smallint.value),
                          zval_ptr_dtor(out);
                          return FAILURE;)
     break;
   case CASS_VALUE_TYPE_TINY_INT:
     object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_tinyint_ce);
-    numeric = PHP_DRIVER_GET_NUMERIC(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_int8(value, &numeric->data.tinyint.value),
                          zval_ptr_dtor(out);
                          return FAILURE;)
@@ -141,7 +138,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, php5to7_
     break;
   case CASS_VALUE_TYPE_VARINT:
     object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_varint_ce);
-    numeric = PHP_DRIVER_GET_NUMERIC(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_bytes(value, &v_bytes, &v_bytes_len),
                          zval_ptr_dtor(out);
                          return FAILURE;);
@@ -180,7 +177,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, php5to7_
     break;
   case CASS_VALUE_TYPE_DECIMAL:
     object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_decimal_ce);
-    numeric = PHP_DRIVER_GET_NUMERIC(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_decimal(value, &v_decimal, &v_decimal_len, &v_decimal_scale),
                          zval_ptr_dtor(out);
                          return FAILURE;);
@@ -202,7 +199,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, php5to7_
     break;
   case CASS_VALUE_TYPE_FLOAT:
     object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_float_ce);
-    numeric = PHP_DRIVER_GET_NUMERIC(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_float(value, &numeric->data.floating.value),
                          zval_ptr_dtor(out);
                          return FAILURE;)

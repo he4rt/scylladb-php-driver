@@ -17,7 +17,9 @@
 #ifndef PHP_DRIVER_TYPES_H
 #define PHP_DRIVER_TYPES_H
 
-#include "src/Numeric/Numeric.h"
+#include <cassandra_driver.h>
+
+#include "src/Types/Numeric/Numeric.h"
 
 #define PHP_DRIVER_GET_BLOB(obj) php_driver_blob_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_TIMESTAMP(obj) php_driver_timestamp_object_fetch(Z_OBJ_P(obj))

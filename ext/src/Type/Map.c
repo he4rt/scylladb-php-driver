@@ -18,7 +18,7 @@
 #include "php_driver_types.h"
 #include "util/types.h"
 
-#include "src/Map.h"
+#include "src/Types/Collections/Map/Map.h"
 #include <zend_smart_str.h>
 
 zend_class_entry* php_driver_type_map_ce = NULL;
