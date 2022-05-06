@@ -83,7 +83,7 @@ PHP_METHOD(SSLOptionsBuilder, build)
 
       rc = cass_ssl_add_trusted_cert_n(ssl->ssl, contents, len);
       efree(contents);
-      ASSERT_SUCCESS(rc);
+      ASSERT_SUCCESS(rc)
     }
   }
 

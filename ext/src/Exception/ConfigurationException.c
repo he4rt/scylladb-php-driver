@@ -27,6 +27,6 @@ void php_driver_define_ConfigurationException(TSRMLS_D)
 {
   zend_class_entry ce;
 
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Exception\\ConfigurationException", ConfigurationException_methods);
-  php_driver_configuration_exception_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_validation_exception_ce);
+  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Exception\\ConfigurationException", ConfigurationException_methods)
+  php_driver_configuration_exception_ce = php5to7_zend_register_internal_class_ex(&ce, php_driver_validation_exception_ce)
 }

@@ -24,13 +24,15 @@ include_directories(${PROJECT_SOURCE_DIR}/ext/include)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/libuv)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/cpp-driver)
 
+find_library(GMP_LIBRARY NAMES gmp)
+
 if(${LINK_STATICALLY})
-    set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a)
+    set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a m gmp)
 else()
-    set(CASSANDRA_LINK_LIBRARIES cassandra uv)
+    set(CASSANDRA_LINK_LIBRARIES cassandra uv m)
 endif()
 execute_process(COMMAND phpize WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
-execute_process(COMMAND ./configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
+#execute_process(COMMAND ./configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
 
 # file(READ ./config.h CASSANDRA_CONFIG_FILE)
 
@@ -49,7 +51,7 @@ file(GLOB_RECURSE UTILS_LIST FOLLOW_SYMLINKS ext/util/*.c)
 SET(LIBRARY_OUTPUT_PATH lib)
 
 link_directories(${LIBRARY_OUTPUT_PATH})
-include_directories(BEFORE ext/include ext)
+include_directories(BEFORE ext/include ext lib/cpp-driver/include lib/libuv/include)
 
 set(php_cassandra_sources ${UTILS_LIST} ${SRC_LIST} ext/php_driver.c)
 

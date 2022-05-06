@@ -82,6 +82,7 @@ php_driver_bigint_init(php_driver_numeric* self, zval* value)
   case IS_DOUBLE: {
     double double_value = Z_DVAL_P(value);
 
+    // TODO: Fix overflow
     if (double_value > INT64_MAX || double_value < INT64_MIN) {
       zend_throw_exception_ex(
         php_driver_range_exception_ce, 0,

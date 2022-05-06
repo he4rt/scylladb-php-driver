@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "src/Types/Collections/Collection/Collection.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "util/collections.h"

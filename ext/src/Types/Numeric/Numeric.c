@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Numeric_arginfo.h"
+#include <php.h>
 
 #include "src/Types/Numeric/Bigint/Bigint.h"
 #include "src/Types/Numeric/Decimal/Decimal.h"
@@ -22,6 +22,9 @@
 #include "src/Types/Numeric/Smallint/Smallint.h"
 #include "src/Types/Numeric/Tinyint/Tinyint.h"
 #include "src/Types/Numeric/Varint/Varint.h"
+
+#include "Numeric_arginfo.h"
+
 
 zend_class_entry* php_driver_numeric_ce = NULL;
 

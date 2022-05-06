@@ -22,7 +22,7 @@
 #else
 #include <ext/standard/php_smart_str.h>
 #endif
-#include "src/Types/Collections/Set/Set.h"
+#include "src/Types/Container/Set/Set.h"
 
 zend_class_entry *php_driver_type_set_ce = NULL;
 
