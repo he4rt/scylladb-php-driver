@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: b1a83765fcd2db94f007a352e5a1a8ebe900770e */
+ * Stub hash: ac9f1716b640fad760a9c783bee7c1a4d4a9a860 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Bigint___construct, 0, 0, 1)
 	ZEND_ARG_OBJ_TYPE_MASK(0, value, Cassandra\\Bigint, MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING, NULL)

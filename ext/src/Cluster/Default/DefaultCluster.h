@@ -1,0 +1,6 @@
+#ifndef LIBPHPCASSANDRA_EXT_SRC_CLUSTER_DEFAULT_DEFAULTCLUSTER_H_
+#define LIBPHPCASSANDRA_EXT_SRC_CLUSTER_DEFAULT_DEFAULTCLUSTER_H_
+
+void php_driver_define_DefaultCluster(zend_class_entry* cluster_interface);
+
+#endif

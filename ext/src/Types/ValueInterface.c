@@ -16,7 +16,7 @@
 
 #include "php_driver.h"
 
-#include "ValueInteraface_arginfo.h"
+#include "ValueInterface_arginfo.h"
 
 zend_class_entry* php_driver_value_ce = NULL;
 

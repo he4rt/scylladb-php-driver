@@ -409,7 +409,7 @@ php_driver_float_hash_value(zval* obj)
   return float_to_bits(self->data.floating.value);
 }
 
-static ZEND_RESULT_CODE
+static int
 php_driver_float_cast(
   zend_object* object,
   zval* retval,
@@ -446,7 +446,7 @@ php_driver_float_free(zend_object* object)
 zend_object*
 php_driver_float_new(zend_class_entry* ce)
 {
-  php_driver_numeric* self = emalloc(sizeof(php_driver_numeric));
+  php_driver_numeric* self = make(php_driver_numeric);
 
   self->type = PHP_DRIVER_FLOAT;
 

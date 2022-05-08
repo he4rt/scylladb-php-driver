@@ -1,12 +1,4 @@
 {
-    "files.associations": {
-        "php_driver.h": "c",
-        "php.h": "c",
-        "bytes.h": "c",
-        "config.h": "c",
-        "tinyint.h": "c",
-        "types.h": "c"
-    },
     "php.suggest.basic": false,
     "php.validate.enable": true,
     "php.validate.run": "onType",
@@ -23,7 +15,7 @@
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.type": "sameLine",
     "C_Cpp.vcFormat.newLine.closeBraceSameLine.emptyFunction": true,
     "C_Cpp.vcFormat.newLine.closeBraceSameLine.emptyType": true,
-    "C_Cpp.default.cppStandard": "gnu++20",
+    "C_Cpp.default.cppStandard": "gnu++17",
     "C_Cpp.default.cStandard": "gnu17",
     "C_Cpp.default.intelliSenseMode": "clang-arm64",
     "[c]": {
@@ -35,5 +27,10 @@
     "cmake.sourceDirectory": "${workspaceFolder}/.",
     "yaml.schemas": {
         "https://json.schemastore.org/github-workflow.json": "file:///workspaces/cassandra-php-driver/.github/workflows/build.yml"
+    },
+    "files.associations": {
+        "time.h": "c",
+        "features.h": "c",
+        "zend_portability.h": "c"
     },
 }

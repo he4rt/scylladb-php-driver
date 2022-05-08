@@ -24,13 +24,7 @@ jobs:
         with:
           ref: master
       - name: Run CMake Build
-        run: |
-          mkdir build
-          cd build
-          cmake -G Ninja -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_C_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE=RELEASE -DCASS_USE_STATIC_LIBS=ON -DCASS_BUILD_STATIC=ON -DCASS_BUILD_SHARED=ON -DCASS_USE_TIMERFD=ON -DLIBUV_LIBRARY=./lib/libuv -DCMAKE_BUILD_TYPE=Release -DLINK_STATICALLY=ON ..
-          ninja libuv_a.a
-          ninja cassandra_static
-          ninja ext-cassandra
+        run: make build
       - uses: actions/upload-artifact@v2
         if: ${{ inputs.upload_to_artifact }}
         with:

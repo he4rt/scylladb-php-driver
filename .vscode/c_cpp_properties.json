@@ -6,6 +6,7 @@
             "includePath": [
                 "${workspaceFolder}/lib/cpp-driver/include",
                 "${workspaceFolder}/ext",
+                "${workspaceFolder}/ext/include",
                 "/opt/homebrew/include/php/main",
                 "/opt/homebrew/include/php/Zend",
                 "/opt/homebrew/include/php",
@@ -33,6 +34,7 @@
             "includePath": [
                 "${workspaceFolder}/lib/cpp-driver/include",
                 "${workspaceFolder}/ext",
+                "${workspaceFolder}/ext/include",
                 "/usr/local/include/php/main",
                 "/usr/local/include/php/Zend",
                 "/usr/local/include/php",

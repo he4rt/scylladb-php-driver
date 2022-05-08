@@ -23,7 +23,8 @@ static zend_function_entry UnpreparedException_methods[] = {
   PHP_FE_END
 };
 
-void php_driver_define_UnpreparedException(TSRMLS_D)
+void
+php_driver_define_UnpreparedException()
 {
   zend_class_entry ce;
 

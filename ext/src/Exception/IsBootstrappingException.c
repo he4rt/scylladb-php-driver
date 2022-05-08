@@ -23,7 +23,8 @@ static zend_function_entry IsBootstrappingException_methods[] = {
   PHP_FE_END
 };
 
-void php_driver_define_IsBootstrappingException(TSRMLS_D)
+void
+php_driver_define_IsBootstrappingException()
 {
   zend_class_entry ce;
 

@@ -24,11 +24,11 @@
 
 zend_class_entry *php_driver_default_index_ce = NULL;
 
-php5to7_zval
-php_driver_create_index(php_driver_ref *schema,
-                           const CassIndexMeta *meta TSRMLS_DC)
+zval
+php_driver_create_index(php_driver_ref* schema,
+                        const CassIndexMeta* meta)
 {
-  php5to7_zval result;
+  zval result;
   php_driver_index *index;
   const char *name;
   size_t name_length;
@@ -139,10 +139,11 @@ PHP_METHOD(DefaultIndex, option)
   char *name;
   php5to7_size name_len;
   php_driver_index *self;
-  php5to7_zval* result;
+  zval* result;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
-                            &name, &name_len) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
+                            &name, &name_len)
+      == FAILURE) {
     return;
   }
 
@@ -177,7 +178,7 @@ PHP_METHOD(DefaultIndex, options)
 PHP_METHOD(DefaultIndex, className)
 {
   php_driver_index *self;
-  php5to7_zval* result;
+  zval* result;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
@@ -234,19 +235,19 @@ static zend_function_entry php_driver_default_index_methods[] = {
 
 static zend_object_handlers php_driver_default_index_handlers;
 
-static HashTable *
+static HashTable*
 php_driver_type_default_index_gc(
 #if PHP_MAJOR_VERSION >= 8
-        zend_object *object,
+  zend_object* object,
 #else
-        zval *object,
+  zval* object,
 #endif
-        php5to7_zval_gc table, int *n TSRMLS_DC
-)
+  php5to7_zval_gc table,
+  int* n)
 {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object TSRMLS_CC);
+  return zend_std_get_properties(object);
 }
 
 static HashTable *
@@ -254,17 +255,17 @@ php_driver_default_index_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
-        zval *object TSRMLS_DC
+  zval* object
 #endif
 )
 {
-  HashTable *props = zend_std_get_properties(object TSRMLS_CC);
+  HashTable* props = zend_std_get_properties(object);
 
   return props;
 }
 
 static int
-php_driver_default_index_compare(zval *obj1, zval *obj2 TSRMLS_DC)
+php_driver_default_index_compare(zval* obj1, zval* obj2)
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -276,7 +277,7 @@ php_driver_default_index_compare(zval *obj1, zval *obj2 TSRMLS_DC)
 }
 
 static void
-php_driver_default_index_free(php5to7_zend_object_free *object TSRMLS_DC)
+php_driver_default_index_free(php5to7_zend_object_free* object)
 {
   php_driver_index *self = PHP5TO7_ZEND_OBJECT_GET(index, object);
 
@@ -291,12 +292,12 @@ php_driver_default_index_free(php5to7_zend_object_free *object TSRMLS_DC)
   }
   self->meta = NULL;
 
-  zend_object_std_dtor(&self->zval TSRMLS_CC);
+  zend_object_std_dtor(&self->zval);
   PHP5TO7_MAYBE_EFREE(self);
 }
 
 static php5to7_zend_object
-php_driver_default_index_new(zend_class_entry *ce TSRMLS_DC)
+php_driver_default_index_new(zend_class_entry* ce)
 {
   php_driver_index *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(index, ce);
@@ -312,13 +313,14 @@ php_driver_default_index_new(zend_class_entry *ce TSRMLS_DC)
   PHP5TO7_ZEND_OBJECT_INIT_EX(index, default_index, self, ce);
 }
 
-void php_driver_define_DefaultIndex(TSRMLS_D)
+void
+php_driver_define_DefaultIndex()
 {
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultIndex", php_driver_default_index_methods);
-  php_driver_default_index_ce = zend_register_internal_class(&ce TSRMLS_CC);
-  zend_class_implements(php_driver_default_index_ce TSRMLS_CC, 1, php_driver_index_ce);
+  php_driver_default_index_ce = zend_register_internal_class(&ce);
+  zend_class_implements(php_driver_default_index_ce, 1, php_driver_index_ce);
   php_driver_default_index_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
   php_driver_default_index_ce->create_object = php_driver_default_index_new;
 

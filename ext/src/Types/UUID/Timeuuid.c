@@ -31,25 +31,21 @@ php_driver_timeuuid_init(INTERNAL_FUNCTION_PARAMETERS)
 	zval* param;
 	int version;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|z", &param) == FAILURE)
-	{
-		return;
-	}
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &param) == FAILURE) {
+    return;
+  }
 
-	if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_timeuuid_ce TSRMLS_CC))
-	{
-		self = PHP_DRIVER_GET_UUID(getThis());
-	}
-	else
-	{
-		object_init_ex(return_value, php_driver_timeuuid_ce);
+  if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_timeuuid_ce)) {
+    self = PHP_DRIVER_GET_UUID(getThis());
+  } else {
+    object_init_ex(return_value, php_driver_timeuuid_ce);
 		self = PHP_DRIVER_GET_UUID(return_value);
-	}
+  }
 
-	if (ZEND_NUM_ARGS() == 0)
+  if (ZEND_NUM_ARGS() == 0)
 	{
-		php_driver_uuid_generate_time(&self->uuid TSRMLS_CC);
-	}
+    php_driver_uuid_generate_time(&self->uuid);
+  }
 	else
 	{
 
@@ -58,43 +54,39 @@ php_driver_timeuuid_init(INTERNAL_FUNCTION_PARAMETERS)
 		case IS_LONG:
 			if (Z_LVAL_P(param) < 0)
 			{
-				zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
-					0
-					TSRMLS_CC,
-					"Timestamp must be a positive integer, %d given",
-					Z_LVAL_P(param));
-				return;
+        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+                                0,
+                                "Timestamp must be a positive integer, %d given",
+                                Z_LVAL_P(param));
+        return;
 			}
-			php_driver_uuid_generate_from_time(Z_LVAL_P(param), &self->uuid TSRMLS_CC);
-			break;
+      php_driver_uuid_generate_from_time(Z_LVAL_P(param), &self->uuid);
+      break;
 		case IS_STRING:
 			if (cass_uuid_from_string(Z_STRVAL_P(param), &self->uuid) != CASS_OK)
 			{
-				zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
-					0
-					TSRMLS_CC,
-					"Invalid UUID: '%.*s'",
-					Z_STRLEN_P(param),
-					Z_STRVAL_P(param));
-				return;
+        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+                                0,
+                                "Invalid UUID: '%.*s'",
+                                Z_STRLEN_P(param),
+                                Z_STRVAL_P(param));
+        return;
 			}
 
 			version = cass_uuid_version(self->uuid);
 			if (version != 1)
 			{
-				zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
-					0
-					TSRMLS_CC,
-					"UUID must be of type 1, type %d given",
-					version);
-			}
+        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+                                0,
+                                "UUID must be of type 1, type %d given",
+                                version);
+      }
 			break;
 		default:
-			zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
-				0
-				TSRMLS_CC,
-				"Invalid argument - integer or string expected");
-		}
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+                              0,
+                              "Invalid argument - integer or string expected");
+    }
 
 	}
 }
@@ -121,8 +113,8 @@ PHP_METHOD (Timeuuid, __toString)
 /* {{{ Timeuuid::type() */
 PHP_METHOD (Timeuuid, type)
 {
-	php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID TSRMLS_CC);
-	RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
+  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
 }
 /* }}} */
 
@@ -173,17 +165,17 @@ PHP_METHOD (Timeuuid, toDateTime)
 	self = PHP_DRIVER_GET_UUID(getThis());
 
 	PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
-	php_date_instantiate(php_date_get_date_ce(), datetime TSRMLS_CC);
+  php_date_instantiate(php_date_get_date_ce(), datetime);
 
 #if PHP_MAJOR_VERSION >= 7
 	datetime_obj = php_date_obj_from_obj(Z_OBJ_P(datetime));
 #else
-	datetime_obj = zend_object_store_get_object(datetime TSRMLS_CC);
+  datetime_obj = zend_object_store_get_object(datetime);
 #endif
 
 	str_len = spprintf(&str, 0, "@%ld", (long)(cass_uuid_timestamp(self->uuid) / 1000));
-	php_date_initialize(datetime_obj, str, str_len, NULL, NULL, 0 TSRMLS_CC);
-	efree(str);
+  php_date_initialize(datetime_obj, str, str_len, NULL, NULL, 0);
+  efree(str);
 
 	RETVAL_ZVAL(datetime, 0, 0);
 }
@@ -211,16 +203,16 @@ static php_driver_value_handlers php_driver_timeuuid_handlers;
 static HashTable*
 php_driver_timeuuid_gc(
 #if PHP_MAJOR_VERSION >= 8
-	zend_object* object,
+  zend_object* object,
 #else
-	zval *object,
+  zval* object,
 #endif
-	php5to7_zval_gc table, int* n TSRMLS_DC
-)
+  php5to7_zval_gc table,
+  int* n)
 {
 	*table = NULL;
 	*n = 0;
-	return zend_std_get_properties(object TSRMLS_CC);
+  return zend_std_get_properties(object);
 }
 
 static HashTable*
@@ -228,24 +220,24 @@ php_driver_timeuuid_properties(
 #if PHP_MAJOR_VERSION >= 8
 	zend_object* object
 #else
-	zval *object TSRMLS_DC
+  zval* object
 #endif
 )
 {
 	char string[CASS_UUID_STRING_LENGTH];
-	php5to7_zval type;
-	php5to7_zval uuid;
-	php5to7_zval version;
+  zval type;
+  zval uuid;
+  zval version;
 
 #if PHP_MAJOR_VERSION >= 8
 	php_driver_uuid* self = PHP5TO7_ZEND_OBJECT_GET(uuid, object);
 #else
 	php_driver_uuid *self = PHP_DRIVER_GET_UUID(object);
 #endif
-	HashTable* props = zend_std_get_properties(object TSRMLS_CC);
+  HashTable* props = zend_std_get_properties(object);
 
-	type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID TSRMLS_CC);
-	PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
+  type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
+  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
 	cass_uuid_string(self->uuid, string);
 
@@ -261,7 +253,7 @@ php_driver_timeuuid_properties(
 }
 
 static int
-php_driver_timeuuid_compare(zval* obj1, zval* obj2 TSRMLS_DC)
+php_driver_timeuuid_compare(zval* obj1, zval* obj2)
 {
 #if PHP_MAJOR_VERSION >= 8
 	ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -284,7 +276,7 @@ php_driver_timeuuid_compare(zval* obj1, zval* obj2 TSRMLS_DC)
 }
 
 static unsigned
-php_driver_timeuuid_hash_value(zval* obj TSRMLS_DC)
+php_driver_timeuuid_hash_value(zval* obj)
 {
 	php_driver_uuid* self = PHP_DRIVER_GET_UUID(obj);
 	return php_driver_combine_hash(php_driver_bigint_hash(self->uuid.time_and_version),
@@ -292,16 +284,16 @@ php_driver_timeuuid_hash_value(zval* obj TSRMLS_DC)
 }
 
 static void
-php_driver_timeuuid_free(php5to7_zend_object_free* object TSRMLS_DC)
+php_driver_timeuuid_free(php5to7_zend_object_free* object)
 {
 	php_driver_uuid* self = PHP5TO7_ZEND_OBJECT_GET(uuid, object);
 
-	zend_object_std_dtor(&self->zval TSRMLS_CC);
-	PHP5TO7_MAYBE_EFREE(self);
+  zend_object_std_dtor(&self->zval);
+  PHP5TO7_MAYBE_EFREE(self);
 }
 
 static php5to7_zend_object
-php_driver_timeuuid_new(zend_class_entry* ce TSRMLS_DC)
+php_driver_timeuuid_new(zend_class_entry* ce)
 {
 	php_driver_uuid* self =
 		PHP5TO7_ZEND_OBJECT_ECALLOC(uuid, ce);
@@ -310,14 +302,14 @@ php_driver_timeuuid_new(zend_class_entry* ce TSRMLS_DC)
 }
 
 void
-php_driver_define_Timeuuid(TSRMLS_D)
+php_driver_define_Timeuuid()
 {
 	zend_class_entry ce;
 
 	INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Timeuuid", php_driver_timeuuid_methods);
-	php_driver_timeuuid_ce = zend_register_internal_class(&ce TSRMLS_CC);
-	zend_class_implements(php_driver_timeuuid_ce TSRMLS_CC, 2, php_driver_value_ce, php_driver_uuid_interface_ce);
-	memcpy(&php_driver_timeuuid_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+  php_driver_timeuuid_ce = zend_register_internal_class(&ce);
+  zend_class_implements(php_driver_timeuuid_ce, 2, php_driver_value_ce, php_driver_uuid_interface_ce);
+  memcpy(&php_driver_timeuuid_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	php_driver_timeuuid_handlers.std.get_properties = php_driver_timeuuid_properties;
 	php_driver_timeuuid_handlers.std.get_gc = php_driver_timeuuid_gc;
 

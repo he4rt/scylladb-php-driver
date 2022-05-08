@@ -23,7 +23,8 @@ static zend_function_entry UnauthorizedException_methods[] = {
   PHP_FE_END
 };
 
-void php_driver_define_UnauthorizedException(TSRMLS_D)
+void
+php_driver_define_UnauthorizedException()
 {
   zend_class_entry ce;
 

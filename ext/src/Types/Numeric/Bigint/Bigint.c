@@ -179,7 +179,7 @@ ZEND_METHOD(Cassandra_Bigint, sub)
 {
   zval* num;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &num) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &num) == FAILURE) {
     return;
   }
 
@@ -202,7 +202,7 @@ ZEND_METHOD(Cassandra_Bigint, mul)
 {
   zval* num;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &num) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &num) == FAILURE) {
     return;
   }
 
@@ -283,7 +283,7 @@ ZEND_METHOD(Cassandra_Bigint, abs)
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_THIS();
 
   if (self->data.bigint.value == INT64_MIN) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 TSRMLS_CC, "Value doesn't exist");
+    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value doesn't exist");
     return;
   }
 
@@ -450,7 +450,7 @@ php_driver_bigint_free(zend_object* object)
 static zend_object*
 php_driver_bigint_new(zend_class_entry* ce)
 {
-  php_driver_numeric* self = emalloc(sizeof(php_driver_numeric));
+  php_driver_numeric* self = make(php_driver_numeric);
 
   self->type = PHP_DRIVER_BIGINT;
   zend_object_std_init(&self->zval, ce);

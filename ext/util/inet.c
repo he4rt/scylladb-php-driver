@@ -24,11 +24,10 @@
 #define IPV6             2
 #define TOKEN_MAX_LEN    4
 #define IP_MAX_ADDRLEN   50
-#define EXPECTING_TOKEN(expected) \
-  zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC, \
-    "Unexpected %s at position %d in address \"%s\", expected " expected, \
-    ip_address_describe_token(type), ((int) (in_ptr - in) - 1), in \
-  ); \
+#define EXPECTING_TOKEN(expected)                                                               \
+  zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,                          \
+                          "Unexpected %s at position %d in address \"%s\", expected " expected, \
+                          ip_address_describe_token(type), ((int) (in_ptr - in) - 1), in);      \
   return 0;
 
 enum token_type
@@ -140,7 +139,7 @@ ip_address_tokenize(char* address, char* token, int* token_len, char** next_toke
 }
 
 int
-php_driver_parse_ip_address(char* in, CassInet* inet TSRMLS_DC)
+php_driver_parse_ip_address(char* in, CassInet* inet)
 {
 	char token[TOKEN_MAX_LEN + 1];
 	int token_len = -1;
@@ -157,10 +156,10 @@ php_driver_parse_ip_address(char* in, CassInet* inet TSRMLS_DC)
 
 	if (strlen(in) > (IP_MAX_ADDRLEN - 1))
 	{
-		zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-			"The IP address \"%s\" is too long (at most %d characters are expected)",
-			in, IP_MAX_ADDRLEN - 1);
-		return 0;
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "The IP address \"%s\" is too long (at most %d characters are expected)",
+                            in, IP_MAX_ADDRLEN - 1);
+    return 0;
 	}
 
 	for (;;)
@@ -172,10 +171,10 @@ php_driver_parse_ip_address(char* in, CassInet* inet TSRMLS_DC)
 
 		if (type == TOKEN_ILLEGAL)
 		{
-			zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-				"Illegal character \"%c\" at position %d in address \"%s\"",
-				*token, ((int)(in_ptr - in) - 1), in);
-			return 0;
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "Illegal character \"%c\" at position %d in address \"%s\"",
+                              *token, ((int) (in_ptr - in) - 1), in);
+      return 0;
 		}
 
 		if (state == STATE_START)
@@ -218,10 +217,10 @@ php_driver_parse_ip_address(char* in, CassInet* inet TSRMLS_DC)
 				/* Only one compressed zero block can exist. */
 				if (compress_pos != -1)
 				{
-					zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-						"Duplicate \"::\" block at position %d in address \"%s\"",
-						((int)(in_ptr - in) - 1), in);
-					return 0;
+          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                                  "Duplicate \"::\" block at position %d in address \"%s\"",
+                                  ((int) (in_ptr - in) - 1), in);
+          return 0;
 				}
 
 				compress_pos = pos == -1 ? 0 : pos + 1;
@@ -332,22 +331,22 @@ php_driver_parse_ip_address(char* in, CassInet* inet TSRMLS_DC)
 			{
 				if (token_len > 1 && token[0] == '0')
 				{
-					zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-						"Illegal IPv4 character \"%s\" at position %d " \
-            "in address \"%s\" (no leading zeroes are allowed)",
-						token, ((int)(in_ptr - in) - 1), in);
-					return 0;
+          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                                  "Illegal IPv4 character \"%s\" at position %d "
+                                  "in address \"%s\" (no leading zeroes are allowed)",
+                                  token, ((int) (in_ptr - in) - 1), in);
+          return 0;
 				}
 
 				ipv4_byte = atoi(token);
 
 				if (ipv4_byte < 0 || ipv4_byte > 255)
 				{
-					zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-						"Illegal IPv4 segment value '%d' at position %d " \
-            "in address \"%s\" (expected: 0 - 255)",
-						ipv4_byte, ((int)(in_ptr - in) - 1), in);
-					return 0;
+          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                                  "Illegal IPv4 segment value '%d' at position %d "
+                                  "in address \"%s\" (expected: 0 - 255)",
+                                  ipv4_byte, ((int) (in_ptr - in) - 1), in);
+          return 0;
 				}
 
 				/* Check for too many address bytes. */
@@ -427,11 +426,11 @@ php_driver_parse_ip_address(char* in, CassInet* inet TSRMLS_DC)
 		 */
 		if (pos + 1 >= CASS_INET_V6_LENGTH)
 		{
-			zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-				"Address \"%s\" contains a compressed zeroes block '::', "
-				"but the address already contains %d bytes or more",
-				address, CASS_INET_V6_LENGTH);
-			return 0;
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "Address \"%s\" contains a compressed zeroes block '::', "
+                              "but the address already contains %d bytes or more",
+                              address, CASS_INET_V6_LENGTH);
+      return 0;
 		}
 
 		/* If compression is at the end of the address. We already have
@@ -465,19 +464,20 @@ php_driver_parse_ip_address(char* in, CassInet* inet TSRMLS_DC)
 		/* Check if there are enough bytes. */
 		if (pos + 1 < CASS_INET_V6_LENGTH)
 		{
-			zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-				"Address \"%s\" contains only %d bytes  (%d bytes are expected)",
-				in, pos + 1, CASS_INET_V6_LENGTH);
-			return 0;
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "Address \"%s\" contains only %d bytes  (%d bytes are expected)",
+                              in, pos + 1, CASS_INET_V6_LENGTH);
+      return 0;
 		}
 
 		/* Check if the number of bytes does not exceed the maximum. */
 		if (pos + 1 > CASS_INET_V6_LENGTH)
 		{
-			zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 TSRMLS_CC,
-				"Address \"%s\" exceeds the maximum IPv6 byte length " \
-        "(%d bytes are expected)\n", in, CASS_INET_V6_LENGTH);
-			return 0;
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "Address \"%s\" exceeds the maximum IPv6 byte length "
+                              "(%d bytes are expected)\n",
+                              in, CASS_INET_V6_LENGTH);
+      return 0;
 		}
 
 		domain = IPV6;

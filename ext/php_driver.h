@@ -30,12 +30,7 @@
 #define LL_FORMAT "%lld"
 
 #if PHP_MAJOR_VERSION >= 8
-#ifndef TSRMLS_D
-#define TSRMLS_D void
-#define TSRMLS_DC
 #define TSRMLS_C
-#define TSRMLS_CC
-#endif
 #endif
 
 #include <ext/spl/spl_exceptions.h>
@@ -66,7 +61,7 @@
 #define CURRENT_CPP_DRIVER_VERSION \
   CPP_DRIVER_VERSION(CASS_VERSION_MAJOR, CASS_VERSION_MINOR, CASS_VERSION_PATCH)
 
-#define php5to7_zend_register_internal_class_ex(ce, parent_ce) zend_register_internal_class_ex((ce), (parent_ce) TSRMLS_CC);
+#define php5to7_zend_register_internal_class_ex(ce, parent_ce) zend_register_internal_class_ex((ce), (parent_ce) );
 
 typedef zval php5to7_zval;
 typedef zval* php5to7_zval_args;
@@ -119,7 +114,7 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 
 #define PHP5TO7_ZEND_OBJECT_INIT_EX(type_name, name, self, ce)                   \
   do {                                                                           \
-    zend_object_std_init(&self->zval, ce TSRMLS_CC);                             \
+    zend_object_std_init(&self->zval, ce );                             \
     ((zend_object_handlers*) &php_driver_##name##_handlers)->offset =            \
       XtOffsetOf(php_driver_##type_name, zval);                                  \
     ((zend_object_handlers*) &php_driver_##name##_handlers)->free_obj =          \
@@ -199,7 +194,7 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
   zend_hash_copy((dst), (src), (copy_ctor_func_t) zval_add_ref);
 
 #define PHP5TO7_ZEND_HASH_SORT(ht, compare_func, renumber) \
-  zend_hash_sort(ht, compare_func, renumber TSRMLS_CC)
+  zend_hash_sort(ht, compare_func, renumber )
 
 #define PHP5TO7_ZVAL_COPY(zv1, zv2) ZVAL_COPY(zv1, zv2)
 #define PHP5TO7_ZVAL_IS_UNDEF(zv) Z_ISUNDEF(zv)
@@ -262,7 +257,7 @@ void throw_invalid_argument(
 
 #define INVALID_ARGUMENT_VALUE(object, expected, failed_value)   \
   {                                                              \
-    throw_invalid_argument(object, #object, expected TSRMLS_CC); \
+    throw_invalid_argument(object, #object, expected ); \
     return failed_value;                                         \
   }
 

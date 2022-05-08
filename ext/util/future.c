@@ -17,7 +17,8 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 
-int php_driver_future_wait_timed(CassFuture* future, zval* timeout TSRMLS_DC)
+int
+php_driver_future_wait_timed(CassFuture* future, zval* timeout)
 {
 	cass_duration_t timeout_us;
 

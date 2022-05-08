@@ -23,7 +23,8 @@ static zend_function_entry ExecutionException_methods[] = {
   PHP_FE_END
 };
 
-void php_driver_define_ExecutionException(TSRMLS_D)
+void
+php_driver_define_ExecutionException()
 {
   zend_class_entry ce;
 

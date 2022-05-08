@@ -29,15 +29,15 @@
 zend_class_entry* php_driver_varint_ce = NULL;
 
 static zend_always_inline int
-to_double(zval* result, php_driver_numeric* varint TSRMLS_DC)
+to_double(zval* result, php_driver_numeric* varint)
 {
   if (mpz_cmp_d(varint->data.varint.value, -DBL_MAX) < 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 TSRMLS_CC, "Value is too small");
+    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too small");
     return FAILURE;
   }
 
   if (mpz_cmp_d(varint->data.varint.value, DBL_MAX) > 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 TSRMLS_CC, "Value is too big");
+    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too big");
     return FAILURE;
   }
 
@@ -85,7 +85,7 @@ php_driver_varint_init(INTERNAL_FUNCTION_PARAMETERS)
     return;
   }
 
-  if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_varint_ce TSRMLS_CC)) {
+  if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_varint_ce)) {
     self = PHP_DRIVER_NUMERIC_OBJECT(getThis());
   } else {
     object_init_ex(return_value, php_driver_varint_ce);
@@ -97,8 +97,8 @@ php_driver_varint_init(INTERNAL_FUNCTION_PARAMETERS)
   } else if (Z_TYPE_P(num) == IS_DOUBLE) {
     mpz_set_d(self->data.varint.value, Z_DVAL_P(num));
   } else if (Z_TYPE_P(num) == IS_STRING) {
-    php_driver_parse_varint(Z_STRVAL_P(num), Z_STRLEN_P(num), &self->data.varint.value TSRMLS_CC);
-  } else if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_varint_ce TSRMLS_CC)) {
+    php_driver_parse_varint(Z_STRVAL_P(num), Z_STRLEN_P(num), &self->data.varint.value);
+  } else if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_varint_ce)) {
     php_driver_numeric* varint = PHP_DRIVER_NUMERIC_OBJECT(num);
     mpz_set(self->data.varint.value, varint->data.varint.value);
   } else {
@@ -125,7 +125,7 @@ ZEND_METHOD(Cassandra_Varint, __toString)
 /* {{{ Varint::type() */
 ZEND_METHOD(Cassandra_Varint, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_VARINT);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_VARINT);
   RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
 }
 /* }}} */
@@ -234,7 +234,7 @@ ZEND_METHOD(Cassandra_Varint, div)
     result = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(return_value);
 
     if (mpz_sgn(varint->data.varint.value) == 0) {
-      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0 TSRMLS_CC, "Cannot divide by zero");
+      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot divide by zero");
       return;
     }
 
@@ -263,7 +263,7 @@ ZEND_METHOD(Cassandra_Varint, mod)
     result = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(return_value);
 
     if (mpz_sgn(varint->data.varint.value) == 0) {
-      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0 TSRMLS_CC, "Cannot modulo by zero");
+      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot modulo by zero");
       return;
     }
 
@@ -355,8 +355,8 @@ php_driver_varint_properties(zend_object* object)
 {
   char* string;
   int string_len;
-  php5to7_zval type;
-  php5to7_zval value;
+  zval type;
+  zval value;
 
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_OBJECT(object);
   HashTable* props         = zend_std_get_properties(object);
@@ -428,10 +428,12 @@ php_driver_varint_free(php5to7_zend_object_free* object)
 static php5to7_zend_object
 php_driver_varint_new(zend_class_entry* ce)
 {
-  php_driver_numeric* self = emalloc(sizeof(php_driver_numeric));
+  php_driver_numeric* self = make(php_driver_numeric);
 
   self->type = PHP_DRIVER_VARINT;
   mpz_init(self->data.varint.value);
+
+  zend_object_std_init(&self->zval, ce);
 
   self->zval.handlers = &php_driver_varint_handlers.std;
 

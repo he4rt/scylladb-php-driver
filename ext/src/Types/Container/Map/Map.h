@@ -17,6 +17,6 @@
 #ifndef PHP_DRIVER_MAP_H
 #define PHP_DRIVER_MAP_H
 
-int php_driver_map_set(php_driver_map* map, zval* zkey, zval* zvalue TSRMLS_DC);
+int php_driver_map_set(php_driver_map* map, zval* zkey, zval* zvalue);
 
 #endif /* PHP_DRIVER_MAP_H */

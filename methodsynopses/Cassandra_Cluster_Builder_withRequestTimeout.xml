@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Cluster\Builder</type><methodname>Cassandra\Cluster\Builder::withRequestTimeout</methodname>
+   <methodparam><type>float</type><parameter>timeout</parameter></methodparam>
+  </methodsynopsis>

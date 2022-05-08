@@ -19,7 +19,7 @@
 
 #include "php_driver.h"
 
-php5to7_zval
-php_driver_table_build_options(CassIterator* iterator TSRMLS_DC);
+zval
+php_driver_table_build_options(CassIterator* iterator);
 
 #endif /* PHP_DRIVER_TABLE_H */

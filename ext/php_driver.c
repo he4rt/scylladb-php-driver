@@ -19,6 +19,9 @@
 #include "php_driver_types.h"
 #include "version.h"
 
+#include "src/Cluster/Cluster.h"
+#include "src/Futures/Futures.h"
+#include "src/Types/Value.h"
 #include "util/ref.h"
 #include "util/types.h"
 
@@ -90,7 +93,7 @@ php_le_php_driver_cluster()
   return le_php_driver_cluster_res;
 }
 static void
-php_driver_cluster_dtor(php5to7_zend_resource rsrc TSRMLS_DC)
+php_driver_cluster_dtor(php5to7_zend_resource rsrc)
 {
   CassCluster* cluster = (CassCluster*) rsrc->ptr;
 
@@ -310,7 +313,7 @@ exception_class(CassError rc)
 void
 throw_invalid_argument(zval* object,
                        const char* object_name,
-                       const char* expected_type TSRMLS_DC)
+                       const char* expected_type)
 {
   if (Z_TYPE_P(object) == IS_OBJECT) {
     const char* cls_name = NULL;
@@ -348,7 +351,7 @@ typedef struct {
   enum CassLogLevel_ level;
 } logging;
 
-static logging logging_levels[6] = {
+static const logging logging_levels[6] = {
   { "CRITICAL", sizeof("CRITICAL") - 1, CASS_LOG_DISABLED },
   { "ERROR", sizeof("ERROR") - 1, CASS_LOG_ERROR },
   { "WARN", sizeof("WARN") - 1, CASS_LOG_WARN },
@@ -357,11 +360,13 @@ static logging logging_levels[6] = {
   { "TRACE", sizeof("TRACE") - 1, CASS_LOG_TRACE },
 };
 
-#define FOREACH_STATIC_ARRAY(arr, type, value)  \
-  {                                             \
-    size_t length = sizeof(arr) / sizeof(type); \
-    for (int i = 0; i < length; i++) {          \
+#define FOREACH_STATIC_ARRAY(arr, type, value)    \
+  do {                                            \
+    size_t __length = sizeof(arr) / sizeof(type); \
+    for (int i = 0; i < __length; i++) {          \
       type value = (arr[i]);
+
+#define FOREACH_STATIC_ARRAY_LEN() __length
 
 #define FOREACH_STATIC_ARRAY_END() \
   }                                \
@@ -515,7 +520,6 @@ PHP_MINIT_FUNCTION(php_driver)
   php_driver_define_UuidInterface();
   php_driver_define_Timeuuid();
   php_driver_define_Uuid();
-  php_driver_define_Custom();
   php_driver_define_Duration();
 
   php_driver_define_Set();
@@ -526,14 +530,7 @@ PHP_MINIT_FUNCTION(php_driver)
 
   php_driver_define_Core();
   php_driver_define_Cluster();
-  php_driver_define_DefaultCluster();
-  php_driver_define_ClusterBuilder();
   php_driver_define_Future();
-  php_driver_define_FuturePreparedStatement();
-  php_driver_define_FutureRows();
-  php_driver_define_FutureSession();
-  php_driver_define_FutureValue();
-  php_driver_define_FutureClose();
   php_driver_define_Session();
   php_driver_define_DefaultSession();
   php_driver_define_SSLOptions();

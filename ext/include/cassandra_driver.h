@@ -5,6 +5,8 @@
 #ifndef LIBPHPCASSANDRA_EXT_INCLUDE_CASSANDRA_DRIVER_H_
 #define LIBPHPCASSANDRA_EXT_INCLUDE_CASSANDRA_DRIVER_H_
 
+#define _POSIX_C_SOURCE 200809L
+
 #include <Zend/zend_portability.h>
 
 #define PHP_DRIVER_OBJECT(type, obj) ((type*) (((char*) (obj)) - XtOffsetOf(type, zval)))
@@ -16,5 +18,7 @@
 #else
 #define PHP_DRIVER_API
 #endif
+
+#define make(type) (type*) emalloc(sizeof(type))
 
 #endif

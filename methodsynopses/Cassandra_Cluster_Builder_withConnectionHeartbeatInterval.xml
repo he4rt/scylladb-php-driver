@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Cluster\Builder</type><methodname>Cassandra\Cluster\Builder::withConnectionHeartbeatInterval</methodname>
+   <methodparam><type>float</type><parameter>interval</parameter></methodparam>
+  </methodsynopsis>

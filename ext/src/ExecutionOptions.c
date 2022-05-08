@@ -34,32 +34,33 @@ static void init_execution_options(php_driver_execution_options *self)
   PHP5TO7_ZVAL_UNDEF(self->retry_policy);
 }
 
-static int build_from_array(php_driver_execution_options *self, zval *options, int copy TSRMLS_DC)
+static int
+build_from_array(php_driver_execution_options* self, zval* options, int copy)
 {
-  php5to7_zval *consistency = NULL;
-  php5to7_zval *serial_consistency = NULL;
-  php5to7_zval *page_size = NULL;
-  php5to7_zval *paging_state_token = NULL;
-  php5to7_zval *timeout = NULL;
-  php5to7_zval *arguments = NULL;
-  php5to7_zval *retry_policy = NULL;
-  php5to7_zval *timestamp = NULL;
+  zval* consistency        = NULL;
+  zval* serial_consistency = NULL;
+  zval* page_size          = NULL;
+  zval* paging_state_token = NULL;
+  zval* timeout            = NULL;
+  zval* arguments          = NULL;
+  zval* retry_policy       = NULL;
+  zval* timestamp          = NULL;
 
   if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "consistency", sizeof("consistency"), consistency)) {
-    if (php_driver_get_consistency(PHP5TO7_ZVAL_MAYBE_DEREF(consistency), &self->consistency TSRMLS_CC) == FAILURE) {
+    if (php_driver_get_consistency(PHP5TO7_ZVAL_MAYBE_DEREF(consistency), &self->consistency) == FAILURE) {
       return FAILURE;
     }
   }
 
   if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "serial_consistency", sizeof("serial_consistency"), serial_consistency)) {
-    if (php_driver_get_serial_consistency(PHP5TO7_ZVAL_MAYBE_DEREF(serial_consistency), &self->serial_consistency TSRMLS_CC) == FAILURE) {
+    if (php_driver_get_serial_consistency(PHP5TO7_ZVAL_MAYBE_DEREF(serial_consistency), &self->serial_consistency) == FAILURE) {
       return FAILURE;
     }
   }
 
   if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "page_size", sizeof("page_size"), page_size)) {
     if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(page_size)) != IS_LONG || Z_LVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(page_size)) <= 0) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(page_size), "page_size", "greater than zero" TSRMLS_CC);
+      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(page_size), "page_size", "greater than zero");
       return FAILURE;
     }
     self->page_size = Z_LVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(page_size));
@@ -67,7 +68,7 @@ static int build_from_array(php_driver_execution_options *self, zval *options, i
 
   if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "paging_state_token", sizeof("paging_state_token"), paging_state_token)) {
     if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token)) != IS_STRING) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token), "paging_state_token", "a string" TSRMLS_CC);
+      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(paging_state_token), "paging_state_token", "a string");
       return FAILURE;
     }
     if (copy) {
@@ -83,7 +84,7 @@ static int build_from_array(php_driver_execution_options *self, zval *options, i
     if (!(Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) == IS_LONG   && Z_LVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) > 0) &&
         !(Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) == IS_DOUBLE && Z_DVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) > 0) &&
         !(Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timeout)) == IS_NULL)) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(timeout), "timeout", "a number of seconds greater than zero or null" TSRMLS_CC);
+      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(timeout), "timeout", "a number of seconds greater than zero or null");
       return FAILURE;
     }
 
@@ -96,7 +97,7 @@ static int build_from_array(php_driver_execution_options *self, zval *options, i
 
   if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "arguments", sizeof("arguments"), arguments)) {
     if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(arguments)) != IS_ARRAY) {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(arguments), "arguments", "an array" TSRMLS_CC);
+      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(arguments), "arguments", "an array");
       return FAILURE;
     }
 
@@ -108,12 +109,10 @@ static int build_from_array(php_driver_execution_options *self, zval *options, i
   }
 
   if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "retry_policy", sizeof("retry_policy"), retry_policy)) {
-    if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy)) != IS_OBJECT &&
-        !instanceof_function(Z_OBJCE_P(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy)),
-                             php_driver_retry_policy_ce TSRMLS_CC)) {
+    if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy)) != IS_OBJECT && !instanceof_function(Z_OBJCE_P(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy)), php_driver_retry_policy_ce)) {
       throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(retry_policy),
                              "retry_policy",
-                             "an instance of " PHP_DRIVER_NAMESPACE "\\RetryPolicy" TSRMLS_CC);
+                             "an instance of " PHP_DRIVER_NAMESPACE "\\RetryPolicy");
       return FAILURE;
     }
 
@@ -130,21 +129,22 @@ static int build_from_array(php_driver_execution_options *self, zval *options, i
     } else if (Z_TYPE_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp)) == IS_STRING) {
       if (!php_driver_parse_bigint(Z_STRVAL_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp)),
                                    Z_STRLEN_P(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp)),
-                                   &self->timestamp TSRMLS_CC)) {
+                                   &self->timestamp)) {
         return FAILURE;
       }
     } else {
-      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp), "timestamp", "an integer or integer string" TSRMLS_CC);
+      throw_invalid_argument(PHP5TO7_ZVAL_MAYBE_DEREF(timestamp), "timestamp", "an integer or integer string");
       return FAILURE;
     }
   }
   return SUCCESS;
 }
 
-int php_driver_execution_options_build_local_from_array(php_driver_execution_options *self, zval *options TSRMLS_DC)
+int
+php_driver_execution_options_build_local_from_array(php_driver_execution_options* self, zval* options)
 {
   init_execution_options(self);
-  return build_from_array(self, options, 0 TSRMLS_CC);
+  return build_from_array(self, options, 0);
 }
 
 PHP_METHOD(ExecutionOptions, __construct)
@@ -152,7 +152,7 @@ PHP_METHOD(ExecutionOptions, __construct)
   zval *options = NULL;
   php_driver_execution_options *self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &options) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &options) == FAILURE) {
     return;
   }
 
@@ -164,7 +164,7 @@ PHP_METHOD(ExecutionOptions, __construct)
 
   self = PHP_DRIVER_GET_EXECUTION_OPTIONS(getThis());
 
-  build_from_array(self, options, 1 TSRMLS_CC);
+  build_from_array(self, options, 1);
 }
 
 PHP_METHOD(ExecutionOptions, __get)
@@ -174,7 +174,7 @@ PHP_METHOD(ExecutionOptions, __get)
 
   php_driver_execution_options *self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &name, &name_len) == FAILURE) {
     return;
   }
 
@@ -252,17 +252,17 @@ php_driver_execution_options_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
-        zval *object TSRMLS_DC
+  zval* object
 #endif
 )
 {
-  HashTable *props = zend_std_get_properties(object TSRMLS_CC);
+  HashTable* props = zend_std_get_properties(object);
 
   return props;
 }
 
 static int
-php_driver_execution_options_compare(zval *obj1, zval *obj2 TSRMLS_DC)
+php_driver_execution_options_compare(zval* obj1, zval* obj2)
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -274,7 +274,7 @@ php_driver_execution_options_compare(zval *obj1, zval *obj2 TSRMLS_DC)
 }
 
 static void
-php_driver_execution_options_free(php5to7_zend_object_free *object TSRMLS_DC)
+php_driver_execution_options_free(php5to7_zend_object_free* object)
 {
   php_driver_execution_options *self =
       PHP5TO7_ZEND_OBJECT_GET(execution_options, object);
@@ -286,12 +286,12 @@ php_driver_execution_options_free(php5to7_zend_object_free *object TSRMLS_DC)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->timeout);
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
 
-  zend_object_std_dtor(&self->zval TSRMLS_CC);
+  zend_object_std_dtor(&self->zval);
   PHP5TO7_MAYBE_EFREE(self);
 }
 
 static php5to7_zend_object
-php_driver_execution_options_new(zend_class_entry *ce TSRMLS_DC)
+php_driver_execution_options_new(zend_class_entry* ce)
 {
   php_driver_execution_options *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(execution_options, ce);
@@ -301,12 +301,13 @@ php_driver_execution_options_new(zend_class_entry *ce TSRMLS_DC)
   PHP5TO7_ZEND_OBJECT_INIT(execution_options, self, ce);
 }
 
-void php_driver_define_ExecutionOptions(TSRMLS_D)
+void
+php_driver_define_ExecutionOptions()
 {
   zend_class_entry ce;
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\ExecutionOptions", php_driver_execution_options_methods);
-  php_driver_execution_options_ce = zend_register_internal_class(&ce TSRMLS_CC);
+  php_driver_execution_options_ce = zend_register_internal_class(&ce);
   php_driver_execution_options_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
   php_driver_execution_options_ce->create_object = php_driver_execution_options_new;
 

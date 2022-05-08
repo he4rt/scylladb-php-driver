@@ -26,7 +26,8 @@
 		"ms-python.python",
 		"JordanHury.sqltools-cassandra",
 		"VisualStudioExptTeam.vscodeintellicode",
-		"redhat.vscode-yaml"
+		"redhat.vscode-yaml",
+		"ms-vscode.makefile-tools"
 	],
 	"forwardPorts": [],
 	"remoteUser": "root",

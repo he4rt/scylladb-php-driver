@@ -17,6 +17,7 @@
 #ifndef PHP_DRIVER_TYPES_H
 #define PHP_DRIVER_TYPES_H
 
+#include <cassandra.h>
 #include <cassandra_driver.h>
 
 #include "src/Types/Numeric/Numeric.h"
@@ -139,7 +140,7 @@ static zend_always_inline
 }
 
 typedef struct php_driver_collection_ {
-  php5to7_zval type;
+  zval type;
   HashTable values;
   unsigned hashv;
   int dirty;
@@ -155,7 +156,7 @@ static zend_always_inline
 typedef struct php_driver_map_entry_ php_driver_map_entry;
 
 typedef struct php_driver_map_ {
-  php5to7_zval type;
+  zval type;
   php_driver_map_entry* entries;
   unsigned hashv;
   int dirty;
@@ -173,7 +174,7 @@ static zend_always_inline
 typedef struct php_driver_set_entry_ php_driver_set_entry;
 
 typedef struct php_driver_set_ {
-  php5to7_zval type;
+  zval type;
   php_driver_set_entry* entries;
   unsigned hashv;
   int dirty;
@@ -190,7 +191,7 @@ static zend_always_inline
 }
 
 typedef struct php_driver_tuple_ {
-  php5to7_zval type;
+  zval type;
   HashTable values;
   HashPosition pos;
   unsigned hashv;
@@ -205,7 +206,7 @@ static zend_always_inline
 }
 
 typedef struct php_driver_user_type_value_ {
-  php5to7_zval type;
+  zval type;
   HashTable values;
   HashPosition pos;
   unsigned hashv;
@@ -217,24 +218,6 @@ static zend_always_inline
   php_driver_user_type_value_object_fetch(zend_object* obj)
 {
   return (php_driver_user_type_value*) ((char*) obj - XtOffsetOf(php_driver_user_type_value, zval));
-}
-
-typedef struct php_driver_cluster_ {
-  cass_byte_t* data;
-  CassCluster* cluster;
-  long default_consistency;
-  int default_page_size;
-  php5to7_zval default_timeout;
-  cass_bool_t persist;
-  char* hash_key;
-  int hash_key_len;
-  zend_object zval;
-} php_driver_cluster;
-static zend_always_inline
-  php_driver_cluster*
-  php_driver_cluster_object_fetch(zend_object* obj)
-{
-  return (php_driver_cluster*) ((char*) obj - XtOffsetOf(php_driver_cluster, zval));
 }
 
 typedef enum {
@@ -271,8 +254,8 @@ static zend_always_inline
 
 typedef struct
 {
-  php5to7_zval statement;
-  php5to7_zval arguments;
+  zval statement;
+  zval arguments;
 } php_driver_batch_statement_entry;
 
 typedef struct php_driver_execution_options_ {
@@ -281,9 +264,9 @@ typedef struct php_driver_execution_options_ {
   int page_size;
   char* paging_state_token;
   size_t paging_state_token_size;
-  php5to7_zval timeout;
-  php5to7_zval arguments;
-  php5to7_zval retry_policy;
+  zval timeout;
+  zval arguments;
+  zval retry_policy;
   cass_int64_t timestamp;
   zend_object zval;
 } php_driver_execution_options;
@@ -293,12 +276,6 @@ static zend_always_inline
 {
   return (php_driver_execution_options*) ((char*) obj - XtOffsetOf(php_driver_execution_options, zval));
 }
-
-typedef enum {
-  LOAD_BALANCING_DEFAULT = 0,
-  LOAD_BALANCING_ROUND_ROBIN,
-  LOAD_BALANCING_DC_AWARE_ROUND_ROBIN
-} php_driver_load_balancing;
 
 typedef void (*php_driver_free_function)(void* data);
 
@@ -312,11 +289,11 @@ typedef struct
 typedef struct php_driver_rows_ {
   php_driver_ref* statement;
   php_driver_ref* session;
-  php5to7_zval rows;
-  php5to7_zval next_rows;
+  zval rows;
+  zval next_rows;
   php_driver_ref* result;
   php_driver_ref* next_result;
-  php5to7_zval future_next_page;
+  zval future_next_page;
   zend_object zval;
 } php_driver_rows;
 
@@ -330,7 +307,7 @@ static zend_always_inline
 typedef struct php_driver_future_rows_ {
   php_driver_ref* statement;
   php_driver_ref* session;
-  php5to7_zval rows;
+  zval rows;
   php_driver_ref* result;
   CassFuture* future;
   zend_object zval;
@@ -342,54 +319,9 @@ static zend_always_inline
   return (php_driver_future_rows*) ((char*) obj - XtOffsetOf(php_driver_future_rows, zval));
 }
 
-typedef struct php_driver_cluster_builder_ {
-  char* contact_points;
-  int port;
-  php_driver_load_balancing load_balancing_policy;
-  char* local_dc;
-  unsigned int used_hosts_per_remote_dc;
-  cass_bool_t allow_remote_dcs_for_local_cl;
-  cass_bool_t use_token_aware_routing;
-  char* username;
-  char* password;
-  unsigned int connect_timeout;
-  unsigned int request_timeout;
-  php5to7_zval ssl_options;
-  long default_consistency;
-  int default_page_size;
-  php5to7_zval default_timeout;
-  cass_bool_t persist;
-  int protocol_version;
-  int io_threads;
-  int core_connections_per_host;
-  int max_connections_per_host;
-  unsigned int reconnect_interval;
-  cass_bool_t enable_latency_aware_routing;
-  cass_bool_t enable_tcp_nodelay;
-  cass_bool_t enable_tcp_keepalive;
-  unsigned int tcp_keepalive_delay;
-  php5to7_zval retry_policy;
-  php5to7_zval timestamp_gen;
-  cass_bool_t enable_schema;
-  char* blacklist_hosts;
-  char* whitelist_hosts;
-  char* blacklist_dcs;
-  char* whitelist_dcs;
-  cass_bool_t enable_hostname_resolution;
-  cass_bool_t enable_randomized_contact_points;
-  unsigned int connection_heartbeat_interval;
-  zend_object zval;
-} php_driver_cluster_builder;
-static zend_always_inline
-  php_driver_cluster_builder*
-  php_driver_cluster_builder_object_fetch(zend_object* obj)
-{
-  return (php_driver_cluster_builder*) ((char*) obj - XtOffsetOf(php_driver_cluster_builder, zval));
-}
-
 typedef struct php_driver_future_prepared_statement_ {
   CassFuture* future;
-  php5to7_zval prepared_statement;
+  zval prepared_statement;
   zend_object zval;
 } php_driver_future_prepared_statement;
 static zend_always_inline
@@ -401,7 +333,7 @@ static zend_always_inline
 }
 
 typedef struct php_driver_future_value_ {
-  php5to7_zval value;
+  zval value;
   zend_object zval;
 } php_driver_future_value;
 static zend_always_inline
@@ -425,7 +357,7 @@ static zend_always_inline
 typedef struct php_driver_future_session_ {
   CassFuture* future;
   php_driver_ref* session;
-  php5to7_zval default_session;
+  zval default_session;
   cass_bool_t persist;
   char* hash_key;
   int hash_key_len;
@@ -460,7 +392,7 @@ typedef struct php_driver_session_ {
   int default_page_size;
   char* keyspace;
   char* hash_key;
-  php5to7_zval default_timeout;
+  zval default_timeout;
   cass_bool_t persist;
   zend_object zval;
 } php_driver_session;
@@ -522,12 +454,12 @@ static zend_always_inline
 }
 
 typedef struct php_driver_table_ {
-  php5to7_zval name;
-  php5to7_zval options;
-  php5to7_zval partition_key;
-  php5to7_zval primary_key;
-  php5to7_zval clustering_key;
-  php5to7_zval clustering_order;
+  zval name;
+  zval options;
+  zval partition_key;
+  zval primary_key;
+  zval clustering_key;
+  zval clustering_order;
   php_driver_ref* schema;
   const CassTableMeta* meta;
   zend_object zval;
@@ -540,13 +472,13 @@ static zend_always_inline
 }
 
 typedef struct php_driver_materialized_view_ {
-  php5to7_zval name;
-  php5to7_zval options;
-  php5to7_zval partition_key;
-  php5to7_zval primary_key;
-  php5to7_zval clustering_key;
-  php5to7_zval clustering_order;
-  php5to7_zval base_table;
+  zval name;
+  zval options;
+  zval partition_key;
+  zval primary_key;
+  zval clustering_key;
+  zval clustering_order;
+  zval base_table;
   php_driver_ref* schema;
   const CassMaterializedViewMeta* meta;
   zend_object zval;
@@ -559,8 +491,8 @@ static zend_always_inline
 }
 
 typedef struct php_driver_column_ {
-  php5to7_zval name;
-  php5to7_zval type;
+  zval name;
+  zval type;
   int reversed;
   int frozen;
   php_driver_ref* schema;
@@ -575,10 +507,10 @@ static zend_always_inline
 }
 
 typedef struct php_driver_index_ {
-  php5to7_zval name;
-  php5to7_zval kind;
-  php5to7_zval target;
-  php5to7_zval options;
+  zval name;
+  zval kind;
+  zval target;
+  zval options;
   php_driver_ref* schema;
   const CassIndexMeta* meta;
   zend_object zval;
@@ -591,12 +523,12 @@ static zend_always_inline
 }
 
 typedef struct php_driver_function_ {
-  php5to7_zval simple_name;
-  php5to7_zval arguments;
-  php5to7_zval return_type;
-  php5to7_zval signature;
-  php5to7_zval language;
-  php5to7_zval body;
+  zval simple_name;
+  zval arguments;
+  zval return_type;
+  zval signature;
+  zval language;
+  zval body;
   php_driver_ref* schema;
   const CassFunctionMeta* meta;
   zend_object zval;
@@ -609,14 +541,14 @@ static zend_always_inline
 }
 
 typedef struct php_driver_aggregate_ {
-  php5to7_zval simple_name;
-  php5to7_zval argument_types;
-  php5to7_zval state_function;
-  php5to7_zval final_function;
-  php5to7_zval initial_condition;
-  php5to7_zval state_type;
-  php5to7_zval return_type;
-  php5to7_zval signature;
+  zval simple_name;
+  zval argument_types;
+  zval state_function;
+  zval final_function;
+  zval initial_condition;
+  zval state_type;
+  zval return_type;
+  zval signature;
   php_driver_ref* schema;
   const CassAggregateMeta* meta;
   zend_object zval;
@@ -634,16 +566,16 @@ typedef struct php_driver_type_ {
   union {
     struct
     {
-      php5to7_zval value_type;
+      zval value_type;
     } collection;
     struct
     {
-      php5to7_zval value_type;
+      zval value_type;
     } set;
     struct
     {
-      php5to7_zval key_type;
-      php5to7_zval value_type;
+      zval key_type;
+      zval value_type;
     } map;
     struct
     {
@@ -691,7 +623,7 @@ static zend_always_inline
   return (php_driver_timestamp_gen*) ((char*) obj - XtOffsetOf(php_driver_timestamp_gen, zval));
 }
 
-typedef unsigned (*php_driver_value_hash_t)(zval* obj TSRMLS_DC);
+typedef unsigned (*php_driver_value_hash_t)(zval* obj );
 
 typedef struct
 {
@@ -718,58 +650,52 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_tuple_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_user_type_value_ce;
 
 /* Exceptions */
-void php_driver_define_Exception(TSRMLS_D);
-void php_driver_define_InvalidArgumentException(TSRMLS_D);
-void php_driver_define_DomainException(TSRMLS_D);
-void php_driver_define_LogicException(TSRMLS_D);
-void php_driver_define_RuntimeException(TSRMLS_D);
-void php_driver_define_TimeoutException(TSRMLS_D);
-void php_driver_define_ExecutionException(TSRMLS_D);
-void php_driver_define_ReadTimeoutException(TSRMLS_D);
-void php_driver_define_WriteTimeoutException(TSRMLS_D);
-void php_driver_define_UnavailableException(TSRMLS_D);
-void php_driver_define_TruncateException(TSRMLS_D);
-void php_driver_define_ValidationException(TSRMLS_D);
-void php_driver_define_InvalidQueryException(TSRMLS_D);
-void php_driver_define_InvalidSyntaxException(TSRMLS_D);
-void php_driver_define_UnauthorizedException(TSRMLS_D);
-void php_driver_define_UnpreparedException(TSRMLS_D);
-void php_driver_define_ConfigurationException(TSRMLS_D);
-void php_driver_define_AlreadyExistsException(TSRMLS_D);
-void php_driver_define_AuthenticationException(TSRMLS_D);
-void php_driver_define_ProtocolException(TSRMLS_D);
-void php_driver_define_ServerException(TSRMLS_D);
-void php_driver_define_IsBootstrappingException(TSRMLS_D);
-void php_driver_define_OverloadedException(TSRMLS_D);
-void php_driver_define_DivideByZeroException(TSRMLS_D);
-void php_driver_define_RangeException(TSRMLS_D);
+void php_driver_define_Exception();
+void php_driver_define_InvalidArgumentException();
+void php_driver_define_DomainException();
+void php_driver_define_LogicException();
+void php_driver_define_RuntimeException();
+void php_driver_define_TimeoutException();
+void php_driver_define_ExecutionException();
+void php_driver_define_ReadTimeoutException();
+void php_driver_define_WriteTimeoutException();
+void php_driver_define_UnavailableException();
+void php_driver_define_TruncateException();
+void php_driver_define_ValidationException();
+void php_driver_define_InvalidQueryException();
+void php_driver_define_InvalidSyntaxException();
+void php_driver_define_UnauthorizedException();
+void php_driver_define_UnpreparedException();
+void php_driver_define_ConfigurationException();
+void php_driver_define_AlreadyExistsException();
+void php_driver_define_AuthenticationException();
+void php_driver_define_ProtocolException();
+void php_driver_define_ServerException();
+void php_driver_define_IsBootstrappingException();
+void php_driver_define_OverloadedException();
+void php_driver_define_DivideByZeroException();
+void php_driver_define_RangeException();
 
 /* Types */
-void php_driver_define_Value(TSRMLS_D);
 
-void php_driver_define_Blob(TSRMLS_D);
-void php_driver_define_Collection(TSRMLS_D);
+void php_driver_define_Blob();
+void php_driver_define_Collection();
 
-void php_driver_define_Inet(TSRMLS_D);
-void php_driver_define_Map(TSRMLS_D);
-void php_driver_define_Set(TSRMLS_D);
-void php_driver_define_Timestamp(TSRMLS_D);
-void php_driver_define_Date(TSRMLS_D);
-void php_driver_define_Time(TSRMLS_D);
-void php_driver_define_Tuple(TSRMLS_D);
-void php_driver_define_UserTypeValue(TSRMLS_D);
-void php_driver_define_UuidInterface(TSRMLS_D);
-void php_driver_define_Uuid(TSRMLS_D);
-void php_driver_define_Timeuuid(TSRMLS_D);
-void php_driver_define_Custom(TSRMLS_D);
-void php_driver_define_Duration(TSRMLS_D);
+void php_driver_define_Inet();
+void php_driver_define_Map();
+void php_driver_define_Set();
+void php_driver_define_Timestamp();
+void php_driver_define_Date();
+void php_driver_define_Time();
+void php_driver_define_Tuple();
+void php_driver_define_UserTypeValue();
+void php_driver_define_UuidInterface();
+void php_driver_define_Uuid();
+void php_driver_define_Timeuuid();
+void php_driver_define_Duration();
 
 /* Classes */
 extern PHP_DRIVER_API zend_class_entry* php_driver_core_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_cluster_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_default_cluster_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_cluster_builder_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_default_cluster_builder_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_ssl_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_ssl_builder_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_future_ce;
@@ -813,26 +739,17 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_batch_statement_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_execution_options_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_rows_ce;
 
-void php_driver_define_Core(TSRMLS_D);
-void php_driver_define_Cluster(TSRMLS_D);
-void php_driver_define_ClusterBuilder(TSRMLS_D);
-void php_driver_define_DefaultCluster(TSRMLS_D);
-void php_driver_define_Future(TSRMLS_D);
-void php_driver_define_FuturePreparedStatement(TSRMLS_D);
-void php_driver_define_FutureRows(TSRMLS_D);
-void php_driver_define_FutureSession(TSRMLS_D);
-void php_driver_define_FutureValue(TSRMLS_D);
-void php_driver_define_FutureClose(TSRMLS_D);
-void php_driver_define_Session(TSRMLS_D);
-void php_driver_define_DefaultSession(TSRMLS_D);
-void php_driver_define_SSLOptions(TSRMLS_D);
-void php_driver_define_SSLOptionsBuilder(TSRMLS_D);
-void php_driver_define_Statement(TSRMLS_D);
-void php_driver_define_SimpleStatement(TSRMLS_D);
-void php_driver_define_PreparedStatement(TSRMLS_D);
-void php_driver_define_BatchStatement(TSRMLS_D);
-void php_driver_define_ExecutionOptions(TSRMLS_D);
-void php_driver_define_Rows(TSRMLS_D);
+void php_driver_define_Core();
+void php_driver_define_Session();
+void php_driver_define_DefaultSession();
+void php_driver_define_SSLOptions();
+void php_driver_define_SSLOptionsBuilder();
+void php_driver_define_Statement();
+void php_driver_define_SimpleStatement();
+void php_driver_define_PreparedStatement();
+void php_driver_define_BatchStatement();
+void php_driver_define_ExecutionOptions();
+void php_driver_define_Rows();
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_schema_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_default_schema_ce;
@@ -851,22 +768,22 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_default_function_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_aggregate_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_default_aggregate_ce;
 
-void php_driver_define_Schema(TSRMLS_D);
-void php_driver_define_DefaultSchema(TSRMLS_D);
-void php_driver_define_Keyspace(TSRMLS_D);
-void php_driver_define_DefaultKeyspace(TSRMLS_D);
-void php_driver_define_Table(TSRMLS_D);
-void php_driver_define_DefaultTable(TSRMLS_D);
-void php_driver_define_Column(TSRMLS_D);
-void php_driver_define_DefaultColumn(TSRMLS_D);
-void php_driver_define_Index(TSRMLS_D);
-void php_driver_define_DefaultIndex(TSRMLS_D);
-void php_driver_define_MaterializedView(TSRMLS_D);
-void php_driver_define_DefaultMaterializedView(TSRMLS_D);
-void php_driver_define_Function(TSRMLS_D);
-void php_driver_define_DefaultFunction(TSRMLS_D);
-void php_driver_define_Aggregate(TSRMLS_D);
-void php_driver_define_DefaultAggregate(TSRMLS_D);
+void php_driver_define_Schema();
+void php_driver_define_DefaultSchema();
+void php_driver_define_Keyspace();
+void php_driver_define_DefaultKeyspace();
+void php_driver_define_Table();
+void php_driver_define_DefaultTable();
+void php_driver_define_Column();
+void php_driver_define_DefaultColumn();
+void php_driver_define_Index();
+void php_driver_define_DefaultIndex();
+void php_driver_define_MaterializedView();
+void php_driver_define_DefaultMaterializedView();
+void php_driver_define_Function();
+void php_driver_define_DefaultFunction();
+void php_driver_define_Aggregate();
+void php_driver_define_DefaultAggregate();
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_type_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_type_scalar_ce;
@@ -877,14 +794,14 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_type_tuple_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_type_user_type_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_type_custom_ce;
 
-void php_driver_define_Type(TSRMLS_D);
-void php_driver_define_TypeScalar(TSRMLS_D);
-void php_driver_define_TypeCollection(TSRMLS_D);
-void php_driver_define_TypeSet(TSRMLS_D);
-void php_driver_define_TypeMap(TSRMLS_D);
-void php_driver_define_TypeTuple(TSRMLS_D);
-void php_driver_define_TypeUserType(TSRMLS_D);
-void php_driver_define_TypeCustom(TSRMLS_D);
+void php_driver_define_Type();
+void php_driver_define_TypeScalar();
+void php_driver_define_TypeCollection();
+void php_driver_define_TypeSet();
+void php_driver_define_TypeMap();
+void php_driver_define_TypeTuple();
+void php_driver_define_TypeUserType();
+void php_driver_define_TypeCustom();
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_default_ce;
@@ -892,19 +809,19 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_downgrading_cons
 extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_fallthrough_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_logging_ce;
 
-void php_driver_define_RetryPolicy(TSRMLS_D);
-void php_driver_define_RetryPolicyDefault(TSRMLS_D);
-void php_driver_define_RetryPolicyDowngradingConsistency(TSRMLS_D);
-void php_driver_define_RetryPolicyFallthrough(TSRMLS_D);
-void php_driver_define_RetryPolicyLogging(TSRMLS_D);
+void php_driver_define_RetryPolicy();
+void php_driver_define_RetryPolicyDefault();
+void php_driver_define_RetryPolicyDowngradingConsistency();
+void php_driver_define_RetryPolicyFallthrough();
+void php_driver_define_RetryPolicyLogging();
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_monotonic_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_server_side_ce;
 
-void php_driver_define_TimestampGenerator(TSRMLS_D);
-void php_driver_define_TimestampGeneratorMonotonic(TSRMLS_D);
-void php_driver_define_TimestampGeneratorServerSide(TSRMLS_D);
+void php_driver_define_TimestampGenerator();
+void php_driver_define_TimestampGeneratorMonotonic();
+void php_driver_define_TimestampGeneratorServerSide();
 
 extern int php_le_php_driver_cluster();
 extern int php_le_php_driver_session();

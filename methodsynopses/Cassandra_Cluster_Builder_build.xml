@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Cluster\Cluster</type><methodname>Cassandra\Cluster\Builder::build</methodname>
+   <void/>
+  </methodsynopsis>

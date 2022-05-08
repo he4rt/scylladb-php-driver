@@ -17,8 +17,8 @@
 #ifndef PHP_DRIVER_TYPE_TUPLE_H
 #define PHP_DRIVER_TYPE_TUPLE_H
 
-int php_driver_type_tuple_add(php_driver_type *type,
-                                 zval *zsub_type TSRMLS_DC);
+int php_driver_type_tuple_add(php_driver_type* type,
+                              zval* zsub_type);
 
 #endif /* PHP_DRIVER_TYPE_TUPLE_H */
 

@@ -19,8 +19,8 @@
 
 #include "php_driver.h"
 
-php5to7_zval
+zval
 php_driver_create_column(php_driver_ref* schema,
-                            const CassColumnMeta *meta TSRMLS_DC);
+                         const CassColumnMeta* meta);
 
 #endif /* PHP_DRIVER_DEFAULT_COLUMN_H */

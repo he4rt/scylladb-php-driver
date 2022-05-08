@@ -133,7 +133,7 @@ ZEND_METHOD(Cassandra_Tinyint, __toString)
 /* {{{ Tinyint::type() */
 ZEND_METHOD(Cassandra_Tinyint, type)
 {
-  php5to7_zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TINY_INT);
+  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TINY_INT);
   RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(type), 1, 1);
 }
 /* }}} */
@@ -398,8 +398,8 @@ static HashTable*
 php_driver_tinyint_properties(
   zend_object* object)
 {
-  php5to7_zval type;
-  php5to7_zval value;
+  zval type;
+  zval value;
 
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_OBJECT(object);
   HashTable* props         = zend_std_get_properties(object);
@@ -480,9 +480,11 @@ php_driver_tinyint_free(php5to7_zend_object_free* object)
 static php5to7_zend_object
 php_driver_tinyint_new(zend_class_entry* ce)
 {
-  php_driver_numeric* self = emalloc(sizeof(php_driver_numeric));
+  php_driver_numeric* self = make(php_driver_numeric);
   self->type               = PHP_DRIVER_TINYINT;
   self->zval.handlers      = &php_driver_tinyint_handlers.std;
+
+  zend_object_std_init(&self->zval, ce);
 
   return &self->zval;
 }

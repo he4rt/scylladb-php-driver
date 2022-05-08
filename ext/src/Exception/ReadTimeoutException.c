@@ -23,7 +23,8 @@ static zend_function_entry ReadTimeoutException_methods[] = {
   PHP_FE_END
 };
 
-void php_driver_define_ReadTimeoutException(TSRMLS_D)
+void
+php_driver_define_ReadTimeoutException()
 {
   zend_class_entry ce;
 

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Cluster\Builder</type><methodname>Cassandra\Cluster\Builder::withDatacenterAwareRoundRobinLoadBalancingPolicy</methodname>
+   <methodparam><type>string</type><parameter>localDatacenter</parameter></methodparam>
+   <methodparam><type>int</type><parameter>hostPerRemoteDatacenter</parameter></methodparam>
+   <methodparam><type>bool</type><parameter>useRemoteDatacenterForLocalConsistencies</parameter></methodparam>
+  </methodsynopsis>

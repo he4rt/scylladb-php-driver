@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 2c6ba567652cb00f644637f7c308d1695fb07475 */
+ * Stub hash: 6f2d588414ce6f0def810bac7caed2d6889c4331 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Float___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_MASK(0, value, MAY_BE_DOUBLE|MAY_BE_LONG|MAY_BE_STRING|MAY_BE_DOUBLE, NULL)

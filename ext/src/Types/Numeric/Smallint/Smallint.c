@@ -470,10 +470,12 @@ php_driver_smallint_free(php5to7_zend_object_free* object)
 static php5to7_zend_object
 php_driver_smallint_new(zend_class_entry* ce)
 {
-  php_driver_numeric* self = emalloc(sizeof(php_driver_numeric));
+  php_driver_numeric* self = make(php_driver_numeric);
 
   self->type          = PHP_DRIVER_SMALLINT;
   self->zval.handlers = &php_driver_smallint_handlers.std;
+
+  zend_object_std_init(&self->zval, ce);
 
   return &self->zval;
 }

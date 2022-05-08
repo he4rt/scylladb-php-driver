@@ -17,8 +17,9 @@
 #ifndef PHP_DRIVER_USER_TYPE_VALUE_H
 #define PHP_DRIVER_USER_TYPE_VALUE_H
 
-void php_driver_user_type_value_set(php_driver_user_type_value *user_type_value,
-                                    const char *name, size_t name_length,
-                                    zval *object TSRMLS_DC);
+void php_driver_user_type_value_set(php_driver_user_type_value* user_type_value,
+                                    const char* name,
+                                    size_t name_length,
+                                    zval* object);
 
 #endif /* PHP_DRIVER_USER_TYPE_VALUE_H */

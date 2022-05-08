@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>Cassandra\Cluster\Builder</type><methodname>Cassandra\Cluster\Builder::withHostnameResolution</methodname>
+   <methodparam><type>bool</type><parameter>enabled</parameter></methodparam>
+  </methodsynopsis>
