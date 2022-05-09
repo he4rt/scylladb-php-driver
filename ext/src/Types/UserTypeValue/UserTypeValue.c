@@ -84,7 +84,7 @@ PHP_METHOD(UserTypeValue, __construct)
   }
 
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
-  self->type = php_driver_type_user_type(TSRMLS_C);
+  self->type = php_driver_type_user_type();
   type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
   PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(types, name, current) {
@@ -229,7 +229,7 @@ PHP_METHOD(UserTypeValue, count)
 /* {{{ UserTypeValue::current() */
 PHP_METHOD(UserTypeValue, current)
 {
-  php5to7_string key;
+  zend_string* key;
   php_driver_user_type_value *self =
       PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   php_driver_type *type =
@@ -250,7 +250,7 @@ PHP_METHOD(UserTypeValue, current)
 /* {{{ UserTypeValue::key() */
 PHP_METHOD(UserTypeValue, key)
 {
-  php5to7_string key;
+  zend_string* key;
   php_driver_user_type_value *self =
       PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   php_driver_type *type =
@@ -349,7 +349,7 @@ php_driver_user_type_value_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -456,7 +456,7 @@ php_driver_user_type_value_hash_value(zval* obj)
 }
 
 static void
-php_driver_user_type_value_free(php5to7_zend_object_free* object)
+php_driver_user_type_value_free(zend_object* object)
 {
   php_driver_user_type_value *self =
       PHP5TO7_ZEND_OBJECT_GET(user_type_value, object);
@@ -465,10 +465,9 @@ php_driver_user_type_value_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_user_type_value_new(zend_class_entry* ce)
 {
   php_driver_user_type_value *self =
@@ -504,7 +503,7 @@ php_driver_define_UserTypeValue()
 #else
   php_driver_user_type_value_handlers.std.compare_objects = php_driver_user_type_value_compare;
 #endif
-  php_driver_user_type_value_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_user_type_value_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_user_type_value_ce->create_object = php_driver_user_type_value_new;
 
 #if PHP_VERSION_ID < 80100

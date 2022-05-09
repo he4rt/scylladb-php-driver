@@ -32,11 +32,10 @@ zend_class_entry* php_driver_cluster_builder_ce = NULL;
 ZEND_METHOD(Cassandra_Cluster_Builder, build)
 {
   CassError rc;
-  php_driver_cluster* cluster;
-  php_driver_cluster_builder* self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
   object_init_ex(return_value, php_driver_default_cluster_ce);
-  cluster = PHP_DRIVER_GET_CLUSTER(return_value);
+  php_driver_cluster* cluster      = PHP_DRIVER_CLUSTER_ZVAL_TO_OBJECT(return_value);
+  php_driver_cluster_builder* self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   cluster->persist             = self->persist;
   cluster->default_consistency = self->default_consistency;
@@ -64,7 +63,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
                                      SAFE_STR(self->blacklist_hosts), SAFE_STR(self->blacklist_dcs));
 
     if (self->persist) {
-      php5to7_zend_resource_le* le;
+      zval* le;
 
       if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len + 1, le)) {
         if (Z_TYPE_P(le) == php_le_php_driver_cluster()) {
@@ -124,7 +123,6 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
   ASSERT_SUCCESS(cass_cluster_set_protocol_version(cluster->cluster, self->protocol_version));
   ASSERT_SUCCESS(cass_cluster_set_num_threads_io(cluster->cluster, self->io_threads));
   ASSERT_SUCCESS(cass_cluster_set_core_connections_per_host(cluster->cluster, self->core_connections_per_host));
-  ASSERT_SUCCESS(cass_cluster_set_max_connections_per_host(cluster->cluster, self->max_connections_per_host));
   cass_cluster_set_reconnect_wait_time(cluster->cluster, self->reconnect_interval);
   cass_cluster_set_latency_aware_routing(cluster->cluster, self->enable_latency_aware_routing);
   cass_cluster_set_tcp_nodelay(cluster->cluster, self->enable_tcp_nodelay);
@@ -157,13 +155,13 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
   }
 
   if (self->persist) {
-    php5to7_zend_resource_le resource;
+    zval resource;
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_driver_cluster());
 
     PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list),
                              cluster->hash_key, cluster->hash_key_len + 1,
-                             &resource, sizeof(php5to7_zend_resource_le));
+                             &resource, sizeof(zval));
     PHP_DRIVER_G(persistent_clusters)
     ++;
   }
@@ -178,7 +176,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultConsistency)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (php_driver_get_consistency(consistency, &self->default_consistency) == FAILURE) {
     return;
@@ -196,7 +194,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultPageSize)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(pageSize) == IS_NULL) {
     self->default_page_size = -1;
@@ -218,7 +216,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(timeout) == IS_NULL) {
     PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
@@ -236,7 +234,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout)
 ZEND_METHOD(Cassandra_Cluster_Builder, withContactPoints)
 {
   zval* host              = NULL;
-  php5to7_zval_args args  = NULL;
+  zval* args              = NULL;
   int argc                = 0, i;
   smart_str contactPoints = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder* self;
@@ -245,7 +243,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withContactPoints)
     return;
   }
 
-  self = php_driver_cluster_builder_object_fetch(Z_OBJ_P(getThis()));
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   for (i = 0; i < argc; i++) {
     host = PHP5TO7_ZVAL_ARG(args[i]);
@@ -281,7 +279,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withPort)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(port) == IS_LONG && Z_LVAL_P(port) > 0 && Z_LVAL_P(port) < 65536) {
     self->port = Z_LVAL_P(port);
@@ -300,7 +298,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRoundRobinLoadBalancingPolicy)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (self->local_dc) {
     efree(self->local_dc);
@@ -315,7 +313,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRoundRobinLoadBalancingPolicy)
 ZEND_METHOD(Cassandra_Cluster_Builder, withDatacenterAwareRoundRobinLoadBalancingPolicy)
 {
   char* local_dc;
-  php5to7_size local_dc_len;
+  size_t local_dc_len;
   zval* hostPerRemoteDatacenter = NULL;
   zend_bool allow_remote_dcs_for_local_cl;
   php_driver_cluster_builder* self;
@@ -331,7 +329,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDatacenterAwareRoundRobinLoadBalancin
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(hostPerRemoteDatacenter) != IS_LONG || Z_LVAL_P(hostPerRemoteDatacenter) < 0) {
     INVALID_ARGUMENT(hostPerRemoteDatacenter, "a positive integer");
@@ -353,7 +351,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDatacenterAwareRoundRobinLoadBalancin
 ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListHosts)
 {
   zval* hosts               = NULL;
-  php5to7_zval_args args    = NULL;
+  zval* args                = NULL;
   int argc                  = 0, i;
   smart_str blacklist_hosts = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder* self;
@@ -362,7 +360,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListHosts)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   for (i = 0; i < argc; i++) {
     hosts = PHP5TO7_ZVAL_ARG(args[i]);
@@ -392,7 +390,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListHosts)
 ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListHosts)
 {
   zval* hosts               = NULL;
-  php5to7_zval_args args    = NULL;
+  zval* args                = NULL;
   int argc                  = 0, i;
   smart_str whitelist_hosts = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder* self;
@@ -401,7 +399,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListHosts)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   for (i = 0; i < argc; i++) {
     hosts = PHP5TO7_ZVAL_ARG(args[i]);
@@ -431,7 +429,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListHosts)
 ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListDCs)
 {
   zval* dcs               = NULL;
-  php5to7_zval_args args  = NULL;
+  zval* args              = NULL;
   int argc                = 0, i;
   smart_str blacklist_dcs = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder* self;
@@ -440,7 +438,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListDCs)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   for (i = 0; i < argc; i++) {
     dcs = PHP5TO7_ZVAL_ARG(args[i]);
@@ -475,7 +473,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListDCs)
 ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListDCs)
 {
   zval* dcs               = NULL;
-  php5to7_zval_args args  = NULL;
+  zval* args              = NULL;
   int argc                = 0, i;
   smart_str whitelist_dcs = PHP5TO7_SMART_STR_INIT;
   php_driver_cluster_builder* self;
@@ -484,7 +482,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListDCs)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   for (i = 0; i < argc; i++) {
     dcs = PHP5TO7_ZVAL_ARG(args[i]);
@@ -506,12 +504,8 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListDCs)
   smart_str_0(&whitelist_dcs);
 
   efree(self->whitelist_dcs);
-#if PHP_MAJOR_VERSION >= 7
   self->whitelist_dcs = estrndup(whitelist_dcs.s->val, whitelist_dcs.s->len);
   smart_str_free(&whitelist_dcs);
-#else
-  self->whitelist_dcs = whitelist_dcs.c;
-#endif
 
   RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -525,7 +519,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTokenAwareRouting)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->use_token_aware_routing = enabled;
 
@@ -542,7 +536,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withCredentials)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(username) != IS_STRING) {
     INVALID_ARGUMENT(username, "a string");
@@ -572,7 +566,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withConnectTimeout)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(timeout) == IS_LONG && Z_LVAL_P(timeout) > 0) {
     self->connect_timeout = Z_LVAL_P(timeout) * 1000;
@@ -594,7 +588,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRequestTimeout)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->request_timeout = ceil(timeout * 1000);
 
@@ -610,7 +604,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withSSL)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (!PHP5TO7_ZVAL_IS_UNDEF(self->ssl_options))
     zval_ptr_dtor(&self->ssl_options);
@@ -629,7 +623,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withPersistentSessions)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->persist = enabled;
 
@@ -645,7 +639,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withProtocolVersion)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(version) == IS_LONG && Z_LVAL_P(version) >= 1) {
     self->protocol_version = Z_LVAL_P(version);
@@ -665,7 +659,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withIOThreads)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(count) == IS_LONG && Z_LVAL_P(count) < 129 && Z_LVAL_P(count) > 0) {
     self->io_threads = Z_LVAL_P(count);
@@ -686,7 +680,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withConnectionsPerHost)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(core) == IS_LONG && Z_LVAL_P(core) < 129 && Z_LVAL_P(core) > 0) {
     self->core_connections_per_host = Z_LVAL_P(core);
@@ -720,7 +714,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withReconnectInterval)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(interval) == IS_LONG && Z_LVAL_P(interval) > 0) {
     self->reconnect_interval = Z_LVAL_P(interval) * 1000;
@@ -742,7 +736,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withLatencyAwareRouting)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->enable_latency_aware_routing = enabled;
 
@@ -758,7 +752,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTCPNodelay)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->enable_tcp_nodelay = enabled;
 
@@ -774,7 +768,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTCPKeepalive)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(delay) == IS_NULL) {
     self->enable_tcp_keepalive = 0;
@@ -803,7 +797,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRetryPolicy)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (!PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy))
     zval_ptr_dtor(&self->retry_policy);
@@ -824,7 +818,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTimestampGenerator)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (!PHP5TO7_ZVAL_IS_UNDEF(self->timestamp_gen))
     zval_ptr_dtor(&self->timestamp_gen);
@@ -843,7 +837,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withSchemaMetadata)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->enable_schema = enabled;
 
@@ -859,7 +853,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withHostnameResolution)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->enable_hostname_resolution = enabled;
 
@@ -875,7 +869,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRandomizedContactPoints)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   self->enable_randomized_contact_points = enabled;
 
@@ -891,7 +885,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withConnectionHeartbeatInterval)
     return;
   }
 
-  self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+  self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(interval) == IS_LONG && Z_LVAL_P(interval) >= 0) {
     self->connection_heartbeat_interval = Z_LVAL_P(interval);
@@ -913,7 +907,7 @@ php_driver_cluster_builder_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -964,14 +958,8 @@ php_driver_cluster_builder_properties(
   zval randomizedContactPoints;
   zval connectionHeartbeatInterval;
 
-  php_driver_cluster_builder* self = PHP_DRIVER_GET_CLUSTER_BUILDER(
-#if PHP_MAJOR_VERSION >= 8
-    (zval*) object
-#else
-    object
-#endif
-  );
-  HashTable* props = zend_std_get_properties(object);
+  php_driver_cluster_builder* self = PHP_DRIVER_CLUSTER_BUILDER_OBJECT(object);
+  HashTable* props                 = zend_std_get_properties(object);
 
   PHP5TO7_ZVAL_MAYBE_MAKE(contactPoints);
   PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(contactPoints), self->contact_points);
@@ -1196,10 +1184,9 @@ php_driver_cluster_builder_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_cluster_builder_free(php5to7_zend_object_free* object)
+php_driver_cluster_builder_free(zend_object* object)
 {
-  php_driver_cluster_builder* self =
-    PHP5TO7_ZEND_OBJECT_GET(cluster_builder, object);
+  php_driver_cluster_builder* self = PHP_DRIVER_CLUSTER_BUILDER_OBJECT(object);
 
   efree(self->contact_points);
   self->contact_points = NULL;
@@ -1247,11 +1234,10 @@ php_driver_cluster_builder_free(php5to7_zend_object_free* object)
   zend_object_std_dtor(&self->zval);
 }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_cluster_builder_new(zend_class_entry* ce)
 {
-  php_driver_cluster_builder* self =
-    PHP5TO7_ZEND_OBJECT_ECALLOC(cluster_builder, ce);
+  php_driver_cluster_builder* self = make(php_driver_cluster_builder);
 
   self->contact_points                   = estrdup("127.0.0.1");
   self->port                             = 9042;

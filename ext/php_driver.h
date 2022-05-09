@@ -29,10 +29,6 @@
 
 #define LL_FORMAT "%lld"
 
-#if PHP_MAJOR_VERSION >= 8
-#define TSRMLS_C
-#endif
-
 #include <ext/spl/spl_exceptions.h>
 #include <ext/spl/spl_iterators.h>
 
@@ -61,25 +57,7 @@
 #define CURRENT_CPP_DRIVER_VERSION \
   CPP_DRIVER_VERSION(CASS_VERSION_MAJOR, CASS_VERSION_MINOR, CASS_VERSION_PATCH)
 
-#define php5to7_zend_register_internal_class_ex(ce, parent_ce) zend_register_internal_class_ex((ce), (parent_ce) );
-
-typedef zval php5to7_zval;
-typedef zval* php5to7_zval_args;
-typedef zval* php5to7_zval_arg;
-typedef zend_string* php5to7_string;
-typedef zend_long php5to7_long;
-typedef zend_ulong php5to7_ulong;
-typedef zval php5to7_zend_resource_le;
-typedef zend_resource* php5to7_zend_resource;
-typedef zend_object* php5to7_zend_object;
-typedef zend_object php5to7_zend_object_free;
-typedef zval** php5to7_zval_gc;
-typedef zval* php5to7_dtor;
-typedef size_t php5to7_size;
-
-#if ((PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION >= 4) || PHP_MAJOR_VERSION > 7)
-typedef unsigned long ulong;
-#endif
+#define php5to7_zend_register_internal_class_ex(ce, parent_ce) zend_register_internal_class_ex((ce), (parent_ce));
 
 static inline int
 php5to7_string_compare(zend_string* s1, zend_string* s2)
@@ -104,8 +82,6 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 #define PHP5TO7_STRCMP(s, c) strcmp((s)->val, (c))
 #define PHP5TO7_STRVAL(s) ((s)->val)
 
-#define PHP5TO7_ZEND_ACC_FINAL ZEND_ACC_FINAL
-
 #define PHP5TO7_ZEND_OBJECT_ECALLOC(type_name, ce) \
   (php_driver_##type_name*) ecalloc(1, sizeof(php_driver_##type_name) + zend_object_properties_size(ce))
 
@@ -114,7 +90,7 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
 
 #define PHP5TO7_ZEND_OBJECT_INIT_EX(type_name, name, self, ce)                   \
   do {                                                                           \
-    zend_object_std_init(&self->zval, ce );                             \
+    zend_object_std_init(&self->zval, ce);                                       \
     ((zend_object_handlers*) &php_driver_##name##_handlers)->offset =            \
       XtOffsetOf(php_driver_##type_name, zval);                                  \
     ((zend_object_handlers*) &php_driver_##name##_handlers)->free_obj =          \
@@ -122,8 +98,6 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
     self->zval.handlers = (zend_object_handlers*) &php_driver_##name##_handlers; \
     return &self->zval;                                                          \
   } while (0)
-
-#define PHP5TO7_MAYBE_EFREE(p) ((void) 0)
 
 #define PHP5TO7_ADD_ASSOC_ZVAL_EX(zv, key, len, val) \
   add_assoc_zval_ex((zv), (key), (size_t) (len - 1), val)
@@ -173,7 +147,7 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
   (((res) = zend_hash_str_find((ht), (key), (size_t) ((len) -1))) != NULL)
 
 #define PHP5TO7_ZEND_HASH_INDEX_FIND(ht, index, res) \
-  (((res) = zend_hash_index_find((ht), (php5to7_ulong) (index))) != NULL)
+  (((res) = zend_hash_index_find((ht), (zend_ulong) (index))) != NULL)
 
 #define PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(ht, val, val_size) \
   ((void) zend_hash_next_index_insert((ht), (val)))
@@ -194,7 +168,7 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
   zend_hash_copy((dst), (src), (copy_ctor_func_t) zval_add_ref);
 
 #define PHP5TO7_ZEND_HASH_SORT(ht, compare_func, renumber) \
-  zend_hash_sort(ht, compare_func, renumber )
+  zend_hash_sort(ht, compare_func, renumber)
 
 #define PHP5TO7_ZVAL_COPY(zv1, zv2) ZVAL_COPY(zv1, zv2)
 #define PHP5TO7_ZVAL_IS_UNDEF(zv) Z_ISUNDEF(zv)
@@ -255,10 +229,10 @@ void throw_invalid_argument(
     return;                                            \
   }
 
-#define INVALID_ARGUMENT_VALUE(object, expected, failed_value)   \
-  {                                                              \
-    throw_invalid_argument(object, #object, expected ); \
-    return failed_value;                                         \
+#define INVALID_ARGUMENT_VALUE(object, expected, failed_value) \
+  {                                                            \
+    throw_invalid_argument(object, #object, expected);         \
+    return failed_value;                                       \
   }
 
 #define ASSERT_SUCCESS_BLOCK(rc, block)                   \

@@ -72,7 +72,7 @@ php_driver_future_value_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_future_value_free(php5to7_zend_object_free* object)
+php_driver_future_value_free(zend_object* object)
 {
   php_driver_future_value *self =
       PHP5TO7_ZEND_OBJECT_GET(future_value, object);
@@ -80,10 +80,9 @@ php_driver_future_value_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->value);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_future_value_new(zend_class_entry* ce)
 {
   php_driver_future_value *self =
@@ -102,7 +101,7 @@ php_driver_define_FutureValue()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FutureValue", php_driver_future_value_methods);
   php_driver_future_value_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_future_value_ce, 1, php_driver_future_ce);
-  php_driver_future_value_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_future_value_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_future_value_ce->create_object = php_driver_future_value_new;
 
   memcpy(&php_driver_future_value_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

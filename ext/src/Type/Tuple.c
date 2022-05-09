@@ -92,7 +92,7 @@ PHP_METHOD(TypeTuple, create)
 {
   php_driver_type *self;
   php_driver_tuple *tuple;
-  php5to7_zval_args args = NULL;
+  zval* args = NULL;
   int argc = 0, i, num_types;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "*",
@@ -116,23 +116,20 @@ PHP_METHOD(TypeTuple, create)
                               0,
                               "Invalid number of elements given. Expected %d arguments.",
                               zend_hash_num_elements(&self->data.tuple.types));
-      PHP5TO7_MAYBE_EFREE(args);
-      return;
+            return;
     }
 
     for (i = 0; i < argc; i++) {
       zval* sub_type;
 
       if (!PHP5TO7_ZEND_HASH_INDEX_FIND(&self->data.tuple.types, i, sub_type) || !php_driver_validate_object(PHP5TO7_ZVAL_ARG(args[i]), PHP5TO7_ZVAL_MAYBE_DEREF(sub_type))) {
-        PHP5TO7_MAYBE_EFREE(args);
-        return;
+                return;
       }
 
       php_driver_tuple_set(tuple, i, PHP5TO7_ZVAL_ARG(args[i]));
     }
 
-    PHP5TO7_MAYBE_EFREE(args);
-  }
+      }
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
@@ -164,7 +161,7 @@ php_driver_type_tuple_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -212,7 +209,7 @@ php_driver_type_tuple_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_type_tuple_free(php5to7_zend_object_free* object)
+php_driver_type_tuple_free(zend_object* object)
 {
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
@@ -220,10 +217,9 @@ php_driver_type_tuple_free(php5to7_zend_object_free* object)
   zend_hash_destroy(&self->data.tuple.types);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_type_tuple_new(zend_class_entry* ce)
 {
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_ECALLOC(type, ce);
@@ -246,6 +242,6 @@ php_driver_define_TypeTuple()
   php_driver_type_tuple_handlers.get_properties  = php_driver_type_tuple_properties;
   php_driver_type_tuple_handlers.get_gc          = php_driver_type_tuple_gc;
   php_driver_type_tuple_handlers.compare = php_driver_type_tuple_compare;
-  php_driver_type_tuple_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_type_tuple_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_type_tuple_ce->create_object = php_driver_type_tuple_new;
 }

@@ -38,7 +38,7 @@ get_uuid_gen()
 void
 php_driver_uuid_generate_random(CassUuid* out)
 {
-  CassUuidGen* uuid_gen = get_uuid_gen(TSRMLS_C);
+  CassUuidGen* uuid_gen = get_uuid_gen();
   if (!uuid_gen) return;
   cass_uuid_gen_random(uuid_gen, out);
 }
@@ -46,7 +46,7 @@ php_driver_uuid_generate_random(CassUuid* out)
 void
 php_driver_uuid_generate_time(CassUuid* out)
 {
-  CassUuidGen* uuid_gen = get_uuid_gen(TSRMLS_C);
+  CassUuidGen* uuid_gen = get_uuid_gen();
   if (!uuid_gen) return;
   cass_uuid_gen_time(uuid_gen, out);
 }
@@ -54,7 +54,7 @@ php_driver_uuid_generate_time(CassUuid* out)
 void
 php_driver_uuid_generate_from_time(long timestamp, CassUuid* out)
 {
-  CassUuidGen* uuid_gen = get_uuid_gen(TSRMLS_C);
+  CassUuidGen* uuid_gen = get_uuid_gen();
   if (!uuid_gen) return;
   cass_uuid_gen_from_time(uuid_gen, (cass_uint64_t) timestamp, out);
 }

@@ -194,7 +194,7 @@ php_driver_date_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -256,14 +256,14 @@ php_driver_date_hash_value(zval* obj)
 }
 
 static void
-php_driver_date_free(php5to7_zend_object_free* object)
+php_driver_date_free(zend_object* object)
 {
   php_driver_date* self = PHP5TO7_ZEND_OBJECT_GET(date, object);
 
   zend_object_std_dtor(&self->zval);
 }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_date_new(zend_class_entry* ce)
 {
   php_driver_date* self = make(php_driver_date);
@@ -298,7 +298,7 @@ php_driver_define_Date()
   php_driver_date_handlers.std.free_obj = php_driver_date_free;
   php_driver_date_handlers.std.offset   = XtOffsetOf(php_driver_date, zval);
 
-  php_driver_date_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_date_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_date_ce->create_object = php_driver_date_new;
 
   php_driver_date_handlers.hash_value = php_driver_date_hash_value;

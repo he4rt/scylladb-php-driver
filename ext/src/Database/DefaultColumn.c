@@ -16,30 +16,30 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
+#include "util/ref.h"
 #include "util/result.h"
 #include "util/types.h"
-#include "util/ref.h"
 
 #include "DefaultColumn.h"
 
-zend_class_entry *php_driver_default_column_ce = NULL;
+zend_class_entry* php_driver_default_column_ce = NULL;
 
 zval
 php_driver_create_column(php_driver_ref* schema,
                          const CassColumnMeta* meta)
 {
   zval result;
-  php_driver_column *column;
-  const char *name;
+  php_driver_column* column;
+  const char* name;
   size_t name_length;
-  const CassValue *value;
+  const CassValue* value;
 
   PHP5TO7_ZVAL_UNDEF(result);
 
   PHP5TO7_ZVAL_MAYBE_MAKE(result);
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_column_ce);
 
-  column = PHP_DRIVER_GET_COLUMN(PHP5TO7_ZVAL_MAYBE_P(result));
+  column         = PHP_DRIVER_GET_COLUMN(PHP5TO7_ZVAL_MAYBE_P(result));
   column->schema = php_driver_add_ref(schema);
   column->meta   = meta;
 
@@ -49,16 +49,15 @@ php_driver_create_column(php_driver_ref* schema,
 
   value = cass_column_meta_field_by_name(meta, "validator");
   if (value) {
-    const char *validator;
+    const char* validator;
     size_t validator_length;
 
     ASSERT_SUCCESS_BLOCK(cass_value_get_string(value,
                                                &validator,
                                                &validator_length),
-     zval_ptr_dtor(&result);
-     PHP5TO7_ZVAL_UNDEF(result);
-     return result;
-    );
+                         zval_ptr_dtor(&result);
+                         PHP5TO7_ZVAL_UNDEF(result);
+                         return result;);
 
     if (php_driver_parse_column_type(validator, validator_length,
                                      &column->reversed, &column->frozen,
@@ -69,9 +68,9 @@ php_driver_create_column(php_driver_ref* schema,
       return result;
     }
   } else {
-    const CassDataType *data_type = cass_column_meta_data_type(meta);
+    const CassDataType* data_type = cass_column_meta_data_type(meta);
     if (data_type) {
-      const char *clustering_order;
+      const char* clustering_order;
       size_t clustering_order_length;
       column->type = php_driver_type_from_data_type(data_type);
 
@@ -90,25 +89,23 @@ php_driver_create_column(php_driver_ref* schema,
         return result;
       }
 
-     ASSERT_SUCCESS_BLOCK(cass_value_get_string(value,
-                                                &clustering_order,
-                                                &clustering_order_length),
-        zval_ptr_dtor(&result);
-        PHP5TO7_ZVAL_UNDEF(result);
-        return result;
-      );
+      ASSERT_SUCCESS_BLOCK(cass_value_get_string(value,
+                                                 &clustering_order,
+                                                 &clustering_order_length),
+                           zval_ptr_dtor(&result);
+                           PHP5TO7_ZVAL_UNDEF(result);
+                           return result;);
       column->reversed =
-          strncmp(clustering_order, "desc", clustering_order_length) == 0 ? 1 : 0;
+        strncmp(clustering_order, "desc", clustering_order_length) == 0 ? 1 : 0;
     }
   }
 
   return result;
 }
 
-
 PHP_METHOD(DefaultColumn, name)
 {
-  php_driver_column *self;
+  php_driver_column* self;
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -121,7 +118,7 @@ PHP_METHOD(DefaultColumn, name)
 
 PHP_METHOD(DefaultColumn, type)
 {
-  php_driver_column *self;
+  php_driver_column* self;
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -138,7 +135,7 @@ PHP_METHOD(DefaultColumn, type)
 
 PHP_METHOD(DefaultColumn, isReversed)
 {
-  php_driver_column *self;
+  php_driver_column* self;
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -151,20 +148,20 @@ PHP_METHOD(DefaultColumn, isReversed)
 
 PHP_METHOD(DefaultColumn, isStatic)
 {
-  php_driver_column *self;
+  php_driver_column* self;
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
   }
 
-  self  = PHP_DRIVER_GET_COLUMN(getThis());
+  self = PHP_DRIVER_GET_COLUMN(getThis());
 
   RETURN_BOOL(cass_column_meta_type(self->meta) == CASS_COLUMN_TYPE_STATIC);
 }
 
 PHP_METHOD(DefaultColumn, isFrozen)
 {
-  php_driver_column *self;
+  php_driver_column* self;
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -177,7 +174,7 @@ PHP_METHOD(DefaultColumn, isFrozen)
 
 PHP_METHOD(DefaultColumn, indexName)
 {
-  php_driver_column *self;
+  php_driver_column* self;
   zval value;
 
   if (zend_parse_parameters_none() == FAILURE) {
@@ -192,7 +189,7 @@ PHP_METHOD(DefaultColumn, indexName)
 
 PHP_METHOD(DefaultColumn, indexOptions)
 {
-  php_driver_column *self;
+  php_driver_column* self;
   zval value;
 
   if (zend_parse_parameters_none() == FAILURE) {
@@ -209,14 +206,14 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_default_column_methods[] = {
-  PHP_ME(DefaultColumn, name,         arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, type,         arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, isReversed,   arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
-  PHP_ME(DefaultColumn, isStatic,     arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, isFrozen,     arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, indexName,    arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
-  PHP_ME(DefaultColumn, indexOptions, arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
-  PHP_FE_END
+  PHP_ME(DefaultColumn, name, arginfo_none, ZEND_ACC_PUBLIC)
+    PHP_ME(DefaultColumn, type, arginfo_none, ZEND_ACC_PUBLIC)
+      PHP_ME(DefaultColumn, isReversed, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_DEPRECATED)
+        PHP_ME(DefaultColumn, isStatic, arginfo_none, ZEND_ACC_PUBLIC)
+          PHP_ME(DefaultColumn, isFrozen, arginfo_none, ZEND_ACC_PUBLIC)
+            PHP_ME(DefaultColumn, indexName, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_DEPRECATED)
+              PHP_ME(DefaultColumn, indexOptions, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_DEPRECATED)
+                PHP_FE_END
 };
 
 static zend_object_handlers php_driver_default_column_handlers;
@@ -228,18 +225,18 @@ php_driver_type_default_column_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
-  *n = 0;
+  *n     = 0;
   return zend_std_get_properties(object);
 }
 
-static HashTable *
+static HashTable*
 php_driver_default_column_properties(
 #if PHP_MAJOR_VERSION >= 8
-        zend_object *object
+  zend_object* object
 #else
   zval* object
 #endif
@@ -263,9 +260,9 @@ php_driver_default_column_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_default_column_free(php5to7_zend_object_free* object)
+php_driver_default_column_free(zend_object* object)
 {
-  php_driver_column *self = PHP5TO7_ZEND_OBJECT_GET(column, object);
+  php_driver_column* self = PHP5TO7_ZEND_OBJECT_GET(column, object);
 
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
@@ -277,14 +274,13 @@ php_driver_default_column_free(php5to7_zend_object_free* object)
   self->meta = NULL;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
 }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_default_column_new(zend_class_entry* ce)
 {
-  php_driver_column *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(column, ce);
+  php_driver_column* self =
+    PHP5TO7_ZEND_OBJECT_ECALLOC(column, ce);
 
   self->reversed = 0;
   self->frozen   = 0;
@@ -304,13 +300,13 @@ php_driver_define_DefaultColumn()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultColumn", php_driver_default_column_methods);
   php_driver_default_column_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_default_column_ce, 1, php_driver_column_ce);
-  php_driver_default_column_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_default_column_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_default_column_ce->create_object = php_driver_default_column_new;
 
   memcpy(&php_driver_default_column_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_default_column_handlers.get_properties  = php_driver_default_column_properties;
+  php_driver_default_column_handlers.get_properties = php_driver_default_column_properties;
 #if PHP_VERSION_ID >= 50400
-  php_driver_default_column_handlers.get_gc          = php_driver_type_default_column_gc;
+  php_driver_default_column_handlers.get_gc = php_driver_type_default_column_gc;
 #endif
 #if PHP_MAJOR_VERSION >= 8
   php_driver_default_column_handlers.compare = php_driver_default_column_compare;

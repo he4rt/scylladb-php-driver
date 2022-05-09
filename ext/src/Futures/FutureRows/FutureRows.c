@@ -130,7 +130,7 @@ php_driver_future_rows_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_future_rows_free(php5to7_zend_object_free* object)
+php_driver_future_rows_free(zend_object* object)
 {
   php_driver_future_rows *self = PHP5TO7_ZEND_OBJECT_GET(future_rows, object);
 
@@ -145,10 +145,9 @@ php_driver_future_rows_free(php5to7_zend_object_free* object)
   }
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_future_rows_new(zend_class_entry* ce)
 {
   php_driver_future_rows *self =
@@ -171,7 +170,7 @@ php_driver_define_FutureRows()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FutureRows", php_driver_future_rows_methods);
   php_driver_future_rows_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_future_rows_ce, 1, php_driver_future_ce);
-  php_driver_future_rows_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_future_rows_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_future_rows_ce->create_object = php_driver_future_rows_new;
 
   memcpy(&php_driver_future_rows_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

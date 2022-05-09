@@ -75,7 +75,7 @@ PHP_METHOD(TypeSet, __toString)
 PHP_METHOD(TypeSet, create)
 {
   php_driver_set *set;
-  php5to7_zval_args args = NULL;
+  zval* args = NULL;
   int argc = 0, i;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "*",
@@ -92,13 +92,11 @@ PHP_METHOD(TypeSet, create)
   if (argc > 0) {
     for (i = 0; i < argc; i++) {
       if (!php_driver_set_add(set, PHP5TO7_ZVAL_ARG(args[i]))) {
-        PHP5TO7_MAYBE_EFREE(args);
-        return;
+                return;
       }
     }
 
-    PHP5TO7_MAYBE_EFREE(args);
-  }
+      }
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
@@ -130,7 +128,7 @@ php_driver_type_set_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -175,7 +173,7 @@ php_driver_type_set_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_type_set_free(php5to7_zend_object_free* object)
+php_driver_type_set_free(zend_object* object)
 {
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
@@ -183,10 +181,9 @@ php_driver_type_set_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.set.value_type);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_type_set_new(zend_class_entry* ce)
 {
   php_driver_type *self =
@@ -216,6 +213,6 @@ php_driver_define_TypeSet()
 #else
   php_driver_type_set_handlers.compare_objects = php_driver_type_set_compare;
 #endif
-  php_driver_type_set_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_type_set_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_type_set_ce->create_object = php_driver_type_set_new;
 }

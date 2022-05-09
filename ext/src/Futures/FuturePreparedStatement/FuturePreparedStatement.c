@@ -89,7 +89,7 @@ php_driver_future_prepared_statement_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_future_prepared_statement_free(php5to7_zend_object_free* object)
+php_driver_future_prepared_statement_free(zend_object* object)
 {
   php_driver_future_prepared_statement *self =
       PHP5TO7_ZEND_OBJECT_GET(future_prepared_statement, object);
@@ -102,10 +102,9 @@ php_driver_future_prepared_statement_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->prepared_statement);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_future_prepared_statement_new(zend_class_entry* ce)
 {
   php_driver_future_prepared_statement *self =
@@ -125,7 +124,7 @@ php_driver_define_FuturePreparedStatement()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FuturePreparedStatement", php_driver_future_prepared_statement_methods);
   php_driver_future_prepared_statement_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_future_prepared_statement_ce, 1, php_driver_future_ce);
-  php_driver_future_prepared_statement_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_future_prepared_statement_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_future_prepared_statement_ce->create_object = php_driver_future_prepared_statement_new;
 
   memcpy(&php_driver_future_prepared_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

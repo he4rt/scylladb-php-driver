@@ -93,7 +93,7 @@ php_le_php_driver_cluster()
   return le_php_driver_cluster_res;
 }
 static void
-php_driver_cluster_dtor(php5to7_zend_resource rsrc)
+php_driver_cluster_dtor(zend_resource* rsrc)
 {
   CassCluster* cluster = (CassCluster*) rsrc->ptr;
 
@@ -133,7 +133,7 @@ php_le_php_driver_prepared_statement()
   return le_php_driver_prepared_statement_res;
 }
 static void
-php_driver_prepared_statement_dtor(php5to7_zend_resource rsrc)
+php_driver_prepared_statement_dtor(zend_resource* rsrc)
 {
   php_driver_pprepared_statement* preparedStmt = (php_driver_pprepared_statement*) rsrc->ptr;
 

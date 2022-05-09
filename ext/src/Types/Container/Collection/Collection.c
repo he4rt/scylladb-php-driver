@@ -32,7 +32,7 @@ php_driver_collection_add(php_driver_collection* collection, zval* object)
 }
 
 static int
-php_driver_collection_del(php_driver_collection *collection, ulong index)
+php_driver_collection_del(php_driver_collection *collection, uint64_t index)
 {
   if (zend_hash_index_del(&collection->values, index) == SUCCESS) {
     collection->dirty = 1;
@@ -43,7 +43,7 @@ php_driver_collection_del(php_driver_collection *collection, ulong index)
 }
 
 static int
-php_driver_collection_get(php_driver_collection* collection, ulong index, zval* zvalue)
+php_driver_collection_get(php_driver_collection* collection, uint64_t index, zval* zvalue)
 {
   zval* value;
   if (PHP5TO7_ZEND_HASH_INDEX_FIND(&collection->values, index, value)) {
@@ -56,7 +56,7 @@ php_driver_collection_get(php_driver_collection* collection, ulong index, zval* 
 static int
 php_driver_collection_find(php_driver_collection* collection, zval* object, long* index)
 {
-  php5to7_ulong num_key;
+  zend_ulong num_key;
   zval* current;
   PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
     zval compare;
@@ -131,7 +131,7 @@ PHP_METHOD(Collection, values)
 PHP_METHOD(Collection, add)
 {
   php_driver_collection *self = NULL;
-  php5to7_zval_args args = NULL;
+  zval* args = NULL;
   int argc = 0, i;
   php_driver_type *type;
 
@@ -143,16 +143,14 @@ PHP_METHOD(Collection, add)
 
   for (i = 0; i < argc; i++) {
     if (Z_TYPE_P(PHP5TO7_ZVAL_ARG(args[i])) == IS_NULL) {
-      PHP5TO7_MAYBE_EFREE(args);
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+            zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "Invalid value: null is not supported inside collections");
       RETURN_FALSE;
     }
 
     if (!php_driver_validate_object(PHP5TO7_ZVAL_ARG(args[i]),
                                     PHP5TO7_ZVAL_MAYBE_P(type->data.collection.value_type))) {
-      PHP5TO7_MAYBE_EFREE(args);
-      RETURN_FALSE;
+            RETURN_FALSE;
     }
   }
 
@@ -160,8 +158,7 @@ PHP_METHOD(Collection, add)
     php_driver_collection_add(self, PHP5TO7_ZVAL_ARG(args[i]));
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
-  RETVAL_LONG(zend_hash_num_elements(&self->values));
+    RETVAL_LONG(zend_hash_num_elements(&self->values));
 }
 /* }}} */
 
@@ -177,7 +174,7 @@ PHP_METHOD(Collection, get)
 
   self = PHP_DRIVER_GET_COLLECTION(getThis());
 
-  if (php_driver_collection_get(self, (ulong) key, &value))
+  if (php_driver_collection_get(self, (uint64_t) key, &value))
     RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(value), 1, 0);
 }
 /* }}} */
@@ -222,7 +219,7 @@ PHP_METHOD(Collection, current)
 /* {{{ Collection::key() */
 PHP_METHOD(Collection, key)
 {
-  php5to7_ulong num_key;
+  zend_ulong num_key;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
   if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
     RETURN_LONG(num_key);
@@ -266,7 +263,7 @@ PHP_METHOD(Collection, remove)
 
   collection = PHP_DRIVER_GET_COLLECTION(getThis());
 
-  if (php_driver_collection_del(collection, (ulong) index)) {
+  if (php_driver_collection_del(collection, (uint64_t) index)) {
     RETURN_TRUE;
   }
 
@@ -322,7 +319,7 @@ php_driver_collection_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -429,7 +426,7 @@ php_driver_collection_hash_value(zval* obj)
 }
 
 static void
-php_driver_collection_free(php5to7_zend_object_free* object)
+php_driver_collection_free(zend_object* object)
 {
   php_driver_collection *self =
       PHP5TO7_ZEND_OBJECT_GET(collection, object);
@@ -438,10 +435,9 @@ php_driver_collection_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_collection_new(zend_class_entry* ce)
 {
   php_driver_collection *self =
@@ -472,7 +468,7 @@ php_driver_define_Collection()
 #else
   php_driver_collection_handlers.std.compare_objects = php_driver_collection_compare;
 #endif
-  php_driver_collection_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_collection_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_collection_ce->create_object = php_driver_collection_new;
 #if PHP_VERSION_ID < 80100
   zend_class_implements(php_driver_collection_ce, 2, spl_ce_Countable, zend_ce_iterator);

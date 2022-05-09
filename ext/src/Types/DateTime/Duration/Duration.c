@@ -32,7 +32,7 @@ get_param(zval* value,
           cass_int64_t* destination)
 {
   if (Z_TYPE_P(value) == IS_LONG) {
-    php5to7_long long_value = Z_LVAL_P(value);
+    zend_long long_value = Z_LVAL_P(value);
 
     if (long_value > max || long_value < min) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
@@ -290,17 +290,16 @@ php_driver_duration_hash_value(zval* obj)
 }
 
 static void
-php_driver_duration_free(php5to7_zend_object_free* object)
+php_driver_duration_free(zend_object* object)
 {
   php_driver_duration* self = PHP5TO7_ZEND_OBJECT_GET(duration, object);
 
   /* Clean up */
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_duration_new(zend_class_entry* ce)
 {
   php_driver_duration* self = PHP5TO7_ZEND_OBJECT_ECALLOC(duration, ce);
@@ -316,7 +315,7 @@ php_driver_define_Duration()
   php_driver_duration_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_duration_ce, 1, php_driver_value_ce);
 
-  php_driver_duration_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_duration_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_duration_ce->create_object = php_driver_duration_new;
 
   memcpy(&php_driver_duration_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

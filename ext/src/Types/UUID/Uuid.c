@@ -26,7 +26,7 @@ void
 php_driver_uuid_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   char *value;
-  php5to7_size value_len;
+  size_t value_len;
   php_driver_uuid *self;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "|s", &value, &value_len) == FAILURE) {
@@ -123,7 +123,7 @@ php_driver_uuid_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -201,15 +201,14 @@ php_driver_uuid_hash_value(zval* obj)
 }
 
 static void
-php_driver_uuid_free(php5to7_zend_object_free* object)
+php_driver_uuid_free(zend_object* object)
 {
   php_driver_uuid *self = PHP5TO7_ZEND_OBJECT_GET(uuid, object);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_uuid_new(zend_class_entry* ce)
 {
   php_driver_uuid *self =
@@ -236,7 +235,7 @@ php_driver_define_Uuid()
 #else
   php_driver_uuid_handlers.std.compare_objects = php_driver_uuid_compare;
 #endif
-  php_driver_uuid_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_uuid_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_uuid_ce->create_object = php_driver_uuid_new;
 
   php_driver_uuid_handlers.hash_value = php_driver_uuid_hash_value;

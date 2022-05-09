@@ -35,7 +35,7 @@ to_double(zval* result, php_driver_numeric* smallint)
 static ZEND_RESULT_CODE
 to_long(zval* result, php_driver_numeric* smallint)
 {
-  ZVAL_LONG(result, (php5to7_long) smallint->data.smallint.value);
+  ZVAL_LONG(result, (zend_long) smallint->data.smallint.value);
   return SUCCESS;
 }
 
@@ -460,14 +460,14 @@ php_driver_smallint_cast(
 }
 
 static void
-php_driver_smallint_free(php5to7_zend_object_free* object)
+php_driver_smallint_free(zend_object* object)
 {
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_OBJECT(object);
 
   zend_object_std_dtor(&self->zval);
 }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_smallint_new(zend_class_entry* ce)
 {
   php_driver_numeric* self = make(php_driver_numeric);

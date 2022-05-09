@@ -580,7 +580,7 @@ php_driver_decimal_free(zend_object* object)
   zend_object_std_dtor(&self->zval);
 }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_decimal_new(zend_class_entry* ce)
 {
   php_driver_numeric* self = make(php_driver_numeric);

@@ -503,7 +503,7 @@ php_driver_collection_append(CassCollection* collection, zval* value, CassValueT
 }
 
 static int
-php_driver_tuple_set(CassTuple* tuple, php5to7_ulong index, zval* value, CassValueType type)
+php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value, CassValueType type)
 {
 	int result = 1;
 	php_driver_blob* blob;
@@ -914,7 +914,7 @@ int
 php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output)
 {
 	int result = 1;
-	php5to7_ulong num_key;
+	zend_ulong num_key;
   zval* current;
   php_driver_type* type;
   CassTuple* tup;

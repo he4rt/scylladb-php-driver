@@ -303,7 +303,7 @@ php_driver_set_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -403,7 +403,7 @@ php_driver_set_hash_value(zval* obj)
 }
 
 static void
-php_driver_set_free(php5to7_zend_object_free* object)
+php_driver_set_free(zend_object* object)
 {
   php_driver_set *self = PHP5TO7_ZEND_OBJECT_GET(set, object);
   php_driver_set_entry *curr, *temp;
@@ -417,10 +417,9 @@ php_driver_set_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_set_new(zend_class_entry* ce)
 {
   php_driver_set *self =
@@ -452,7 +451,7 @@ php_driver_define_Set()
 #else
   php_driver_set_handlers.std.compare_objects = php_driver_set_compare;
 #endif
-  php_driver_set_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_set_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_set_ce->create_object = php_driver_set_new;
 
 #if PHP_VERSION_ID < 80100

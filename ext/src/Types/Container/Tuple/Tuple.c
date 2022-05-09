@@ -28,7 +28,7 @@
 zend_class_entry *php_driver_tuple_ce = NULL;
 
 void
-php_driver_tuple_set(php_driver_tuple* tuple, ulong index, zval* object)
+php_driver_tuple_set(php_driver_tuple* tuple, uint64_t index, zval* object)
 {
   PHP5TO7_ZEND_HASH_INDEX_UPDATE(&tuple->values, index, object, sizeof(zval *));
   Z_TRY_ADDREF_P(object);
@@ -38,7 +38,7 @@ php_driver_tuple_set(php_driver_tuple* tuple, ulong index, zval* object)
 static void
 php_driver_tuple_populate(php_driver_tuple* tuple, zval* array)
 {
-  php5to7_ulong index;
+  zend_ulong index;
   php_driver_type *type;
   zval* current;
   zval null;
@@ -82,7 +82,7 @@ PHP_METHOD(Tuple, __construct)
   }
 
   self = PHP_DRIVER_GET_TUPLE(getThis());
-  self->type = php_driver_type_tuple(TSRMLS_C);
+  self->type = php_driver_type_tuple();
   type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
   PHP5TO7_ZEND_HASH_FOREACH_VAL(types, current) {
@@ -200,7 +200,7 @@ PHP_METHOD(Tuple, count)
 /* {{{ Tuple::current() */
 PHP_METHOD(Tuple, current)
 {
-  php5to7_ulong index;
+  zend_ulong index;
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
@@ -216,7 +216,7 @@ PHP_METHOD(Tuple, current)
 /* {{{ Tuple::key() */
 PHP_METHOD(Tuple, key)
 {
-  php5to7_ulong index;
+  zend_ulong index;
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(self->type));
   if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.tuple.types, NULL, &index, &self->pos) == HASH_KEY_IS_LONG) {
@@ -304,7 +304,7 @@ php_driver_tuple_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -411,7 +411,7 @@ php_driver_tuple_hash_value(zval* obj)
 }
 
 static void
-php_driver_tuple_free(php5to7_zend_object_free* object)
+php_driver_tuple_free(zend_object* object)
 {
   php_driver_tuple *self =
       PHP5TO7_ZEND_OBJECT_GET(tuple, object);
@@ -420,10 +420,9 @@ php_driver_tuple_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_tuple_new(zend_class_entry* ce)
 {
   php_driver_tuple *self =
@@ -459,7 +458,7 @@ php_driver_define_Tuple()
 #else
   php_driver_tuple_handlers.std.compare_objects = php_driver_tuple_compare;
 #endif
-  php_driver_tuple_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_tuple_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_tuple_ce->create_object = php_driver_tuple_new;
 #if PHP_VERSION_ID < 80100
   zend_class_implements(php_driver_tuple_ce, 2, spl_ce_Countable, zend_ce_iterator);

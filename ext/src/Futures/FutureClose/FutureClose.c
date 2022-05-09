@@ -75,7 +75,7 @@ php_driver_future_close_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_future_close_free(php5to7_zend_object_free* object)
+php_driver_future_close_free(zend_object* object)
 {
   php_driver_future_close *self =
       PHP5TO7_ZEND_OBJECT_GET(future_close, object);
@@ -84,10 +84,9 @@ php_driver_future_close_free(php5to7_zend_object_free* object)
     cass_future_free(self->future);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_future_close_new(zend_class_entry* ce)
 {
   php_driver_future_close *self =
@@ -106,7 +105,7 @@ php_driver_define_FutureClose()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FutureClose", php_driver_future_close_methods);
   php_driver_future_close_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_future_close_ce, 1, php_driver_future_ce);
-  php_driver_future_close_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_future_close_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_future_close_ce->create_object = php_driver_future_close_new;
 
   memcpy(&php_driver_future_close_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

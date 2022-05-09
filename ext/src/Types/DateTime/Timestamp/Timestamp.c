@@ -187,7 +187,7 @@ php_driver_timestamp_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -257,13 +257,12 @@ php_driver_timestamp_hash_value(zval* obj)
 }
 
 static void
-php_driver_timestamp_free(php5to7_zend_object_free* object)
+php_driver_timestamp_free(zend_object* object)
 {
   php_driver_timestamp* self = PHP5TO7_ZEND_OBJECT_GET(timestamp, object);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
 static zend_object*
 php_driver_timestamp_new(zend_class_entry* ce)
@@ -286,7 +285,7 @@ php_driver_define_Timestamp()
   php_driver_timestamp_handlers.std.get_properties = php_driver_timestamp_properties;
   php_driver_timestamp_handlers.std.get_gc         = php_driver_timestamp_gc;
   php_driver_timestamp_handlers.std.compare        = php_driver_timestamp_compare;
-  php_driver_timestamp_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_timestamp_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_timestamp_ce->create_object = php_driver_timestamp_new;
 
   php_driver_timestamp_handlers.hash_value    = php_driver_timestamp_hash_value;

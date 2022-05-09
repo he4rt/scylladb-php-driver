@@ -339,7 +339,7 @@ static php_driver_value_handlers php_driver_float_handlers;
 static HashTable*
 php_driver_float_gc(
   zend_object* object,
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;

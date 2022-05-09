@@ -108,8 +108,8 @@ PHP_METHOD(Rows, current)
 
 PHP_METHOD(Rows, key)
 {
-  php5to7_ulong num_index;
-  php5to7_string str_index;
+  zend_ulong num_index;
+  zend_string* str_index;
   php_driver_rows *self = NULL;
 
   if (zend_parse_parameters_none() == FAILURE)
@@ -162,7 +162,7 @@ PHP_METHOD(Rows, offsetExists)
   self = PHP_DRIVER_GET_ROWS(getThis());
 
   RETURN_BOOL(zend_hash_index_exists(PHP5TO7_Z_ARRVAL_MAYBE_P(self->rows),
-                                     (php5to7_ulong) Z_LVAL_P(offset)));
+                                     (zend_ulong) Z_LVAL_P(offset)));
 }
 
 PHP_METHOD(Rows, offsetGet)
@@ -444,7 +444,7 @@ php_driver_rows_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_rows_free(php5to7_zend_object_free* object)
+php_driver_rows_free(zend_object* object)
 {
   php_driver_rows *self = PHP5TO7_ZEND_OBJECT_GET(rows, object);
 
@@ -458,10 +458,9 @@ php_driver_rows_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->future_next_page);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_rows_new(zend_class_entry* ce)
 {
   php_driver_rows *self =
@@ -486,7 +485,7 @@ php_driver_define_Rows()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Rows", php_driver_rows_methods);
   php_driver_rows_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_rows_ce, 2, zend_ce_iterator, zend_ce_arrayaccess);
-  php_driver_rows_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_rows_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_rows_ce->create_object = php_driver_rows_new;
 
   memcpy(&php_driver_rows_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

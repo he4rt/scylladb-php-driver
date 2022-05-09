@@ -95,7 +95,7 @@ php_driver_tuple_from_data_type(const CassDataType* data_type)
   size_t i, count;
 
   count = cass_data_type_sub_type_count(data_type);
-  ztype = php_driver_type_tuple(TSRMLS_C);
+  ztype = php_driver_type_tuple();
   type  = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   for (i = 0; i < count; ++i) {
     zval sub_type =
@@ -115,7 +115,7 @@ php_driver_tuple_from_node(struct node_s* node)
   php_driver_type* type;
   struct node_s* current;
 
-  ztype = php_driver_type_tuple(TSRMLS_C);
+  ztype = php_driver_type_tuple();
   type  = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
   for (current = node->first_child;
@@ -139,7 +139,7 @@ php_driver_user_type_from_data_type(const CassDataType* data_type)
   size_t i, count;
 
   count = cass_data_sub_type_count(data_type);
-  ztype = php_driver_type_user_type(TSRMLS_C);
+  ztype = php_driver_type_user_type();
   type  = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
   cass_data_type_type_name(data_type, &type_name, &type_name_len);
@@ -169,7 +169,7 @@ php_driver_user_type_from_node(struct node_s* node)
   php_driver_type* type;
   struct node_s* current = node->first_child;
 
-  ztype = php_driver_type_user_type(TSRMLS_C);
+  ztype = php_driver_type_user_type();
   type  = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
   if (current) {
@@ -338,8 +338,8 @@ user_type_compare(php_driver_type* type1, php_driver_type* type2)
 {
   HashPosition pos1;
   HashPosition pos2;
-  php5to7_string key1;
-  php5to7_string key2;
+  zend_string* key1;
+  zend_string* key2;
   zval* current1;
   zval* current2;
 
@@ -556,7 +556,7 @@ static void
 php_driver_varchar_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   char* string;
-  php5to7_size string_len;
+  size_t string_len;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &string, &string_len) == FAILURE) {
     return;

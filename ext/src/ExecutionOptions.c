@@ -170,7 +170,7 @@ PHP_METHOD(ExecutionOptions, __construct)
 PHP_METHOD(ExecutionOptions, __get)
 {
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
 
   php_driver_execution_options *self = NULL;
 
@@ -274,7 +274,7 @@ php_driver_execution_options_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_execution_options_free(php5to7_zend_object_free* object)
+php_driver_execution_options_free(zend_object* object)
 {
   php_driver_execution_options *self =
       PHP5TO7_ZEND_OBJECT_GET(execution_options, object);
@@ -287,10 +287,9 @@ php_driver_execution_options_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
 }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_execution_options_new(zend_class_entry* ce)
 {
   php_driver_execution_options *self =
@@ -308,7 +307,7 @@ php_driver_define_ExecutionOptions()
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\ExecutionOptions", php_driver_execution_options_methods);
   php_driver_execution_options_ce = zend_register_internal_class(&ce);
-  php_driver_execution_options_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_execution_options_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_execution_options_ce->create_object = php_driver_execution_options_new;
 
   memcpy(&php_driver_execution_options_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

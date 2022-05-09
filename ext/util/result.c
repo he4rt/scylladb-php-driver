@@ -57,7 +57,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
   php_driver_set* set                         = NULL;
   php_driver_tuple* tuple                     = NULL;
   php_driver_user_type_value* user_type_value = NULL;
-  ulong index;
+  uint64_t index;
 
   CassValueType type = cass_data_type_type(data_type);
   const CassDataType* primary_type;

@@ -381,7 +381,7 @@ bind_arguments(CassStatement* statement, HashTable* arguments)
   int rc = SUCCESS;
 
   zval* current;
-  ulong num_key;
+  uint64_t num_key;
 
 #if PHP_MAJOR_VERSION >= 7
   zend_string* key;
@@ -813,7 +813,7 @@ PHP_METHOD(DefaultSession, prepare)
   zval* cql                          = NULL;
   zval* options                      = NULL;
   char* hash_key                     = NULL;
-  php5to7_size hash_key_len          = 0;
+  size_t hash_key_len          = 0;
   php_driver_session* self           = NULL;
   php_driver_execution_options* opts = NULL;
   php_driver_execution_options local_opts;
@@ -845,7 +845,7 @@ PHP_METHOD(DefaultSession, prepare)
   }
 
   if (self->persist) {
-    php5to7_zend_resource_le* le;
+    zval* le;
 
     spprintf(&hash_key, 0, "%s%s", self->hash_key, Z_STRVAL_P(cql));
     hash_key_len = spprintf(&hash_key, 0, "%s:prepared_statement:%s",
@@ -862,7 +862,7 @@ PHP_METHOD(DefaultSession, prepare)
   }
 
   if (future == NULL) {
-    php5to7_zend_resource_le resource;
+    zval resource;
 
     future = cass_session_prepare_n((CassSession*) self->session->data,
                                     Z_STRVAL_P(cql), Z_STRLEN_P(cql));
@@ -880,13 +880,13 @@ PHP_METHOD(DefaultSession, prepare)
 
 #if PHP_MAJOR_VERSION >= 7
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement, php_le_php_driver_prepared_statement());
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource, sizeof(php5to7_zend_resource_le));
+        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource, sizeof(zval));
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #else
         resource.type = php_le_php_driver_prepared_statement();
         resource.ptr  = pprepared_statement;
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, resource, sizeof(php5to7_zend_resource_le));
+        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, resource, sizeof(zval));
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #endif
@@ -1139,7 +1139,7 @@ php_driver_default_session_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_default_session_free(php5to7_zend_object_free* object)
+php_driver_default_session_free(zend_object* object)
 {
   php_driver_session* self = PHP5TO7_ZEND_OBJECT_GET(session, object);
 
@@ -1147,10 +1147,9 @@ php_driver_default_session_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_default_session_new(zend_class_entry* ce)
 {
   php_driver_session* self =
@@ -1175,7 +1174,7 @@ php_driver_define_DefaultSession()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultSession", php_driver_default_session_methods);
   php_driver_default_session_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_default_session_ce, 1, php_driver_session_ce);
-  php_driver_default_session_ce->ce_flags |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_default_session_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_default_session_ce->create_object = php_driver_default_session_new;
 
   memcpy(&php_driver_default_session_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

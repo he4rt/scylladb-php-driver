@@ -73,12 +73,11 @@ PHP_METHOD(Type, tuple)
   for (i = 0; i < argc; ++i) {
     zval *sub_type = PHP5TO7_ZVAL_ARG(args[i]);
     if (!php_driver_type_validate(sub_type, "type")) {
-      PHP5TO7_MAYBE_EFREE(args);
-      return;
+            return;
     }
   }
 
-  ztype = php_driver_type_tuple(TSRMLS_C);
+  ztype = php_driver_type_tuple();
   type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
   for (i = 0; i < argc; ++i) {
@@ -90,8 +89,7 @@ PHP_METHOD(Type, tuple)
     }
   }
 
-  PHP5TO7_MAYBE_EFREE(args);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
+    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
 }
 
 PHP_METHOD(Type, userType)
@@ -113,8 +111,7 @@ PHP_METHOD(Type, userType)
                             "from an even number of name/type pairs, where each odd "
                             "argument is a name and each even argument is a type, "
                             "e.g userType(name, type, name, type, name, type)");
-    PHP5TO7_MAYBE_EFREE(args);
-    return;
+        return;
   }
 
   for (i = 0; i < argc; i += 2) {
@@ -123,16 +120,14 @@ PHP_METHOD(Type, userType)
     if (Z_TYPE_P(name) != IS_STRING) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "Argument %d is not a string", i + 1);
-      PHP5TO7_MAYBE_EFREE(args);
-      return;
+            return;
     }
     if (!php_driver_type_validate(sub_type, "type")) {
-      PHP5TO7_MAYBE_EFREE(args);
-      return;
+            return;
     }
   }
 
-  ztype = php_driver_type_user_type(TSRMLS_C);
+  ztype = php_driver_type_user_type();
   type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
   for (i = 0; i < argc; i += 2) {
@@ -148,8 +143,7 @@ PHP_METHOD(Type, userType)
   }
 
 
-  PHP5TO7_MAYBE_EFREE(args);
-  RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
+    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(ztype), 0, 1);
 }
 
 PHP_METHOD(Type, set)

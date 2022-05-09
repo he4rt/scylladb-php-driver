@@ -137,7 +137,7 @@ void php_driver_index_build_option(php_driver_index *index)
 PHP_METHOD(DefaultIndex, option)
 {
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
   php_driver_index *self;
   zval* result;
 
@@ -242,7 +242,7 @@ php_driver_type_default_index_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -277,7 +277,7 @@ php_driver_default_index_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_default_index_free(php5to7_zend_object_free* object)
+php_driver_default_index_free(zend_object* object)
 {
   php_driver_index *self = PHP5TO7_ZEND_OBJECT_GET(index, object);
 
@@ -293,10 +293,9 @@ php_driver_default_index_free(php5to7_zend_object_free* object)
   self->meta = NULL;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_default_index_new(zend_class_entry* ce)
 {
   php_driver_index *self =
@@ -321,7 +320,7 @@ php_driver_define_DefaultIndex()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultIndex", php_driver_default_index_methods);
   php_driver_default_index_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_default_index_ce, 1, php_driver_index_ce);
-  php_driver_default_index_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_default_index_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_default_index_ce->create_object = php_driver_default_index_new;
 
   memcpy(&php_driver_default_index_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

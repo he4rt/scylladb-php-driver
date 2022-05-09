@@ -342,7 +342,7 @@ static php_driver_value_handlers php_driver_varint_handlers;
 static HashTable*
 php_driver_varint_gc(
   zend_object* object,
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -416,7 +416,7 @@ php_driver_varint_cast(
 }
 
 static void
-php_driver_varint_free(php5to7_zend_object_free* object)
+php_driver_varint_free(zend_object* object)
 {
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_OBJECT(object);
 
@@ -425,7 +425,7 @@ php_driver_varint_free(php5to7_zend_object_free* object)
   zend_object_std_dtor(&self->zval);
 }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_varint_new(zend_class_entry* ce)
 {
   php_driver_numeric* self = make(php_driver_numeric);

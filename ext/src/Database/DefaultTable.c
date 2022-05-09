@@ -127,7 +127,7 @@ PHP_METHOD(DefaultTable, name)
 PHP_METHOD(DefaultTable, option)
 {
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
   php_driver_table *self;
   zval* result;
 
@@ -374,7 +374,7 @@ PHP_METHOD(DefaultTable, column)
 {
   php_driver_table *self;
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
   zval column;
   const CassColumnMeta *meta;
 
@@ -522,7 +522,7 @@ PHP_METHOD(DefaultTable, index)
 {
   php_driver_table *self;
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
   zval index;
   const CassIndexMeta *meta;
 
@@ -584,7 +584,7 @@ PHP_METHOD(DefaultTable, materializedView)
 {
   php_driver_table *self;
   char *name;
-  php5to7_size name_len;
+  size_t name_len;
   zval zview;
   const CassMaterializedViewMeta *meta;
 
@@ -694,7 +694,7 @@ php_driver_type_default_table_gc(
 #else
   zval* object,
 #endif
-  php5to7_zval_gc table,
+  zval** table,
   int* n)
 {
   *table = NULL;
@@ -729,7 +729,7 @@ php_driver_default_table_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_default_table_free(php5to7_zend_object_free* object)
+php_driver_default_table_free(zend_object* object)
 {
   php_driver_table *self = PHP5TO7_ZEND_OBJECT_GET(table, object);
 
@@ -747,10 +747,9 @@ php_driver_default_table_free(php5to7_zend_object_free* object)
   self->meta = NULL;
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_default_table_new(zend_class_entry* ce)
 {
   php_driver_table *self =
@@ -777,7 +776,7 @@ php_driver_define_DefaultTable()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultTable", php_driver_default_table_methods);
   php_driver_default_table_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_default_table_ce, 1, php_driver_table_ce);
-  php_driver_default_table_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_default_table_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_default_table_ce->create_object = php_driver_default_table_new;
 
   memcpy(&php_driver_default_table_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

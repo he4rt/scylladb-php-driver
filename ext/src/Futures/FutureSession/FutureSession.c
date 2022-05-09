@@ -121,7 +121,7 @@ php_driver_future_session_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_future_session_free(php5to7_zend_object_free* object)
+php_driver_future_session_free(zend_object* object)
 {
   php_driver_future_session *self =
       PHP5TO7_ZEND_OBJECT_GET(future_session, object);
@@ -143,10 +143,9 @@ php_driver_future_session_free(php5to7_zend_object_free* object)
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_session);
 
   zend_object_std_dtor(&self->zval);
-  PHP5TO7_MAYBE_EFREE(self);
-}
+  }
 
-static php5to7_zend_object
+static zend_object*
 php_driver_future_session_new(zend_class_entry* ce)
 {
   php_driver_future_session *self
@@ -171,7 +170,7 @@ php_driver_define_FutureSession()
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FutureSession", php_driver_future_session_methods);
   php_driver_future_session_ce = zend_register_internal_class(&ce);
   zend_class_implements(php_driver_future_session_ce, 1, php_driver_future_ce);
-  php_driver_future_session_ce->ce_flags     |= PHP5TO7_ZEND_ACC_FINAL;
+  php_driver_future_session_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_future_session_ce->create_object = php_driver_future_session_new;
 
   memcpy(&php_driver_future_session_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
