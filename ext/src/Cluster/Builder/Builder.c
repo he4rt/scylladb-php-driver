@@ -41,8 +41,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
   cluster->default_consistency = self->default_consistency;
   cluster->default_page_size   = self->default_page_size;
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(cluster->default_timeout),
-                    PHP5TO7_ZVAL_MAYBE_P(self->default_timeout));
+  PHP5TO7_ZVAL_COPY(&cluster->default_timeout, &self->default_timeout);
 
   if (self->persist) {
     cluster->hash_key_len = spprintf(&cluster->hash_key, 0,
@@ -142,15 +141,15 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
                                                                 self->enable_randomized_contact_points));
   cass_cluster_set_connection_heartbeat_interval(cluster->cluster, self->connection_heartbeat_interval);
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->timestamp_gen)) {
+  if (!Z_ISUNDEF(self->timestamp_gen)) {
     php_driver_timestamp_gen* timestamp_gen =
-      PHP_DRIVER_GET_TIMESTAMP_GEN(PHP5TO7_ZVAL_MAYBE_P(self->timestamp_gen));
+      PHP_DRIVER_GET_TIMESTAMP_GEN(&self->timestamp_gen);
     cass_cluster_set_timestamp_gen(cluster->cluster, timestamp_gen->gen);
   }
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy)) {
+  if (!Z_ISUNDEF(self->retry_policy)) {
     php_driver_retry_policy* retry_policy =
-      PHP_DRIVER_GET_RETRY_POLICY(PHP5TO7_ZVAL_MAYBE_P(self->retry_policy));
+      PHP_DRIVER_GET_RETRY_POLICY(&self->retry_policy);
     cass_cluster_set_retry_policy(cluster->cluster, retry_policy->policy);
   }
 

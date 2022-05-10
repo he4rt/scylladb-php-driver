@@ -21,4 +21,13 @@
 
 #define make(type) (type*) emalloc(sizeof(type))
 
+typedef void (*php_driver_free_function)(void* data);
+
+typedef struct
+{
+  size_t count;
+  php_driver_free_function destruct;
+  void* data;
+} php_driver_ref;
+
 #endif

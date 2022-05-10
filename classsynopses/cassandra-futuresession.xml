@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<classsynopsis>
+    <ooclass>
+     <classname>Cassandra\FutureSession</classname>
+    </ooclass>
+
+    <classsynopsisinfo>
+     <ooclass>
+      <modifier>final</modifier>
+      <classname>Cassandra\FutureSession</classname>
+     </ooclass>
+
+     <oointerface>
+      <interfacename>Cassandra\Future</interfacename>
+     </oointerface>
+    </classsynopsisinfo>
+
+    <classsynopsisinfo role="comment">&Methods;</classsynopsisinfo>
+    <xi:include xpointer="xmlns(db=http://docbook.org/ns/docbook) xpointer(id('class.cassandra-futuresession')/db:refentry/db:refsect1[@role='description']/descendant::db:methodsynopsis[not(@role='procedural')])">
+     <xi:fallback/>
+    </xi:include>
+   </classsynopsis>

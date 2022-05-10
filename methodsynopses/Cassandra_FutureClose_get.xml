@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<methodsynopsis>
+   <modifier>public</modifier> <type>mixed</type><methodname>Cassandra\FutureClose::get</methodname>
+   <methodparam><type class="union"><type>int</type><type>float</type><type>null</type></type><parameter>timeout</parameter></methodparam>
+  </methodsynopsis>

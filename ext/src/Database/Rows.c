@@ -20,7 +20,7 @@
 #include "util/ref.h"
 #include "util/result.h"
 
-#include "src/Futures/FutureRows/FutureRows.h"
+#include "../Futures/FutureRows/FutureRows.h"
 
 zend_class_entry *php_driver_rows_ce = NULL;
 

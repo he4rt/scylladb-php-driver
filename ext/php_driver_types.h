@@ -33,12 +33,10 @@
 #define PHP_DRIVER_GET_SET(obj) php_driver_set_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_TUPLE(obj) php_driver_tuple_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_USER_TYPE_VALUE(obj) php_driver_user_type_value_object_fetch(Z_OBJ_P(obj))
-#define PHP_DRIVER_GET_CLUSTER(obj) php_driver_cluster_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_STATEMENT(obj) php_driver_statement_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_EXECUTION_OPTIONS(obj) php_driver_execution_options_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_ROWS(obj) php_driver_rows_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_FUTURE_ROWS(obj) php_driver_future_rows_object_fetch(Z_OBJ_P(obj))
-#define PHP_DRIVER_GET_CLUSTER_BUILDER(obj) php_driver_cluster_builder_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_FUTURE_PREPARED_STATEMENT(obj) php_driver_future_prepared_statement_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_FUTURE_VALUE(obj) php_driver_future_value_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_FUTURE_CLOSE(obj) php_driver_future_close_object_fetch(Z_OBJ_P(obj))
@@ -277,15 +275,6 @@ static zend_always_inline
   return (php_driver_execution_options*) ((char*) obj - XtOffsetOf(php_driver_execution_options, zval));
 }
 
-typedef void (*php_driver_free_function)(void* data);
-
-typedef struct
-{
-  size_t count;
-  php_driver_free_function destruct;
-  void* data;
-} php_driver_ref;
-
 typedef struct php_driver_rows_ {
   php_driver_ref* statement;
   php_driver_ref* session;
@@ -302,76 +291,6 @@ static zend_always_inline
   php_driver_rows_object_fetch(zend_object* obj)
 {
   return (php_driver_rows*) ((char*) obj - XtOffsetOf(php_driver_rows, zval));
-}
-
-typedef struct php_driver_future_rows_ {
-  php_driver_ref* statement;
-  php_driver_ref* session;
-  zval rows;
-  php_driver_ref* result;
-  CassFuture* future;
-  zend_object zval;
-} php_driver_future_rows;
-static zend_always_inline
-  php_driver_future_rows*
-  php_driver_future_rows_object_fetch(zend_object* obj)
-{
-  return (php_driver_future_rows*) ((char*) obj - XtOffsetOf(php_driver_future_rows, zval));
-}
-
-typedef struct php_driver_future_prepared_statement_ {
-  CassFuture* future;
-  zval prepared_statement;
-  zend_object zval;
-} php_driver_future_prepared_statement;
-static zend_always_inline
-  php_driver_future_prepared_statement*
-  php_driver_future_prepared_statement_object_fetch(zend_object* obj)
-{
-  return (php_driver_future_prepared_statement*) ((char*) obj
-                                                  - XtOffsetOf(php_driver_future_prepared_statement, zval));
-}
-
-typedef struct php_driver_future_value_ {
-  zval value;
-  zend_object zval;
-} php_driver_future_value;
-static zend_always_inline
-  php_driver_future_value*
-  php_driver_future_value_object_fetch(zend_object* obj)
-{
-  return (php_driver_future_value*) ((char*) obj - XtOffsetOf(php_driver_future_value, zval));
-}
-
-typedef struct php_driver_future_close_ {
-  CassFuture* future;
-  zend_object zval;
-} php_driver_future_close;
-static zend_always_inline
-  php_driver_future_close*
-  php_driver_future_close_object_fetch(zend_object* obj)
-{
-  return (php_driver_future_close*) ((char*) obj - XtOffsetOf(php_driver_future_close, zval));
-}
-
-typedef struct php_driver_future_session_ {
-  CassFuture* future;
-  php_driver_ref* session;
-  zval default_session;
-  cass_bool_t persist;
-  char* hash_key;
-  int hash_key_len;
-  char* exception_message;
-  CassError exception_code;
-  char* session_keyspace;
-  char* session_hash_key;
-  zend_object zval;
-} php_driver_future_session;
-static zend_always_inline
-  php_driver_future_session*
-  php_driver_future_session_object_fetch(zend_object* obj)
-{
-  return (php_driver_future_session*) ((char*) obj - XtOffsetOf(php_driver_future_session, zval));
 }
 
 typedef struct
@@ -623,7 +542,7 @@ static zend_always_inline
   return (php_driver_timestamp_gen*) ((char*) obj - XtOffsetOf(php_driver_timestamp_gen, zval));
 }
 
-typedef unsigned (*php_driver_value_hash_t)(zval* obj );
+typedef unsigned (*php_driver_value_hash_t)(zval* obj);
 
 typedef struct
 {
@@ -698,12 +617,6 @@ void php_driver_define_Duration();
 extern PHP_DRIVER_API zend_class_entry* php_driver_core_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_ssl_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_ssl_builder_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_future_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_future_prepared_statement_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_future_rows_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_future_session_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_future_value_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_future_close_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_session_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_default_session_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_exception_ce;

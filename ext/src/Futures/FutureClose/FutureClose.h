@@ -1,0 +1,8 @@
+#include <php.h>
+
+#ifndef LIBPHPCASSANDRA_EXT_SRC_FUTURES_FUTURECLOSE_FUTURECLOSE_H_
+#define LIBPHPCASSANDRA_EXT_SRC_FUTURES_FUTURECLOSE_FUTURECLOSE_H_
+
+void php_driver_define_FutureClose(zend_class_entry* future_interface);
+
+#endif
