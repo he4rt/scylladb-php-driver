@@ -8,6 +8,7 @@ endif
 
 .PHONY: build-libuv
 build-libuv:
+	ls -la
 	@mkdir -p $(BUILD_FOLDER)/libuv
 	@cd $(BUILD_FOLDER)/libuv && \
 	cmake -G "Ninja Multi-Config" \
