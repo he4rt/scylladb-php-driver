@@ -17,3 +17,7 @@ utils/target/
 ./ext/cmake_build/
 .idea/
 cmake_build/
+cmake-build-debug/
+cmake-build-release/
+build-release/
+build-debug/

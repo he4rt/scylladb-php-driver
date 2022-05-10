@@ -1,29 +1,34 @@
-LDFLAGS ?= -L/usr/local/lib
-LIBS ?= -lssl -lz -luv -lm -lgmp -lstdc++
+BUILD_TYPE ?= Debug
+
+ifeq ($(BUILD_TYPE),Debug)
+	BUILD_FOLDER = build-debug
+else
+	BUILD_FOLDER = build-release
+endif
 
 .PHONY: build
 build:
-	mkdir -p build
-	cd build \
+	export CMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	mkdir -p $(BUILD_FOLDER)
+	cd $(BUILD_FOLDER) \
 	&& cmake \
+		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-G "Ninja Multi-Config" \
-		-DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fPIC" \
-		-DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -fPIC" \
 		-DCASS_USE_STATIC_LIBS=ON \
 		-DCASS_BUILD_STATIC=ON \
 		-DCASS_BUILD_SHARED=OFF \
 		-DCASS_USE_TIMERFD=ON \
 		-DLIBUV_LIBRARY=./lib/libuv \
-		-DCMAKE_BUILD_TYPE=RELEASE \
 		-DLINK_STATICALLY=ON .. \
 	&& ninja libuv_a.a \
 	&& ninja cassandra_static \
 	&& ninja ext-cassandra
+
 install:
-	cd build && ninja -f build.ninja install
+	cd $(BUILD_FOLDER) && ninja -f build.ninja install
 
 clean:
-	@cd build && ninja clean
+	@cd $(BUILD_FOLDER) && ninja clean
 
 .PHONY: docker-dev-image
 docker-dev-image:
