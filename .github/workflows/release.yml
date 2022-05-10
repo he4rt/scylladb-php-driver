@@ -17,6 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          ref: master
           submodules: recursive
       - uses: olegtarasov/get-tag@v2.1
         id: git_tag
