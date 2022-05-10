@@ -8,7 +8,9 @@ endif
 
 .PHONY: build-libuv
 build-libuv:
-	ls -la
+	ls -la lib/libuv
+	ls -la lib/cpp-driver
+	echo $(shell pwd)
 	@mkdir -p $(BUILD_FOLDER)/libuv
 	@cd $(BUILD_FOLDER)/libuv && \
 	cmake -G "Ninja Multi-Config" \
