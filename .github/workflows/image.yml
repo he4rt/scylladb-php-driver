@@ -13,9 +13,10 @@ jobs:
         image: ["malusevd99/php-ext-dev:8.1-debug"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: master
+          submodules: recursive
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx

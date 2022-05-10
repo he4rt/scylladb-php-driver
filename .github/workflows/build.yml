@@ -20,13 +20,14 @@ jobs:
     container: ghcr.io/nano-interactive/cassandra-php-driver
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: master
+          submodule: recursive
       - name: Run CMake Build
         run: make build
       - uses: actions/upload-artifact@v2
         if: ${{ inputs.upload_to_artifact }}
         with:
           name: cassandra.so
-          path: build/lib/cassandra.so
+          path: build/cassandra/Release/cassandra.so
