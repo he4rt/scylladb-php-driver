@@ -10,11 +10,11 @@ set(LIBUV_ROOT_DIR ${PROJECT_SOURCE_DIR}/lib/libuv)
 set(PHP_CASSANDRA_DRIVER_VERSION 2.0.0)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17 -Wall -O3 -g")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -std=gnu17 -Wall -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17 -Wall -Ofast -flto -fstrict-aliasing")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -std=gnu17 -Wall -Ofast -flto -fstrict-aliasing")
 else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17 -Wall -O0 -g")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -std=gnu17 -Wall -O0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17 -Wall -O0 -fstrict-aliasing")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -std=gnu17 -Wall -O0 -fstrict-aliasing")
 endif ()
 
 
@@ -35,12 +35,10 @@ find_library(GMP_LIBRARY NAMES gmp)
 if (${LINK_STATICALLY})
     set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a m gmp)
 else ()
-    set(CASSANDRA_LINK_LIBRARIES cassandra uv m gmp)
+    set(CASSANDRA_LINK_LIBRARIES cassandra uv m.a gmp.a)
 endif ()
-execute_process(COMMAND phpize WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
-#execute_process(COMMAND ./configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
 
-# file(READ ./config.h CASSANDRA_CONFIG_FILE)
+execute_process(COMMAND phpize WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
 
 add_definitions(-DHAVE_CONFIG_H)
 
@@ -70,9 +68,6 @@ set_target_properties(ext-cassandra PROPERTIES PREFIX "")
 set_target_properties(ext-cassandra PROPERTIES OUTPUT_NAME "cassandra")
 
 target_link_libraries(ext-cassandra ${CASSANDRA_LINK_LIBRARIES})
-# target_link_libraries(ext-cassandra cassandra)
-# target_link_libraries(ext-cassandra libuv)
-# target_link_libraries(ext-cassandra cpp-driver)
 
 install(TARGETS ext-cassandra LIBRARY DESTINATION ${PHP_EXTENSION_DIR})
 install(FILES ${HEAD_FILES} DESTINATION include/cassandra)

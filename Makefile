@@ -1,4 +1,4 @@
-BUILD_TYPE ?= Debug
+BUILD_TYPE ?= Release
 
 ifeq ($(BUILD_TYPE),Debug)
 	BUILD_FOLDER = build-debug
@@ -6,26 +6,46 @@ else
 	BUILD_FOLDER = build-release
 endif
 
-.PHONY: build
-build:
-	export CMAKE_BUILD_TYPE=$(BUILD_TYPE)
-	mkdir -p $(BUILD_FOLDER)
-	cd $(BUILD_FOLDER) \
-	&& cmake \
-		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
-		-G "Ninja Multi-Config" \
+.PHONY: build-libuv
+build-libuv:
+	@mkdir -p $(BUILD_FOLDER)/libuv
+	@cd $(BUILD_FOLDER)/libuv && \
+	cmake -G "Ninja Multi-Config" \
+		-DCMAKE_C_FLAGS="-fPIC" ../../lib/libuv
+	@cd $(BUILD_FOLDER)/libuv && ninja -f build-$(BUILD_TYPE).ninja uv_a
+	@cd $(BUILD_FOLDER)/libuv && ninja -f build-$(BUILD_TYPE).ninja install
+
+.PHONY: build-libcassandra
+build-libcassandra: build-libuv
+	@mkdir -p $(BUILD_FOLDER)/libcassandra
+	@cd $(BUILD_FOLDER)/libcassandra && \
+      cmake -G "Ninja Multi-Config" \
+		-DCMAKE_CXX_FLAGS="-fPIC" \
+		-DCMAKE_C_FLAGS="-fPIC" \
 		-DCASS_USE_STATIC_LIBS=ON \
 		-DCASS_BUILD_STATIC=ON \
 		-DCASS_BUILD_SHARED=OFF \
 		-DCASS_USE_TIMERFD=ON \
-		-DLIBUV_LIBRARY=./lib/libuv \
-		-DLINK_STATICALLY=ON .. \
-	&& ninja libuv_a.a \
-	&& ninja cassandra_static \
-	&& ninja ext-cassandra
+		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		../../lib/cpp-driver
+	@cd $(BUILD_FOLDER)/libcassandra && ninja -f build-$(BUILD_TYPE).ninja cassandra_static
+	@cd $(BUILD_FOLDER)/libcassandra && ninja -f build-$(BUILD_TYPE).ninja install
+
+.PHONY: build
+build: build-libuv build-libcassandra
+	@export CMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	@mkdir -p $(BUILD_FOLDER)/cassandra
+	@cd $(BUILD_FOLDER)/cassandra \
+	&& cmake \
+		-G "Ninja Multi-Config" \
+		-DCMAKE_CXX_FLAGS="-fPIC" \
+		-DCMAKE_C_FLAGS="-fPIC" \
+		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		-DLINK_STATICALLY=ON ../..
+	@cd $(BUILD_FOLDER)/cassandra && ninja -f build-$(BUILD_TYPE).ninja ext-cassandra
 
 install:
-	cd $(BUILD_FOLDER) && ninja -f build.ninja install
+	cd $(BUILD_FOLDER)/cassandra && ninja -f build-$(BUILD_TYPE).ninja install
 
 clean:
 	@cd $(BUILD_FOLDER) && ninja clean
