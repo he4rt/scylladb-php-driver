@@ -33,9 +33,9 @@ include_directories(${PROJECT_SOURCE_DIR}/ext/include)
 find_library(GMP_LIBRARY NAMES gmp)
 
 if (${LINK_STATICALLY})
-    set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a m gmp)
+    set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a m.a gmp)
 else ()
-    set(CASSANDRA_LINK_LIBRARIES cassandra uv m.a gmp.a)
+    set(CASSANDRA_LINK_LIBRARIES cassandra uv m gmp)
 endif ()
 
 execute_process(COMMAND phpize WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/ext)
