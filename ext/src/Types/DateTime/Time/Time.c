@@ -67,7 +67,7 @@ to_string(zval* result, php_driver_time* time)
 #else
   spprintf(&string, 0, "%lld", (long long int) time->time);
 #endif
-  PHP5TO7_ZVAL_STRING(result, string);
+  ZVAL_STRING(result, string);
   efree(string);
   return SUCCESS;
 }
@@ -223,7 +223,7 @@ php_driver_time_properties(
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TIME);
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(nanoseconds);
+
   to_string(PHP5TO7_ZVAL_MAYBE_P(nanoseconds), self);
   PHP5TO7_ZEND_HASH_UPDATE(props, "nanoseconds", sizeof("nanoseconds"), PHP5TO7_ZVAL_MAYBE_P(nanoseconds), sizeof(zval));
 

@@ -29,9 +29,9 @@ static void init_execution_options(php_driver_execution_options *self)
   self->paging_state_token = NULL;
   self->paging_state_token_size = 0;
   self->timestamp = INT64_MIN;
-  PHP5TO7_ZVAL_UNDEF(self->arguments);
-  PHP5TO7_ZVAL_UNDEF(self->timeout);
-  PHP5TO7_ZVAL_UNDEF(self->retry_policy);
+  ZVAL_UNDEF(&self->arguments);
+  ZVAL_UNDEF(&self->timeout);
+  ZVAL_UNDEF(&self->retry_policy);
 }
 
 static int
@@ -199,7 +199,7 @@ PHP_METHOD(ExecutionOptions, __get)
     if (!self->paging_state_token) {
       RETURN_NULL();
     }
-    PHP5TO7_RETURN_STRINGL(self->paging_state_token,
+    RETURN_STRINGL(self->paging_state_token,
                            self->paging_state_token_size);
   } else if (name_len == 7 && strncmp("timeout", name, name_len) == 0) {
     if (PHP5TO7_ZVAL_IS_UNDEF(self->timeout)) {
@@ -226,7 +226,7 @@ PHP_METHOD(ExecutionOptions, __get)
 #else
     spprintf(&string, 0, "%lld", (long long int) self->timestamp);
 #endif
-    PHP5TO7_RETVAL_STRING(string);
+    RETVAL_STRING(string);
     efree(string);
   }
 }
@@ -282,9 +282,9 @@ php_driver_execution_options_free(zend_object* object)
   if (self->paging_state_token) {
     efree(self->paging_state_token);
   }
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->arguments);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->timeout);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
+  ZVAL_DESTROY(self->arguments);
+  ZVAL_DESTROY(self->timeout);
+  ZVAL_DESTROY(self->retry_policy);
 
   zend_object_std_dtor(&self->zval);
 }

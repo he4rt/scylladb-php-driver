@@ -77,7 +77,7 @@ ZEND_METHOD(Cassandra_FutureRows, get)
     if (php_driver_get_result((const CassResult*) self->result->data,
                               &self->rows)
         == FAILURE) {
-      PHP5TO7_ZVAL_MAYBE_DESTROY(self->rows);
+      ZVAL_DESTROY(self->rows);
       return;
     }
   }
@@ -122,7 +122,7 @@ php_driver_future_rows_free(zend_object* object)
 {
   php_driver_future_rows* self = PHP5TO7_ZEND_OBJECT_GET(future_rows, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->rows);
+  ZVAL_DESTROY(self->rows);
 
   php_driver_del_ref(&self->statement);
   php_driver_del_peref(&self->session, 1);
@@ -145,7 +145,7 @@ php_driver_future_rows_new(zend_class_entry* ce)
   self->statement = NULL;
   self->result    = NULL;
   self->session   = NULL;
-  PHP5TO7_ZVAL_UNDEF(self->rows);
+  ZVAL_UNDEF(&self->rows);
 
   PHP5TO7_ZEND_OBJECT_INIT(future_rows, self, ce);
 }

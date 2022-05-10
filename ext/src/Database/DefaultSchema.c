@@ -72,7 +72,7 @@ PHP_METHOD(DefaultSchema, keyspaces)
       return;
     );
 
-    PHP5TO7_ZVAL_MAYBE_MAKE(zkeyspace);
+
     object_init_ex(PHP5TO7_ZVAL_MAYBE_P(zkeyspace), php_driver_default_keyspace_ce);
     keyspace = PHP_DRIVER_GET_KEYSPACE(PHP5TO7_ZVAL_MAYBE_P(zkeyspace));
     keyspace->schema = php_driver_add_ref(self->schema);

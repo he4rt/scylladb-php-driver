@@ -985,7 +985,7 @@ PHP_METHOD(DefaultSession, metrics)
 
   cass_session_get_metrics((CassSession*) self->session->data, &metrics);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(requests);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(requests));
   add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
                  "min",
@@ -1030,7 +1030,7 @@ PHP_METHOD(DefaultSession, metrics)
                    "m15_rate",
                    metrics.requests.fifteen_minute_rate);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(stats);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(stats));
   add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(stats),
                  "total_connections",
@@ -1045,7 +1045,7 @@ PHP_METHOD(DefaultSession, metrics)
                  "exceeded_write_bytes_water_mark",
                  metrics.stats.exceeded_write_bytes_water_mark);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(errors);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(errors));
   add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(errors),
                  "connection_timeouts",
@@ -1144,7 +1144,7 @@ php_driver_default_session_free(zend_object* object)
   php_driver_session* self = PHP5TO7_ZEND_OBJECT_GET(session, object);
 
   php_driver_del_peref(&self->session, 1);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+  ZVAL_DESTROY(self->default_timeout);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -1161,7 +1161,7 @@ php_driver_default_session_new(zend_class_entry* ce)
   self->default_page_size   = 5000;
   self->keyspace            = NULL;
   self->hash_key            = NULL;
-  PHP5TO7_ZVAL_UNDEF(self->default_timeout);
+  ZVAL_UNDEF(&self->default_timeout);
 
   PHP5TO7_ZEND_OBJECT_INIT_EX(session, default_session, self, ce);
 }

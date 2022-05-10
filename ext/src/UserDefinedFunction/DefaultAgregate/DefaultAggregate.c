@@ -48,8 +48,8 @@ PHP_METHOD(DefaultAggregate, simpleName)
     const char *name;
     size_t name_length;
     cass_aggregate_meta_name(self->meta, &name, &name_length);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->simple_name);
-    PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->simple_name), name, name_length);
+
+    ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->simple_name), name, name_length);
   }
 
   RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->simple_name), 1, 0);
@@ -65,7 +65,7 @@ PHP_METHOD(DefaultAggregate, argumentTypes)
   self = PHP_DRIVER_GET_AGGREGATE(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->argument_types)) {
     size_t i, count = cass_aggregate_meta_argument_count(self->meta);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->argument_types);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->argument_types));
     for (i = 0; i < count; ++i) {
       const CassDataType* data_type = cass_aggregate_meta_argument_type(self->meta, i);
@@ -259,14 +259,14 @@ php_driver_default_aggregate_free(zend_object* object)
 {
   php_driver_aggregate *self = PHP5TO7_ZEND_OBJECT_GET(aggregate, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->simple_name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->argument_types);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->final_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->initial_condition);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->return_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->signature);
+  ZVAL_DESTROY(self->simple_name);
+  ZVAL_DESTROY(self->argument_types);
+  ZVAL_DESTROY(self->state_function);
+  ZVAL_DESTROY(self->final_function);
+  ZVAL_DESTROY(self->initial_condition);
+  ZVAL_DESTROY(self->state_type);
+  ZVAL_DESTROY(self->return_type);
+  ZVAL_DESTROY(self->signature);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -283,14 +283,14 @@ php_driver_default_aggregate_new(zend_class_entry* ce)
   php_driver_aggregate *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(aggregate, ce);
 
-  PHP5TO7_ZVAL_UNDEF(self->simple_name);
-  PHP5TO7_ZVAL_UNDEF(self->argument_types);
-  PHP5TO7_ZVAL_UNDEF(self->state_function);
-  PHP5TO7_ZVAL_UNDEF(self->final_function);
-  PHP5TO7_ZVAL_UNDEF(self->initial_condition);
-  PHP5TO7_ZVAL_UNDEF(self->state_type);
-  PHP5TO7_ZVAL_UNDEF(self->return_type);
-  PHP5TO7_ZVAL_UNDEF(self->signature);
+  ZVAL_UNDEF(&self->simple_name);
+  ZVAL_UNDEF(&self->argument_types);
+  ZVAL_UNDEF(&self->state_function);
+  ZVAL_UNDEF(&self->final_function);
+  ZVAL_UNDEF(&self->initial_condition);
+  ZVAL_UNDEF(&self->state_type);
+  ZVAL_UNDEF(&self->return_type);
+  ZVAL_UNDEF(&self->signature);
 
   self->schema = NULL;
   self->meta = NULL;

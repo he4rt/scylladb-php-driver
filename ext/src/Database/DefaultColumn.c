@@ -34,9 +34,9 @@ php_driver_create_column(php_driver_ref* schema,
   size_t name_length;
   const CassValue* value;
 
-  PHP5TO7_ZVAL_UNDEF(result);
+  ZVAL_UNDEF(&result);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(result);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_column_ce);
 
   column         = PHP_DRIVER_GET_COLUMN(PHP5TO7_ZVAL_MAYBE_P(result));
@@ -44,8 +44,8 @@ php_driver_create_column(php_driver_ref* schema,
   column->meta   = meta;
 
   cass_column_meta_name(meta, &name, &name_length);
-  PHP5TO7_ZVAL_MAYBE_MAKE(column->name);
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(column->name), name, name_length);
+
+  ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(column->name), name, name_length);
 
   value = cass_column_meta_field_by_name(meta, "validator");
   if (value) {
@@ -56,7 +56,7 @@ php_driver_create_column(php_driver_ref* schema,
                                                &validator,
                                                &validator_length),
                          zval_ptr_dtor(&result);
-                         PHP5TO7_ZVAL_UNDEF(result);
+                         ZVAL_UNDEF(&result);
                          return result;);
 
     if (php_driver_parse_column_type(validator, validator_length,
@@ -64,7 +64,7 @@ php_driver_create_column(php_driver_ref* schema,
                                      &column->type)
         == FAILURE) {
       zval_ptr_dtor(&result);
-      PHP5TO7_ZVAL_UNDEF(result);
+      ZVAL_UNDEF(&result);
       return result;
     }
   } else {
@@ -85,7 +85,7 @@ php_driver_create_column(php_driver_ref* schema,
         zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
                                 "Unable to get column field \"clustering_order\"");
         zval_ptr_dtor(&result);
-        PHP5TO7_ZVAL_UNDEF(result);
+        ZVAL_UNDEF(&result);
         return result;
       }
 
@@ -93,7 +93,7 @@ php_driver_create_column(php_driver_ref* schema,
                                                  &clustering_order,
                                                  &clustering_order_length),
                            zval_ptr_dtor(&result);
-                           PHP5TO7_ZVAL_UNDEF(result);
+                           ZVAL_UNDEF(&result);
                            return result;);
       column->reversed =
         strncmp(clustering_order, "desc", clustering_order_length) == 0 ? 1 : 0;
@@ -264,8 +264,8 @@ php_driver_default_column_free(zend_object* object)
 {
   php_driver_column* self = PHP5TO7_ZEND_OBJECT_GET(column, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  ZVAL_DESTROY(self->name);
+  ZVAL_DESTROY(self->type);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -286,8 +286,8 @@ php_driver_default_column_new(zend_class_entry* ce)
   self->frozen   = 0;
   self->schema   = NULL;
   self->meta     = NULL;
-  PHP5TO7_ZVAL_UNDEF(self->name);
-  PHP5TO7_ZVAL_UNDEF(self->type);
+  ZVAL_UNDEF(&self->name);
+  ZVAL_UNDEF(&self->type);
 
   PHP5TO7_ZEND_OBJECT_INIT_EX(column, default_column, self, ce);
 }

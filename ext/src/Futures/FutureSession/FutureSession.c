@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+#include "php_driver.h"
+#include "php_driver_types.h"
+
 #include <Futures/FutureSession.h>
 #include <cassandra_driver.h>
 
-#include "php_driver_globals.h"
 #include "util/FutureInterface.h"
 #include "util/ref.h"
 
@@ -27,16 +29,15 @@ zend_class_entry* php_driver_future_session_ce = NULL;
 
 ZEND_METHOD(Cassandra_FutureSession, get)
 {
-  zval* timeout                   = NULL;
-  CassError rc                    = CASS_OK;
-  php_driver_session* session     = NULL;
-  php_driver_future_session* self = NULL;
+  zval* timeout = NULL;
+  CassError rc;
+  php_driver_session* session = NULL;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &timeout) == FAILURE) {
     return;
   }
 
-  self = PHP_DRIVER_GET_FUTURE_SESSION(getThis());
+  php_driver_future_session* self = PHP_DRIVER_FUTURE_SESSION_THIS();
 
   if (self->exception_message) {
     zend_throw_exception_ex(exception_class(self->exception_code),
@@ -117,8 +118,7 @@ php_driver_future_session_compare(zval* obj1, zval* obj2)
 static void
 php_driver_future_session_free(zend_object* object)
 {
-  php_driver_future_session* self =
-    PHP5TO7_ZEND_OBJECT_GET(future_session, object);
+  php_driver_future_session* self = PHP_DRIVER_FUTURE_SESSION_OBJECT(object);
 
   if (self->persist) {
     efree(self->hash_key);
@@ -134,7 +134,7 @@ php_driver_future_session_free(zend_object* object)
     efree(self->exception_message);
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_session);
+  ZVAL_DESTROY(self->default_session);
 
   zend_object_std_dtor(&self->zval);
 }
@@ -150,7 +150,7 @@ php_driver_future_session_new(zend_class_entry* ce)
   self->hash_key          = NULL;
   self->persist           = 0;
 
-  PHP5TO7_ZVAL_UNDEF(self->default_session);
+  ZVAL_UNDEF(&self->default_session);
 
   PHP5TO7_ZEND_OBJECT_INIT(future_session, self, ce);
 }

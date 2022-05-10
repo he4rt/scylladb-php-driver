@@ -230,7 +230,7 @@ php_driver_default_cluster_free(zend_object* object)
     }
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+  ZVAL_DESTROY(self->default_timeout);
 
   zend_object_std_dtor(&self->zval);
 }
@@ -246,7 +246,7 @@ php_driver_default_cluster_new(zend_class_entry* ce)
   self->persist             = 0;
   self->hash_key            = NULL;
 
-  PHP5TO7_ZVAL_UNDEF(self->default_timeout);
+  ZVAL_UNDEF(&self->default_timeout);
 
   zend_object_std_init(&self->zval, ce);
   self->zval.handlers = &php_driver_default_cluster_handlers;

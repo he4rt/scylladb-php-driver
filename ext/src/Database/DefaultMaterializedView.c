@@ -68,9 +68,9 @@ php_driver_create_materialized_view(php_driver_ref* schema,
   const char *name;
   size_t name_length;
 
-  PHP5TO7_ZVAL_UNDEF(result);
+  ZVAL_UNDEF(&result);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(result);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_materialized_view_ce);
 
   view = PHP_DRIVER_GET_MATERIALIZED_VIEW(PHP5TO7_ZVAL_MAYBE_P(result));
@@ -78,8 +78,8 @@ php_driver_create_materialized_view(php_driver_ref* schema,
   view->meta   = meta;
 
   cass_materialized_view_meta_name(meta, &name, &name_length);
-  PHP5TO7_ZVAL_MAYBE_MAKE(view->name);
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(view->name), name, name_length);
+
+  ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(view->name), name, name_length);
 
   return result;
 }
@@ -443,7 +443,7 @@ PHP_METHOD(DefaultMaterializedView, partitionKey)
 
   self = PHP_DRIVER_GET_MATERIALIZED_VIEW(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->partition_key)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->partition_key);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->partition_key));
     populate_partition_key(self, PHP5TO7_ZVAL_MAYBE_P(self->partition_key));
   }
@@ -460,7 +460,7 @@ PHP_METHOD(DefaultMaterializedView, primaryKey)
 
   self = PHP_DRIVER_GET_MATERIALIZED_VIEW(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->primary_key)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->primary_key);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->primary_key));
     populate_partition_key(self, PHP5TO7_ZVAL_MAYBE_P(self->primary_key));
     populate_clustering_key(self, PHP5TO7_ZVAL_MAYBE_P(self->primary_key));
@@ -478,7 +478,7 @@ PHP_METHOD(DefaultMaterializedView, clusteringKey)
 
   self = PHP_DRIVER_GET_MATERIALIZED_VIEW(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->clustering_key)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->clustering_key);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->clustering_key));
     populate_clustering_key(self, PHP5TO7_ZVAL_MAYBE_P(self->clustering_key));
   }
@@ -496,7 +496,7 @@ PHP_METHOD(DefaultMaterializedView, clusteringOrder)
   self = PHP_DRIVER_GET_MATERIALIZED_VIEW(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->clustering_order)) {
     size_t i, count = cass_materialized_view_meta_clustering_key_count(self->meta);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->clustering_order);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->clustering_order));
     for (i = 0; i < count; ++i) {
       CassClusteringOrder order =
@@ -626,13 +626,13 @@ php_driver_default_materialized_view_free(zend_object* object)
 {
   php_driver_materialized_view *self = PHP5TO7_ZEND_OBJECT_GET(materialized_view, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->partition_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->primary_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_order);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->base_table);
+  ZVAL_DESTROY(self->name);
+  ZVAL_DESTROY(self->options);
+  ZVAL_DESTROY(self->partition_key);
+  ZVAL_DESTROY(self->primary_key);
+  ZVAL_DESTROY(self->clustering_key);
+  ZVAL_DESTROY(self->clustering_order);
+  ZVAL_DESTROY(self->base_table);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -649,13 +649,13 @@ php_driver_default_materialized_view_new(zend_class_entry* ce)
   php_driver_materialized_view *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(materialized_view, ce);
 
-  PHP5TO7_ZVAL_UNDEF(self->name);
-  PHP5TO7_ZVAL_UNDEF(self->options);
-  PHP5TO7_ZVAL_UNDEF(self->partition_key);
-  PHP5TO7_ZVAL_UNDEF(self->primary_key);
-  PHP5TO7_ZVAL_UNDEF(self->clustering_key);
-  PHP5TO7_ZVAL_UNDEF(self->clustering_order);
-  PHP5TO7_ZVAL_UNDEF(self->base_table);
+  ZVAL_UNDEF(&self->name);
+  ZVAL_UNDEF(&self->options);
+  ZVAL_UNDEF(&self->partition_key);
+  ZVAL_UNDEF(&self->primary_key);
+  ZVAL_UNDEF(&self->clustering_key);
+  ZVAL_UNDEF(&self->clustering_order);
+  ZVAL_UNDEF(&self->base_table);
 
   self->meta   = NULL;
   self->schema = NULL;

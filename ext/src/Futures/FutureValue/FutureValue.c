@@ -70,7 +70,7 @@ php_driver_future_value_free(zend_object* object)
   php_driver_future_value* self =
     PHP5TO7_ZEND_OBJECT_GET(future_value, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->value);
+  ZVAL_DESTROY(self->value);
 
   zend_object_std_dtor(&self->zval);
 }
@@ -80,7 +80,7 @@ php_driver_future_value_new(zend_class_entry* ce)
 {
   php_driver_future_value* self = make(php_driver_future_value);
 
-  PHP5TO7_ZVAL_UNDEF(self->value);
+  ZVAL_UNDEF(&self->value);
 
   PHP5TO7_ZEND_OBJECT_INIT(future_value, self, ce);
 }

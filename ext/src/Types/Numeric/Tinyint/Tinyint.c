@@ -44,7 +44,7 @@ to_string(zval* result, php_driver_numeric* tinyint)
 {
   char* string;
   spprintf(&string, 0, "%d", tinyint->data.tinyint.value);
-  PHP5TO7_ZVAL_STRING(result, string);
+  ZVAL_STRING(result, string);
   efree(string);
   return SUCCESS;
 }
@@ -407,7 +407,7 @@ php_driver_tinyint_properties(
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TINY_INT);
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(value);
+
   to_string(PHP5TO7_ZVAL_MAYBE_P(value), self);
   PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), PHP5TO7_ZVAL_MAYBE_P(value), sizeof(zval));
 

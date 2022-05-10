@@ -44,7 +44,7 @@ to_string(zval* result, php_driver_numeric* smallint)
 {
   char* string;
   spprintf(&string, 0, "%d", smallint->data.smallint.value);
-  PHP5TO7_ZVAL_STRING(result, string);
+  ZVAL_STRING(result, string);
   efree(string);
   return SUCCESS;
 }

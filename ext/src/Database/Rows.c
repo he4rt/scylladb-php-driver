@@ -39,7 +39,7 @@ php_driver_rows_create(php_driver_rows* current, zval* result)
     if (php_driver_get_result((const CassResult*) current->next_result->data,
                               &current->next_rows)
         == FAILURE) {
-      PHP5TO7_ZVAL_MAYBE_DESTROY(current->next_rows);
+      ZVAL_DESTROY(current->next_rows);
       return;
     }
   }
@@ -307,10 +307,10 @@ PHP_METHOD(Rows, nextPageAsync)
 
   if (self->next_result) {
     php_driver_future_value *future_value;
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->future_next_page);
+
     object_init_ex(PHP5TO7_ZVAL_MAYBE_P(self->future_next_page), php_driver_future_value_ce);
     future_value = PHP_DRIVER_GET_FUTURE_VALUE(PHP5TO7_ZVAL_MAYBE_P(self->future_next_page));
-    PHP5TO7_ZVAL_MAYBE_MAKE(future_value->value);
+
     php_driver_rows_create(self, PHP5TO7_ZVAL_MAYBE_P(future_value->value));
     RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->future_next_page), 1, 0);
   }
@@ -323,7 +323,7 @@ PHP_METHOD(Rows, nextPageAsync)
   ASSERT_SUCCESS(cass_statement_set_paging_state((CassStatement *) self->statement->data,
                                                  (const CassResult *) self->result->data));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(self->future_next_page);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(self->future_next_page), php_driver_future_rows_ce);
   future_rows = PHP_DRIVER_GET_FUTURE_ROWS(PHP5TO7_ZVAL_MAYBE_P(self->future_next_page));
 
@@ -352,7 +352,7 @@ PHP_METHOD(Rows, pagingStateToken)
   ASSERT_SUCCESS(cass_result_paging_state_token((const CassResult *) self->result->data,
                                                 &paging_state,
                                                 &paging_state_size));
-  PHP5TO7_RETURN_STRINGL(paging_state, paging_state_size);
+  RETURN_STRINGL(paging_state, paging_state_size);
 }
 
 PHP_METHOD(Rows, first)
@@ -453,9 +453,9 @@ php_driver_rows_free(zend_object* object)
   php_driver_del_peref(&self->session, 1);
   php_driver_del_ref(&self->next_result);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->rows);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->next_rows);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->future_next_page);
+  ZVAL_DESTROY(self->rows);
+  ZVAL_DESTROY(self->next_rows);
+  ZVAL_DESTROY(self->future_next_page);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -470,9 +470,9 @@ php_driver_rows_new(zend_class_entry* ce)
   self->session     = NULL;
   self->result      = NULL;
   self->next_result = NULL;
-  PHP5TO7_ZVAL_UNDEF(self->rows);
-  PHP5TO7_ZVAL_UNDEF(self->next_rows);
-  PHP5TO7_ZVAL_UNDEF(self->future_next_page);
+  ZVAL_UNDEF(&self->rows);
+  ZVAL_UNDEF(&self->next_rows);
+  ZVAL_UNDEF(&self->future_next_page);
 
   PHP5TO7_ZEND_OBJECT_INIT(rows, self, ce);
 }

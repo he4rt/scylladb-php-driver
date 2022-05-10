@@ -53,7 +53,7 @@ PHP_METHOD(TypeTuple, name)
     return;
   }
 
-  PHP5TO7_RETVAL_STRING("tuple");
+  RETVAL_STRING("tuple");
 }
 
 PHP_METHOD(TypeTuple, types)
@@ -84,7 +84,7 @@ PHP_METHOD(TypeTuple, __toString)
   php_driver_type_string(self, &string);
   smart_str_0(&string);
 
-  PHP5TO7_RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -186,7 +186,7 @@ php_driver_type_tuple_properties(
 #endif
   HashTable* props = zend_std_get_properties(object);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(types);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(types));
   PHP5TO7_ZEND_HASH_ZVAL_COPY(PHP5TO7_Z_ARRVAL_MAYBE_P(types), &self->data.tuple.types);
   PHP5TO7_ZEND_HASH_UPDATE(props,

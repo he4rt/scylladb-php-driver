@@ -75,7 +75,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
     ASSERT_SUCCESS_BLOCK(cass_value_get_string(value, &v_string, &v_string_len),
                          zval_ptr_dtor(out);
                          return FAILURE;);
-    PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_DEREF(out), v_string, v_string_len);
+    ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_DEREF(out), v_string, v_string_len);
     break;
   case CASS_VALUE_TYPE_INT:
     ASSERT_SUCCESS_BLOCK(cass_value_get_int32(value, &v_int_32),
@@ -362,7 +362,7 @@ php_driver_get_keyspace_field(const CassKeyspaceMeta* metadata, const char* fiel
   value = cass_keyspace_meta_field_by_name(metadata, field_name);
 
   if (value == NULL || cass_value_is_null(value)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(*out);
+
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     return SUCCESS;
   }
@@ -378,7 +378,7 @@ php_driver_get_table_field(const CassTableMeta* metadata, const char* field_name
   value = cass_table_meta_field_by_name(metadata, field_name);
 
   if (value == NULL || cass_value_is_null(value)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(*out);
+
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     return SUCCESS;
   }
@@ -394,7 +394,7 @@ php_driver_get_column_field(const CassColumnMeta* metadata, const char* field_na
   value = cass_column_meta_field_by_name(metadata, field_name);
 
   if (value == NULL || cass_value_is_null(value)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(*out);
+
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     return SUCCESS;
   }
@@ -417,7 +417,7 @@ php_driver_get_result(const CassResult* result, zval* out)
   char** column_names;
   unsigned i;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(rows);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(rows));
 
   iterator = cass_iterator_from_result(result);
@@ -426,7 +426,7 @@ php_driver_get_result(const CassResult* result, zval* out)
   column_names = (char**) ecalloc(columns, sizeof(char*));
 
   while (cass_iterator_next(iterator)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(row);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(row));
     cass_row = cass_iterator_get_row(iterator);
 

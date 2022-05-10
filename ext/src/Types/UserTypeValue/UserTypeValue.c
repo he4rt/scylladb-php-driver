@@ -46,7 +46,7 @@ php_driver_user_type_value_populate(php_driver_user_type_value* user_type_value,
   zval* current;
   zval null;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(null);
+
   ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(null));
 
   type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(user_type_value->type));
@@ -380,7 +380,7 @@ php_driver_user_type_value_properties(
                            PHP5TO7_ZVAL_MAYBE_P(self->type), sizeof(zval));
   Z_ADDREF_P(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(values);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(values));
   php_driver_user_type_value_populate(self, PHP5TO7_ZVAL_MAYBE_P(values));
   PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), PHP5TO7_ZVAL_MAYBE_P(values), sizeof(zval));
@@ -462,7 +462,7 @@ php_driver_user_type_value_free(zend_object* object)
       PHP5TO7_ZEND_OBJECT_GET(user_type_value, object);
 
   zend_hash_destroy(&self->values);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  ZVAL_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -480,7 +480,7 @@ php_driver_user_type_value_new(zend_class_entry* ce)
   self->pos = NULL;
 #endif
   self->dirty = 1;
-  PHP5TO7_ZVAL_UNDEF(self->type);
+  ZVAL_UNDEF(&self->type);
 
   PHP5TO7_ZEND_OBJECT_INIT(user_type_value, self, ce);
 }

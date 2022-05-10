@@ -92,7 +92,7 @@ PHP_METHOD(TypeUserType, name)
   if (!self->data.udt.type_name)
     RETURN_NULL();
 
-  PHP5TO7_RETVAL_STRING(self->data.udt.type_name);
+  RETVAL_STRING(self->data.udt.type_name);
 }
 
 PHP_METHOD(TypeUserType, withKeyspace)
@@ -134,7 +134,7 @@ PHP_METHOD(TypeUserType, keyspace)
   if (!self->data.udt.keyspace)
     RETURN_NULL();
 
-  PHP5TO7_RETVAL_STRING(self->data.udt.keyspace);
+  RETVAL_STRING(self->data.udt.keyspace);
 }
 
 PHP_METHOD(TypeUserType, types)
@@ -165,7 +165,7 @@ PHP_METHOD(TypeUserType, __toString)
   php_driver_type_string(self, &string);
   smart_str_0(&string);
 
-  PHP5TO7_RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -294,7 +294,7 @@ php_driver_type_user_type_properties(
 #endif
   HashTable* props = zend_std_get_properties(object);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(types);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(types));
   PHP5TO7_ZEND_HASH_ZVAL_COPY(PHP5TO7_Z_ARRVAL_MAYBE_P(types), &self->data.udt.types);
   PHP5TO7_ZEND_HASH_UPDATE(props,

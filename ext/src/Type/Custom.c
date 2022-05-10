@@ -37,7 +37,7 @@ PHP_METHOD (TypeCustom, name)
 
 	custom = PHP_DRIVER_GET_TYPE(getThis());
 
-	PHP5TO7_RETVAL_STRING(custom->data.custom.class_name);
+	RETVAL_STRING(custom->data.custom.class_name);
 }
 
 PHP_METHOD (TypeCustom, __toString)
@@ -51,7 +51,7 @@ PHP_METHOD (TypeCustom, __toString)
 
 	custom = PHP_DRIVER_GET_TYPE(getThis());
 
-	PHP5TO7_RETVAL_STRING(custom->data.custom.class_name);
+	RETVAL_STRING(custom->data.custom.class_name);
 }
 
 PHP_METHOD (TypeCustom, create)
@@ -110,8 +110,8 @@ php_driver_type_custom_properties(
 #endif
   HashTable* props = zend_std_get_properties(object);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(name);
-	PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(name), self->data.custom.class_name);
+
+	ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(name), self->data.custom.class_name);
 
 	PHP5TO7_ZEND_HASH_UPDATE(props,
 		"name", sizeof("name"),

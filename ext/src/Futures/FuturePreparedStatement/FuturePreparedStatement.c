@@ -94,7 +94,7 @@ php_driver_future_prepared_statement_free(zend_object* object)
     self->future = NULL;
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->prepared_statement);
+  ZVAL_DESTROY(self->prepared_statement);
 
   zend_object_std_dtor(&self->zval);
 }
@@ -106,7 +106,7 @@ php_driver_future_prepared_statement_new(zend_class_entry* ce)
     PHP5TO7_ZEND_OBJECT_ECALLOC(future_prepared_statement, ce);
 
   self->future = NULL;
-  PHP5TO7_ZVAL_UNDEF(self->prepared_statement);
+  ZVAL_UNDEF(&self->prepared_statement);
 
   PHP5TO7_ZEND_OBJECT_INIT(future_prepared_statement, self, ce);
 }

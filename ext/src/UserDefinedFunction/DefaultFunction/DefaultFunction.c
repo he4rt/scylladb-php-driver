@@ -33,9 +33,9 @@ php_driver_create_function(php_driver_ref* schema,
   const char *full_name;
   size_t full_name_length;
 
-  PHP5TO7_ZVAL_UNDEF(result);
+  ZVAL_UNDEF(&result);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(result);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_function_ce);
 
   function = PHP_DRIVER_GET_FUNCTION(PHP5TO7_ZVAL_MAYBE_P(result));
@@ -43,8 +43,8 @@ php_driver_create_function(php_driver_ref* schema,
   function->meta   = meta;
 
   cass_function_meta_full_name(function->meta, &full_name, &full_name_length);
-  PHP5TO7_ZVAL_MAYBE_MAKE(function->signature);
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(function->signature), full_name, full_name_length);
+
+  ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(function->signature), full_name, full_name_length);
 
   return result;
 }
@@ -73,8 +73,8 @@ PHP_METHOD(DefaultFunction, simpleName)
     const char *name;
     size_t name_length;
     cass_function_meta_name(self->meta, &name, &name_length);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->simple_name);
-    PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->simple_name), name, name_length);
+
+    ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->simple_name), name, name_length);
   }
 
   RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->simple_name), 1, 0);
@@ -90,7 +90,7 @@ PHP_METHOD(DefaultFunction, arguments)
   self = PHP_DRIVER_GET_FUNCTION(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->arguments)) {
     size_t i, count = cass_function_meta_argument_count(self->meta);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->arguments);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->arguments));
     for (i = 0; i < count; ++i) {
       const char *name;
@@ -152,8 +152,8 @@ PHP_METHOD(DefaultFunction, language)
     const char *language;
     size_t language_length;
     cass_function_meta_language(self->meta, &language, &language_length);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->language);
-    PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->language), language, language_length);
+
+    ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->language), language, language_length);
   }
 
   RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->language), 1, 0);
@@ -171,8 +171,8 @@ PHP_METHOD(DefaultFunction, body)
     const char *body;
     size_t body_length;
     cass_function_meta_body(self->meta, &body, &body_length);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->body);
-    PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->body), body, body_length);
+
+    ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(self->body), body, body_length);
   }
 
   RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->body), 1, 0);
@@ -252,12 +252,12 @@ php_driver_default_function_free(zend_object* object)
 {
   php_driver_function *self = PHP5TO7_ZEND_OBJECT_GET(function, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->simple_name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->arguments);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->return_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->signature);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->language);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->body);
+  ZVAL_DESTROY(self->simple_name);
+  ZVAL_DESTROY(self->arguments);
+  ZVAL_DESTROY(self->return_type);
+  ZVAL_DESTROY(self->signature);
+  ZVAL_DESTROY(self->language);
+  ZVAL_DESTROY(self->body);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -274,12 +274,12 @@ php_driver_default_function_new(zend_class_entry* ce)
   php_driver_function *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(function, ce);
 
-  PHP5TO7_ZVAL_UNDEF(self->simple_name);
-  PHP5TO7_ZVAL_UNDEF(self->arguments);
-  PHP5TO7_ZVAL_UNDEF(self->return_type);
-  PHP5TO7_ZVAL_UNDEF(self->signature);
-  PHP5TO7_ZVAL_UNDEF(self->language);
-  PHP5TO7_ZVAL_UNDEF(self->body);
+  ZVAL_UNDEF(&self->simple_name);
+  ZVAL_UNDEF(&self->arguments);
+  ZVAL_UNDEF(&self->return_type);
+  ZVAL_UNDEF(&self->signature);
+  ZVAL_UNDEF(&self->language);
+  ZVAL_UNDEF(&self->body);
 
   self->schema = NULL;
   self->meta = NULL;

@@ -39,7 +39,7 @@ PHP_METHOD(TypeSet, name)
     return;
   }
 
-  PHP5TO7_RETVAL_STRING("set");
+  RETVAL_STRING("set");
 }
 
 PHP_METHOD(TypeSet, valueType)
@@ -68,7 +68,7 @@ PHP_METHOD(TypeSet, __toString)
   php_driver_type_string(self, &string);
   smart_str_0(&string);
 
-  PHP5TO7_RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -178,7 +178,7 @@ php_driver_type_set_free(zend_object* object)
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.set.value_type);
+  ZVAL_DESTROY(self->data.set.value_type);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -191,7 +191,7 @@ php_driver_type_set_new(zend_class_entry* ce)
 
   self->type = CASS_VALUE_TYPE_SET;
   self->data_type = cass_data_type_new(self->type);
-  PHP5TO7_ZVAL_UNDEF(self->data.set.value_type);
+  ZVAL_UNDEF(&self->data.set.value_type);
 
   PHP5TO7_ZEND_OBJECT_INIT_EX(type, type_set, self, ce);
 }
