@@ -27,7 +27,7 @@
 #include <unistd.h>
 #endif
 
-#define LL_FORMAT PRIi64
+#define LL_FORMAT "%" PRId64
 
 #include <ext/spl/spl_exceptions.h>
 #include <ext/spl/spl_iterators.h>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "php_driver_types.h"
+#include <Futures/FutureRows.h>
 
 #ifndef PHP_DRIVER_FUTURE_ROWS_H
 #define PHP_DRIVER_FUTURE_ROWS_H

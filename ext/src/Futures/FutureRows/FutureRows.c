@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-#include <cassandra_driver.h>
+#include "php_driver.h"
+#include "php_driver_types.h"
+
 #include <Futures/FutureRows.h>
+#include <cassandra_driver.h>
+#include <zend_exceptions.h>
 
 #include "util/FutureInterface.h"
 #include "util/ref.h"
@@ -63,7 +67,7 @@ ZEND_METHOD(Cassandra_FutureRows, get)
   zval* timeout         = NULL;
   php_driver_rows* rows = NULL;
 
-  php_driver_future_rows* self = PHP_DRIVER_GET_FUTURE_ROWS(getThis());
+  php_driver_future_rows* self = PHP_DRIVER_FUTURE_ROWS_THIS();
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &timeout) == FAILURE) {
     return;
@@ -120,7 +124,7 @@ php_driver_future_rows_compare(zval* obj1, zval* obj2)
 static void
 php_driver_future_rows_free(zend_object* object)
 {
-  php_driver_future_rows* self = PHP5TO7_ZEND_OBJECT_GET(future_rows, object);
+  php_driver_future_rows* self = PHP_DRIVER_FUTURE_ROWS_OBJECT(object);
 
   ZVAL_DESTROY(self->rows);
 

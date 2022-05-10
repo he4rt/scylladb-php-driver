@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "include/Types/Numeric/Numeric.h"
+#include <Types/Numeric/Numeric.h>
+#include <Futures/Futures.h>
 
 #include "php_driver.h"
 #include "php_driver_globals.h"
@@ -769,7 +770,7 @@ PHP_METHOD(DefaultSession, executeAsync)
   }
 
   object_init_ex(return_value, php_driver_future_rows_ce);
-  future_rows = PHP_DRIVER_GET_FUTURE_ROWS(return_value);
+  future_rows = PHP_DRIVER_FUTURE_ROWS_ZVAL_TO_OBJECT(return_value);
 
   switch (stmt->type) {
   case PHP_DRIVER_SIMPLE_STATEMENT:
@@ -922,7 +923,7 @@ PHP_METHOD(DefaultSession, prepareAsync)
                                   Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
   object_init_ex(return_value, php_driver_future_prepared_statement_ce);
-  future_prepared = PHP_DRIVER_GET_FUTURE_PREPARED_STATEMENT(return_value);
+  future_prepared = PHP_DRIVER_FUTURE_PREPARED_STATEMENT_ZVAL_TO_OBJECT(return_value);
 
   future_prepared->future = future;
 }
@@ -967,7 +968,7 @@ PHP_METHOD(DefaultSession, closeAsync)
   }
 
   object_init_ex(return_value, php_driver_future_close_ce);
-  future = PHP_DRIVER_GET_FUTURE_CLOSE(return_value);
+  future = PHP_DRIVER_FUTURE_CLOSE_ZVAL_TO_OBJECT(return_value);
 
   future->future = cass_session_close((CassSession*) self->session->data);
 }

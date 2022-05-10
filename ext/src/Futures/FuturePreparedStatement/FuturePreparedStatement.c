@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-#include <cassandra_driver.h>
-#include <Futures/FuturePreparedStatement.h>
+#include "php_driver.h"
+#include "php_driver_types.h"
 
+#include <Futures/FuturePreparedStatement.h>
+#include <cassandra_driver.h>
 
 #include "util/FutureInterface.h"
 
@@ -29,9 +31,9 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, get)
   zval* timeout                            = NULL;
   php_driver_statement* prepared_statement = NULL;
 
-  php_driver_future_prepared_statement* self = PHP_DRIVER_GET_FUTURE_PREPARED_STATEMENT(getThis());
+  php_driver_future_prepared_statement* self = PHP_DRIVER_FUTURE_PREPARED_STATEMENT_THIS();
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->prepared_statement)) {
+  if (!Z_ISUNDEF(self->prepared_statement)) {
     RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->prepared_statement), 1, 0);
   }
 
@@ -86,8 +88,7 @@ php_driver_future_prepared_statement_compare(zval* obj1, zval* obj2)
 static void
 php_driver_future_prepared_statement_free(zend_object* object)
 {
-  php_driver_future_prepared_statement* self =
-    PHP5TO7_ZEND_OBJECT_GET(future_prepared_statement, object);
+  php_driver_future_prepared_statement* self = PHP_DRIVER_FUTURE_PREPARED_STATEMENT_OBJECT(object);
 
   if (self->future) {
     cass_future_free(self->future);

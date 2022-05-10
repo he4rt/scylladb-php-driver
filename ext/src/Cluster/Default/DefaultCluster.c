@@ -21,6 +21,7 @@
 #include "util/ref.h"
 
 #include <Cluster/Cluster.h>
+#include <Futures/Futures.h>
 
 #include "DefaultCluster_arginfo.h"
 
@@ -132,7 +133,6 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
   size_t hash_key_len = 0;
   char* keyspace      = NULL;
   size_t keyspace_len;
-  php_driver_future_session* future = NULL;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "|s", &keyspace, &keyspace_len) == FAILURE) {
     return;
@@ -141,7 +141,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
   php_driver_cluster* self = PHP_DRIVER_CLUSTER_THIS();
 
   object_init_ex(return_value, php_driver_future_session_ce);
-  future = PHP_DRIVER_GET_FUTURE_SESSION(return_value);
+  php_driver_future_session* future = PHP_DRIVER_FUTURE_SESSION_ZVAL_TO_OBJECT(return_value);
 
   future->persist = self->persist;
 
@@ -257,7 +257,6 @@ php_driver_default_cluster_new(zend_class_entry* ce)
 void
 php_driver_define_DefaultCluster(zend_class_entry* cluster_interface)
 {
-
   php_driver_default_cluster_ce                = register_class_Cassandra_DefaultCluster(cluster_interface);
   php_driver_default_cluster_ce->create_object = php_driver_default_cluster_new;
 

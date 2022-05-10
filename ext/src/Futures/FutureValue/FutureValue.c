@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "php_driver.h"
+
 #include <Futures/FutureValue.h>
 #include <cassandra_driver.h>
 
@@ -31,8 +33,8 @@ ZEND_METHOD(Cassandra_FutureValue, get)
 
   self = PHP_DRIVER_FUTURE_VALUE_THIS();
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->value)) {
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->value), 1, 0);
+  if (!Z_ISUNDEF(self->value)) {
+    RETURN_ZVAL(&self->value, 1, 0);
   }
 }
 
@@ -67,8 +69,7 @@ php_driver_future_value_compare(zval* obj1, zval* obj2)
 static void
 php_driver_future_value_free(zend_object* object)
 {
-  php_driver_future_value* self =
-    PHP5TO7_ZEND_OBJECT_GET(future_value, object);
+  php_driver_future_value* self = PHP_DRIVER_FUTURE_VALUE_OBJECT(object);
 
   ZVAL_DESTROY(self->value);
 
