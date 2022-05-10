@@ -41,8 +41,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
   cluster->default_consistency = self->default_consistency;
   cluster->default_page_size   = self->default_page_size;
 
-  PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(cluster->default_timeout),
-                    PHP5TO7_ZVAL_MAYBE_P(self->default_timeout));
+  PHP5TO7_ZVAL_COPY(&cluster->default_timeout, &self->default_timeout);
 
   if (self->persist) {
     cluster->hash_key_len = spprintf(&cluster->hash_key, 0,
@@ -142,15 +141,15 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
                                                                 self->enable_randomized_contact_points));
   cass_cluster_set_connection_heartbeat_interval(cluster->cluster, self->connection_heartbeat_interval);
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->timestamp_gen)) {
+  if (!Z_ISUNDEF(self->timestamp_gen)) {
     php_driver_timestamp_gen* timestamp_gen =
-      PHP_DRIVER_GET_TIMESTAMP_GEN(PHP5TO7_ZVAL_MAYBE_P(self->timestamp_gen));
+      PHP_DRIVER_GET_TIMESTAMP_GEN(&self->timestamp_gen);
     cass_cluster_set_timestamp_gen(cluster->cluster, timestamp_gen->gen);
   }
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy)) {
+  if (!Z_ISUNDEF(self->retry_policy)) {
     php_driver_retry_policy* retry_policy =
-      PHP_DRIVER_GET_RETRY_POLICY(PHP5TO7_ZVAL_MAYBE_P(self->retry_policy));
+      PHP_DRIVER_GET_RETRY_POLICY(&self->retry_policy);
     cass_cluster_set_retry_policy(cluster->cluster, retry_policy->policy);
   }
 
@@ -219,10 +218,10 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout)
   self = PHP_DRIVER_CLUSTER_BUILDER_THIS();
 
   if (Z_TYPE_P(timeout) == IS_NULL) {
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
-    PHP5TO7_ZVAL_UNDEF(self->default_timeout);
+    ZVAL_DESTROY(self->default_timeout);
+    ZVAL_UNDEF(&self->default_timeout);
   } else if ((Z_TYPE_P(timeout) == IS_LONG && Z_LVAL_P(timeout) > 0) || (Z_TYPE_P(timeout) == IS_DOUBLE && Z_LVAL_P(timeout) > 0)) {
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+    ZVAL_DESTROY(self->default_timeout);
     PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(self->default_timeout), timeout);
   } else {
     INVALID_ARGUMENT(timeout, "a number of seconds greater than zero or null");
@@ -961,17 +960,17 @@ php_driver_cluster_builder_properties(
   php_driver_cluster_builder* self = PHP_DRIVER_CLUSTER_BUILDER_OBJECT(object);
   HashTable* props                 = zend_std_get_properties(object);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(contactPoints);
-  PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(contactPoints), self->contact_points);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(loadBalancingPolicy);
+  ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(contactPoints), self->contact_points);
+
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(loadBalancingPolicy), self->load_balancing_policy);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(localDatacenter);
-  PHP5TO7_ZVAL_MAYBE_MAKE(hostPerRemoteDatacenter);
-  PHP5TO7_ZVAL_MAYBE_MAKE(useRemoteDatacenterForLocalConsistencies);
+
+
+
   if (self->load_balancing_policy == LOAD_BALANCING_DC_AWARE_ROUND_ROBIN) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(localDatacenter), self->local_dc);
+    ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(localDatacenter), self->local_dc);
     ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(hostPerRemoteDatacenter), self->used_hosts_per_remote_dc);
     ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(useRemoteDatacenterForLocalConsistencies), self->allow_remote_dcs_for_local_cl);
   } else {
@@ -980,125 +979,125 @@ php_driver_cluster_builder_properties(
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(useRemoteDatacenterForLocalConsistencies));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(useTokenAwareRouting);
+
   ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(useTokenAwareRouting), self->use_token_aware_routing);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(username);
-  PHP5TO7_ZVAL_MAYBE_MAKE(password);
+
+
   if (self->username) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(username), self->username);
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(password), self->password);
+    ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(username), self->username);
+    ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(password), self->password);
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(username));
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(password));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(connectTimeout);
+
   ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(connectTimeout), (double) self->connect_timeout / 1000);
-  PHP5TO7_ZVAL_MAYBE_MAKE(requestTimeout);
+
   ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(requestTimeout), (double) self->request_timeout / 1000);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(sslOptions);
+
   if (!PHP5TO7_ZVAL_IS_UNDEF(self->ssl_options)) {
     PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(sslOptions), PHP5TO7_ZVAL_MAYBE_P(self->ssl_options));
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(sslOptions));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(defaultConsistency);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(defaultConsistency), self->default_consistency);
-  PHP5TO7_ZVAL_MAYBE_MAKE(defaultPageSize);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(defaultPageSize), self->default_page_size);
-  PHP5TO7_ZVAL_MAYBE_MAKE(defaultTimeout);
+
   if (!PHP5TO7_ZVAL_IS_UNDEF(self->default_timeout)) {
     ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(defaultTimeout), PHP5TO7_Z_LVAL_MAYBE_P(self->default_timeout));
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(defaultTimeout));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(usePersistentSessions);
+
   ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(usePersistentSessions), self->persist);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(protocolVersion);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(protocolVersion), self->protocol_version);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ioThreads);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(ioThreads), self->io_threads);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(coreConnectionPerHost);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(coreConnectionPerHost), self->core_connections_per_host);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(maxConnectionsPerHost);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(maxConnectionsPerHost), self->max_connections_per_host);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(reconnectInterval);
+
   ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(reconnectInterval), (double) self->reconnect_interval / 1000);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(latencyAwareRouting);
+
   ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(latencyAwareRouting), self->enable_latency_aware_routing);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(tcpNodelay);
+
   ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(tcpNodelay), self->enable_tcp_nodelay);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(tcpKeepalive);
+
   if (self->enable_tcp_keepalive) {
     ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_P(tcpKeepalive), (double) self->tcp_keepalive_delay / 1000);
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(tcpKeepalive));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(retryPolicy);
+
   if (!PHP5TO7_ZVAL_IS_UNDEF(self->retry_policy)) {
     PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(retryPolicy), PHP5TO7_ZVAL_MAYBE_P(self->retry_policy));
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(retryPolicy));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(blacklistHosts);
+
   if (self->blacklist_hosts) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(blacklistHosts), self->blacklist_hosts);
+    ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(blacklistHosts), self->blacklist_hosts);
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(blacklistHosts));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(whitelistHosts);
+
   if (self->whitelist_hosts) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(whitelistHosts), self->whitelist_hosts);
+    ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(whitelistHosts), self->whitelist_hosts);
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(whitelistHosts));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(blacklistDCs);
+
   if (self->blacklist_dcs) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(blacklistDCs), self->blacklist_dcs);
+    ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(blacklistDCs), self->blacklist_dcs);
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(blacklistDCs));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(whitelistDCs);
+
   if (self->whitelist_dcs) {
-    PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(whitelistDCs), self->whitelist_dcs);
+    ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(whitelistDCs), self->whitelist_dcs);
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(whitelistDCs));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(timestampGen);
+
   if (!PHP5TO7_ZVAL_IS_UNDEF(self->timestamp_gen)) {
     PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(timestampGen), PHP5TO7_ZVAL_MAYBE_P(self->timestamp_gen));
   } else {
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_P(timestampGen));
   }
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(schemaMetadata);
+
   ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(schemaMetadata), self->enable_schema);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(hostnameResolution);
+
   ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(hostnameResolution), self->enable_hostname_resolution);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(randomizedContactPoints);
+
   ZVAL_BOOL(PHP5TO7_ZVAL_MAYBE_P(randomizedContactPoints), self->enable_randomized_contact_points);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(connectionHeartbeatInterval);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(connectionHeartbeatInterval), self->connection_heartbeat_interval);
 
   PHP5TO7_ZEND_HASH_UPDATE(props, "contactPoints", sizeof("contactPoints"),
@@ -1226,10 +1225,10 @@ php_driver_cluster_builder_free(zend_object* object)
     self->whitelist_dcs = NULL;
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->ssl_options);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->timestamp_gen);
+  ZVAL_DESTROY(self->ssl_options);
+  ZVAL_DESTROY(self->default_timeout);
+  ZVAL_DESTROY(self->retry_policy);
+  ZVAL_DESTROY(self->timestamp_gen);
 
   zend_object_std_dtor(&self->zval);
 }
@@ -1271,10 +1270,10 @@ php_driver_cluster_builder_new(zend_class_entry* ce)
   self->enable_randomized_contact_points = 1;
   self->connection_heartbeat_interval    = 30;
 
-  PHP5TO7_ZVAL_UNDEF(self->ssl_options);
-  PHP5TO7_ZVAL_UNDEF(self->default_timeout);
-  PHP5TO7_ZVAL_UNDEF(self->retry_policy);
-  PHP5TO7_ZVAL_UNDEF(self->timestamp_gen);
+  ZVAL_UNDEF(&self->ssl_options);
+  ZVAL_UNDEF(&self->default_timeout);
+  ZVAL_UNDEF(&self->retry_policy);
+  ZVAL_UNDEF(&self->timestamp_gen);
 
   PHP5TO7_ZEND_OBJECT_INIT(cluster_builder, self, ce);
 }

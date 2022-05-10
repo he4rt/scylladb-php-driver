@@ -43,7 +43,7 @@ PHP_METHOD(TypeScalar, name)
 
   self = PHP_DRIVER_GET_TYPE(getThis());
   name = php_driver_scalar_type_name(self->type);
-  PHP5TO7_RETVAL_STRING(name);
+  RETVAL_STRING(name);
 }
 
 PHP_METHOD(TypeScalar, __toString)
@@ -57,7 +57,7 @@ PHP_METHOD(TypeScalar, __toString)
 
   self = PHP_DRIVER_GET_TYPE(getThis());
   name = php_driver_scalar_type_name(self->type);
-  PHP5TO7_RETVAL_STRING(name);
+  RETVAL_STRING(name);
 }
 
 PHP_METHOD(TypeScalar, create)
@@ -119,8 +119,8 @@ php_driver_type_scalar_properties(
                      ? CASS_VALUE_TYPE_VARCHAR
                      : self->type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(name);
-  PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(name),
+
+  ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(name),
                       php_driver_scalar_type_name(type));
   PHP5TO7_ZEND_HASH_UPDATE(props,
                            "name", sizeof("name"),

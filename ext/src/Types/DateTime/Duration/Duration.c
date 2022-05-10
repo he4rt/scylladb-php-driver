@@ -20,7 +20,7 @@ to_string(zval* result, cass_int64_t value)
 {
   char* string;
   spprintf(&string, 0, LL_FORMAT, value);
-  PHP5TO7_ZVAL_STRING(result, string);
+  ZVAL_STRING(result, string);
   efree(string);
 }
 
@@ -160,7 +160,7 @@ PHP_METHOD(Duration, __toString)
 
   // Build up string representation of this duration.
   rep = php_driver_duration_to_string(self);
-  PHP5TO7_RETVAL_STRING(rep);
+  RETVAL_STRING(rep);
   efree(rep);
 }
 

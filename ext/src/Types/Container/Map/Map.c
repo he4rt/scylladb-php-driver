@@ -172,8 +172,8 @@ PHP_METHOD(Map, __construct)
   zval scalar_key_type;
   zval scalar_value_type;
 
-  PHP5TO7_ZVAL_UNDEF(scalar_key_type);
-  PHP5TO7_ZVAL_UNDEF(scalar_value_type);
+  ZVAL_UNDEF(&scalar_key_type);
+  ZVAL_UNDEF(&scalar_value_type);
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz", &key_type, &value_type) == FAILURE)
     return;
@@ -489,13 +489,13 @@ php_driver_map_properties(
                            PHP5TO7_ZVAL_MAYBE_P(self->type), sizeof(zval));
   Z_ADDREF_P(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(keys);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(keys));
   php_driver_map_populate_keys(self, PHP5TO7_ZVAL_MAYBE_P(keys));
   PHP5TO7_ZEND_HASH_SORT(Z_ARRVAL_P(PHP5TO7_ZVAL_MAYBE_P(keys)), php_driver_data_compare, 1);
   PHP5TO7_ZEND_HASH_UPDATE(props, "keys", sizeof("keys"), PHP5TO7_ZVAL_MAYBE_P(keys), sizeof(zval *));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(values);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(values));
   php_driver_map_populate_values(self, PHP5TO7_ZVAL_MAYBE_P(values));
   PHP5TO7_ZEND_HASH_SORT(Z_ARRVAL_P(PHP5TO7_ZVAL_MAYBE_P(values)), php_driver_data_compare, 1);
@@ -582,7 +582,7 @@ php_driver_map_free(zend_object* object)
     efree(curr);
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  ZVAL_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -595,7 +595,7 @@ php_driver_map_new(zend_class_entry* ce)
 
   self->entries = self->iter_curr = self->iter_temp = NULL;
   self->dirty = 1;
-  PHP5TO7_ZVAL_UNDEF(self->type);
+  ZVAL_UNDEF(&self->type);
 
   PHP5TO7_ZEND_OBJECT_INIT(map, self, ce);
 }

@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+#include <Futures/FutureRows.h>
+
 #ifndef PHP_DRIVER_FUTURE_ROWS_H
 #define PHP_DRIVER_FUTURE_ROWS_H
 
-int
-php_driver_future_rows_get_result(php_driver_future_rows* future_rows, zval* timeout);
+int php_driver_future_rows_get_result(php_driver_future_rows* future_rows, zval* timeout);
+
+void php_driver_define_FutureRows(zend_class_entry* future_interface);
 
 #endif /* PHP_DRIVER_FUTURE_ROWS_H */

@@ -196,7 +196,7 @@ to_string(zval* result, php_driver_numeric* decimal)
   int string_len;
   php_driver_format_decimal(decimal->data.decimal.value, decimal->data.decimal.scale, &string, &string_len);
 
-  PHP5TO7_ZVAL_STRINGL(result, string, string_len);
+  ZVAL_STRINGL(result, string, string_len);
   efree(string);
 
   return SUCCESS;
@@ -298,7 +298,7 @@ ZEND_METHOD(Cassandra_Decimal, value)
 
   php_driver_format_integer(self->data.decimal.value, &string, &string_len);
 
-  PHP5TO7_RETVAL_STRINGL(string, string_len);
+  RETVAL_STRINGL(string, string_len);
   efree(string);
 }
 /* }}} */
@@ -505,12 +505,12 @@ php_driver_decimal_properties(
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
 
   php_driver_format_integer(self->data.decimal.value, &string, &string_len);
-  PHP5TO7_ZVAL_MAYBE_MAKE(PHP5TO7_ZVAL_MAYBE_P(value));
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(value), string, string_len);
+
+  ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(value), string, string_len);
   efree(string);
   PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), PHP5TO7_ZVAL_MAYBE_P(value), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(scale);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(scale), self->data.decimal.scale);
   PHP5TO7_ZEND_HASH_UPDATE(props, "scale", sizeof("scale"), PHP5TO7_ZVAL_MAYBE_P(scale), sizeof(zval));
 

@@ -15,40 +15,35 @@
  */
 
 #include "php_driver.h"
-#include "php_driver_types.h"
 
-zend_class_entry *php_driver_future_value_ce = NULL;
+#include <Futures/FutureValue.h>
+#include <cassandra_driver.h>
 
-PHP_METHOD(FutureValue, get)
+#include "FutureValue_arginfo.h"
+
+zend_class_entry* php_driver_future_value_ce = NULL;
+
+ZEND_METHOD(Cassandra_FutureValue, get)
 {
-  zval *timeout = NULL;
-  php_driver_future_value *self = NULL;
+  zval* timeout                 = NULL;
+  php_driver_future_value* self = NULL;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &timeout) == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUTURE_VALUE(getThis());
+  self = PHP_DRIVER_FUTURE_VALUE_THIS();
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->value)) {
-    RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->value), 1, 0);
+  if (!Z_ISUNDEF(self->value)) {
+    RETURN_ZVAL(&self->value, 1, 0);
   }
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_timeout, 0, ZEND_RETURN_VALUE, 0)
-  ZEND_ARG_INFO(0, timeout)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_future_value_methods[] = {
-  PHP_ME(FutureValue, get, arginfo_timeout, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
-
 static zend_object_handlers php_driver_future_value_handlers;
 
-static HashTable *
+static HashTable*
 php_driver_future_value_properties(
 #if PHP_MAJOR_VERSION >= 8
-        zend_object *object
+  zend_object* object
 #else
   zval* object
 #endif
@@ -74,42 +69,32 @@ php_driver_future_value_compare(zval* obj1, zval* obj2)
 static void
 php_driver_future_value_free(zend_object* object)
 {
-  php_driver_future_value *self =
-      PHP5TO7_ZEND_OBJECT_GET(future_value, object);
+  php_driver_future_value* self = PHP_DRIVER_FUTURE_VALUE_OBJECT(object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->value);
+  ZVAL_DESTROY(self->value);
 
   zend_object_std_dtor(&self->zval);
-  }
+}
 
 static zend_object*
 php_driver_future_value_new(zend_class_entry* ce)
 {
-  php_driver_future_value *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(future_value, ce);
+  php_driver_future_value* self = make(php_driver_future_value);
 
-  PHP5TO7_ZVAL_UNDEF(self->value);
+  ZVAL_UNDEF(&self->value);
 
   PHP5TO7_ZEND_OBJECT_INIT(future_value, self, ce);
 }
 
 void
-php_driver_define_FutureValue()
+php_driver_define_FutureValue(zend_class_entry* future_interface)
 {
-  zend_class_entry ce;
+  php_driver_future_value_ce = register_class_Cassandra_FutureValue(future_interface);
 
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FutureValue", php_driver_future_value_methods);
-  php_driver_future_value_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_future_value_ce, 1, php_driver_future_ce);
-  php_driver_future_value_ce->ce_flags     |= ZEND_ACC_FINAL;
   php_driver_future_value_ce->create_object = php_driver_future_value_new;
 
   memcpy(&php_driver_future_value_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_future_value_handlers.get_properties  = php_driver_future_value_properties;
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_future_value_handlers.compare = php_driver_future_value_compare;
-#else
-  php_driver_future_value_handlers.compare_objects = php_driver_future_value_compare;
-#endif
-  php_driver_future_value_handlers.clone_obj = NULL;
+  php_driver_future_value_handlers.get_properties = php_driver_future_value_properties;
+  php_driver_future_value_handlers.compare        = php_driver_future_value_compare;
+  php_driver_future_value_handlers.clone_obj      = NULL;
 }

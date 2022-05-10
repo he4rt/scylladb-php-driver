@@ -68,9 +68,9 @@ php_driver_create_table(php_driver_ref* schema,
   const char *name;
   size_t name_length;
 
-  PHP5TO7_ZVAL_UNDEF(result);
+  ZVAL_UNDEF(&result);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(result);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_table_ce);
 
   table = PHP_DRIVER_GET_TABLE(PHP5TO7_ZVAL_MAYBE_P(result));
@@ -78,8 +78,8 @@ php_driver_create_table(php_driver_ref* schema,
   table->meta   = meta;
 
   cass_table_meta_name(meta, &name, &name_length);
-  PHP5TO7_ZVAL_MAYBE_MAKE(table->name);
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(table->name), name, name_length);
+
+  ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(table->name), name, name_length);
 
   return result;
 }
@@ -443,7 +443,7 @@ PHP_METHOD(DefaultTable, partitionKey)
 
   self = PHP_DRIVER_GET_TABLE(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->partition_key)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->partition_key);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->partition_key));
     populate_partition_key(self, PHP5TO7_ZVAL_MAYBE_P(self->partition_key));
   }
@@ -460,7 +460,7 @@ PHP_METHOD(DefaultTable, primaryKey)
 
   self = PHP_DRIVER_GET_TABLE(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->primary_key)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->primary_key);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->primary_key));
     populate_partition_key(self, PHP5TO7_ZVAL_MAYBE_P(self->primary_key));
     populate_clustering_key(self, PHP5TO7_ZVAL_MAYBE_P(self->primary_key));
@@ -478,7 +478,7 @@ PHP_METHOD(DefaultTable, clusteringKey)
 
   self = PHP_DRIVER_GET_TABLE(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->clustering_key)) {
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->clustering_key);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->clustering_key));
     populate_clustering_key(self, PHP5TO7_ZVAL_MAYBE_P(self->clustering_key));
   }
@@ -496,7 +496,7 @@ PHP_METHOD(DefaultTable, clusteringOrder)
   self = PHP_DRIVER_GET_TABLE(getThis());
   if (PHP5TO7_ZVAL_IS_UNDEF(self->clustering_order)) {
     size_t i, count = cass_table_meta_clustering_key_count(self->meta);
-    PHP5TO7_ZVAL_MAYBE_MAKE(self->clustering_order);
+
     array_init(PHP5TO7_ZVAL_MAYBE_P(self->clustering_order));
     for (i = 0; i < count; ++i) {
       CassClusteringOrder order =
@@ -733,12 +733,12 @@ php_driver_default_table_free(zend_object* object)
 {
   php_driver_table *self = PHP5TO7_ZEND_OBJECT_GET(table, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->partition_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->primary_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_order);
+  ZVAL_DESTROY(self->name);
+  ZVAL_DESTROY(self->options);
+  ZVAL_DESTROY(self->partition_key);
+  ZVAL_DESTROY(self->primary_key);
+  ZVAL_DESTROY(self->clustering_key);
+  ZVAL_DESTROY(self->clustering_order);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -755,12 +755,12 @@ php_driver_default_table_new(zend_class_entry* ce)
   php_driver_table *self =
       PHP5TO7_ZEND_OBJECT_ECALLOC(table, ce);
 
-  PHP5TO7_ZVAL_UNDEF(self->name);
-  PHP5TO7_ZVAL_UNDEF(self->options);
-  PHP5TO7_ZVAL_UNDEF(self->partition_key);
-  PHP5TO7_ZVAL_UNDEF(self->primary_key);
-  PHP5TO7_ZVAL_UNDEF(self->clustering_key);
-  PHP5TO7_ZVAL_UNDEF(self->clustering_order);
+  ZVAL_UNDEF(&self->name);
+  ZVAL_UNDEF(&self->options);
+  ZVAL_UNDEF(&self->partition_key);
+  ZVAL_UNDEF(&self->primary_key);
+  ZVAL_UNDEF(&self->clustering_key);
+  ZVAL_UNDEF(&self->clustering_order);
 
   self->meta   = NULL;
   self->schema = NULL;

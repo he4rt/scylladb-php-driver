@@ -72,7 +72,7 @@ PHP_METHOD(Blob, bytes)
   int hex_len;
   php_driver_bytes_to_hex((const char *) self->data, self->size, &hex, &hex_len);
 
-  PHP5TO7_RETVAL_STRINGL(hex, hex_len);
+  RETVAL_STRINGL(hex, hex_len);
   efree(hex);
 }
 /* }}} */
@@ -82,7 +82,7 @@ PHP_METHOD(Blob, toBinaryString)
 {
   php_driver_blob *blob = PHP_DRIVER_GET_BLOB(getThis());
 
-  PHP5TO7_RETVAL_STRINGL((const char *)blob->data, blob->size);
+  RETVAL_STRINGL((const char *)blob->data, blob->size);
 }
 /* }}} */
 
@@ -126,8 +126,8 @@ php_driver_blob_properties(zend_object* object)
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
   php_driver_bytes_to_hex((const char *) self->data, self->size, &hex, &hex_len);
-  PHP5TO7_ZVAL_MAYBE_MAKE(bytes);
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(bytes), hex, hex_len);
+
+  ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(bytes), hex, hex_len);
   efree(hex);
   PHP5TO7_ZEND_HASH_UPDATE(props, "bytes", sizeof("bytes"), PHP5TO7_ZVAL_MAYBE_P(bytes), sizeof(zval));
 

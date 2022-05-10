@@ -77,7 +77,7 @@ PHP_METHOD(TypeMap, __toString)
   php_driver_type_string(self, &string);
   smart_str_0(&string);
 
-  PHP5TO7_RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -204,8 +204,8 @@ php_driver_type_map_free(zend_object* object)
 
   if (self->data_type)
     cass_data_type_free(self->data_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.map.key_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.map.value_type);
+  ZVAL_DESTROY(self->data.map.key_type);
+  ZVAL_DESTROY(self->data.map.value_type);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -218,8 +218,8 @@ php_driver_type_map_new(zend_class_entry* ce)
 
   self->type      = CASS_VALUE_TYPE_MAP;
   self->data_type = cass_data_type_new(self->type);
-  PHP5TO7_ZVAL_UNDEF(self->data.map.key_type);
-  PHP5TO7_ZVAL_UNDEF(self->data.map.value_type);
+  ZVAL_UNDEF(&self->data.map.key_type);
+  ZVAL_UNDEF(&self->data.map.value_type);
 
   PHP5TO7_ZEND_OBJECT_INIT_EX(type, type_map, self, ce);
 }

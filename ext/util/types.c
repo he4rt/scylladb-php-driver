@@ -213,7 +213,7 @@ php_driver_type_from_data_type(const CassDataType* data_type)
   size_t class_name_length;
   CassValueType type = cass_data_type_type(data_type);
 
-  PHP5TO7_ZVAL_UNDEF(ztype);
+  ZVAL_UNDEF(&ztype);
 
   switch (type) {
 #define XX_SCALAR(name, value)             \
@@ -562,7 +562,7 @@ php_driver_varchar_init(INTERNAL_FUNCTION_PARAMETERS)
     return;
   }
 
-  PHP5TO7_RETVAL_STRINGL(string, string_len);
+  RETVAL_STRINGL(string, string_len);
 }
 
 static void
@@ -642,7 +642,7 @@ zval
 php_driver_type_scalar(CassValueType type)
 {
   zval result;
-  PHP5TO7_ZVAL_UNDEF(result);
+  ZVAL_UNDEF(&result);
 
 #define XX_SCALAR(name, value)                                          \
   if (value == type) {                                                  \
@@ -669,7 +669,7 @@ php_driver_type_map(zval* key_type,
   php_driver_type* map;
   php_driver_type* sub_type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_map_ce);
   map = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
@@ -702,7 +702,7 @@ php_driver_type_map_from_value_types(CassValueType key_type,
   php_driver_type* map;
   php_driver_type* sub_type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_map_ce);
   map                      = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   map->data.map.key_type   = php_driver_type_scalar(key_type);
@@ -723,7 +723,7 @@ php_driver_type_set(zval* value_type)
   php_driver_type* set;
   php_driver_type* sub_type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_set_ce);
   set = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
@@ -748,7 +748,7 @@ php_driver_type_set_from_value_type(CassValueType type)
   php_driver_type* set;
   php_driver_type* sub_type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_set_ce);
   set                      = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   set->data.set.value_type = php_driver_type_scalar(type);
@@ -766,7 +766,7 @@ php_driver_type_collection(zval* value_type)
   php_driver_type* collection;
   php_driver_type* sub_type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_collection_ce);
   collection = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
@@ -813,7 +813,7 @@ php_driver_type_user_type()
   zval ztype;
   php_driver_type* user_type;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(ztype);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_user_type_ce);
   user_type            = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   user_type->data_type = cass_data_type_new(CASS_VALUE_TYPE_UDT);
@@ -1233,7 +1233,7 @@ php_driver_create_type(struct node_s* node)
 
   if (type == CASS_VALUE_TYPE_UNKNOWN) {
     zval undef;
-    PHP5TO7_ZVAL_UNDEF(undef);
+    ZVAL_UNDEF(&undef);
     return undef;
   }
 
@@ -1253,8 +1253,8 @@ php_driver_create_type(struct node_s* node)
       key_type   = php_driver_create_type(node->first_child);
       value_type = php_driver_create_type(node->first_child->next_sibling);
     } else {
-      PHP5TO7_ZVAL_UNDEF(key_type);
-      PHP5TO7_ZVAL_UNDEF(value_type);
+      ZVAL_UNDEF(&key_type);
+      ZVAL_UNDEF(&value_type);
     }
     return php_driver_type_map(PHP5TO7_ZVAL_MAYBE_P(key_type),
                                PHP5TO7_ZVAL_MAYBE_P(value_type));
@@ -1263,7 +1263,7 @@ php_driver_create_type(struct node_s* node)
     if (node->first_child) {
       value_type = php_driver_create_type(node->first_child);
     } else {
-      PHP5TO7_ZVAL_UNDEF(value_type);
+      ZVAL_UNDEF(&value_type);
     }
     return php_driver_type_collection(PHP5TO7_ZVAL_MAYBE_P(value_type));
   } else if (type == CASS_VALUE_TYPE_SET) {
@@ -1271,7 +1271,7 @@ php_driver_create_type(struct node_s* node)
     if (node->first_child) {
       value_type = php_driver_create_type(node->first_child);
     } else {
-      PHP5TO7_ZVAL_UNDEF(value_type);
+      ZVAL_UNDEF(&value_type);
     }
     return php_driver_type_set(PHP5TO7_ZVAL_MAYBE_P(value_type));
   } else if (type == CASS_VALUE_TYPE_TUPLE) {

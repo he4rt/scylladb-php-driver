@@ -27,7 +27,7 @@ php_driver_table_build_options(CassIterator* iterator)
   size_t name_length;
   zval zoptions;
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(zoptions);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(zoptions));
   while (cass_iterator_next(iterator)) {
     const CassValue *value = NULL;
@@ -42,7 +42,7 @@ php_driver_table_build_options(CassIterator* iterator)
         const CassDataType *data_type = cass_value_data_type(value);
         if (data_type) {
           zval zvalue;
-          PHP5TO7_ZVAL_UNDEF(zvalue);
+          ZVAL_UNDEF(&zvalue);
           if (php_driver_value(value,
                                data_type,
                                &zvalue)

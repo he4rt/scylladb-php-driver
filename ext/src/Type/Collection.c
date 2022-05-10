@@ -67,7 +67,7 @@ PHP_METHOD(TypeCollection, __toString)
   php_driver_type_string(self, &string);
   smart_str_0(&string);
 
-  PHP5TO7_RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -183,7 +183,7 @@ php_driver_type_collection_free(zend_object* object)
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.collection.value_type);
+  ZVAL_DESTROY(self->data.collection.value_type);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -195,7 +195,7 @@ php_driver_type_collection_new(zend_class_entry* ce)
 
   self->type = CASS_VALUE_TYPE_LIST;
   self->data_type = cass_data_type_new(self->type);
-  PHP5TO7_ZVAL_UNDEF(self->data.collection.value_type);
+  ZVAL_UNDEF(&self->data.collection.value_type);
 
   PHP5TO7_ZEND_OBJECT_INIT_EX(type, type_collection, self, ce);
 }

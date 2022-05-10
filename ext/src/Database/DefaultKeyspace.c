@@ -392,9 +392,9 @@ php_driver_create_aggregate(php_driver_ref* schema,
   const char *full_name;
   size_t full_name_length;
 
-  PHP5TO7_ZVAL_UNDEF(result);
+  ZVAL_UNDEF(&result);
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(result);
+
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_aggregate_ce);
 
   aggregate = PHP_DRIVER_GET_AGGREGATE(PHP5TO7_ZVAL_MAYBE_P(result));
@@ -402,8 +402,8 @@ php_driver_create_aggregate(php_driver_ref* schema,
   aggregate->meta   = meta;
 
   cass_aggregate_meta_full_name(aggregate->meta, &full_name, &full_name_length);
-  PHP5TO7_ZVAL_MAYBE_MAKE(aggregate->signature);
-  PHP5TO7_ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(aggregate->signature), full_name, full_name_length);
+
+  ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_P(aggregate->signature), full_name, full_name_length);
 
   return result;
 }

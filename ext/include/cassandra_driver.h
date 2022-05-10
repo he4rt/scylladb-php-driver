@@ -1,7 +1,3 @@
-//
-// Created by Dusan Malusev on 5/4/22.
-//
-
 #ifndef LIBPHPCASSANDRA_EXT_INCLUDE_CASSANDRA_DRIVER_H_
 #define LIBPHPCASSANDRA_EXT_INCLUDE_CASSANDRA_DRIVER_H_
 
@@ -20,5 +16,22 @@
 #endif
 
 #define make(type) (type*) emalloc(sizeof(type))
+
+typedef void (*php_driver_free_function)(void* data);
+
+typedef struct
+{
+  size_t count;
+  php_driver_free_function destruct;
+  void* data;
+} php_driver_ref;
+
+#define ZVAL_DESTROY(zv)    \
+  do {                      \
+    if (!Z_ISUNDEF(zv)) {   \
+      zval_ptr_dtor(&(zv)); \
+      ZVAL_UNDEF(&(zv));    \
+    }                       \
+  } while (0)
 
 #endif

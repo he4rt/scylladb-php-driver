@@ -106,7 +106,7 @@ PHP_METHOD (Timeuuid, __toString)
 
 	cass_uuid_string(self->uuid, string);
 
-	PHP5TO7_RETVAL_STRING(string);
+	RETVAL_STRING(string);
 }
 /* }}} */
 
@@ -126,7 +126,7 @@ PHP_METHOD (Timeuuid, uuid)
 
 	cass_uuid_string(self->uuid, string);
 
-	PHP5TO7_RETVAL_STRING(string);
+	RETVAL_STRING(string);
 }
 /* }}} */
 
@@ -164,7 +164,7 @@ PHP_METHOD (Timeuuid, toDateTime)
 
 	self = PHP_DRIVER_GET_UUID(getThis());
 
-	PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
+
   php_date_instantiate(php_date_get_date_ce(), datetime);
 
 #if PHP_MAJOR_VERSION >= 7
@@ -241,11 +241,11 @@ php_driver_timeuuid_properties(
 
 	cass_uuid_string(self->uuid, string);
 
-	PHP5TO7_ZVAL_MAYBE_MAKE(uuid);
-	PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(uuid), string);
+
+	ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(uuid), string);
 	PHP5TO7_ZEND_HASH_UPDATE(props, "uuid", sizeof("uuid"), PHP5TO7_ZVAL_MAYBE_P(uuid), sizeof(zval));
 
-	PHP5TO7_ZVAL_MAYBE_MAKE(version);
+
 	ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(version), (long)cass_uuid_version(self->uuid));
 	PHP5TO7_ZEND_HASH_UPDATE(props, "version", sizeof("version"), PHP5TO7_ZVAL_MAYBE_P(version), sizeof(zval));
 

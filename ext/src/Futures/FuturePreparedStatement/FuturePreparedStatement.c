@@ -16,18 +16,24 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
+
+#include <Futures/FuturePreparedStatement.h>
+#include <cassandra_driver.h>
+
 #include "util/FutureInterface.h"
 
-zend_class_entry *php_driver_future_prepared_statement_ce = NULL;
+#include "FuturePreparedStatement_arginfo.h"
 
-PHP_METHOD(FuturePreparedStatement, get)
+zend_class_entry* php_driver_future_prepared_statement_ce = NULL;
+
+ZEND_METHOD(Cassandra_FuturePreparedStatement, get)
 {
-  zval *timeout = NULL;
-  php_driver_statement *prepared_statement = NULL;
+  zval* timeout                            = NULL;
+  php_driver_statement* prepared_statement = NULL;
 
-  php_driver_future_prepared_statement *self = PHP_DRIVER_GET_FUTURE_PREPARED_STATEMENT(getThis());
+  php_driver_future_prepared_statement* self = PHP_DRIVER_FUTURE_PREPARED_STATEMENT_THIS();
 
-  if (!PHP5TO7_ZVAL_IS_UNDEF(self->prepared_statement)) {
+  if (!Z_ISUNDEF(self->prepared_statement)) {
     RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->prepared_statement), 1, 0);
   }
 
@@ -51,21 +57,12 @@ PHP_METHOD(FuturePreparedStatement, get)
   prepared_statement->data.prepared.prepared = cass_future_get_prepared(self->future);
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_timeout, 0, ZEND_RETURN_VALUE, 0)
-  ZEND_ARG_INFO(0, timeout)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_future_prepared_statement_methods[] = {
-  PHP_ME(FuturePreparedStatement, get, arginfo_timeout, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
-
 static zend_object_handlers php_driver_future_prepared_statement_handlers;
 
-static HashTable *
+static HashTable*
 php_driver_future_prepared_statement_properties(
 #if PHP_MAJOR_VERSION >= 8
-        zend_object *object
+  zend_object* object
 #else
   zval* object
 #endif
@@ -91,48 +88,38 @@ php_driver_future_prepared_statement_compare(zval* obj1, zval* obj2)
 static void
 php_driver_future_prepared_statement_free(zend_object* object)
 {
-  php_driver_future_prepared_statement *self =
-      PHP5TO7_ZEND_OBJECT_GET(future_prepared_statement, object);
+  php_driver_future_prepared_statement* self = PHP_DRIVER_FUTURE_PREPARED_STATEMENT_OBJECT(object);
 
   if (self->future) {
     cass_future_free(self->future);
     self->future = NULL;
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->prepared_statement);
+  ZVAL_DESTROY(self->prepared_statement);
 
   zend_object_std_dtor(&self->zval);
-  }
+}
 
 static zend_object*
 php_driver_future_prepared_statement_new(zend_class_entry* ce)
 {
-  php_driver_future_prepared_statement *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(future_prepared_statement, ce);
+  php_driver_future_prepared_statement* self =
+    PHP5TO7_ZEND_OBJECT_ECALLOC(future_prepared_statement, ce);
 
   self->future = NULL;
-  PHP5TO7_ZVAL_UNDEF(self->prepared_statement);
+  ZVAL_UNDEF(&self->prepared_statement);
 
   PHP5TO7_ZEND_OBJECT_INIT(future_prepared_statement, self, ce);
 }
 
 void
-php_driver_define_FuturePreparedStatement()
+php_driver_define_FuturePreparedStatement(zend_class_entry* future_interface)
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\FuturePreparedStatement", php_driver_future_prepared_statement_methods);
-  php_driver_future_prepared_statement_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_future_prepared_statement_ce, 1, php_driver_future_ce);
-  php_driver_future_prepared_statement_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_future_prepared_statement_ce                = register_class_Cassandra_FuturePreparedStatement(future_interface);
   php_driver_future_prepared_statement_ce->create_object = php_driver_future_prepared_statement_new;
 
   memcpy(&php_driver_future_prepared_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_future_prepared_statement_handlers.get_properties  = php_driver_future_prepared_statement_properties;
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_future_prepared_statement_handlers.compare = php_driver_future_prepared_statement_compare;
-#else
-  php_driver_future_prepared_statement_handlers.compare_objects = php_driver_future_prepared_statement_compare;
-#endif
-  php_driver_future_prepared_statement_handlers.clone_obj = NULL;
+  php_driver_future_prepared_statement_handlers.get_properties = php_driver_future_prepared_statement_properties;
+  php_driver_future_prepared_statement_handlers.compare        = php_driver_future_prepared_statement_compare;
+  php_driver_future_prepared_statement_handlers.clone_obj      = NULL;
 }

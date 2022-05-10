@@ -69,7 +69,7 @@ to_string(zval* result, php_driver_numeric* varint)
   int string_len;
   php_driver_format_integer(varint->data.varint.value, &string, &string_len);
 
-  PHP5TO7_ZVAL_STRINGL(result, string, string_len);
+  ZVAL_STRINGL(result, string, string_len);
   efree(string);
 
   return SUCCESS;
@@ -139,7 +139,7 @@ ZEND_METHOD(Cassandra_Varint, value)
   int string_len;
   php_driver_format_integer(self->data.varint.value, &string, &string_len);
 
-  PHP5TO7_RETVAL_STRINGL(string, string_len);
+  RETVAL_STRINGL(string, string_len);
   efree(string);
 }
 /* }}} */
@@ -366,7 +366,7 @@ php_driver_varint_properties(zend_object* object)
   type = php_driver_type_scalar(CASS_VALUE_TYPE_VARINT);
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
 
-  PHP5TO7_ZVAL_STRINGL(&value, string, string_len);
+  ZVAL_STRINGL(&value, string, string_len);
   efree(string);
   PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), &value, sizeof(zval));
 

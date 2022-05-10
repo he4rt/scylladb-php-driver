@@ -101,7 +101,7 @@ PHP_METHOD(Timestamp, microtime)
   sec  = (long) (self->timestamp / 1000);
   usec = (double) ((self->timestamp - (sec * 1000)) / 1000.00);
   spprintf(&ret, 0, "%.8F %ld", usec, sec);
-  PHP5TO7_RETVAL_STRING(ret);
+  RETVAL_STRING(ret);
   efree(ret);
 }
 /* }}} */
@@ -122,7 +122,7 @@ PHP_METHOD(Timestamp, toDateTime)
 
   self = PHP_DRIVER_GET_TIMESTAMP(getThis());
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
+
   php_date_instantiate(php_date_get_date_ce(), datetime);
 
 #if PHP_MAJOR_VERSION >= 7
@@ -152,7 +152,7 @@ PHP_METHOD(Timestamp, __toString)
   self = PHP_DRIVER_GET_TIMESTAMP(getThis());
 
   spprintf(&ret, 0, "%lld", (long long int) self->timestamp);
-  PHP5TO7_RETVAL_STRING(ret);
+  RETVAL_STRING(ret);
   efree(ret);
 }
 /* }}} */
@@ -221,11 +221,11 @@ php_driver_timestamp_properties(
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMESTAMP);
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(seconds);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(seconds), sec);
   PHP5TO7_ZEND_HASH_UPDATE(props, "seconds", sizeof("seconds"), PHP5TO7_ZVAL_MAYBE_P(seconds), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(microseconds);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(microseconds), usec);
   PHP5TO7_ZEND_HASH_UPDATE(props, "microseconds", sizeof("microseconds"), PHP5TO7_ZVAL_MAYBE_P(microseconds), sizeof(zval));
 

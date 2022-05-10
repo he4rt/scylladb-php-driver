@@ -96,7 +96,7 @@ PHP_METHOD(Date, toDateTime)
   }
   self = PHP_DRIVER_GET_DATE(getThis());
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(datetime);
+
   php_date_instantiate(php_date_get_date_ce(), PHP5TO7_ZVAL_MAYBE_P(datetime));
 
 #if PHP_MAJOR_VERSION >= 7
@@ -156,7 +156,7 @@ PHP_METHOD(Date, __toString)
   self = PHP_DRIVER_GET_DATE(getThis());
 
   spprintf(&ret, 0, PHP_DRIVER_NAMESPACE "\\Date(seconds=%lld)", cass_date_time_to_epoch(self->date, 0));
-  PHP5TO7_RETVAL_STRING(ret);
+  RETVAL_STRING(ret);
   efree(ret);
 }
 /* }}} */
@@ -224,7 +224,7 @@ php_driver_date_properties(
   type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(seconds);
+
   ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_P(seconds), cass_date_time_to_epoch(self->date, 0));
   PHP5TO7_ZEND_HASH_UPDATE(props, "seconds", sizeof("seconds"), PHP5TO7_ZVAL_MAYBE_P(seconds), sizeof(zval));
 

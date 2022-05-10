@@ -17,6 +17,8 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 
+#include <Cluster/Cluster.h>
+
 zend_class_entry *php_driver_core_ce = NULL;
 
 PHP_METHOD(Cassandra, cluster)

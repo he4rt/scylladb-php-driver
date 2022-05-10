@@ -27,7 +27,7 @@
 #include <unistd.h>
 #endif
 
-#define LL_FORMAT "%lld"
+#define LL_FORMAT "%" PRId64
 
 #include <ext/spl/spl_exceptions.h>
 #include <ext/spl/spl_iterators.h>
@@ -178,22 +178,6 @@ php5to7_string_compare(zend_string* s1, zend_string* s2)
   (Z_TYPE_P(zv) == IS_TRUE || Z_TYPE_P(zv) == IS_FALSE)
 #define PHP5TO7_ZVAL_IS_FALSE_P(zv) (Z_TYPE_P(zv) == IS_FALSE)
 #define PHP5TO7_ZVAL_IS_TRUE_P(zv) (Z_TYPE_P(zv) == IS_TRUE)
-
-#define PHP5TO7_ZVAL_UNDEF(zv) ZVAL_UNDEF(&(zv));
-#define PHP5TO7_ZVAL_MAYBE_MAKE(zv) ((void) 0)
-#define PHP5TO7_ZVAL_MAYBE_DESTROY(zv) \
-  do {                                 \
-    if (!Z_ISUNDEF(zv)) {              \
-      zval_ptr_dtor(&(zv));            \
-      ZVAL_UNDEF(&(zv));               \
-    }                                  \
-  } while (0)
-
-#define PHP5TO7_ZVAL_STRING(zv, s) ZVAL_STRING(zv, s)
-#define PHP5TO7_ZVAL_STRINGL(zv, s, len) ZVAL_STRINGL(zv, s, len)
-#define PHP5TO7_RETVAL_STRING(s) RETVAL_STRING(s)
-#define PHP5TO7_RETVAL_STRINGL(s, len) RETVAL_STRINGL(s, len)
-#define PHP5TO7_RETURN_STRINGL(s, len) RETURN_STRINGL(s, len)
 
 #define PHP5TO7_ZVAL_ARG(zv) &(zv)
 #define PHP5TO7_ZVAL_MAYBE_DEREF(zv) (zv)

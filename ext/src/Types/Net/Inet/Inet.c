@@ -58,7 +58,7 @@ PHP_METHOD(Inet, __toString)
   char* string;
   php_driver_format_address(inet->inet, &string);
 
-  PHP5TO7_RETVAL_STRING(string);
+  RETVAL_STRING(string);
   efree(string);
 }
 /* }}} */
@@ -78,7 +78,7 @@ PHP_METHOD(Inet, address)
   char* string;
   php_driver_format_address(inet->inet, &string);
 
-  PHP5TO7_RETVAL_STRING(string);
+  RETVAL_STRING(string);
   efree(string);
 }
 /* }}} */
@@ -138,8 +138,8 @@ php_driver_inet_properties(
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
   php_driver_format_address(self->inet, &string);
-  PHP5TO7_ZVAL_MAYBE_MAKE(address);
-  PHP5TO7_ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(address), string);
+
+  ZVAL_STRING(PHP5TO7_ZVAL_MAYBE_P(address), string);
   efree(string);
   PHP5TO7_ZEND_HASH_UPDATE(props, "address", sizeof("address"), PHP5TO7_ZVAL_MAYBE_P(address), sizeof(zval));
 

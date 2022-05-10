@@ -334,7 +334,7 @@ php_driver_set_properties(
                            PHP5TO7_ZVAL_MAYBE_P(self->type), sizeof(zval));
   Z_ADDREF_P(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
-  PHP5TO7_ZVAL_MAYBE_MAKE(values);
+
   array_init(PHP5TO7_ZVAL_MAYBE_P(values));
   php_driver_set_populate(self, PHP5TO7_ZVAL_MAYBE_P(values));
   PHP5TO7_ZEND_HASH_SORT(Z_ARRVAL_P(PHP5TO7_ZVAL_MAYBE_P(values)), php_driver_data_compare, 1);
@@ -414,7 +414,7 @@ php_driver_set_free(zend_object* object)
     efree(curr);
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  ZVAL_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zval);
   }
@@ -428,7 +428,7 @@ php_driver_set_new(zend_class_entry* ce)
   self->entries = self->iter_curr = self->iter_temp = NULL;
   self->iter_index = 0;
   self->dirty = 1;
-  PHP5TO7_ZVAL_UNDEF(self->type);
+  ZVAL_UNDEF(&self->type);
 
   PHP5TO7_ZEND_OBJECT_INIT(set, self, ce);
 }
