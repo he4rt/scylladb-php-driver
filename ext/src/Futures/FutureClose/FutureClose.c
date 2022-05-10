@@ -28,16 +28,19 @@ ZEND_METHOD(Cassandra_FutureClose, get)
   zval* timeout                 = NULL;
   php_driver_future_close* self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &timeout) == FAILURE)
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &timeout) == FAILURE) {
     return;
+  }
 
   self = PHP_DRIVER_FUTURE_CLOSE_THIS();
 
-  if (php_driver_future_wait_timed(self->future, timeout) == FAILURE)
+  if (php_driver_future_wait_timed(self->future, timeout) == FAILURE) {
     return;
+  }
 
-  if (php_driver_future_is_error(self->future) == FAILURE)
+  if (php_driver_future_is_error(self->future) == FAILURE) {
     return;
+  }
 }
 
 static zend_object_handlers php_driver_future_close_handlers;
