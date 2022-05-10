@@ -15,7 +15,9 @@ jobs:
       version: ${{ steps.git_tag.outputs.tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: olegtarasov/get-tag@v2.1
         id: git_tag
         with:
@@ -27,7 +29,7 @@ jobs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
