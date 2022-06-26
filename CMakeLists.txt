@@ -21,8 +21,6 @@ endif ()
 message("C FLAGS ${CMAKE_C_FLAGS}")
 message("CXX FLAGS ${CMAKE_CXX_FLAGS}")
 
-set(PHP_INI_DIR /usr/local/lib/php)
-
 option(LINK_STATICALLY "Links LibCassandra and LibUV statically" ON)
 
 include_directories(${PROJECT_SOURCE_DIR}/lib/cpp-driver/include)
@@ -44,6 +42,7 @@ add_definitions(-DHAVE_CONFIG_H)
 
 execute_process(COMMAND php-config --includes OUTPUT_VARIABLE PHP_INCLUDES OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND php-config --extension-dir OUTPUT_VARIABLE PHP_EXTENSION_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND php-config --ini-dir OUTPUT_VARIABLE PHP_INI_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PHP_INCLUDES}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PHP_INCLUDES}")
