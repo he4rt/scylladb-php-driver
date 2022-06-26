@@ -36,8 +36,8 @@ build-libcassandra: build-libuv
 	@cd $(BUILD_FOLDER)/libcassandra && ninja -f build-$(BUILD_TYPE).ninja cassandra_static
 	@cd $(BUILD_FOLDER)/libcassandra && ninja -f build-$(BUILD_TYPE).ninja install
 
-.PHONY: build
-build: build-libuv build-libcassandra
+.PHONY: build-cassandra-php-driver
+build-cassandra-php-driver:
 	@export CMAKE_BUILD_TYPE=$(BUILD_TYPE)
 	@mkdir -p $(BUILD_FOLDER)/cassandra
 	@cd $(BUILD_FOLDER)/cassandra \
@@ -48,6 +48,9 @@ build: build-libuv build-libcassandra
 		-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-DLINK_STATICALLY=ON ../..
 	@cd $(BUILD_FOLDER)/cassandra && ninja -f build-$(BUILD_TYPE).ninja ext-cassandra
+
+.PHONY: build
+build: build-libuv build-libcassandra build-cassandra-php-driver
 
 install:
 	cd $(BUILD_FOLDER)/cassandra && ninja -f build-$(BUILD_TYPE).ninja install

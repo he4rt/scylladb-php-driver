@@ -24,8 +24,12 @@ jobs:
         with:
           ref: master
           submodules: recursive
-      - name: Run CMake Build
-        run: make build
+      - name: Build LibUV
+        run: make build-libuv
+      - name: Build Cassandra CPP Driver
+        run: make build-libcassandra
+      - name: Builld Cassandra PHP Driver
+        run: make build-cassandra-php-driver
       - name: Run PHP Tests
         run: make php-test
       - uses: actions/upload-artifact@v2
