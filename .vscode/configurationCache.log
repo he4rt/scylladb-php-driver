@@ -1,0 +1,1 @@
+{"buildTargets":[".PHONY","build","build-cassandra-php-driver","build-libcassandra","build-libuv","clean","docker-dev-image","docker-production-image","install","php-arg-info","php-test","run-dev-image","run-prod-image"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

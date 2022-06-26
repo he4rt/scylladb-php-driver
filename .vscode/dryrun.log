@@ -1,0 +1,16 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/dmalusev/Code/Nano/cassandra-php-driver'
+ls -la lib/libuv
+ls -la lib/cpp-driver
+echo /Users/dmalusev/Code/Nano/cassandra-php-driver
+ 
+mkdir -p build-release/libuv
+cd build-release/libuv && \
+	cmake -G "Ninja Multi-Config" \
+		-DCMAKE_C_FLAGS="-fPIC" \
+	    -DLIBUV_BUILD_TESTS=OFF \
+	    -DLIBUV_BUILD_BENCH=OFF  ../../lib/libuv
+cd build-release/libuv && ninja -f build-Release.ninja uv_a
+cd build-release/libuv && ninja -f build-Release.ninja install
+make: Leaving directory `/Users/dmalusev/Code/Nano/cassandra-php-driver'
+ 

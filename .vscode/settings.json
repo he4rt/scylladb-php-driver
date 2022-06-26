@@ -31,6 +31,7 @@
     "files.associations": {
         "time.h": "c",
         "features.h": "c",
-        "zend_portability.h": "c"
+        "zend_portability.h": "c",
+        "php_driver.h": "c"
     },
 }
