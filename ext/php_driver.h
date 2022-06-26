@@ -1,31 +1,17 @@
 #ifndef PHP_DRIVER_H
 #define PHP_DRIVER_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#ifdef HAVE_GMPLIB
 #include <gmp.h>
-#endif
 
-#ifdef HAVE_CASSANDRALIB
 #include <cassandra.h>
-#endif
-
 #include <php.h>
 
 #include <Zend/zend_exceptions.h>
 #include <Zend/zend_interfaces.h>
 #include <Zend/zend_types.h>
 
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #define LL_FORMAT "%" PRId64
 
@@ -42,7 +28,7 @@
 #define SAFE_STR(a) ((a) ? a : "")
 
 #ifdef ZTS
-#include "TSRM.h"
+#include <TSRM.h>
 #endif
 
 #ifdef ZTS

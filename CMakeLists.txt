@@ -29,11 +29,11 @@ include_directories(${PROJECT_SOURCE_DIR}/lib/cpp-driver/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/libuv/include)
 include_directories(${PROJECT_SOURCE_DIR}/ext/include)
 
-
 find_library(GMP_LIBRARY NAMES gmp)
+find_library(GMP_LIBRARY NAMES uv_a)
 
 if (${LINK_STATICALLY})
-    set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a m.a gmp)
+    set(CASSANDRA_LINK_LIBRARIES cassandra_static uv_a m gmp)
 else ()
     set(CASSANDRA_LINK_LIBRARIES cassandra uv m gmp)
 endif ()
@@ -54,15 +54,9 @@ file(GLOB_RECURSE UTILS_LIST FOLLOW_SYMLINKS ext/util/*.c)
 
 include_directories(BEFORE ext/include ext lib/cpp-driver/include lib/libuv/include)
 
-set(php_cassandra_sources ${UTILS_LIST} ${SRC_LIST} ext/php_driver.c)
+set(php_cassandra_sources ${UTILS_LIST} ${SRC_LIST} ext/php_driver.c ext/config.h)
 
 add_library(ext-cassandra SHARED ${php_cassandra_sources})
-
-
-#corrosion_import_crate(
-#    MANIFEST_PATH utils/Cargo.toml
-#    PROFILE release
-#)
 
 set_target_properties(ext-cassandra PROPERTIES PREFIX "")
 set_target_properties(ext-cassandra PROPERTIES OUTPUT_NAME "cassandra")

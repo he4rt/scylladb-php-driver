@@ -17,6 +17,7 @@ build
 config.*
 !config.m4
 !config.w32
+!config.h
 configure
 configure.in
 .sconf_temp

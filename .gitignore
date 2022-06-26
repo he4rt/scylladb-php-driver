@@ -3,10 +3,11 @@
 /.vagrant/
 /bin/
 /build/
-/docs/
 /vendor/
 /venv/
 utils/target/
+classsynopses/
+methodsynopses/
 
 # Files to ignore
 /cassandra.log
@@ -21,3 +22,5 @@ cmake-build-debug/
 cmake-build-release/
 build-release/
 build-debug/
+debug-build/
+build-release/
