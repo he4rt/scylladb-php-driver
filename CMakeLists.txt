@@ -44,6 +44,11 @@ execute_process(COMMAND php-config --includes OUTPUT_VARIABLE PHP_INCLUDES OUTPU
 execute_process(COMMAND php-config --extension-dir OUTPUT_VARIABLE PHP_EXTENSION_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND php-config --ini-dir OUTPUT_VARIABLE PHP_INI_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+if (NOT EXISTS ${PHP_INI_DIR})
+    set(PHP_INI_DIR "/usr/local/lib/php")
+endif ()
+
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PHP_INCLUDES}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PHP_INCLUDES}")
 
