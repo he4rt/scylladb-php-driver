@@ -5,7 +5,7 @@ In order to build PHP Cassandra driver from source, two things are neccessary.
 1. LibUV
 2. cpp-driver (Datastax C/C++ driver)
 
-### 2. Building and Installing Latest LibUV
+### 1. Building and Installing Latest LibUV
 
 #### Required Build Tools
 
@@ -61,7 +61,7 @@ In order to build PHP Cassandra driver from source, two things are neccessary.
     sudo ninja install
 ```
 
-### Building and Installing PHP Cassandra Driver
+### 3. Building and Installing PHP Cassandra Driver
 
 #### Required Build Tools
 

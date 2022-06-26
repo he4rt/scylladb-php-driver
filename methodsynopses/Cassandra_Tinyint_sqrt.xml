@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <type>Cassandra\Numeric</type><methodname>Cassandra\Tinyint::sqrt</methodname>
-   <void/>
-  </methodsynopsis>

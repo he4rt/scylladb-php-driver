@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <type>Cassandra\Cluster\Builder</type><methodname>Cassandra\Cluster\Builder::withDefaultTimeout</methodname>
-   <methodparam><type class="union"><type>float</type><type>null</type></type><parameter>timeout</parameter></methodparam>
-  </methodsynopsis>

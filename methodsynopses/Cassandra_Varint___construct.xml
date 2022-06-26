@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<constructorsynopsis>
-   <modifier>public</modifier> <methodname>Cassandra\Varint::__construct</methodname>
-   <methodparam><type class="union"><type>string</type><type>Cassandra\Varint</type></type><parameter>value</parameter></methodparam>
-  </constructorsynopsis>

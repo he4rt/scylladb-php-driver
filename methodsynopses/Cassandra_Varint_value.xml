@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <type>string</type><methodname>Cassandra\Varint::value</methodname>
-   <void/>
-  </methodsynopsis>

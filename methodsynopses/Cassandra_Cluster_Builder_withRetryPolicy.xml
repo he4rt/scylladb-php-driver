@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <type>Cassandra\Cluster\Builder</type><methodname>Cassandra\Cluster\Builder::withRetryPolicy</methodname>
-   <methodparam><type>Cassandra\RetryPolicy</type><parameter>policy</parameter></methodparam>
-  </methodsynopsis>

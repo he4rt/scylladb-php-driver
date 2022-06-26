@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<constructorsynopsis>
-   <modifier>public</modifier> <methodname>Cassandra\Bigint::__construct</methodname>
-   <methodparam><type class="union"><type>int</type><type>float</type><type>string</type><type>Cassandra\Bigint</type></type><parameter>value</parameter></methodparam>
-  </constructorsynopsis>

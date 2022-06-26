@@ -567,10 +567,6 @@ PHP_MINIT_FUNCTION(php_driver)
   php_driver_define_TypeCustom();
 
   PhpDriverDefineRetryPolicy();
-  php_driver_define_RetryPolicyDefault();
-  php_driver_define_RetryPolicyDowngradingConsistency();
-  php_driver_define_RetryPolicyFallthrough();
-  php_driver_define_RetryPolicyLogging();
 
   php_driver_define_TimestampGenerator();
   php_driver_define_TimestampGeneratorMonotonic();

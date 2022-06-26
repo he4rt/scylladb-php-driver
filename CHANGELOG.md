@@ -1,3 +1,37 @@
+# 2.0.0-dev
+
+### Breaking changes in User Land
+
+* RetryPolicy interface renamed to RetryPolicyInterface
+* Retry policies moved to namespace Cassandra\\RetryPolicy (Default, Logging, Fallthrough)
+* DefaultPolicy renamed to DefaultRetryPolicy
+* Logging retry policy renamed to LoggingRetryPolicy
+* Fallthrough retry policy renamed to FallthroughRetryPolicy
+
+### Breaking changes in Drivers source code
+
+* Removed PHP's build system in favour of CMake
+* Removed support for PHP 5, 7.0, 7.1 7.2, 7.3, 7.4 and 8.0
+* Targeting the latest version of Cassandra CPP Driver
+* Targeting the lastest version of LibUV
+* Reorganizing project info multiple folders for better maintainability
+* Using Microsoft naming conventions for structs and methods (ongoing)
+
+### Non-Breaking changes in User Land
+
+* Fixing some memory leaks when objects were allocating and not having destructors run
+* Adding PHP Tests (.phpt) (ongoing)
+
+### Other
+
+* Removing old legacy CI systems
+* Using GitHub actions
+* Starting the documentation (currently only build)
+
+# 1.3.7
+
+* Support for PHP 8.1
+
 # 1.3.2
 
 Features:
@@ -37,7 +71,7 @@ Documentation:
 Features:
 
 * Added support for the `duration` type
-* Added support to pass a query string  directly to `Session::execute()` and
+* Added support to pass a query string directly to `Session::execute()` and
   `Session::executeAsync()`
 * `ExecutionOptions` has been deprecated in favor of using an array
 

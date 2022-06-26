@@ -54,7 +54,7 @@ file(GLOB_RECURSE UTILS_LIST FOLLOW_SYMLINKS ext/util/*.c)
 
 include_directories(BEFORE ext/include ext lib/cpp-driver/include lib/libuv/include)
 
-set(php_cassandra_sources ${UTILS_LIST} ${SRC_LIST} ext/php_driver.c ext/config.h)
+set(php_cassandra_sources ${UTILS_LIST} ${SRC_LIST} ext/php_driver.c ext/config.h ext/include/RetryPolicy/RetryPolicy.h ext/src/RetryPolicy/DefaultPolicy/DefaultPolicy.h ext/src/RetryPolicy/Fallthrough/Fallthrough.h ext/src/RetryPolicy/RetryPolicy.h ext/src/RetryPolicy/Logging/Logging.h)
 
 add_library(ext-cassandra SHARED ${php_cassandra_sources})
 

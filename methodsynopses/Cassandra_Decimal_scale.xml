@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <type>int</type><methodname>Cassandra\Decimal::scale</methodname>
-   <void/>
-  </methodsynopsis>

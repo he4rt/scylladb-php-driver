@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <type>string</type><methodname>Cassandra\Float::__toString</methodname>
-   <void/>
-  </methodsynopsis>

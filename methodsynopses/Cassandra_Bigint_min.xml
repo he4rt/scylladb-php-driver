@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <modifier>static</modifier> <type>Cassandra\Bigint</type><methodname>Cassandra\Bigint::min</methodname>
-   <void/>
-  </methodsynopsis>

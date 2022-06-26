@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<methodsynopsis>
-   <modifier>public</modifier> <type>Cassandra\Cluster\Builder</type><methodname>Cassandra\Cluster\Builder::withProtocolVersion</methodname>
-   <methodparam><type>int</type><parameter>version</parameter></methodparam>
-  </methodsynopsis>
