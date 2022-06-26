@@ -30,6 +30,8 @@ jobs:
         run: make build-libcassandra
       - name: Builld Cassandra PHP Driver
         run: make build-cassandra-php-driver
+      - name: Builld Cassandra PHP Driver
+        run: make install
       - name: Run PHP Tests
         run: make php-test
       - uses: actions/upload-artifact@v2
