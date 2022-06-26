@@ -14,7 +14,9 @@ build-libuv:
 	@mkdir -p $(BUILD_FOLDER)/libuv
 	@cd $(BUILD_FOLDER)/libuv && \
 	cmake -G "Ninja Multi-Config" \
-		-DCMAKE_C_FLAGS="-fPIC" ../../lib/libuv
+		-DCMAKE_C_FLAGS="-fPIC" \
+	    -DLIBUV_BUILD_TESTS=OFF \
+	    -DLIBUV_BUILD_BENCH=OFF  ../../lib/libuv
 	@cd $(BUILD_FOLDER)/libuv && ninja -f build-$(BUILD_TYPE).ninja uv_a
 	@cd $(BUILD_FOLDER)/libuv && ninja -f build-$(BUILD_TYPE).ninja install
 
