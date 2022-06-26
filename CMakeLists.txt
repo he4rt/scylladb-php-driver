@@ -22,6 +22,7 @@ message("C FLAGS ${CMAKE_C_FLAGS}")
 message("CXX FLAGS ${CMAKE_CXX_FLAGS}")
 
 option(LINK_STATICALLY "Links LibCassandra and LibUV statically" ON)
+option(INSTALL_INI "Installs PHP Cassandra Driver INI" OFF)
 
 include_directories(${PROJECT_SOURCE_DIR}/lib/cpp-driver/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/libuv/include)
@@ -67,6 +68,11 @@ set_target_properties(ext-cassandra PROPERTIES OUTPUT_NAME "cassandra")
 
 target_link_libraries(ext-cassandra ${CASSANDRA_LINK_LIBRARIES})
 
+message("Installing Cassandra Extension in ${PHP_EXTENSION_DIR}")
 install(TARGETS ext-cassandra LIBRARY DESTINATION ${PHP_EXTENSION_DIR})
 install(FILES ${HEAD_FILES} DESTINATION include/cassandra)
-install(FILES ext/cassandra.ini DESTINATION ${PHP_INI_DIR})
+
+if (${INSTALL_INI})
+    message("Installing Cassandra PHP INI in ${PHP_INI_DIR}")
+    install(FILES ext/cassandra.ini DESTINATION ${PHP_INI_DIR})
+endif ()

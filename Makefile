@@ -72,7 +72,7 @@ docker-production-image:
 		--compress .
 .PHONY: php-test
 php-test:
-	@cd ext && php run-tests.php -j6 -m -c ../php.ini -d "error_reporting=E_ALL&~E_NOTICE&~E_DEPRECATED" tests/
+	@cd ext && php run-tests.php -j2 -m -c ../php.ini -d "error_reporting=E_ALL&~E_NOTICE&~E_DEPRECATED" tests/
 
 .PHONY: php-arg-info
 php-arg-info:
