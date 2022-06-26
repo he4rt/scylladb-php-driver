@@ -26,6 +26,8 @@ jobs:
           submodules: recursive
       - name: Run CMake Build
         run: make build
+      - name: Run PHP Tests
+        run: make php-test
       - uses: actions/upload-artifact@v2
         if: ${{ inputs.upload_to_artifact }}
         with:

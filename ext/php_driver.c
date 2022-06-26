@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include "config.h"
+
+
 #include "php_driver.h"
 #include "php_driver_globals.h"
 #include "php_driver_types.h"

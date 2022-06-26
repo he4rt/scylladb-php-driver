@@ -1,23 +1,20 @@
-#ifndef HAVE_CONFIG_H
-#define HAVE_CONFIG_H
-
 /* Whether to build cassandra as dynamic module */
-#define COMPILE_DL_CASSANDRA 1
+#define COMPILE_DL_CASSANDRA
 
 /* */
 #define HAVE_CASSANDRALIB 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-#define HAVE_DLFCN_H 1
+#define HAVE_DLFCN_H
 
 /* */
 #define HAVE_GMPLIB 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+#define HAVE_INTTYPES_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_STDINT_H 1
+#define HAVE_STDINT_H
 
 /* Define to 1 if you have the <stdio.h> header file. */
 #define HAVE_STDIO_H 1
@@ -68,4 +65,3 @@
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #define STDC_HEADERS 1
-#endif
