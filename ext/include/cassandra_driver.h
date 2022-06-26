@@ -3,6 +3,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+#include <Zend/zend_API.h>
 #include <Zend/zend_portability.h>
 
 #define PHP_DRIVER_OBJECT(type, obj) ((type*) (((char*) (obj)) - XtOffsetOf(type, zval)))

@@ -14,78 +14,70 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/types.h"
 
-zend_class_entry *php_driver_retry_policy_logging_ce = NULL;
+#include "LoggingRetryPolicy_arginfo.h"
 
-PHP_METHOD(Logging, __construct)
+#include "src/RetryPolicy/RetryPolicy.h"
+#include <RetryPolicy/RetryPolicy.h>
+#include <zend_exceptions.h>
+
+zend_class_entry* phpDriverRetryPolicyLoggingCe = NULL;
+
+ZEND_METHOD(Cassandra_RetryPolicy_LoggingRetryPolicy, __construct)
 {
-  zval *child_policy = NULL;
-  php_driver_retry_policy *self, *retry_policy;
+  zval* child_policy = NULL;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
-                            &child_policy, php_driver_retry_policy_ce)
+                            &child_policy, phpDriverRetryPolicyInterfaceCe)
       == FAILURE) {
     return;
   }
 
   if (instanceof_function(Z_OBJCE_P(child_policy),
-                          php_driver_retry_policy_logging_ce)) {
+                          phpDriverRetryPolicyLoggingCe)) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
-                            "Cannot add a " PHP_DRIVER_NAMESPACE "\\Logging as child policy of " PHP_DRIVER_NAMESPACE "\\Logging");
+                            "Cannot add a Cassandra\\RetryPolicy\\LoggingRetryPolicy as child policy of Cassandra\\RetryPolicy\\LoggingRetryPolicy");
     return;
   }
 
-  self = PHP_DRIVER_GET_RETRY_POLICY(getThis());
-  retry_policy = PHP_DRIVER_GET_RETRY_POLICY(child_policy);
-  self->policy = cass_retry_policy_logging_new(retry_policy->policy);
+  php_driver_retry_policy* self         = PHP_DRIVER_RETRY_POLICY_THIS();
+  php_driver_retry_policy* retry_policy = PHP_DRIVER_RETRY_POLICY_ZVAL_TO_OBJECT(child_policy);
+  self->policy                          = cass_retry_policy_logging_new(retry_policy->policy);
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-  PHP_DRIVER_NAMESPACE_ZEND_ARG_OBJ_INFO(0, childPolicy, RetryPolicy, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_retry_policy_logging_methods[] = {
-  PHP_ME(Logging, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_retry_policy_logging_handlers;
 
 static void
-php_driver_retry_policy_logging_free(zend_object* object)
+PhpDriverRetryPolicyLoggingFree(zend_object* object)
 {
-  php_driver_retry_policy *self = PHP5TO7_ZEND_OBJECT_GET(retry_policy, object);
+  php_driver_retry_policy* self = PHP_DRIVER_RETRY_POLICY_OBJECT(object);
 
   if (self->policy) {
     cass_retry_policy_free(self->policy);
   }
-
-  zend_object_std_dtor(&self->zval);
-  }
+}
 
 static zend_object*
-php_driver_retry_policy_logging_new(zend_class_entry* ce)
+PhpDriverRetryPolicyLoggingNew(zend_class_entry* ce)
 {
-  php_driver_retry_policy *self = PHP5TO7_ZEND_OBJECT_ECALLOC(retry_policy, ce);
+  php_driver_retry_policy* self = make(php_driver_retry_policy);
 
   self->policy = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(retry_policy, retry_policy_logging, self, ce);
+  self->zval.handlers = &php_driver_retry_policy_logging_handlers;
+
+  return &self->zval;
 }
 
 void
-php_driver_define_RetryPolicyLogging()
+PhpDriverDefineRetryPolicyLogging(zend_class_entry* retryPolicyInterfaceCe)
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\RetryPolicy\\Logging", php_driver_retry_policy_logging_methods);
-  php_driver_retry_policy_logging_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_retry_policy_logging_ce, 1, php_driver_retry_policy_ce);
-  php_driver_retry_policy_logging_ce->ce_flags     |= ZEND_ACC_FINAL;
-  php_driver_retry_policy_logging_ce->create_object = php_driver_retry_policy_logging_new;
+  phpDriverRetryPolicyLoggingCe                = register_class_Cassandra_RetryPolicy_LoggingRetryPolicy(retryPolicyInterfaceCe);
+  phpDriverRetryPolicyLoggingCe->create_object = PhpDriverRetryPolicyLoggingNew;
 
   memcpy(&php_driver_retry_policy_logging_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+
+  php_driver_retry_policy_logging_handlers.free_obj = PhpDriverRetryPolicyLoggingFree;
+  php_driver_retry_policy_logging_handlers.offset   = XtOffsetOf(php_driver_retry_policy, zval);
 }

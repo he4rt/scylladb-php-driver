@@ -515,17 +515,6 @@ static zend_always_inline
   return (php_driver_type*) ((char*) obj - XtOffsetOf(php_driver_type, zval));
 }
 
-typedef struct php_driver_retry_policy_ {
-  CassRetryPolicy* policy;
-  zend_object zval;
-} php_driver_retry_policy;
-static zend_always_inline
-  php_driver_retry_policy*
-  php_driver_retry_policy_object_fetch(zend_object* obj)
-{
-  return (php_driver_retry_policy*) ((char*) obj - XtOffsetOf(php_driver_retry_policy, zval));
-}
-
 typedef struct php_driver_timestamp_gen_ {
   CassTimestampGen* gen;
   zend_object zval;
@@ -711,17 +700,7 @@ void php_driver_define_TypeTuple();
 void php_driver_define_TypeUserType();
 void php_driver_define_TypeCustom();
 
-extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_default_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_downgrading_consistency_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_fallthrough_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_retry_policy_logging_ce;
-
-void php_driver_define_RetryPolicy();
-void php_driver_define_RetryPolicyDefault();
-void php_driver_define_RetryPolicyDowngradingConsistency();
-void php_driver_define_RetryPolicyFallthrough();
-void php_driver_define_RetryPolicyLogging();
+void PhpDriverDefineRetryPolicy();
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_monotonic_ce;

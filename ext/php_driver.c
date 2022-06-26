@@ -187,14 +187,12 @@ php_driver_log(const CassLogMessage* message, void* data)
 
   if (log_length > 0) {
     FILE* fd = NULL;
-#ifndef _WIN32
     if (!strcmp(log, "syslog")) {
       php_syslog(LOG_NOTICE, PHP_DRIVER_NAME " | [%s] %s (%s:%d)",
                  cass_log_level_string(message->severity), message->message,
                  message->file, message->line);
       return;
     }
-#endif
 
     fd = fopen(log, "a");
     if (fd) {
@@ -568,7 +566,7 @@ PHP_MINIT_FUNCTION(php_driver)
   php_driver_define_TypeUserType();
   php_driver_define_TypeCustom();
 
-  php_driver_define_RetryPolicy();
+  PhpDriverDefineRetryPolicy();
   php_driver_define_RetryPolicyDefault();
   php_driver_define_RetryPolicyDowngradingConsistency();
   php_driver_define_RetryPolicyFallthrough();

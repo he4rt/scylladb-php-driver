@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include <Types/Numeric/Numeric.h>
 #include <Futures/Futures.h>
+#include <RetryPolicy/RetryPolicy.h>
+#include <Types/Numeric/Numeric.h>
 
 #include "php_driver.h"
 #include "php_driver_globals.h"
@@ -619,7 +620,7 @@ PHP_METHOD(DefaultSession, execute)
       serial_consistency = opts->serial_consistency;
 
     if (!PHP5TO7_ZVAL_IS_UNDEF(opts->retry_policy))
-      retry_policy = (PHP_DRIVER_GET_RETRY_POLICY(PHP5TO7_ZVAL_MAYBE_P(opts->retry_policy)))->policy;
+      retry_policy = PHP_DRIVER_RETRY_POLICY_ZVAL_TO_OBJECT(&opts->retry_policy)->policy;
 
     timestamp = opts->timestamp;
   }
@@ -763,8 +764,8 @@ PHP_METHOD(DefaultSession, executeAsync)
     if (opts->serial_consistency >= 0)
       serial_consistency = opts->serial_consistency;
 
-    if (!PHP5TO7_ZVAL_IS_UNDEF(opts->retry_policy))
-      retry_policy = (PHP_DRIVER_GET_RETRY_POLICY(PHP5TO7_ZVAL_MAYBE_P(opts->retry_policy)))->policy;
+    if (!Z_ISUNDEF(opts->retry_policy))
+      retry_policy = PHP_DRIVER_RETRY_POLICY_ZVAL_TO_OBJECT(&opts->retry_policy)->policy;
 
     timestamp = opts->timestamp;
   }
@@ -814,7 +815,7 @@ PHP_METHOD(DefaultSession, prepare)
   zval* cql                          = NULL;
   zval* options                      = NULL;
   char* hash_key                     = NULL;
-  size_t hash_key_len          = 0;
+  size_t hash_key_len                = 0;
   php_driver_session* self           = NULL;
   php_driver_execution_options* opts = NULL;
   php_driver_execution_options local_opts;
@@ -986,7 +987,6 @@ PHP_METHOD(DefaultSession, metrics)
 
   cass_session_get_metrics((CassSession*) self->session->data, &metrics);
 
-
   array_init(PHP5TO7_ZVAL_MAYBE_P(requests));
   add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(requests),
                  "min",
@@ -1031,7 +1031,6 @@ PHP_METHOD(DefaultSession, metrics)
                    "m15_rate",
                    metrics.requests.fifteen_minute_rate);
 
-
   array_init(PHP5TO7_ZVAL_MAYBE_P(stats));
   add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(stats),
                  "total_connections",
@@ -1045,7 +1044,6 @@ PHP_METHOD(DefaultSession, metrics)
   add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(stats),
                  "exceeded_write_bytes_water_mark",
                  metrics.stats.exceeded_write_bytes_water_mark);
-
 
   array_init(PHP5TO7_ZVAL_MAYBE_P(errors));
   add_assoc_long(PHP5TO7_ZVAL_MAYBE_P(errors),
@@ -1148,7 +1146,7 @@ php_driver_default_session_free(zend_object* object)
   ZVAL_DESTROY(self->default_timeout);
 
   zend_object_std_dtor(&self->zval);
-  }
+}
 
 static zend_object*
 php_driver_default_session_new(zend_class_entry* ce)
