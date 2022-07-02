@@ -1,8 +1,4 @@
-#ifndef LIBPHPCASSANDRA_EXT_INCLUDE_NUMERIC_NUMERIC_H_
-#define LIBPHPCASSANDRA_EXT_INCLUDE_NUMERIC_NUMERIC_H_
-
-// FIXME: Should be removed
-#include "php_driver.h"
+#pragma once
 
 #include <cassandra.h>
 #include <gmp.h>
@@ -64,4 +60,4 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_smallint_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_tinyint_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_varint_ce;
 
-#endif
+void php_driver_define_Numeric(zend_class_entry* value_interface);
