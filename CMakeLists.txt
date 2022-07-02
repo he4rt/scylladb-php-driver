@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(libphpcassandra LANGUAGES C)
+project(libphpcassandra LANGUAGES C CXX)
 
 set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
 set(CMAKE_CXX_STANDARD 17)
@@ -22,7 +22,7 @@ message("C FLAGS ${CMAKE_C_FLAGS}")
 message("CXX FLAGS ${CMAKE_CXX_FLAGS}")
 
 option(LINK_STATICALLY "Links LibCassandra and LibUV statically" ON)
-option(INSTALL_INI "Installs PHP Cassandra Driver INI" ON)
+option(INSTALL_INI "Installs PHP Cassandra Driver INI" OFF)
 
 include_directories(${PROJECT_SOURCE_DIR}/lib/cpp-driver/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/libuv/include)

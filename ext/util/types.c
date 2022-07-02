@@ -138,7 +138,7 @@ php_driver_user_type_from_data_type(const CassDataType* data_type)
   size_t type_name_len, keyspace_len;
   size_t i, count;
 
-  count = cass_data_sub_type_count(data_type);
+  count = cass_data_type_sub_type_count(data_type);
   ztype = php_driver_type_user_type();
   type  = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
@@ -480,7 +480,7 @@ user_type_string(php_driver_type* type, smart_str* string)
       php_driver_type_string(sub_type, string);
     }
     PHP5TO7_ZEND_HASH_FOREACH_END(&type->data.udt.types);
-    smart_str_append_ex(string, ZEND_STRL(">"));
+    smart_str_appendl_ex(string, ZEND_STRL(">"), false);
   }
 }
 
@@ -669,7 +669,6 @@ php_driver_type_map(zval* key_type,
   php_driver_type* map;
   php_driver_type* sub_type;
 
-
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_map_ce);
   map = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
 
@@ -702,7 +701,6 @@ php_driver_type_map_from_value_types(CassValueType key_type,
   php_driver_type* map;
   php_driver_type* sub_type;
 
-
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_map_ce);
   map                      = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   map->data.map.key_type   = php_driver_type_scalar(key_type);
@@ -722,7 +720,6 @@ php_driver_type_set(zval* value_type)
   zval ztype;
   php_driver_type* set;
   php_driver_type* sub_type;
-
 
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_set_ce);
   set = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
@@ -748,7 +745,6 @@ php_driver_type_set_from_value_type(CassValueType type)
   php_driver_type* set;
   php_driver_type* sub_type;
 
-
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_set_ce);
   set                      = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   set->data.set.value_type = php_driver_type_scalar(type);
@@ -765,7 +761,6 @@ php_driver_type_collection(zval* value_type)
   zval ztype;
   php_driver_type* collection;
   php_driver_type* sub_type;
-
 
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_collection_ce);
   collection = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
@@ -813,7 +808,6 @@ php_driver_type_user_type()
   zval ztype;
   php_driver_type* user_type;
 
-
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(ztype), php_driver_type_user_type_ce);
   user_type            = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(ztype));
   user_type->data_type = cass_data_type_new(CASS_VALUE_TYPE_UDT);
@@ -835,7 +829,7 @@ php_driver_type_custom(const char* name, size_t name_length)
 }
 
 #define EXPECTING_TOKEN(expected)                                                              \
-  zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,                         \
+  zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,                                  \
                           "Unexpected %s at position %d in string \"%s\", expected " expected, \
                           describe_token(token), ((int) (str - validator) - 1), validator);    \
   return FAILURE;
