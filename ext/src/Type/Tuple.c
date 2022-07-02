@@ -43,7 +43,7 @@ php_driver_type_tuple_add(php_driver_type* type,
 
 PHP_METHOD(TypeTuple, __construct)
 {
-  zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
+  zend_throw_exception_ex(spl_ce_LogicException, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Type\\Tuple type is not supported.");
 }
 
@@ -112,7 +112,7 @@ PHP_METHOD(TypeTuple, create)
 
   if (argc > 0) {
     if (argc != num_types) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException,
                               0,
                               "Invalid number of elements given. Expected %d arguments.",
                               zend_hash_num_elements(&self->data.tuple.types));

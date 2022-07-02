@@ -5,7 +5,7 @@
 <?php
 $float = Cassandra\Float::max();
 
-echo $float->value() === PHP_FLOAT_MAX;
+echo $float->value();
 ?>
 --EXPECT--
-1
+3.4028234663853E+38

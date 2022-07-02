@@ -18,6 +18,7 @@
 #include "util/types.h"
 #include <float.h>
 
+#include <Exception/Exceptions.h>
 #include <Types/Numeric/Numeric.h>
 
 #include "Float_arginfo.h"
@@ -217,7 +218,7 @@ ZEND_METHOD(Cassandra_Float, div)
   php_driver_numeric* flt  = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(num);
 
   if (flt->data.floating.value == 0) {
-    zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot divide by zero");
+    zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot divide by zero");
     return;
   }
 
@@ -245,7 +246,7 @@ ZEND_METHOD(Cassandra_Float, mod)
   php_driver_numeric* flt  = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(num);
 
   if (flt->data.floating.value == 0) {
-    zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot divide by zero");
+    zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot divide by zero");
     return;
   }
 
@@ -284,7 +285,7 @@ ZEND_METHOD(Cassandra_Float, sqrt)
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_THIS();
 
   if (self->data.floating.value < 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_RangeException, 0,
                             "Cannot take a square root of a negative number");
     return;
   }

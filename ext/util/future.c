@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <Exception/Exceptions.h>
+
 #include "php_driver.h"
 #include "php_driver_types.h"
 
@@ -48,7 +50,7 @@ php_driver_future_wait_timed(CassFuture* future, zval* timeout)
 
 		if (!cass_future_wait_timed(future, timeout_us))
 		{
-			zend_throw_exception_ex(php_driver_timeout_exception_ce, 0,
+			zend_throw_exception_ex(phpDriverTimeoutExceptionCe, 0,
 				"Future hasn't resolved within %f seconds", timeout_us / 1000000.0);
 			return FAILURE;
 		}

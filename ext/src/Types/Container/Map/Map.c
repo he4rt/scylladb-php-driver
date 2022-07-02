@@ -30,13 +30,13 @@ php_driver_map_set(php_driver_map* map, zval* zkey, zval* zvalue)
   php_driver_type *type;
 
   if (Z_TYPE_P(zkey) == IS_NULL) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Invalid key: null is not supported inside maps");
     return 0;
   }
 
   if (Z_TYPE_P(zvalue) == IS_NULL) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Invalid value: null is not supported inside maps");
     return 0;
   }

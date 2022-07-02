@@ -3,9 +3,9 @@
 <?php if (!extension_loaded("cassandra")) die("Skipped: cassandra extension required."); ?>
 --FILE--
 <?php
-$float = Cassandra\Float::max();
+$float = Cassandra\Float::min();
 
-echo $float->value() === PHP_FLOAT_MIN;
+echo $float->value();
 ?>
 --EXPECT--
-1
+1.1754943508223E-38

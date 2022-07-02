@@ -1,6 +1,3 @@
-#ifndef LIBPHPCASSANDRA_EXT_SRC_CLUSTER_CLUSTER_H_
-#define LIBPHPCASSANDRA_EXT_SRC_CLUSTER_CLUSTER_H_
+#pragma once
 
 void php_driver_define_Cluster();
-
-#endif

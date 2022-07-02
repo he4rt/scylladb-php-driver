@@ -19,6 +19,7 @@
 #include "util/math.h"
 #include "util/types.h"
 
+#include <Exception/Exceptions.h>
 #include <Types/Numeric/Numeric.h>
 
 #include "Tinyint_arginfo.h"
@@ -75,7 +76,7 @@ php_driver_tinyint_init(INTERNAL_FUNCTION_PARAMETERS)
       number = (cass_int32_t) Z_LVAL_P(value);
 
       if (number < INT8_MIN || number > INT8_MAX) {
-        zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RangeException, 0,
                                 "value must be between -128 and 127, %ld given", Z_LVAL_P(value));
         return;
       }
@@ -83,7 +84,7 @@ php_driver_tinyint_init(INTERNAL_FUNCTION_PARAMETERS)
       number = (cass_int32_t) Z_DVAL_P(value);
 
       if (number < INT8_MIN || number > INT8_MAX) {
-        zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RangeException, 0,
                                 "value must be between -128 and 127, %g given", Z_DVAL_P(value));
         return;
       }
@@ -96,14 +97,14 @@ php_driver_tinyint_init(INTERNAL_FUNCTION_PARAMETERS)
         // be too large for Tinyint. Reset the exception in that case.
 
         if (errno == ERANGE) {
-          zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+          zend_throw_exception_ex(spl_ce_RangeException, 0,
                                   "value must be between -128 and 127, %s given", Z_STRVAL_P(value));
         }
         return;
       }
 
       if (number < INT8_MIN || number > INT8_MAX) {
-        zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RangeException, 0,
                                 "value must be between -128 and 127, %s given", Z_STRVAL_P(value));
         return;
       }
@@ -168,7 +169,7 @@ ZEND_METHOD(Cassandra_Tinyint, add)
 
     result->data.tinyint.value = self->data.tinyint.value + tinyint->data.tinyint.value;
     if (result->data.tinyint.value - tinyint->data.tinyint.value != self->data.tinyint.value) {
-      zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Sum is out of range");
+      zend_throw_exception_ex(spl_ce_RangeException, 0, "Sum is out of range");
       return;
     }
   } else {
@@ -196,7 +197,7 @@ ZEND_METHOD(Cassandra_Tinyint, sub)
 
     result->data.tinyint.value = self->data.tinyint.value - tinyint->data.tinyint.value;
     if (result->data.tinyint.value + tinyint->data.tinyint.value != self->data.tinyint.value) {
-      zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Difference is out of range");
+      zend_throw_exception_ex(spl_ce_RangeException, 0, "Difference is out of range");
       return;
     }
   } else {
@@ -224,7 +225,7 @@ ZEND_METHOD(Cassandra_Tinyint, mul)
 
     result->data.tinyint.value = self->data.tinyint.value * tinyint->data.tinyint.value;
     if (tinyint->data.tinyint.value != 0 && result->data.tinyint.value / tinyint->data.tinyint.value != self->data.tinyint.value) {
-      zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Product is out of range");
+      zend_throw_exception_ex(spl_ce_RangeException, 0, "Product is out of range");
       return;
     }
   } else {
@@ -251,7 +252,7 @@ ZEND_METHOD(Cassandra_Tinyint, div)
     result = PHP_DRIVER_NUMERIC_OBJECT(return_value);
 
     if (tinyint->data.tinyint.value == 0) {
-      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot divide by zero");
+      zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot divide by zero");
       return;
     }
 
@@ -280,7 +281,7 @@ ZEND_METHOD(Cassandra_Tinyint, mod)
     result = PHP_DRIVER_NUMERIC_OBJECT(return_value);
 
     if (tinyint->data.tinyint.value == 0) {
-      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot modulo by zero");
+      zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot modulo by zero");
       return;
     }
 
@@ -298,7 +299,7 @@ ZEND_METHOD(Cassandra_Tinyint, abs)
   php_driver_numeric* self   = PHP_DRIVER_NUMERIC_OBJECT(getThis());
 
   if (self->data.tinyint.value == INT8_MIN) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value doesn't exist");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value doesn't exist");
     return;
   }
 
@@ -315,7 +316,7 @@ ZEND_METHOD(Cassandra_Tinyint, neg)
   php_driver_numeric* self   = PHP_DRIVER_NUMERIC_OBJECT(getThis());
 
   if (self->data.tinyint.value == INT8_MIN) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value doesn't exist");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value doesn't exist");
     return;
   }
 
@@ -332,7 +333,7 @@ ZEND_METHOD(Cassandra_Tinyint, sqrt)
   php_driver_numeric* self   = PHP_DRIVER_NUMERIC_OBJECT(getThis());
 
   if (self->data.tinyint.value < 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_RangeException, 0,
                             "Cannot take a square root of a negative number");
     return;
   }
@@ -407,7 +408,6 @@ php_driver_tinyint_properties(
   type = php_driver_type_scalar(CASS_VALUE_TYPE_TINY_INT);
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), PHP5TO7_ZVAL_MAYBE_P(type), sizeof(zval));
 
-
   to_string(PHP5TO7_ZVAL_MAYBE_P(value), self);
   PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), PHP5TO7_ZVAL_MAYBE_P(value), sizeof(zval));
 
@@ -474,7 +474,7 @@ php_driver_tinyint_free(zend_object* object)
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_OBJECT(object);
 
   zend_object_std_dtor(&self->zval);
-  }
+}
 
 static zend_object*
 php_driver_tinyint_new(zend_class_entry* ce)

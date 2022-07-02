@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <Exception/Exceptions.h>
+
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "util/FutureInterface.h"
@@ -61,7 +63,7 @@ php_driver_rows_create(php_driver_rows* current, zval* result)
 
 PHP_METHOD(Rows, __construct)
 {
-  zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
+  zend_throw_exception_ex(spl_ce_LogicException, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE
                           "\\Rows objects directly is not supported, "
                           "call " PHP_DRIVER_NAMESPACE "\\Session::execute() or " PHP_DRIVER_NAMESPACE "\\FutureRows::get() instead.");
@@ -192,7 +194,7 @@ PHP_METHOD(Rows, offsetSet)
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  zend_throw_exception_ex(php_driver_domain_exception_ce, 0,
+  zend_throw_exception_ex(phpDriverDomainExceptionCe, 0,
                           "Cannot overwrite a row at a given offset, rows are immutable.");
   return;
 }
@@ -202,7 +204,7 @@ PHP_METHOD(Rows, offsetUnset)
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  zend_throw_exception_ex(php_driver_domain_exception_ce, 0,
+  zend_throw_exception_ex(phpDriverDomainExceptionCe, 0,
                           "Cannot delete a row at a given offset, rows are immutable.");
   return;
 }
@@ -238,7 +240,7 @@ PHP_METHOD(Rows, nextPage)
 
       if (!instanceof_function(PHP5TO7_Z_OBJCE_MAYBE_P(self->future_next_page),
                                php_driver_future_rows_ce)) {
-        zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RuntimeException, 0,
                                 "Unexpected future instance.");
         return;
       }
@@ -275,7 +277,7 @@ PHP_METHOD(Rows, nextPage)
       result = cass_future_get_result(future);
       if (!result) {
         cass_future_free(future);
-        zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RuntimeException, 0,
                                 "Future doesn't contain a result.");
         return;
       }

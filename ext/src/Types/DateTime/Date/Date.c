@@ -21,7 +21,7 @@
 #include <ext/date/php_date.h>
 #include <time.h>
 
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 
 zend_class_entry* php_driver_date_ce = NULL;
 

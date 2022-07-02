@@ -11,5 +11,5 @@ echo $float2->neg()->value();
 
 ?>
 --EXPECT--
-10.0
--10.0
+10
+-10

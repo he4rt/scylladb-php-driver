@@ -75,14 +75,12 @@ docker-production-image:
 		--compress .
 .PHONY: php-test
 php-test:
-	@cd ext && php run-tests.php -j2 -m -c ../php.ini -d "error_reporting=E_ALL&~E_NOTICE&~E_DEPRECATED" tests/
+	@cd ext && php run-tests.php -j12 -m -c ../php.ini -d "error_reporting=E_ALL&~E_NOTICE&~E_DEPRECATED" tests/
 
 .PHONY: php-arg-info
 php-arg-info:
 	@php $(shell pwd)/ext/build/gen_stub.php \
 		-f \
-		--generate-classsynopses \
-		--generate-methodsynopses \
 		--parameter-stats \
 		ext/src/
 

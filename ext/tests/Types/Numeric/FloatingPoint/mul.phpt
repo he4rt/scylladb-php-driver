@@ -12,4 +12,4 @@ echo $result->value();
 
 ?>
 --EXPECT--
-100.0
+100

@@ -28,9 +28,8 @@ zend_class_entry *php_driver_type_set_ce = NULL;
 
 PHP_METHOD(TypeSet, __construct)
 {
-  zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
+  zend_throw_exception_ex(spl_ce_LogicException, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Type\\Set type is not supported.");
-  return;
 }
 
 PHP_METHOD(TypeSet, name)

@@ -7,10 +7,10 @@ $float1 = new Cassandra\Float(10);
 $floatStr = new Cassandra\Float('100');
 $floatStrFloating = new Cassandra\Float('500.6543');
 $floatFloat = new Cassandra\Float($floatStrFloating);
-$floatDouble = new Cassandra\Floar(10.2);
+$floatDouble = new Cassandra\Float(10.2);
 
-echo $float1->value() . ' ' . $flooatStr->value() . ' ' . $floatStrFloating->value() . ' ' . $floatFloat->value() . ' ' . $floatDouble->value();
+echo $float1->value() . ' ' . $floatStr->value() . ' ' . $floatStrFloating->value() . ' ' . $floatFloat->value() . ' ' . $floatDouble->value();
 
 ?>
 --EXPECT--
-10.0 100.0 500.6543 100.0 10.2
+10 100 500.654296875 500.654296875 10.199999809265

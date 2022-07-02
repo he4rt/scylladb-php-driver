@@ -16,8 +16,8 @@
 
 #include "php_driver.h"
 
+#include <CassandraDriver.h>
 #include <Futures/FutureValue.h>
-#include <cassandra_driver.h>
 
 #include "FutureValue_arginfo.h"
 

@@ -11,6 +11,6 @@ echo $floatingPoint->__toString() . PHP_EOL;
 
 ?>
 --EXPECT--
-10.0
-10.0
-10.0
+10
+10
+10

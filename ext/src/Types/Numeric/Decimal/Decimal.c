@@ -148,13 +148,13 @@ to_double(zval* result, php_driver_numeric* decimal)
   to_mpf(value, decimal);
 
   if (mpf_cmp_d(value, -DBL_MAX) < 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too small");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value is too small");
     mpf_clear(value);
     return FAILURE;
   }
 
   if (mpf_cmp_d(value, DBL_MAX) > 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too big");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value is too big");
     mpf_clear(value);
     return FAILURE;
   }
@@ -172,13 +172,13 @@ to_long(zval* result, php_driver_numeric* decimal)
   to_mpf(value, decimal);
 
   if (mpf_cmp_si(value, LONG_MIN) < 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too small");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value is too small");
     mpf_clear(value);
     return FAILURE;
   }
 
   if (mpf_cmp_si(value, LONG_MAX) > 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too big");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value is too big");
     mpf_clear(value);
     return FAILURE;
   }
@@ -228,7 +228,7 @@ php_driver_decimal_init(php_driver_numeric* self, zval* value)
   case IS_DOUBLE: {
     double val = Z_DVAL_P(value);
     if (zend_isnan(val) || zend_isinf(val)) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "Value of NaN or +/- infinity is not supported");
       return;
     }
@@ -387,7 +387,7 @@ ZEND_METHOD(Cassandra_Decimal, mul)
 ZEND_METHOD(Cassandra_Decimal, div)
 {
   /* TODO: Implementation of this a bit more difficult than anticipated. */
-  zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Not implemented");
+  zend_throw_exception_ex(spl_ce_RuntimeException, 0, "Not implemented");
 }
 /* }}} */
 
@@ -395,7 +395,7 @@ ZEND_METHOD(Cassandra_Decimal, div)
 ZEND_METHOD(Cassandra_Decimal, mod)
 {
   /* TODO: We could implement a remainder method */
-  zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Not implemented");
+  zend_throw_exception_ex(spl_ce_RuntimeException, 0, "Not implemented");
 }
 
 /* {{{ Decimal::abs() */
@@ -429,7 +429,7 @@ ZEND_METHOD(Cassandra_Decimal, neg)
 /* {{{ Decimal::sqrt() */
 ZEND_METHOD(Cassandra_Decimal, sqrt)
 {
-  zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Not implemented");
+  zend_throw_exception_ex(spl_ce_RuntimeException, 0, "Not implemented");
 #if 0
   php_driver_numeric *self = PHP_DRIVER_NUMERIC_OBJECT(getThis());
 

@@ -11,7 +11,7 @@ echo $bigint1->sqrt() . PHP_EOL;
 
 try {
     $bigint2->sqrt();
-}catch(Cassandra\Exception\RangeException $e) {
+}catch(RangeException $e) {
     echo $e->getMessage() . PHP_EOL;
 }
 

@@ -92,7 +92,7 @@ PHP_METHOD(UserTypeValue, __construct)
     zval scalar_type;
 
     if (!name) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "Argument %d is not a string", index + 1);
       return;
     }
@@ -167,7 +167,7 @@ PHP_METHOD(UserTypeValue, set)
   if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types,
                               name, name_length + 1,
                               sub_type)) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Invalid name '%s'", name);
     return;
   }
@@ -202,7 +202,7 @@ PHP_METHOD(UserTypeValue, get)
   if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types,
                               name, name_length + 1,
                               sub_type)) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Invalid name '%s'", name);
     return;
   }

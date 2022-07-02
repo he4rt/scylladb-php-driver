@@ -54,7 +54,7 @@ php_driver_timeuuid_init(INTERNAL_FUNCTION_PARAMETERS)
 		case IS_LONG:
 			if (Z_LVAL_P(param) < 0)
 			{
-        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+        zend_throw_exception_ex(spl_ce_InvalidArgumentException,
                                 0,
                                 "Timestamp must be a positive integer, %d given",
                                 Z_LVAL_P(param));
@@ -65,7 +65,7 @@ php_driver_timeuuid_init(INTERNAL_FUNCTION_PARAMETERS)
 		case IS_STRING:
 			if (cass_uuid_from_string(Z_STRVAL_P(param), &self->uuid) != CASS_OK)
 			{
-        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+        zend_throw_exception_ex(spl_ce_InvalidArgumentException,
                                 0,
                                 "Invalid UUID: '%.*s'",
                                 Z_STRLEN_P(param),
@@ -76,14 +76,14 @@ php_driver_timeuuid_init(INTERNAL_FUNCTION_PARAMETERS)
 			version = cass_uuid_version(self->uuid);
 			if (version != 1)
 			{
-        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+        zend_throw_exception_ex(spl_ce_InvalidArgumentException,
                                 0,
                                 "UUID must be of type 1, type %d given",
                                 version);
       }
 			break;
 		default:
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException,
                               0,
                               "Invalid argument - integer or string expected");
     }

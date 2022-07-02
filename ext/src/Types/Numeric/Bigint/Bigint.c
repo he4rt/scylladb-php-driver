@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <Exception/Exceptions.h>
 #include <Types/Numeric/Numeric.h>
 
 #include "Bigint.h"
@@ -35,12 +36,12 @@ static ZEND_RESULT_CODE
 to_long(zval* result, php_driver_numeric* bigint)
 {
   if (bigint->data.bigint.value < (cass_int64_t) ZEND_LONG_MIN) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too small");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value is too small");
     return FAILURE;
   }
 
   if (bigint->data.bigint.value > (cass_int64_t) ZEND_LONG_MAX) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value is too big");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value is too big");
     return FAILURE;
   }
 
@@ -85,7 +86,7 @@ php_driver_bigint_init(php_driver_numeric* self, zval* value)
     // TODO: Fix overflow
     if (double_value > INT64_MAX || double_value < INT64_MIN) {
       zend_throw_exception_ex(
-        php_driver_range_exception_ce, 0,
+        spl_ce_RangeException, 0,
         "value must be between " LL_FORMAT " and " LL_FORMAT ", %g given",
         INT64_MIN, INT64_MAX, double_value);
       return;
@@ -240,7 +241,7 @@ ZEND_METHOD(Cassandra_Bigint, div)
   php_driver_numeric* result = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(return_value);
 
   if (bigint->data.bigint.value == 0) {
-    zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot divide by zero");
+    zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot divide by zero");
     return;
   }
 
@@ -269,7 +270,7 @@ ZEND_METHOD(Cassandra_Bigint, mod)
   result = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(return_value);
 
   if (bigint->data.bigint.value == 0) {
-    zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot modulo by zero");
+    zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot modulo by zero");
     return;
   }
 
@@ -283,7 +284,7 @@ ZEND_METHOD(Cassandra_Bigint, abs)
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_THIS();
 
   if (self->data.bigint.value == INT64_MIN) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value doesn't exist");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value doesn't exist");
     return;
   }
 
@@ -311,7 +312,7 @@ ZEND_METHOD(Cassandra_Bigint, sqrt)
   php_driver_numeric* self = PHP_DRIVER_NUMERIC_THIS();
 
   if (self->data.bigint.value < 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_RangeException, 0,
                             "Cannot take a square root of a negative number");
     return;
   }

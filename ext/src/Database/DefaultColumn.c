@@ -20,6 +20,9 @@
 #include "util/result.h"
 #include "util/types.h"
 
+#include <php.h>
+#include <zend_exceptions.h>
+
 #include "DefaultColumn.h"
 
 zend_class_entry* php_driver_default_column_ce = NULL;
@@ -35,7 +38,6 @@ php_driver_create_column(php_driver_ref* schema,
   const CassValue* value;
 
   ZVAL_UNDEF(&result);
-
 
   object_init_ex(PHP5TO7_ZVAL_MAYBE_P(result), php_driver_default_column_ce);
 
@@ -74,15 +76,11 @@ php_driver_create_column(php_driver_ref* schema,
       size_t clustering_order_length;
       column->type = php_driver_type_from_data_type(data_type);
 
-#if CURRENT_CPP_DRIVER_VERSION > CPP_DRIVER_VERSION(2, 2, 0)
       column->frozen = cass_data_type_is_frozen(data_type);
-#else
-      column->frozen = 0;
-#endif
 
       value = cass_column_meta_field_by_name(meta, "clustering_order");
       if (!value) {
-        zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RuntimeException, 0,
                                 "Unable to get column field \"clustering_order\"");
         zval_ptr_dtor(&result);
         ZVAL_UNDEF(&result);

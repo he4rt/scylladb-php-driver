@@ -16,15 +16,17 @@
 
 #include "config.h"
 
-
 #include "php_driver.h"
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
 #include "version.h"
 
+#include <Exception/Exceptions.h>
+
 #include "src/Cluster/Cluster.h"
 #include "src/Futures/Futures.h"
 #include "src/Types/Value.h"
+
 #include "util/ref.h"
 #include "util/types.h"
 
@@ -156,7 +158,6 @@ php_driver_log(const CassLogMessage* message, void* data);
 static void
 php_driver_log_cleanup()
 {
-  cass_log_cleanup();
   uv_rwlock_destroy(&log_lock);
   if (log_location) {
     free(log_location);
@@ -256,7 +257,7 @@ exception_class(CassError rc)
   case CASS_ERROR_SSL_NO_PEER_CERT:
   case CASS_ERROR_SSL_INVALID_PEER_CERT:
   case CASS_ERROR_SSL_IDENTITY_MISMATCH:
-    return php_driver_invalid_argument_exception_ce;
+    return spl_ce_InvalidArgumentException;
   case CASS_ERROR_LIB_NO_STREAMS:
   case CASS_ERROR_LIB_UNABLE_TO_INIT:
   case CASS_ERROR_LIB_MESSAGE_ENCODE:
@@ -270,44 +271,44 @@ exception_class(CassError rc)
   case CASS_ERROR_LIB_UNABLE_TO_DETERMINE_PROTOCOL:
   case CASS_ERROR_LIB_UNABLE_TO_CONNECT:
   case CASS_ERROR_LIB_UNABLE_TO_CLOSE:
-    return php_driver_runtime_exception_ce;
+    return spl_ce_RuntimeException;
   case CASS_ERROR_LIB_REQUEST_TIMED_OUT:
-    return php_driver_timeout_exception_ce;
+    return phpDriverTimeoutExceptionCe;
   case CASS_ERROR_LIB_CALLBACK_ALREADY_SET:
   case CASS_ERROR_LIB_NOT_IMPLEMENTED:
-    return php_driver_logic_exception_ce;
+    return spl_ce_LogicException;
   case CASS_ERROR_SERVER_SERVER_ERROR:
-    return php_driver_server_exception_ce;
+    return phpDriverServerExceptionCe;
   case CASS_ERROR_SERVER_PROTOCOL_ERROR:
-    return php_driver_protocol_exception_ce;
+    return phpDriverProtocolExceptionCe;
   case CASS_ERROR_SERVER_BAD_CREDENTIALS:
-    return php_driver_authentication_exception_ce;
+    return phpDriverAuthenticationExceptionCe;
   case CASS_ERROR_SERVER_UNAVAILABLE:
-    return php_driver_unavailable_exception_ce;
+    return phpDriverUnavailableExceptionCe;
   case CASS_ERROR_SERVER_OVERLOADED:
-    return php_driver_overloaded_exception_ce;
+    return phpDriverOverloadedExceptionCe;
   case CASS_ERROR_SERVER_IS_BOOTSTRAPPING:
-    return php_driver_is_bootstrapping_exception_ce;
+    return phpDriverIsBootstrappingExceptionCe;
   case CASS_ERROR_SERVER_TRUNCATE_ERROR:
-    return php_driver_truncate_exception_ce;
+    return phpDriverTruncateExceptionCe;
   case CASS_ERROR_SERVER_WRITE_TIMEOUT:
-    return php_driver_write_timeout_exception_ce;
+    return phpDriverWriteTimeoutExceptionCe;
   case CASS_ERROR_SERVER_READ_TIMEOUT:
-    return php_driver_read_timeout_exception_ce;
+    return phpDriverReadTimeoutExceptionCe;
   case CASS_ERROR_SERVER_SYNTAX_ERROR:
-    return php_driver_invalid_syntax_exception_ce;
+    return phpDriverInvalidSyntaxExceptionCe;
   case CASS_ERROR_SERVER_UNAUTHORIZED:
-    return php_driver_unauthorized_exception_ce;
+    return phpDriverUnauthorizedExceptionCe;
   case CASS_ERROR_SERVER_INVALID_QUERY:
-    return php_driver_invalid_query_exception_ce;
+    return phpDriverInvalidQueryExceptionCe;
   case CASS_ERROR_SERVER_CONFIG_ERROR:
-    return php_driver_configuration_exception_ce;
+    return phpDriverConfigurationExceptionCe;
   case CASS_ERROR_SERVER_ALREADY_EXISTS:
-    return php_driver_already_exists_exception_ce;
+    return phpDriverAlreadyExistsExceptionCe;
   case CASS_ERROR_SERVER_UNPREPARED:
-    return php_driver_unprepared_exception_ce;
+    return phpDriverUnpreparedExceptionCe;
   default:
-    return php_driver_runtime_exception_ce;
+    return spl_ce_RuntimeException;
   }
 }
 
@@ -325,22 +326,22 @@ throw_invalid_argument(zval* object,
     cls_len          = str->len;
     if (cls_name) {
       zend_throw_exception_ex(
-        php_driver_invalid_argument_exception_ce,
+        spl_ce_InvalidArgumentException,
         0,
         "%s must be %s, an instance of %.*s given",
         object_name, expected_type, (int) cls_len, cls_name);
       zend_string_release(str);
     } else {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "%s must be %s, an instance of Unknown Class given",
                               object_name, expected_type);
     }
   } else if (Z_TYPE_P(object) == IS_STRING) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "%s must be %s, '%Z' given",
                             object_name, expected_type, object);
   } else {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "%s must be %s, %Z given",
                             object_name, expected_type, object);
   }
@@ -485,31 +486,7 @@ PHP_MINIT_FUNCTION(php_driver)
                                       PHP_DRIVER_PREPARED_STATEMENT_RES_NAME,
                                       module_number);
 
-  php_driver_define_Exception();
-  php_driver_define_InvalidArgumentException();
-  php_driver_define_DomainException();
-  php_driver_define_RuntimeException();
-  php_driver_define_TimeoutException();
-  php_driver_define_LogicException();
-  php_driver_define_ExecutionException();
-  php_driver_define_ReadTimeoutException();
-  php_driver_define_WriteTimeoutException();
-  php_driver_define_UnavailableException();
-  php_driver_define_TruncateException();
-  php_driver_define_ValidationException();
-  php_driver_define_InvalidQueryException();
-  php_driver_define_InvalidSyntaxException();
-  php_driver_define_UnauthorizedException();
-  php_driver_define_UnpreparedException();
-  php_driver_define_ConfigurationException();
-  php_driver_define_AlreadyExistsException();
-  php_driver_define_AuthenticationException();
-  php_driver_define_ProtocolException();
-  php_driver_define_ServerException();
-  php_driver_define_IsBootstrappingException();
-  php_driver_define_OverloadedException();
-  php_driver_define_RangeException();
-  php_driver_define_DivideByZeroException();
+  PhpDriverDefineExceptions();
 
   php_driver_define_Value();
   php_driver_define_Numeric(php_driver_value_ce);

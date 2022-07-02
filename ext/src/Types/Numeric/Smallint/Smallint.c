@@ -19,6 +19,7 @@
 #include "util/math.h"
 #include "util/types.h"
 
+#include <Exception/Exceptions.h>
 #include <Types/Numeric/Numeric.h>
 
 #include "Smallint_arginfo.h"
@@ -75,7 +76,7 @@ php_driver_smallint_init(INTERNAL_FUNCTION_PARAMETERS)
       number = (cass_int32_t) Z_LVAL_P(value);
 
       if (number < INT16_MIN || number > INT16_MAX) {
-        zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RangeException, 0,
                                 "value must be between -32768 and 32767, %ld given", Z_LVAL_P(value));
         return;
       }
@@ -83,7 +84,7 @@ php_driver_smallint_init(INTERNAL_FUNCTION_PARAMETERS)
       number = (cass_int32_t) Z_DVAL_P(value);
 
       if (number < INT16_MIN || number > INT16_MAX) {
-        zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RangeException, 0,
                                 "value must be between -32768 and 32767, %g given", Z_DVAL_P(value));
         return;
       }
@@ -96,14 +97,14 @@ php_driver_smallint_init(INTERNAL_FUNCTION_PARAMETERS)
         // be too large for Smallint. Reset the exception in that case.
 
         if (errno == ERANGE) {
-          zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+          zend_throw_exception_ex(spl_ce_RangeException, 0,
                                   "value must be between -32768 and 32767, %s given", Z_STRVAL_P(value));
         }
         return;
       }
 
       if (number < INT16_MIN || number > INT16_MAX) {
-        zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+        zend_throw_exception_ex(spl_ce_RangeException, 0,
                                 "value must be between -32768 and 32767, %s given", Z_STRVAL_P(value));
         return;
       }
@@ -168,7 +169,7 @@ ZEND_METHOD(Cassandra_Smallint, add)
 
     result->data.smallint.value = self->data.smallint.value + smallint->data.smallint.value;
     if (result->data.smallint.value - smallint->data.smallint.value != self->data.smallint.value) {
-      zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Sum is out of range");
+      zend_throw_exception_ex(spl_ce_RangeException, 0, "Sum is out of range");
       return;
     }
   } else {
@@ -196,7 +197,7 @@ ZEND_METHOD(Cassandra_Smallint, sub)
 
     result->data.smallint.value = self->data.smallint.value - smallint->data.smallint.value;
     if (result->data.smallint.value + smallint->data.smallint.value != self->data.smallint.value) {
-      zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Difference is out of range");
+      zend_throw_exception_ex(spl_ce_RangeException, 0, "Difference is out of range");
       return;
     }
   } else {
@@ -224,7 +225,7 @@ ZEND_METHOD(Cassandra_Smallint, mul)
 
     result->data.smallint.value = self->data.smallint.value * smallint->data.smallint.value;
     if (smallint->data.smallint.value != 0 && result->data.smallint.value / smallint->data.smallint.value != self->data.smallint.value) {
-      zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Product is out of range");
+      zend_throw_exception_ex(spl_ce_RangeException, 0, "Product is out of range");
       return;
     }
   } else {
@@ -251,7 +252,7 @@ ZEND_METHOD(Cassandra_Smallint, div)
     result = PHP_DRIVER_NUMERIC_OBJECT(return_value);
 
     if (smallint->data.smallint.value == 0) {
-      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot divide by zero");
+      zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot divide by zero");
       return;
     }
 
@@ -280,7 +281,7 @@ ZEND_METHOD(Cassandra_Smallint, mod)
     result = PHP_DRIVER_NUMERIC_OBJECT(return_value);
 
     if (smallint->data.smallint.value == 0) {
-      zend_throw_exception_ex(php_driver_divide_by_zero_exception_ce, 0, "Cannot modulo by zero");
+      zend_throw_exception_ex(phpDriverDivideByZeroExceptionCe, 0, "Cannot modulo by zero");
       return;
     }
 
@@ -298,7 +299,7 @@ ZEND_METHOD(Cassandra_Smallint, abs)
   php_driver_numeric* self   = PHP_DRIVER_NUMERIC_THIS();
 
   if (self->data.smallint.value == INT16_MIN) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value doesn't exist");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value doesn't exist");
     return;
   }
 
@@ -315,7 +316,7 @@ ZEND_METHOD(Cassandra_Smallint, neg)
   php_driver_numeric* self   = PHP_DRIVER_NUMERIC_THIS();
 
   if (self->data.smallint.value == INT16_MIN) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0, "Value doesn't exist");
+    zend_throw_exception_ex(spl_ce_RangeException, 0, "Value doesn't exist");
     return;
   }
 
@@ -332,7 +333,7 @@ ZEND_METHOD(Cassandra_Smallint, sqrt)
   php_driver_numeric* self   = PHP_DRIVER_NUMERIC_THIS();
 
   if (self->data.smallint.value < 0) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_RangeException, 0,
                             "Cannot take a square root of a negative number");
   }
 

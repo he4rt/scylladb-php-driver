@@ -11,11 +11,11 @@ echo $float1->sqrt() . PHP_EOL;
 
 try {
     $float2->sqrt();
-}catch(Cassandra\Exception\RangeException $e) {
+}catch(RangeException $e) {
     echo $e->getMessage() . PHP_EOL;
 }
 
 ?>
 --EXPECT--
-5.0
+5
 Cannot take a square root of a negative number
