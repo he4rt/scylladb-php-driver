@@ -1,7 +1,6 @@
 #ifndef PHP_DRIVER_H
 #define PHP_DRIVER_H
 
-
 #include <gmp.h>
 
 #include <cassandra.h>
@@ -201,10 +200,10 @@ void throw_invalid_argument(
   }
 
 #define INVALID_ARGUMENT_VALUE(object, expected, failed_value) \
-  {                                                            \
+  do {                                                         \
     throw_invalid_argument(object, #object, expected);         \
     return failed_value;                                       \
-  }
+  } while (0)
 
 #define ASSERT_SUCCESS_BLOCK(rc, block)                   \
   {                                                       \
