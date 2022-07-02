@@ -26,7 +26,7 @@ zend_class_entry* php_driver_type_map_ce = NULL;
 
 PHP_METHOD(TypeMap, __construct)
 {
-  zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
+  zend_throw_exception_ex(spl_ce_LogicException, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Type\\Map type is not supported.");
 }
 
@@ -85,7 +85,7 @@ PHP_METHOD(TypeMap, create)
 {
   php_driver_map* map;
   zval* args = NULL;
-  int argc               = 0, i;
+  int argc   = 0, i;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "*",
                             &args, &argc)
@@ -94,7 +94,7 @@ PHP_METHOD(TypeMap, create)
   }
 
   if (argc % 2 == 1) {
-        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Not enough values, maps can only be created "
                             "from an even number of values, where each odd "
                             "value is a key and each even value is a value, "
@@ -112,10 +112,10 @@ PHP_METHOD(TypeMap, create)
       if (!php_driver_map_set(map,
                               PHP5TO7_ZVAL_ARG(args[i]),
                               PHP5TO7_ZVAL_ARG(args[i + 1]))) {
-                return;
+        return;
       }
     }
-      }
+  }
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
@@ -208,7 +208,7 @@ php_driver_type_map_free(zend_object* object)
   ZVAL_DESTROY(self->data.map.value_type);
 
   zend_object_std_dtor(&self->zval);
-  }
+}
 
 static zend_object*
 php_driver_type_map_new(zend_class_entry* ce)

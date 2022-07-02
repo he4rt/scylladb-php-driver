@@ -44,7 +44,7 @@ php_driver_uuid_init(INTERNAL_FUNCTION_PARAMETERS)
     php_driver_uuid_generate_random(&self->uuid);
   } else {
     if (cass_uuid_from_string(value, &self->uuid) != CASS_OK) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "Invalid UUID: '%.*s'", value_len, value);
       return;
     }

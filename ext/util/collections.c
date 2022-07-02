@@ -355,7 +355,7 @@ php_driver_value_type(char* type, CassValueType* value_type)
 	}
 	else
 	{
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Unsupported type '%s'", type);
     return 0;
 	}
@@ -495,7 +495,7 @@ php_driver_collection_append(CassCollection* collection, zval* value, CassValueT
 		CHECK_ERROR(cass_collection_append_user_type(collection, sub_ut));
 		break;
 	default:
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
+    zend_throw_exception_ex(spl_ce_RuntimeException, 0, "Unsupported collection type");
     return 0;
 	}
 
@@ -636,7 +636,7 @@ php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value, CassValueT
 		CHECK_ERROR(cass_tuple_set_user_type(tuple, index, sub_ut));
 		break;
 	default:
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
+    zend_throw_exception_ex(spl_ce_RuntimeException, 0, "Unsupported collection type");
     return 0;
 	}
 
@@ -784,7 +784,7 @@ php_driver_user_type_set(CassUserType* ut,
 		CHECK_ERROR(cass_user_type_set_user_type_by_name(ut, name, sub_ut));
 		break;
 	default:
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
+    zend_throw_exception_ex(spl_ce_RuntimeException, 0, "Unsupported collection type");
     return 0;
 	}
 

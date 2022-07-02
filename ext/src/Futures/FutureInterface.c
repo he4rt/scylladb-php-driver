@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 
 #include "FutureInterface_arginfo.h"
 

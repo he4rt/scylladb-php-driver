@@ -431,7 +431,7 @@ create_statement(php_driver_statement* statement, HashTable* arguments)
     stmt = cass_prepared_bind(statement->data.prepared.prepared);
     break;
   default:
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_RuntimeException, 0,
                             "Unsupported statement type.");
     return NULL;
   }
@@ -663,7 +663,7 @@ PHP_METHOD(DefaultSession, execute)
     cass_future_free(future);
 
     if (!result) {
-      zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_RuntimeException, 0,
                               "Future doesn't contain a result.");
       break;
     }

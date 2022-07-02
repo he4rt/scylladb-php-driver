@@ -1,4 +1,4 @@
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 #include <php.h>
 
 #ifndef LIBPHPCASSANDRA_EXT_INCLUDE_FUTURES_FUTUREVALUE_H_

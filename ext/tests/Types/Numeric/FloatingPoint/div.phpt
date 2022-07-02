@@ -6,7 +6,7 @@
 $float1 = new Cassandra\Float(10);
 $float2 = new Cassandra\Float(10);
 
-$result = $float2->div($bigint1);
+$result = $float2->div($float1);
 
 echo $result->value();
 

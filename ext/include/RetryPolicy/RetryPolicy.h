@@ -1,4 +1,4 @@
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 
 #ifndef LIBPHPCASSANDRA_EXT_INCLUDE_RETRYPOLICY_RETRYPOLICY_H_
 #define LIBPHPCASSANDRA_EXT_INCLUDE_RETRYPOLICY_RETRYPOLICY_H_

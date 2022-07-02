@@ -655,7 +655,7 @@ php_driver_type_scalar(CassValueType type)
   PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
 
-  zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
+  zend_throw_exception_ex(spl_ce_InvalidArgumentException,
                           0, "Invalid type");
   return result;
 }
@@ -835,7 +835,7 @@ php_driver_type_custom(const char* name, size_t name_length)
 }
 
 #define EXPECTING_TOKEN(expected)                                                              \
-  zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,                         \
+  zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,                         \
                           "Unexpected %s at position %d in string \"%s\", expected " expected, \
                           describe_token(token), ((int) (str - validator) - 1), validator);    \
   return FAILURE;
@@ -998,7 +998,7 @@ php_driver_parse_class_name(const char* validator,
     token = next_token(str, len, &token_str, &token_len, &str, &len);
 
     if (token == TOKEN_ILLEGAL) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "Illegal character \"%c\" at position %d in \"%s\"",
                               *token_str, ((int) (str - validator) - 1), validator);
       php_driver_parse_node_free(root);
@@ -1324,7 +1324,7 @@ php_driver_parse_column_type(const char* validator,
 
   if (node == NULL) {
     php_driver_parse_node_free(root);
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Invalid type");
     return FAILURE;
   }

@@ -3,7 +3,7 @@
 <?php if (!extension_loaded("cassandra")) die("Skipped: cassandra extension required."); ?>
 --FILE--
 <?php
-use Cassandra\Exception\DivideByZeroException;
+use Cassandra\Exceptions\DivideByZeroException;
 
 $bigint1 = new Cassandra\Bigint(0);
 $bigint2 = new Cassandra\Bigint(10);

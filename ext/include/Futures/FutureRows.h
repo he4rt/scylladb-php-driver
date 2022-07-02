@@ -1,4 +1,4 @@
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 #include <php.h>
 
 #include <cassandra.h>

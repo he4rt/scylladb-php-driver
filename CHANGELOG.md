@@ -7,13 +7,21 @@
 * DefaultPolicy renamed to DefaultRetryPolicy
 * Logging retry policy renamed to LoggingRetryPolicy
 * Fallthrough retry policy renamed to FallthroughRetryPolicy
+* All exceptions moved to Exceptions namespace
+* Exception interface renamed to ExceptionInterface
+* Removed InvalidArgumentException
+* Removed RuntimeException
+* Removed LogicException
+* Removed RangeException
+* All exceptions extend zend \Exception base class
+* All exceptions implement Cassandra\Exceptions\ExceptionInterface
 
 ### Breaking changes in Drivers source code
 
 * Removed PHP's build system in favour of CMake
 * Removed support for PHP 5, 7.0, 7.1 7.2, 7.3, 7.4 and 8.0
 * Targeting the latest version of Cassandra CPP Driver
-* Targeting the lastest version of LibUV
+* Targeting the latest version of LibUV
 * Reorganizing project info multiple folders for better maintainability
 * Using Microsoft naming conventions for structs and methods (ongoing)
 

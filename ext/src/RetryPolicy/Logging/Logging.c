@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "php_driver_types.h"
+#include <cassandra.h>
+#include <spl/spl_exceptions.h>
+#include <zend_exceptions.h>
 
 #include "LoggingRetryPolicy_arginfo.h"
 
-#include "src/RetryPolicy/RetryPolicy.h"
 #include <RetryPolicy/RetryPolicy.h>
-#include <zend_exceptions.h>
 
 zend_class_entry* phpDriverRetryPolicyLoggingCe = NULL;
 
@@ -36,7 +36,7 @@ ZEND_METHOD(Cassandra_RetryPolicy_LoggingRetryPolicy, __construct)
 
   if (instanceof_function(Z_OBJCE_P(child_policy),
                           phpDriverRetryPolicyLoggingCe)) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Cannot add a Cassandra\\RetryPolicy\\LoggingRetryPolicy as child policy of Cassandra\\RetryPolicy\\LoggingRetryPolicy");
     return;
   }

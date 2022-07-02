@@ -17,8 +17,8 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 
+#include <CassandraDriver.h>
 #include <Futures/FutureSession.h>
-#include <cassandra_driver.h>
 
 #include "util/FutureInterface.h"
 #include "util/ref.h"

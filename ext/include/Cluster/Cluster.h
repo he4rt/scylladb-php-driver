@@ -1,15 +1,9 @@
-//
-// Created by Dusan Malusev on 5/6/22.
-//
-
-#ifndef LIBPHPCASSANDRA_EXT_INCLUDE_CLUSTER_CLUSTER_H_
-#define LIBPHPCASSANDRA_EXT_INCLUDE_CLUSTER_CLUSTER_H_
-
+#pragma once
 #include "php_driver.h"
 
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 
-typedef struct php_driver_cluster_ {
+typedef struct {
   cass_byte_t* data;
   CassCluster* cluster;
   long default_consistency;
@@ -27,7 +21,7 @@ typedef enum {
   LOAD_BALANCING_DC_AWARE_ROUND_ROBIN
 } php_driver_load_balancing;
 
-typedef struct php_driver_cluster_builder_ {
+typedef struct {
   char* contact_points;
   int port;
   php_driver_load_balancing load_balancing_policy;
@@ -77,4 +71,3 @@ typedef struct php_driver_cluster_builder_ {
 extern PHP_DRIVER_API zend_class_entry* php_driver_cluster_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_default_cluster_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_cluster_builder_ce;
-#endif // LIBPHPCASSANDRA_EXT_INCLUDE_CLUSTER_CLUSTER_H_

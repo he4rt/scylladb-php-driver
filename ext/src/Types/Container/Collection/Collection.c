@@ -143,7 +143,7 @@ PHP_METHOD(Collection, add)
 
   for (i = 0; i < argc; i++) {
     if (Z_TYPE_P(PHP5TO7_ZVAL_ARG(args[i])) == IS_NULL) {
-            zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+            zend_throw_exception_ex(spl_ce_LogicException, 0,
                               "Invalid value: null is not supported inside collections");
       RETURN_FALSE;
     }

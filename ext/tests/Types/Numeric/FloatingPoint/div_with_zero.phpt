@@ -3,13 +3,13 @@
 <?php if (!extension_loaded("cassandra")) die("Skipped: cassandra extension required."); ?>
 --FILE--
 <?php
-use Cassandra\Exception\DivideByZeroException;
+use Cassandra\Exceptions\DivideByZeroException;
 
 $float1 = new Cassandra\Float(0);
 $float2 = new Cassandra\Float(10);
 
 try {
-    $result = $bigint2->div($bigint1);
+    $result = $float2->div($float1);
 } catch(DivideByZeroException $e) {
     echo $e->getMessage();
     return;

@@ -30,7 +30,7 @@ php_driver_set_add(php_driver_set* set, zval* object)
   php_driver_type *type;
 
   if (Z_TYPE_P(object) == IS_NULL) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Invalid value: null is not supported inside sets");
     return 0;
   }

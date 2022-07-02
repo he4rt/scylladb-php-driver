@@ -15,4 +15,4 @@ unset($float2);
 unset($result);
 ?>
 --EXPECT--
-20.7
+20.700000762939

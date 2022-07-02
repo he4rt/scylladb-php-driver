@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 
 #ifndef PHP_DRIVER_REF_H
 #define PHP_DRIVER_REF_H

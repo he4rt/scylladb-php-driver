@@ -149,7 +149,7 @@ PHP_METHOD(Tuple, set)
   type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
   if (index < 0 || index >= zend_hash_num_elements(&type->data.tuple.types)) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Index out of bounds");
     return;
   }
@@ -177,7 +177,7 @@ PHP_METHOD(Tuple, get)
   type = PHP_DRIVER_GET_TYPE(PHP5TO7_ZVAL_MAYBE_P(self->type));
 
   if (index < 0 || index >= zend_hash_num_elements(&type->data.tuple.types)) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                             "Index out of bounds");
     return;
   }

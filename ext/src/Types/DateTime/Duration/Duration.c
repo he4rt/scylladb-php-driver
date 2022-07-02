@@ -35,7 +35,7 @@ get_param(zval* value,
     zend_long long_value = Z_LVAL_P(value);
 
     if (long_value > max || long_value < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "%s must be between " LL_FORMAT " and " LL_FORMAT ", " LL_FORMAT " given",
                               param_name, min, max, long_value);
       return 0;
@@ -46,7 +46,7 @@ get_param(zval* value,
     double double_value = Z_DVAL_P(value);
 
     if (double_value > max || double_value < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "%s must be between " LL_FORMAT " and " LL_FORMAT ", %g given",
                               param_name, min, max, double_value);
       return 0;
@@ -59,7 +59,7 @@ get_param(zval* value,
     }
 
     if (parsed_big_int > max || parsed_big_int < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "%s must be between " LL_FORMAT " and " LL_FORMAT ", " LL_FORMAT " given",
                               param_name, min, max, parsed_big_int);
       return 0;
@@ -70,7 +70,7 @@ get_param(zval* value,
     cass_int64_t bigint_value  = bigint->data.bigint.value;
 
     if (bigint_value > max || bigint_value < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
                               "%s must be between " LL_FORMAT " and " LL_FORMAT ", " LL_FORMAT " given",
                               param_name, min, max, bigint_value);
       return 0;

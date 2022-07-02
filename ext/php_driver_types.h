@@ -17,8 +17,8 @@
 #ifndef PHP_DRIVER_TYPES_H
 #define PHP_DRIVER_TYPES_H
 
+#include <CassandraDriver.h>
 #include <cassandra.h>
-#include <cassandra_driver.h>
 
 #include "src/Types/Numeric/Numeric.h"
 
@@ -552,33 +552,6 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_collection_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_tuple_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_user_type_value_ce;
 
-/* Exceptions */
-void php_driver_define_Exception();
-void php_driver_define_InvalidArgumentException();
-void php_driver_define_DomainException();
-void php_driver_define_LogicException();
-void php_driver_define_RuntimeException();
-void php_driver_define_TimeoutException();
-void php_driver_define_ExecutionException();
-void php_driver_define_ReadTimeoutException();
-void php_driver_define_WriteTimeoutException();
-void php_driver_define_UnavailableException();
-void php_driver_define_TruncateException();
-void php_driver_define_ValidationException();
-void php_driver_define_InvalidQueryException();
-void php_driver_define_InvalidSyntaxException();
-void php_driver_define_UnauthorizedException();
-void php_driver_define_UnpreparedException();
-void php_driver_define_ConfigurationException();
-void php_driver_define_AlreadyExistsException();
-void php_driver_define_AuthenticationException();
-void php_driver_define_ProtocolException();
-void php_driver_define_ServerException();
-void php_driver_define_IsBootstrappingException();
-void php_driver_define_OverloadedException();
-void php_driver_define_DivideByZeroException();
-void php_driver_define_RangeException();
-
 /* Types */
 
 void php_driver_define_Blob();
@@ -603,31 +576,6 @@ extern PHP_DRIVER_API zend_class_entry* php_driver_ssl_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_ssl_builder_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_session_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_default_session_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_runtime_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_timeout_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_logic_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_domain_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_invalid_argument_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_server_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_overloaded_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_is_bootstrapping_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_execution_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_truncate_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_write_timeout_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_read_timeout_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_unavailable_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_validation_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_invalid_syntax_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_unauthorized_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_invalid_query_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_configuration_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_already_exists_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_unprepared_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_protocol_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_authentication_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_divide_by_zero_exception_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_range_exception_ce;
 
 extern PHP_DRIVER_API zend_class_entry* php_driver_statement_ce;
 extern PHP_DRIVER_API zend_class_entry* php_driver_simple_statement_ce;

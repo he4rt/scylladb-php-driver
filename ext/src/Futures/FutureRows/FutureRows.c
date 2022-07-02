@@ -17,8 +17,8 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 
+#include <CassandraDriver.h>
 #include <Futures/FutureRows.h>
-#include <cassandra_driver.h>
 #include <zend_exceptions.h>
 
 #include "util/FutureInterface.h"
@@ -51,7 +51,7 @@ php_driver_future_rows_get_result(php_driver_future_rows* future_rows, zval* tim
 
     result = cass_future_get_result(future_rows->future);
     if (!result) {
-      zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+      zend_throw_exception_ex(spl_ce_RuntimeException, 0,
                               "Future doesn't contain a result.");
       return FAILURE;
     }

@@ -8,7 +8,7 @@
 #include <gmp.h>
 #include <php.h>
 
-#include <cassandra_driver.h>
+#include <CassandraDriver.h>
 
 typedef enum {
   PHP_DRIVER_BIGINT,
