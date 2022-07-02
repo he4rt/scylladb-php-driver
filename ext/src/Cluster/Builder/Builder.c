@@ -24,6 +24,7 @@
 
 #include <Cluster/Cluster.h>
 #include <RetryPolicy/RetryPolicy.h>
+#include <TimestampGenerators/TimestampGenerators.h>
 
 #include "Builder.h"
 #include "Builder_arginfo.h"
@@ -143,8 +144,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
   cass_cluster_set_connection_heartbeat_interval(cluster->cluster, self->connection_heartbeat_interval);
 
   if (!Z_ISUNDEF(self->timestamp_gen)) {
-    php_driver_timestamp_gen* timestamp_gen =
-      PHP_DRIVER_GET_TIMESTAMP_GEN(&self->timestamp_gen);
+    php_driver_timestamp_gen* timestamp_gen = PHP_DRIVER_TIMESTAMP_GENERATOR_ZVAL_TO_OBJECT(&self->timestamp_gen);
     cass_cluster_set_timestamp_gen(cluster->cluster, timestamp_gen->gen);
   }
 
