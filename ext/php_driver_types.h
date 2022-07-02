@@ -20,7 +20,7 @@
 #include <CassandraDriver.h>
 #include <cassandra.h>
 
-#include <TimestampGenerator/TimestampGenerator.h>
+#include "include/TimestampGenerators/TimestampGenerators.h"
 
 #include "src/Types/Numeric/Numeric.h"
 

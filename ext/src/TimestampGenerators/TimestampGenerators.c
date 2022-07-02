@@ -1,4 +1,4 @@
-#include <TimestampGenerator/TimestampGenerator.h>
+#include <TimestampGenerators/TimestampGenerators.h>
 
 #include "MonotonicGenerator/MonotonicGenerator.h"
 #include "ServerSideGenerator/ServerSideGenerator.h"

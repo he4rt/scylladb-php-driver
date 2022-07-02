@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+#include "include/TimestampGenerators/TimestampGenerators.h"
 #include <CassandraDriverAPI.h>
-#include <TimestampGenerator/TimestampGenerator.h>
 #include <cassandra.h>
 #include <php.h>
 

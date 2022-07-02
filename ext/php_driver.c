@@ -21,8 +21,8 @@
 #include "php_driver_types.h"
 #include "version.h"
 
+#include "include/TimestampGenerators/TimestampGenerators.h"
 #include <Exception/Exceptions.h>
-#include <TimestampGenerator/TimestampGenerator.h>
 
 #include "src/Cluster/Cluster.h"
 #include "src/Futures/Futures.h"
