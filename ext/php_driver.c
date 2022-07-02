@@ -22,6 +22,7 @@
 #include "version.h"
 
 #include <Exception/Exceptions.h>
+#include <TimestampGenerator/TimestampGenerator.h>
 
 #include "src/Cluster/Cluster.h"
 #include "src/Futures/Futures.h"
@@ -548,10 +549,7 @@ PHP_MINIT_FUNCTION(php_driver)
 
   PhpDriverDefineRetryPolicy();
 
-  php_driver_define_TimestampGenerator();
-  php_driver_define_TimestampGeneratorMonotonic();
-  php_driver_define_TimestampGeneratorServerSide();
-
+  PhpDriverDefineTimestampGenerators();
   return SUCCESS;
 }
 

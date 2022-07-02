@@ -15,6 +15,10 @@
 * Removed RangeException
 * All exceptions extend zend \Exception base class
 * All exceptions implement Cassandra\Exceptions\ExceptionInterface
+* TimestampGenerator interface renamed to TimestampGeneratorInterface
+* TimestampGenerators moved to namespace Cassandra\TimestampGenerators
+* Monotonic timestamp generator renamed to MonotonicGenerator
+* ServerSide timestamp generator renamed to ServerSideGenerator
 
 ### Breaking changes in Drivers source code
 

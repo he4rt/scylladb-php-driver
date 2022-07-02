@@ -812,7 +812,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTimestampGenerator)
   php_driver_cluster_builder* self;
 
   if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
-                            &timestamp_gen, php_driver_timestamp_gen_ce)
+                            &timestamp_gen, phpDriverTimestampGeneratorInterfaceCe)
       == FAILURE) {
     return;
   }

@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
+#include <CassandraDriverAPI.h>
+#include <php.h>
 
-zend_class_entry *php_driver_timestamp_gen_ce = NULL;
+#include "TimestampGeneratorInterface.h"
+#include "TimestampGeneratorInterface_arginfo.h"
 
-static zend_function_entry php_driver_timestamp_gen_methods[] = {
-  PHP_FE_END
-};
+PHP_DRIVER_API zend_class_entry* phpDriverTimestampGeneratorInterfaceCe = NULL;
 
 void
-php_driver_define_TimestampGenerator()
+PhpDriverDefineTimestampGeneratorInterface()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\TimestampGenerator", php_driver_timestamp_gen_methods);
-  php_driver_timestamp_gen_ce = zend_register_internal_class(&ce);
-  php_driver_timestamp_gen_ce->ce_flags |= ZEND_ACC_INTERFACE;
+  phpDriverTimestampGeneratorInterfaceCe = register_class_Cassandra_TimestampGenerators_TimestampGeneratorInterface();
 }

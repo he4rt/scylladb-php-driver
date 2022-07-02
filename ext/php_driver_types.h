@@ -20,6 +20,8 @@
 #include <CassandraDriver.h>
 #include <cassandra.h>
 
+#include <TimestampGenerator/TimestampGenerator.h>
+
 #include "src/Types/Numeric/Numeric.h"
 
 #define PHP_DRIVER_GET_BLOB(obj) php_driver_blob_object_fetch(Z_OBJ_P(obj))
@@ -515,10 +517,6 @@ static zend_always_inline
   return (php_driver_type*) ((char*) obj - XtOffsetOf(php_driver_type, zval));
 }
 
-typedef struct php_driver_timestamp_gen_ {
-  CassTimestampGen* gen;
-  zend_object zval;
-} php_driver_timestamp_gen;
 static zend_always_inline
   php_driver_timestamp_gen*
   php_driver_timestamp_gen_object_fetch(zend_object* obj)
@@ -650,13 +648,13 @@ void php_driver_define_TypeCustom();
 
 void PhpDriverDefineRetryPolicy();
 
-extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_monotonic_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_timestamp_gen_server_side_ce;
+extern PHP_DRIVER_API zend_class_entry* phpDriverTimestampGeneratorInterfaceCe;
+extern PHP_DRIVER_API zend_class_entry* phpDriverTimestampGenMonotonicCe;
+extern PHP_DRIVER_API zend_class_entry* phpDriverTimestampGenServerSideCe;
 
-void php_driver_define_TimestampGenerator();
-void php_driver_define_TimestampGeneratorMonotonic();
-void php_driver_define_TimestampGeneratorServerSide();
+void PhpDriverDefineTimestampGeneratorInterface();
+void PhpDriverDefineTimestampGeneratorMonotonic();
+void PhpDriverDefineServerSideTimestampGenerator();
 
 extern int php_le_php_driver_cluster();
 extern int php_le_php_driver_session();
