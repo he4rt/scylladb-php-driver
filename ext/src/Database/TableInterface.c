@@ -43,9 +43,9 @@ php_driver_table_build_options(CassIterator* iterator)
         if (data_type) {
           zval zvalue;
           ZVAL_UNDEF(&zvalue);
-          if (php_driver_value(value,
-                               data_type,
-                               &zvalue)
+          if (PhpDriverValue(value,
+                             data_type,
+                             &zvalue)
               == SUCCESS) {
             PHP5TO7_ADD_ASSOC_ZVAL_EX(PHP5TO7_ZVAL_MAYBE_P(zoptions),
                                       name, name_length + 1,

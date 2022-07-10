@@ -140,7 +140,7 @@ PHP_METHOD(DefaultAggregate, initialCondition)
     if (!data_type) {
       return;
     }
-    php_driver_value(value, data_type, &self->initial_condition);
+    PhpDriverValue(value, data_type, &self->initial_condition);
   }
 
   RETURN_ZVAL(PHP5TO7_ZVAL_MAYBE_P(self->initial_condition), 1, 0);

@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-#include <cassandra.h>
+#include <CassandraDriverAPI.h>
 #include <php.h>
 
-int php_driver_future_wait_timed(CassFuture* future, zval* timeout);
-int php_driver_future_is_error(CassFuture* future);
+#include "Numeric.h"
+#include "Numeric_arginfo.h"
+
+PHP_DRIVER_API zend_class_entry* phpDriverNumericInterfaceCe = NULL;
+
+void
+PhpDriverDefineNumericInterface()
+{
+  phpDriverNumericInterfaceCe = register_class_Cassandra_Numeric();
+}

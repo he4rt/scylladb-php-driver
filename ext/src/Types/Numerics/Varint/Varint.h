@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-#include <cassandra.h>
+#ifndef PHP_DRIVER_VARINT_H
+#define PHP_DRIVER_VARINT_H
+
 #include <php.h>
 
-int php_driver_future_wait_timed(CassFuture* future, zval* timeout);
-int php_driver_future_is_error(CassFuture* future);
+
+void PhpDriverDefineVarint(zend_class_entry* value_interface, zend_class_entry* numeric_interface);
+
+#endif /* PHP_DRIVER_VARINT_H */

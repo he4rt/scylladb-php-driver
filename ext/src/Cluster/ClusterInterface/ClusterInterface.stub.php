@@ -7,21 +7,17 @@ namespace Cassandra\Cluster {
     /**
      * @strict-properties
      */
-    final class DefaultCluster implements Cluster
+    interface ClusterInterface
     {
 
         /**
          * @ref-count 1
          */
-        public function connect(): Session
-        {
-        }
+        public function connect(): Session;
 
         /**
          * @ref-count 1
          */
-        public function connectAsync(): Future
-        {
-        }
+        public function connectAsync(): Future;
     }
 }

@@ -23,7 +23,7 @@ zend_class_entry *php_driver_core_ce = NULL;
 
 PHP_METHOD(Cassandra, cluster)
 {
-  object_init_ex(return_value, php_driver_cluster_builder_ce);
+  object_init_ex(return_value, phpDriverClusterBuilderCe);
 }
 
 PHP_METHOD(Cassandra, ssl)

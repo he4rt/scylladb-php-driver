@@ -61,7 +61,7 @@ PHP_METHOD(TypeScalar, __toString)
 
 PHP_METHOD(TypeScalar, create)
 {
-  php_driver_scalar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+  PhpDriverScalarInit(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)

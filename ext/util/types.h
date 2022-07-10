@@ -78,6 +78,6 @@ int php_driver_parse_column_type(const char* validator,
                                  int* frozen_out,
                                  zval* type_out);
 
-void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS);
+void PhpDriverScalarInit(INTERNAL_FUNCTION_PARAMETERS);
 
 #endif /* PHP_DRIVER_UTIL_TYPES_H */

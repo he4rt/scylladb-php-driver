@@ -42,9 +42,9 @@ class DecimalTest extends TestCase
         $number = new Decimal($input);
         $this->assertEquals($value, $number->value());
         $this->assertEquals($scale, $number->scale());
-        // Test to_string
+        // Test ToString
         $this->assertEquals($string, (string) $number);
-        // Test to_double
+        // Test ToDouble
         $this->assertLessThanOrEqual(0.01, abs((float)$string - (float)$number));
     }
 

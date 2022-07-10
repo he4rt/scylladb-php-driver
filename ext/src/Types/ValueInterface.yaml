@@ -19,7 +19,7 @@ Value:
     @see Date
     @see Time
 
-    @see Numeric
+    @see Numerics
     @see UuidInterface
   methods:
     type:

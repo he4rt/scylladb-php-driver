@@ -1,6 +1,6 @@
 #include "php_driver.h"
 
-#include "include/Types/Numeric/Numeric.h"
+#include <Types/Numerics/Numerics.h>
 
 #include "util/hash.h"
 #include "util/math.h"
@@ -65,9 +65,9 @@ get_param(zval* value,
       return 0;
     }
     *destination = parsed_big_int;
-  } else if (Z_TYPE_P(value) == IS_OBJECT && instanceof_function(Z_OBJCE_P(value), php_driver_bigint_ce)) {
-    php_driver_numeric* bigint = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(value);
-    cass_int64_t bigint_value  = bigint->data.bigint.value;
+  } else if (Z_TYPE_P(value) == IS_OBJECT && instanceof_function(Z_OBJCE_P(value), phpDriverBigintCe)) {
+    PhpDriverNumeric* bigint  = PHP_DRIVER_NUMERIC_ZVAL_TO_OBJECT(value);
+    cass_int64_t bigint_value = bigint->data.bigint.value;
 
     if (bigint_value > max || bigint_value < min) {
       zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0,
@@ -214,11 +214,11 @@ ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_duration_methods[] = {
   PHP_ME(Duration, __construct, arginfo__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-      PHP_ME(Duration, months, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(Duration, days, arginfo_none, ZEND_ACC_PUBLIC)
-          PHP_ME(Duration, nanos, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(Duration, __toString, arginfo_none, ZEND_ACC_PUBLIC)
-              PHP_FE_END
+    PHP_ME(Duration, months, arginfo_none, ZEND_ACC_PUBLIC)
+      PHP_ME(Duration, days, arginfo_none, ZEND_ACC_PUBLIC)
+        PHP_ME(Duration, nanos, arginfo_none, ZEND_ACC_PUBLIC)
+          PHP_ME(Duration, __toString, arginfo_none, ZEND_ACC_PUBLIC)
+            PHP_FE_END
 };
 
 static php_driver_value_handlers php_driver_duration_handlers;
@@ -297,7 +297,7 @@ php_driver_duration_free(zend_object* object)
   /* Clean up */
 
   zend_object_std_dtor(&self->zval);
-  }
+}
 
 static zend_object*
 php_driver_duration_new(zend_class_entry* ce)

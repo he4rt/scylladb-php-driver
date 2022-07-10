@@ -1,7 +1,3 @@
-#ifndef LIBPHPCASSANDRA_EXT_SRC_CLUSTER_BUILDER_BUILDER_H_
-#define LIBPHPCASSANDRA_EXT_SRC_CLUSTER_BUILDER_BUILDER_H_
+#pragma once
 
-
-void php_driver_define_ClusterBuilder();
-
-#endif // LIBPHPCASSANDRA_EXT_SRC_CLUSTER_BUILDER_BUILDER_H_
+void PhpDriverDefineClusterBuilder();

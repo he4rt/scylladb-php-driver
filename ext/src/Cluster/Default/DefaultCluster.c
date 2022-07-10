@@ -20,15 +20,17 @@
 #include "util/FutureInterface.h"
 #include "util/ref.h"
 
+#include <CassandraDriverAPI.h>
 #include <Cluster/Cluster.h>
 #include <Futures/Futures.h>
 
+#include "DefaultCluster.h"
 #include "DefaultCluster_arginfo.h"
 
-zend_class_entry* php_driver_default_cluster_ce = NULL;
+PHP_DRIVER_API zend_class_entry* phpDriverDefaultClusterCe = NULL;
 
 static void
-free_session(void* session)
+FreeSession(void* session)
 {
   cass_session_free((CassSession*) session);
 }
@@ -44,11 +46,12 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
   size_t hash_key_len = 0;
   php_driver_psession* psession;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|sz", &keyspace, &keyspace_len, &timeout) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(0, 2)
+  Z_PARAM_STRING(keyspace, keyspace_len)
+  Z_PARAM_ZVAL(timeout)
+  ZEND_PARSE_PARAMETERS_END();
 
-  php_driver_cluster* self = PHP_DRIVER_CLUSTER_THIS();
+  PhpDriverCluster* self = PHP_DRIVER_CLUSTER_THIS();
 
   object_init_ex(return_value, php_driver_default_session_ce);
   session = PHP_DRIVER_GET_SESSION(return_value);
@@ -69,7 +72,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     hash_key_len = spprintf(&hash_key, 0, "%s:session:%s",
                             self->hash_key, SAFE_STR(keyspace));
 
-    if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) && Z_RES_P(le)->type == php_le_php_driver_session()) {
+    if (zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len) && Z_RES_P(le)->type == php_le_php_driver_session()) {
       psession         = (php_driver_psession*) Z_RES_P(le)->ptr;
       session->session = php_driver_add_ref(psession->session);
       future           = psession->future;
@@ -79,7 +82,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
   if (future == NULL) {
     zval resource;
 
-    session->session = php_driver_new_peref(cass_session_new(), free_session, 1);
+    session->session = php_driver_new_peref(cass_session_new(), FreeSession, 1);
 
     if (keyspace) {
       future = cass_session_connect_keyspace((CassSession*) session->session->data,
@@ -113,7 +116,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
   if (php_driver_future_is_error(future) == FAILURE) {
     if (session->persist) {
-      PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
+      zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len);
       efree(hash_key);
     } else {
       cass_future_free(future);
@@ -134,11 +137,11 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
   char* keyspace      = NULL;
   size_t keyspace_len;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|s", &keyspace, &keyspace_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(0, 1)
+  Z_PARAM_STRING(keyspace, keyspace_len)
+  ZEND_PARSE_PARAMETERS_END();
 
-  php_driver_cluster* self = PHP_DRIVER_CLUSTER_THIS();
+  PhpDriverCluster* self = PHP_DRIVER_CLUSTER_THIS();
 
   object_init_ex(return_value, php_driver_future_session_ce);
   php_driver_future_session* future = PHP_DRIVER_FUTURE_SESSION_ZVAL_TO_OBJECT(return_value);
@@ -149,14 +152,14 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
     zval* le;
 
     hash_key_len = spprintf(&hash_key, 0, "%s:session:%s",
-                            self->hash_key, SAFE_STR(keyspace));
+                            self->hash_key, keyspace ? keyspace : "");
 
     future->session_hash_key = self->hash_key;
     future->session_keyspace = keyspace;
     future->hash_key         = hash_key;
     future->hash_key_len     = hash_key_len;
 
-    if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) && Z_RES_P(le)->type == php_le_php_driver_session()) {
+    if (zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len) && Z_RES_P(le)->type == php_le_php_driver_session()) {
       php_driver_psession* psession = (php_driver_psession*) Z_RES_P(le)->ptr;
       future->session               = php_driver_add_ref(psession->session);
       future->future                = psession->future;
@@ -164,7 +167,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
     }
   }
 
-  future->session = php_driver_new_peref(cass_session_new(), free_session, 1);
+  future->session = php_driver_new_peref(cass_session_new(), FreeSession, 1);
 
   if (keyspace) {
     future->future = cass_session_connect_keyspace((CassSession*) future->session->data,
@@ -183,22 +186,16 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
     psession->future  = future->future;
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
-    PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource, sizeof(zval));
+    zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len + 1, &resource);
     PHP_DRIVER_G(persistent_sessions)
     ++;
   }
 }
 
-static zend_object_handlers php_driver_default_cluster_handlers;
+static zend_object_handlers phpDriverDefaultClusterHandlers;
 
 static HashTable*
-php_driver_default_cluster_properties(
-#if PHP_MAJOR_VERSION >= 8
-  zend_object* object
-#else
-  zval* object
-#endif
-)
+PhpDriverDefaultClusterProperties(zend_object* object)
 {
   HashTable* props = zend_std_get_properties(object);
 
@@ -206,7 +203,7 @@ php_driver_default_cluster_properties(
 }
 
 static int
-php_driver_default_cluster_compare(zval* obj1, zval* obj2)
+PhpDriverDefaultClusterCompare(zval* obj1, zval* obj2)
 {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
@@ -218,16 +215,14 @@ php_driver_default_cluster_compare(zval* obj1, zval* obj2)
 }
 
 static void
-php_driver_default_cluster_free(zend_object* object)
+PhpDriverDefaultClusterFree(zend_object* object)
 {
-  php_driver_cluster* self = PHP_DRIVER_CLUSTER_OBJECT(object);
+  PhpDriverCluster* self = PHP_DRIVER_CLUSTER_OBJECT(object);
 
   if (self->persist) {
     efree(self->hash_key);
-  } else {
-    if (self->cluster) {
-      cass_cluster_free(self->cluster);
-    }
+  } else if (self->cluster) {
+    cass_cluster_free(self->cluster);
   }
 
   ZVAL_DESTROY(self->default_timeout);
@@ -236,9 +231,9 @@ php_driver_default_cluster_free(zend_object* object)
 }
 
 static zend_object*
-php_driver_default_cluster_new(zend_class_entry* ce)
+PhpDriverDefaultClusterNew(zend_class_entry* ce)
 {
-  php_driver_cluster* self = make(php_driver_cluster);
+  PhpDriverCluster* self = make(PhpDriverCluster);
 
   self->cluster             = NULL;
   self->default_consistency = PHP_DRIVER_DEFAULT_CONSISTENCY;
@@ -249,20 +244,20 @@ php_driver_default_cluster_new(zend_class_entry* ce)
   ZVAL_UNDEF(&self->default_timeout);
 
   zend_object_std_init(&self->zval, ce);
-  self->zval.handlers = &php_driver_default_cluster_handlers;
+  self->zval.handlers = &phpDriverDefaultClusterHandlers;
 
   return &self->zval;
 }
 
 void
-php_driver_define_DefaultCluster(zend_class_entry* cluster_interface)
+PhpDriverDefineDefaultCluster(zend_class_entry* cluster_interface)
 {
-  php_driver_default_cluster_ce                = register_class_Cassandra_DefaultCluster(cluster_interface);
-  php_driver_default_cluster_ce->create_object = php_driver_default_cluster_new;
+  phpDriverDefaultClusterCe                = register_class_Cassandra_Cluster_DefaultCluster(cluster_interface);
+  phpDriverDefaultClusterCe->create_object = PhpDriverDefaultClusterNew;
 
-  memcpy(&php_driver_default_cluster_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_default_cluster_handlers.get_properties = php_driver_default_cluster_properties;
-  php_driver_default_cluster_handlers.compare        = php_driver_default_cluster_compare;
-  php_driver_default_cluster_handlers.free_obj       = php_driver_default_cluster_free;
-  php_driver_default_cluster_handlers.offset         = XtOffsetOf(php_driver_cluster, zval);
+  memcpy(&phpDriverDefaultClusterHandlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+  phpDriverDefaultClusterHandlers.get_properties = PhpDriverDefaultClusterProperties;
+  phpDriverDefaultClusterHandlers.compare        = PhpDriverDefaultClusterCompare;
+  phpDriverDefaultClusterHandlers.free_obj       = PhpDriverDefaultClusterFree;
+  phpDriverDefaultClusterHandlers.offset         = XtOffsetOf(PhpDriverCluster, zval);
 }

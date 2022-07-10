@@ -1,5 +1,7 @@
 #pragma once
-#include "php_driver.h"
+
+#include <cassandra.h>
+#include <php.h>
 
 #include <CassandraDriver.h>
 
@@ -13,18 +15,18 @@ typedef struct {
   char* hash_key;
   int hash_key_len;
   zend_object zval;
-} php_driver_cluster;
+} PhpDriverCluster;
 
 typedef enum {
   LOAD_BALANCING_DEFAULT = 0,
   LOAD_BALANCING_ROUND_ROBIN,
   LOAD_BALANCING_DC_AWARE_ROUND_ROBIN
-} php_driver_load_balancing;
+} PhpDriverLoadBalancing;
 
 typedef struct {
   char* contact_points;
   int port;
-  php_driver_load_balancing load_balancing_policy;
+  PhpDriverLoadBalancing load_balancing_policy;
   char* local_dc;
   unsigned int used_hosts_per_remote_dc;
   cass_bool_t allow_remote_dcs_for_local_cl;
@@ -58,16 +60,18 @@ typedef struct {
   cass_bool_t enable_randomized_contact_points;
   unsigned int connection_heartbeat_interval;
   zend_object zval;
-} php_driver_cluster_builder;
+} PhpDriverClusterBuilder;
 
-#define PHP_DRIVER_CLUSTER_OBJECT(obj) PHP_DRIVER_OBJECT(php_driver_cluster, obj)
-#define PHP_DRIVER_CLUSTER_ZVAL_TO_OBJECT(obj) PHP_DRIVER_ZVAL_TO_OBJECT(php_driver_cluster, obj)
-#define PHP_DRIVER_CLUSTER_THIS() PHP_DRIVER_THIS(php_driver_cluster)
+#define PHP_DRIVER_CLUSTER_OBJECT(obj) PHP_DRIVER_OBJECT(PhpDriverCluster, obj)
+#define PHP_DRIVER_CLUSTER_ZVAL_TO_OBJECT(obj) PHP_DRIVER_ZVAL_TO_OBJECT(PhpDriverCluster, obj)
+#define PHP_DRIVER_CLUSTER_THIS() PHP_DRIVER_THIS(PhpDriverCluster)
 
-#define PHP_DRIVER_CLUSTER_BUILDER_OBJECT(obj) PHP_DRIVER_OBJECT(php_driver_cluster_builder, obj)
-#define PHP_DRIVER_CLUSTER_BUILDER_ZVAL_TO_OBJECT(obj) PHP_DRIVER_ZVAL_TO_OBJECT(php_driver_cluster_builder, obj)
-#define PHP_DRIVER_CLUSTER_BUILDER_THIS() PHP_DRIVER_THIS(php_driver_cluster_builder)
+#define PHP_DRIVER_CLUSTER_BUILDER_OBJECT(obj) PHP_DRIVER_OBJECT(PhpDriverClusterBuilder, obj)
+#define PHP_DRIVER_CLUSTER_BUILDER_ZVAL_TO_OBJECT(obj) PHP_DRIVER_ZVAL_TO_OBJECT(PhpDriverClusterBuilder, obj)
+#define PHP_DRIVER_CLUSTER_BUILDER_THIS() PHP_DRIVER_THIS(PhpDriverClusterBuilder)
 
-extern PHP_DRIVER_API zend_class_entry* php_driver_cluster_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_default_cluster_ce;
-extern PHP_DRIVER_API zend_class_entry* php_driver_cluster_builder_ce;
+extern PHP_DRIVER_API zend_class_entry* phpDriverClusterInterfaceCe;
+extern PHP_DRIVER_API zend_class_entry* phpDriverDefaultClusterCe;
+extern PHP_DRIVER_API zend_class_entry* phpDriverClusterBuilderCe;
+
+void PhpDriverDefineCluster();

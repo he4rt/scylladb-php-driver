@@ -16,7 +16,7 @@
 
 #include <Futures/Futures.h>
 #include <RetryPolicy/RetryPolicy.h>
-#include <Types/Numeric/Numeric.h>
+#include <Types/Numerics/Numerics.h>
 
 #include "php_driver.h"
 #include "php_driver_globals.h"
@@ -76,23 +76,23 @@ bind_argument_by_index(CassStatement* statement, size_t index, zval* value)
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_float_ce)) {
-      php_driver_numeric* float_number = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverFloatCe)) {
+      PhpDriverNumeric* float_number = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_float(statement, index, float_number->data.floating.value));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_bigint_ce)) {
-      php_driver_numeric* bigint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverBigintCe)) {
+      PhpDriverNumeric* bigint = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_int64(statement, index, bigint->data.bigint.value));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_smallint_ce)) {
-      php_driver_numeric* smallint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverSmallintCe)) {
+      PhpDriverNumeric* smallint = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_int16(statement, index, smallint->data.smallint.value));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_tinyint_ce)) {
-      php_driver_numeric* tinyint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverTinyintCe)) {
+      PhpDriverNumeric* tinyint = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_int8(statement, index, tinyint->data.tinyint.value));
     }
 
@@ -116,8 +116,8 @@ bind_argument_by_index(CassStatement* statement, size_t index, zval* value)
       CHECK_RESULT(cass_statement_bind_bytes(statement, index, blob->data, blob->size));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_varint_ce)) {
-      php_driver_numeric* varint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverVarintCe)) {
+      PhpDriverNumeric* varint = PHP_DRIVER_NUMERIC_OBJECT(value);
       size_t size;
       cass_byte_t* data = export_twos_complement(varint->data.varint.value, &size);
       CassError rc      = cass_statement_bind_bytes(statement, index, data, size);
@@ -125,8 +125,8 @@ bind_argument_by_index(CassStatement* statement, size_t index, zval* value)
       CHECK_RESULT(rc);
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_decimal_ce)) {
-      php_driver_numeric* decimal = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverDecimalCe)) {
+      PhpDriverNumeric* decimal = PHP_DRIVER_NUMERIC_OBJECT(value);
       size_t size;
       cass_byte_t* data = (cass_byte_t*) export_twos_complement(decimal->data.decimal.value, &size);
       CassError rc      = cass_statement_bind_decimal(statement, index, data, size, decimal->data.decimal.scale);
@@ -238,23 +238,23 @@ bind_argument_by_name(CassStatement* statement, const char* name, zval* value)
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_float_ce)) {
-      php_driver_numeric* float_number = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverFloatCe)) {
+      PhpDriverNumeric* float_number = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_float_by_name(statement, name, float_number->data.floating.value));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_bigint_ce)) {
-      php_driver_numeric* bigint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverBigintCe)) {
+      PhpDriverNumeric* bigint = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_int64_by_name(statement, name, bigint->data.bigint.value));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_smallint_ce)) {
-      php_driver_numeric* smallint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverSmallintCe)) {
+      PhpDriverNumeric* smallint = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_int16_by_name(statement, name, smallint->data.smallint.value));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_tinyint_ce)) {
-      php_driver_numeric* tinyint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverTinyintCe)) {
+      PhpDriverNumeric* tinyint = PHP_DRIVER_NUMERIC_OBJECT(value);
       CHECK_RESULT(cass_statement_bind_int8_by_name(statement, name, tinyint->data.tinyint.value));
     }
 
@@ -278,8 +278,8 @@ bind_argument_by_name(CassStatement* statement, const char* name, zval* value)
       CHECK_RESULT(cass_statement_bind_bytes_by_name(statement, name, blob->data, blob->size));
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_varint_ce)) {
-      php_driver_numeric* varint = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverVarintCe)) {
+      PhpDriverNumeric* varint = PHP_DRIVER_NUMERIC_OBJECT(value);
       size_t size;
       cass_byte_t* data = (cass_byte_t*) export_twos_complement(varint->data.varint.value, &size);
       CassError rc      = cass_statement_bind_bytes_by_name(statement, name, data, size);
@@ -287,8 +287,8 @@ bind_argument_by_name(CassStatement* statement, const char* name, zval* value)
       CHECK_RESULT(rc);
     }
 
-    if (instanceof_function(Z_OBJCE_P(value), php_driver_decimal_ce)) {
-      php_driver_numeric* decimal = PHP_DRIVER_NUMERIC_OBJECT(value);
+    if (instanceof_function(Z_OBJCE_P(value), phpDriverDecimalCe)) {
+      PhpDriverNumeric* decimal = PHP_DRIVER_NUMERIC_OBJECT(value);
       size_t size;
       cass_byte_t* data = (cass_byte_t*) export_twos_complement(decimal->data.decimal.value, &size);
       CassError rc      = cass_statement_bind_decimal_by_name(statement, name, data, size, decimal->data.decimal.scale);

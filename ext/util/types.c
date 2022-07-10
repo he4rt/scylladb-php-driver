@@ -18,6 +18,16 @@
 #include "php_driver.h"
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
+
+#include <Types/Numerics/Numerics.h>
+
+#include "src/Types/Numerics/Bigint/Bigint.h"
+#include "src/Types/Numerics/Float/Float.h"
+#include "src/Types/Numerics/Smallint/Smallint.h"
+#include "src/Types/Numerics/Tinyint/Tinyint.h"
+#include "src/Types/Numerics/Varint/Varint.h"
+#include "src/Types/Numerics/Decimal/Decimal.h"
+
 #include "src/Type/Tuple.h"
 #include "src/Type/UserType.h"
 #include "src/Types/Blob/Blob.h"
@@ -29,13 +39,6 @@
 #include "src/Types/UUID/Timeuuid.h"
 
 #include "src/Types/UUID/Uuid.h"
-
-#include "src/Types/Numeric/Bigint/Bigint.h"
-#include "src/Types/Numeric/Decimal/Decimal.h"
-#include "src/Types/Numeric/Float/Float.h"
-#include "src/Types/Numeric/Smallint/Smallint.h"
-#include "src/Types/Numeric/Tinyint/Tinyint.h"
-#include "src/Types/Numeric/Varint/Varint.h"
 
 #include <zend_smart_str.h>
 
@@ -583,11 +586,11 @@ php_driver_boolean_init(INTERNAL_FUNCTION_PARAMETERS)
   RETURN_BOOL(value);
 }
 
-static void
-php_driver_counter_init(INTERNAL_FUNCTION_PARAMETERS)
-{
-  php_driver_bigint_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
-}
+//static void
+//php_driver_counter_init(INTERNAL_FUNCTION_PARAMETERS)
+//{
+//  php_driver_bigint_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+//}
 
 static void
 php_driver_double_init(INTERNAL_FUNCTION_PARAMETERS)
@@ -613,29 +616,132 @@ php_driver_int_init(INTERNAL_FUNCTION_PARAMETERS)
   RETURN_LONG(value);
 }
 
-static void
-php_driver_text_init(INTERNAL_FUNCTION_PARAMETERS)
-{
-  php_driver_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
-}
-
-#define TYPE_INIT_METHOD(t) php_driver_##t##_init
+//static void
+//php_driver_text_init(INTERNAL_FUNCTION_PARAMETERS)
+//{
+//  php_driver_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+//}
 
 void
-php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS)
+PhpDriverScalarInit(INTERNAL_FUNCTION_PARAMETERS)
 {
   php_driver_type* self = PHP_DRIVER_GET_TYPE(getThis());
 
-#define XX_SCALAR(name, value)          \
-  if (self->type == value) {            \
-    TYPE_INIT_METHOD(name)              \
-    (INTERNAL_FUNCTION_PARAM_PASSTHRU); \
+  switch (self->type) {
+  case CASS_VALUE_TYPE_ASCII: {
+    php_driver_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    break;
   }
-  PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
-#undef XX_SCALAR
-}
-#undef TYPE_INIT_METHOD
+  case CASS_VALUE_TYPE_BIGINT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_UNKNOWN: {
+    break;
+  }
+  case CASS_VALUE_TYPE_CUSTOM: {
+    break;
+  }
+  case CASS_VALUE_TYPE_BLOB: {
+    break;
+  }
+  case CASS_VALUE_TYPE_BOOLEAN: {
+    break;
+  }
+  case CASS_VALUE_TYPE_COUNTER: {
+    break;
+  }
+  case CASS_VALUE_TYPE_DECIMAL: {
+    break;
+  }
+  case CASS_VALUE_TYPE_DOUBLE: {
+    break;
+  }
+  case CASS_VALUE_TYPE_FLOAT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_INT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_TEXT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_TIMESTAMP: {
+    break;
+  }
+  case CASS_VALUE_TYPE_UUID: {
+    break;
+  }
+  case CASS_VALUE_TYPE_VARCHAR: {
+    break;
+  }
+  case CASS_VALUE_TYPE_VARINT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_TIMEUUID: {
+    break;
+  }
+  case CASS_VALUE_TYPE_INET: {
+    break;
+  }
+  case CASS_VALUE_TYPE_DATE: {
+    break;
+  }
+  case CASS_VALUE_TYPE_TIME: {
+    break;
+  }
+  case CASS_VALUE_TYPE_SMALL_INT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_TINY_INT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_DURATION: {
+    break;
+  }
+  case CASS_VALUE_TYPE_LIST: {
+    break;
+  }
+  case CASS_VALUE_TYPE_MAP: {
+    break;
+  }
+  case CASS_VALUE_TYPE_SET: {
+    break;
+  }
+  case CASS_VALUE_TYPE_UDT: {
+    break;
+  }
+  case CASS_VALUE_TYPE_TUPLE: {
+    break;
+  }
+  case CASS_VALUE_TYPE_LAST_ENTRY: {
+    break;
+  }
+  }
 
+  //  XX(ascii, CASS_VALUE_TYPE_ASCII) \
+//  XX(bigint, CASS_VALUE_TYPE_BIGINT) \
+//  XX(smallint, CASS_VALUE_TYPE_SMALL_INT) \
+//  XX(tinyint, CASS_VALUE_TYPE_TINY_INT) \
+//  XX(blob, CASS_VALUE_TYPE_BLOB) \
+//  XX(boolean, CASS_VALUE_TYPE_BOOLEAN) \
+//  XX(counter, CASS_VALUE_TYPE_COUNTER) \
+//  XX(decimal, CASS_VALUE_TYPE_DECIMAL) \
+//  XX(double, CASS_VALUE_TYPE_DOUBLE) \
+//  XX(duration, CASS_VALUE_TYPE_DURATION) \
+//  XX(float, CASS_VALUE_TYPE_FLOAT) \
+//  XX(int, CASS_VALUE_TYPE_INT) \
+//  XX(text, CASS_VALUE_TYPE_TEXT) \
+//  XX(timestamp, CASS_VALUE_TYPE_TIMESTAMP) \
+//  XX(date, CASS_VALUE_TYPE_DATE) \
+//  XX(time, CASS_VALUE_TYPE_TIME) \
+//  XX(uuid, CASS_VALUE_TYPE_UUID) \
+//  XX(varchar, CASS_VALUE_TYPE_VARCHAR) \
+//  XX(varint, CASS_VALUE_TYPE_VARINT) \
+//  XX(timeuuid, CASS_VALUE_TYPE_TIMEUUID) \
+//  XX(inet, CASS_VALUE_TYPE_INET)
+
+
+}
 #define TYPE_CODE(m) type_##m
 
 zval
@@ -729,11 +835,7 @@ php_driver_type_set(zval* value_type)
     cass_data_type_add_sub_type(set->data_type, sub_type->data_type);
   }
 
-#if PHP_MAJOR_VERSION >= 7
   set->data.set.value_type = *value_type;
-#else
-  set->data.set.value_type = value_type;
-#endif
 
   return ztype;
 }

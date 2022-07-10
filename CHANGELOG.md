@@ -19,6 +19,8 @@
 * TimestampGenerators moved to namespace Cassandra\TimestampGenerators
 * Monotonic timestamp generator renamed to MonotonicGenerator
 * ServerSide timestamp generator renamed to ServerSideGenerator
+* Cluster renamed to ClusterInterface
+* ClusterInterface moved to namespace Cassandra\Cluster
 
 ### Breaking changes in Drivers source code
 

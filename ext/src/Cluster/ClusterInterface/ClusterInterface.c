@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-#include <cassandra.h>
+#include <CassandraDriverAPI.h>
 #include <php.h>
 
-int php_driver_future_wait_timed(CassFuture* future, zval* timeout);
-int php_driver_future_is_error(CassFuture* future);
+#include "ClusterInterface.h"
+#include "ClusterInterface_arginfo.h"
+
+PHP_DRIVER_API zend_class_entry* phpDriverClusterInterfaceCe = NULL;
+
+void
+PhpDriverDefineClusterInterface()
+{
+  phpDriverClusterInterfaceCe = register_class_Cassandra_Cluster();
+}

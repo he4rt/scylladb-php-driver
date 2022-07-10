@@ -21,10 +21,11 @@
 #include "php_driver_types.h"
 #include "version.h"
 
-#include "include/TimestampGenerators/TimestampGenerators.h"
+#include <Cluster/Cluster.h>
 #include <Exception/Exceptions.h>
+#include <Types/Numerics/Numerics.h>
+#include <TimestampGenerators/TimestampGenerators.h>
 
-#include "src/Cluster/Cluster.h"
 #include "src/Futures/Futures.h"
 #include "src/Types/Value.h"
 
@@ -112,11 +113,13 @@ php_driver_cluster_dtor(zend_resource* rsrc)
 }
 
 static int le_php_driver_session_res;
+
 int
 php_le_php_driver_session()
 {
   return le_php_driver_session_res;
 }
+
 static void
 php_driver_session_dtor(zend_resource* rsrc)
 {
@@ -490,7 +493,7 @@ PHP_MINIT_FUNCTION(php_driver)
   PhpDriverDefineExceptions();
 
   php_driver_define_Value();
-  php_driver_define_Numeric(php_driver_value_ce);
+  PhpDriverDefineNumerics(php_driver_value_ce);
   php_driver_define_Blob();
   php_driver_define_Inet();
   php_driver_define_Timestamp();
@@ -508,7 +511,7 @@ PHP_MINIT_FUNCTION(php_driver)
   php_driver_define_UserTypeValue();
 
   php_driver_define_Core();
-  php_driver_define_Cluster();
+  PhpDriverDefineCluster();
   php_driver_define_Future();
   php_driver_define_Session();
   php_driver_define_DefaultSession();
@@ -550,6 +553,7 @@ PHP_MINIT_FUNCTION(php_driver)
   PhpDriverDefineRetryPolicy();
 
   PhpDriverDefineTimestampGenerators();
+
   return SUCCESS;
 }
 

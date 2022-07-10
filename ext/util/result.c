@@ -1,28 +1,7 @@
-/**
- * Copyright 2015-2017 DataStax, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
-
-
-#include <Types/Numeric/Numeric.h>
 
 #include "math.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "result.h"
 #include "src/Types/Container/Collection/Collection.h"
 #include "src/Types/Container/Map/Map.h"
 #include "src/Types/Container/Set/Set.h"
@@ -30,8 +9,10 @@
 #include "src/Types/UserTypeValue/UserTypeValue.h"
 #include "types.h"
 
+#include <Types/Numerics/Numerics.h>
+
 int
-php_driver_value(const CassValue* value, const CassDataType* data_type, zval* out)
+PhpDriverValue(const CassValue* value, const CassDataType* data_type, zval* out)
 {
   const char* v_string;
   size_t v_string_len;
@@ -45,7 +26,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
   cass_double_t v_double;
   php_driver_uuid* uuid;
   CassIterator* iterator;
-  php_driver_numeric* numeric                 = NULL;
+  PhpDriverNumeric* numeric                   = NULL;
   php_driver_timestamp* timestamp             = NULL;
   php_driver_date* date                       = NULL;
   php_driver_time* time                       = NULL;
@@ -64,7 +45,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
   const CassDataType* secondary_type;
 
   if (cass_value_is_null(value)) {
-    ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    ZVAL_NULL(out);
     return SUCCESS;
   }
 
@@ -75,31 +56,31 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
     ASSERT_SUCCESS_BLOCK(cass_value_get_string(value, &v_string, &v_string_len),
                          zval_ptr_dtor(out);
                          return FAILURE;);
-    ZVAL_STRINGL(PHP5TO7_ZVAL_MAYBE_DEREF(out), v_string, v_string_len);
+    ZVAL_STRINGL(out, v_string, v_string_len);
     break;
   case CASS_VALUE_TYPE_INT:
     ASSERT_SUCCESS_BLOCK(cass_value_get_int32(value, &v_int_32),
                          zval_ptr_dtor(out);
                          return FAILURE;);
-    ZVAL_LONG(PHP5TO7_ZVAL_MAYBE_DEREF(out), v_int_32);
+    ZVAL_LONG(out, v_int_32);
     break;
   case CASS_VALUE_TYPE_COUNTER:
   case CASS_VALUE_TYPE_BIGINT:
-    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_bigint_ce);
-    numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
+    object_init_ex(out, phpDriverBigintCe);
+    numeric = PHP_DRIVER_NUMERIC_OBJECT(out);
     ASSERT_SUCCESS_BLOCK(cass_value_get_int64(value, &numeric->data.bigint.value),
                          zval_ptr_dtor(out);
                          return FAILURE;)
     break;
   case CASS_VALUE_TYPE_SMALL_INT:
-    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_smallint_ce);
+    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), phpDriverSmallintCe);
     numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_int16(value, &numeric->data.smallint.value),
                          zval_ptr_dtor(out);
                          return FAILURE;)
     break;
   case CASS_VALUE_TYPE_TINY_INT:
-    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_tinyint_ce);
+    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), phpDriverTinyintCe);
     numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_int8(value, &numeric->data.tinyint.value),
                          zval_ptr_dtor(out);
@@ -137,7 +118,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
     memcpy(blob->data, v_bytes, v_bytes_len);
     break;
   case CASS_VALUE_TYPE_VARINT:
-    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_varint_ce);
+    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), phpDriverVarintCe);
     numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_bytes(value, &v_bytes, &v_bytes_len),
                          zval_ptr_dtor(out);
@@ -176,7 +157,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
                          return FAILURE;)
     break;
   case CASS_VALUE_TYPE_DECIMAL:
-    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_decimal_ce);
+    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), phpDriverDecimalCe);
     numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_decimal(value, &v_decimal, &v_decimal_len, &v_decimal_scale),
                          zval_ptr_dtor(out);
@@ -198,7 +179,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
     ZVAL_DOUBLE(PHP5TO7_ZVAL_MAYBE_DEREF(out), v_double);
     break;
   case CASS_VALUE_TYPE_FLOAT:
-    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), php_driver_float_ce);
+    object_init_ex(PHP5TO7_ZVAL_MAYBE_DEREF(out), phpDriverFloatCe);
     numeric = PHP_DRIVER_NUMERIC_OBJECT(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     ASSERT_SUCCESS_BLOCK(cass_value_get_float(value, &numeric->data.floating.value),
                          zval_ptr_dtor(out);
@@ -216,7 +197,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
     while (cass_iterator_next(iterator)) {
       zval v;
 
-      if (php_driver_value(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE) {
+      if (PhpDriverValue(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE) {
         cass_iterator_free(iterator);
         zval_ptr_dtor(out);
         return FAILURE;
@@ -242,7 +223,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
       zval k;
       zval v;
 
-      if (php_driver_value(cass_iterator_get_map_key(iterator), primary_type, &k) == FAILURE || php_driver_value(cass_iterator_get_map_value(iterator), secondary_type, &v) == FAILURE) {
+      if (PhpDriverValue(cass_iterator_get_map_key(iterator), primary_type, &k) == FAILURE || PhpDriverValue(cass_iterator_get_map_value(iterator), secondary_type, &v) == FAILURE) {
         cass_iterator_free(iterator);
         zval_ptr_dtor(out);
         return FAILURE;
@@ -267,7 +248,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
     while (cass_iterator_next(iterator)) {
       zval v;
 
-      if (php_driver_value(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE) {
+      if (PhpDriverValue(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE) {
         cass_iterator_free(iterator);
         zval_ptr_dtor(out);
         return FAILURE;
@@ -295,7 +276,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
         zval v;
 
         primary_type = cass_data_type_sub_data_type(data_type, index);
-        if (php_driver_value(value, primary_type, &v) == FAILURE) {
+        if (PhpDriverValue(value, primary_type, &v) == FAILURE) {
           cass_iterator_free(iterator);
           zval_ptr_dtor(out);
           return FAILURE;
@@ -328,7 +309,7 @@ php_driver_value(const CassValue* value, const CassDataType* data_type, zval* ou
         zval v;
 
         primary_type = cass_data_type_sub_data_type(data_type, index);
-        if (php_driver_value(value, primary_type, &v) == FAILURE) {
+        if (PhpDriverValue(value, primary_type, &v) == FAILURE) {
           cass_iterator_free(iterator);
           zval_ptr_dtor(out);
           return FAILURE;
@@ -362,12 +343,11 @@ php_driver_get_keyspace_field(const CassKeyspaceMeta* metadata, const char* fiel
   value = cass_keyspace_meta_field_by_name(metadata, field_name);
 
   if (value == NULL || cass_value_is_null(value)) {
-
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     return SUCCESS;
   }
 
-  return php_driver_value(value, cass_value_data_type(value), out);
+  return PhpDriverValue(value, cass_value_data_type(value), out);
 }
 
 int
@@ -378,12 +358,11 @@ php_driver_get_table_field(const CassTableMeta* metadata, const char* field_name
   value = cass_table_meta_field_by_name(metadata, field_name);
 
   if (value == NULL || cass_value_is_null(value)) {
-
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     return SUCCESS;
   }
 
-  return php_driver_value(value, cass_value_data_type(value), out);
+  return PhpDriverValue(value, cass_value_data_type(value), out);
 }
 
 int
@@ -394,12 +373,11 @@ php_driver_get_column_field(const CassColumnMeta* metadata, const char* field_na
   value = cass_column_meta_field_by_name(metadata, field_name);
 
   if (value == NULL || cass_value_is_null(value)) {
-
     ZVAL_NULL(PHP5TO7_ZVAL_MAYBE_DEREF(out));
     return SUCCESS;
   }
 
-  return php_driver_value(value, cass_value_data_type(value), out);
+  return PhpDriverValue(value, cass_value_data_type(value), out);
 }
 
 int
@@ -417,7 +395,6 @@ php_driver_get_result(const CassResult* result, zval* out)
   char** column_names;
   unsigned i;
 
-
   array_init(PHP5TO7_ZVAL_MAYBE_P(rows));
 
   iterator = cass_iterator_from_result(result);
@@ -426,7 +403,6 @@ php_driver_get_result(const CassResult* result, zval* out)
   column_names = (char**) ecalloc(columns, sizeof(char*));
 
   while (cass_iterator_next(iterator)) {
-
     array_init(PHP5TO7_ZVAL_MAYBE_P(row));
     cass_row = cass_iterator_get_row(iterator);
 
@@ -441,7 +417,7 @@ php_driver_get_result(const CassResult* result, zval* out)
       column_type  = cass_result_column_data_type(result, i);
       column_value = cass_row_get_column(cass_row, i);
 
-      if (php_driver_value(column_value, column_type, &value) == FAILURE) {
+      if (PhpDriverValue(column_value, column_type, &value) == FAILURE) {
         zval_ptr_dtor(&row);
         zval_ptr_dtor(&rows);
 
