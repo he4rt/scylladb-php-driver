@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/future.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+#include <util/future.h>
+
 BEGIN_EXTERN_C()
 zend_class_entry *php_driver_future_prepared_statement_ce = NULL;
 

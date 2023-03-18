@@ -4,7 +4,7 @@
 
 #include "ByteIterator.h"
 
-namespace Zend
+namespace ZendCPP
 {
 using string =
   // TODO: Implement Forward iterator

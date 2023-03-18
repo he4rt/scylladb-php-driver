@@ -15,8 +15,9 @@
  */
 
 #include <php_driver.h>
-#include <php_driver_globals.h>
 #include <php_driver_types.h>
+#include <classes.h>
+#include <php_driver_globals.h>
 #include <zend_smart_str.h>
 
 #include "src/Bigint.h"

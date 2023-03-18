@@ -16,7 +16,7 @@ namespace Cassandra\Cluster {
         {
         }
 
-        public function withDefaultTimeout(float $timeout): Builder
+        public function withDefaultTimeout(?float $timeout): Builder
         {
         }
 

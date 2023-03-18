@@ -104,7 +104,6 @@ compile_php() {
         --with-gettext
         --with-mysqli
         --with-sodium
-        --enable-phar=shared
     )
 
     local OUTPUT_PATH=""
@@ -117,7 +116,7 @@ compile_php() {
     fi
 
     if [[ "$ENABLE_SANITIZERS" == "yes" ]]; then
-        config+=("--enable-address-sanitizer" "--enable-undefined-sanitizer")
+        config+=("--enable-address-sanitizer")
     fi
 
     {

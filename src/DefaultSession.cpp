@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <php_driver.h>
-#include <php_driver_globals.h>
 #include <php_driver_types.h>
+#include <classes.h>
+#include <php_driver_globals.h>
 
 #include <util/collections.h>
 #include <util/future.h>
 #include <util/math.h>
 #include <util/ref.h>
 #include <util/result.h>
+
+#include "src/initilizer.h"
 
 #include "ExecutionOptions.h"
 BEGIN_EXTERN_C()

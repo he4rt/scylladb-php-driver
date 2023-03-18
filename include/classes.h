@@ -1,0 +1,123 @@
+#pragma once
+
+#include <zend_types.h>
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#define PHP_DRIVER_API __attribute__((visibility("default")))
+#else
+#define PHP_DRIVER_API
+#endif
+
+BEGIN_EXTERN_C()
+extern PHP_DRIVER_API zend_class_entry *php_driver_timestamp_gen_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_timestamp_gen_monotonic_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_timestamp_gen_server_side_ce;
+
+extern PHP_DRIVER_API zend_class_entry *php_driver_retry_policy_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_retry_policy_default_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_retry_policy_downgrading_consistency_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_retry_policy_fallthrough_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_retry_policy_logging_ce;
+
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_scalar_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_collection_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_set_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_map_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_tuple_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_user_type_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_type_custom_ce;
+
+extern PHP_DRIVER_API zend_class_entry *php_driver_value_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_numeric_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_bigint_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_smallint_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_tinyint_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_blob_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_decimal_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_float_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_inet_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_timestamp_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_date_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_time_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_uuid_interface_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_uuid_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_timeuuid_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_varint_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_custom_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_duration_ce;
+
+extern PHP_DRIVER_API zend_class_entry *php_driver_set_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_map_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_collection_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_tuple_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_user_type_value_ce;
+
+
+extern PHP_DRIVER_API zend_class_entry *php_driver_schema_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_schema_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_keyspace_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_keyspace_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_table_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_table_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_column_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_column_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_index_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_index_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_materialized_view_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_materialized_view_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_function_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_function_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_aggregate_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_aggregate_ce;
+
+/* Classes */
+extern PHP_DRIVER_API zend_class_entry *php_driver_core_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_cluster_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_cluster_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_cluster_builder_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_cluster_builder_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_ssl_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_ssl_builder_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_future_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_future_prepared_statement_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_future_rows_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_future_session_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_future_value_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_future_close_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_session_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_default_session_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_runtime_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_timeout_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_logic_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_domain_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_invalid_argument_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_server_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_overloaded_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_is_bootstrapping_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_execution_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_truncate_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_write_timeout_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_read_timeout_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_truncate_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_unavailable_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_validation_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_invalid_syntax_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_unauthorized_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_invalid_query_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_configuration_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_already_exists_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_unprepared_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_protocol_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_authentication_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_divide_by_zero_exception_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_range_exception_ce;
+
+extern PHP_DRIVER_API zend_class_entry *php_driver_statement_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_simple_statement_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_prepared_statement_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_batch_statement_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_execution_options_ce;
+extern PHP_DRIVER_API zend_class_entry *php_driver_rows_ce;
+END_EXTERN_C()

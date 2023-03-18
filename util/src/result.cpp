@@ -16,6 +16,8 @@
 
 #include <php_driver.h>
 #include <php_driver_types.h>
+#include <classes.h>
+
 
 #include <util/math.h>
 #include <util/result.h>

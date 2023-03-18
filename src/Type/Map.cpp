@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/types.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+#include <util/types.h>
+
 BEGIN_EXTERN_C()
 #if PHP_MAJOR_VERSION >= 7
 #include <zend_smart_str.h>

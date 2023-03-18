@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
 
 #include <ext/spl/spl_exceptions.h>
 BEGIN_EXTERN_C()

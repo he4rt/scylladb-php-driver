@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/math.h"
-#include "util/types.h"
-#include <float.h>
+#include <cfloat>
+
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+#include <util/math.h>
+#include <util/types.h>
 BEGIN_EXTERN_C()
 zend_class_entry *php_driver_float_ce = NULL;
 

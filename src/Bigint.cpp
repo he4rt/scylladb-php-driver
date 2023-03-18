@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/hash.h"
-#include "util/math.h"
-#include "util/types.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+#include <util/math.h>
+#include <util/types.h>
+
+
 BEGIN_EXTERN_C()
 #if !defined(HAVE_STDINT_H) && !defined(_MSC_STDINT_H_)
 #define INT64_MAX 9223372036854775807LL

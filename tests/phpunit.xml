@@ -6,10 +6,8 @@
 >
     <testsuites>
         <testsuite name="Test Suite">
-            <directory suffix="Test.php">./tests</directory>
+            <directory suffix="Test.php">./Unit</directory>
+            <directory suffix="Test.php">./Feature</directory>
         </testsuite>
     </testsuites>
-    <php>
-        <ini name="extension" value="cassandra.so" />
-    </php>
 </phpunit>

@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/hash.h"
-#include "util/types.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+#include <util/hash.h>
+#include <util/types.h>
 #include <ext/date/php_date.h>
-#include <time.h>
+
+#include <ctime>
+
 BEGIN_EXTERN_C()
 zend_class_entry *php_driver_date_ce = NULL;
 

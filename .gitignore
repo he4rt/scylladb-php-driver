@@ -3,7 +3,7 @@
 /.vagrant/
 /bin/
 /build/
-/vendor/
+vendor/
 /venv/
 out/
 Makefile
@@ -51,3 +51,4 @@ missing
 ex*.php
 debug.ini
 cassandra.log
+.idea/

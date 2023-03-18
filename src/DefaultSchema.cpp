@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/ref.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+#include <util/ref.h>
 BEGIN_EXTERN_C()
 zend_class_entry *php_driver_default_schema_ce = NULL;
 

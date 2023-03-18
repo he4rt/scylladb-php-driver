@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/ref.h"
-#include "util/result.h"
-#include "util/types.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+#include <util/ref.h>
+#include <util/result.h>
 
 #include "DefaultColumn.h"
 #include "DefaultMaterializedView.h"

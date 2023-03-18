@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Extension" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+  <configuration default="false" name="Extension" type="docker-deploy" factoryName="dockerfile">
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="ghcr.io/he4rt/scylladb-php-driver:8.2" />

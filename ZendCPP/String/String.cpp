@@ -3,7 +3,7 @@
 
 #include "String.h"
 
-namespace Zend
+namespace ZendCPP
 {
 String::String(const char *other, size_t len) noexcept
     : str(zend_string_init(other, len, false)) {}

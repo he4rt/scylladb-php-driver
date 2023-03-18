@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
 #include "src/UserTypeValue.h"
 #include "util/collections.h"
 #include "util/types.h"

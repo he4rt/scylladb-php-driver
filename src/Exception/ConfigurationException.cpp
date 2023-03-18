@@ -16,6 +16,8 @@
 
 #include <php_driver.h>
 #include <php_driver_types.h>
+#include <classes.h>
+
 
 BEGIN_EXTERN_C()
 

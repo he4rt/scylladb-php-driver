@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+
 BEGIN_EXTERN_C()
 zend_class_entry *php_driver_batch_statement_ce = NULL;
 

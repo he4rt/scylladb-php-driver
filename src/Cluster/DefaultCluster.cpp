@@ -17,6 +17,10 @@
 #include <php_driver.h>
 #include <php_driver_globals.h>
 #include <php_driver_types.h>
+#include <classes.h>
+
+#include "src/initilizer.h"
+
 #include <util/future.h>
 #include <util/ref.h>
 
@@ -64,7 +68,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
     if (!PHP5TO7_ZVAL_IS_UNDEF(session->default_timeout))
     {
-        PHP5TO7_ZVAL_COPY(PHP5TO7_ZVAL_MAYBE_P(session->default_timeout), PHP5TO7_ZVAL_MAYBE_P(self->default_timeout));
+        session->default_timeout = self->default_timeout;
     }
 
     if (session->persist)

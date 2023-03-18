@@ -11,7 +11,8 @@
   "minimum-stability": "stable",
   "autoload-dev": {
     "psr-4": {
-      "Cassandra\\Tests\\": "tests/"
+      "Cassandra\\Tests\\Unit\\": "Unit/",
+      "Cassandra\\Tests\\Feature\\": "Unit/"
     }
   },
   "require": {

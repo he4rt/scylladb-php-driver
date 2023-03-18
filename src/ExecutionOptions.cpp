@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "util/consistency.h"
-#include "util/math.h"
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <classes.h>
+
+#include <util/consistency.h>
+#include <util/math.h>
+
 BEGIN_EXTERN_C()
 zend_class_entry *php_driver_execution_options_ce = NULL;
 

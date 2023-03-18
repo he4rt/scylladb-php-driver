@@ -16,7 +16,9 @@
 
 #include <php_driver.h>
 #include <php_driver_types.h>
-#include <stdlib.h>
+#include <classes.h>
+
+#include <cstdlib>
 
 #include "inet.h"
 

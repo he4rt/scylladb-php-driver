@@ -27,12 +27,32 @@
 #define ZEND_OBJECT_OFFSET_MEMBER zval
 #endif
 
-namespace ZendCPP
-{
-template <typename T> ZENDCPP_ALWAYS_INLINE T *ObjectFetch(zend_object *obj)
-{
-    auto offset = reinterpret_cast<std::size_t>(&reinterpret_cast<T *>(0)->ZEND_OBJECT_OFFSET_MEMBER);
-    auto *casted = reinterpret_cast<T *>(reinterpret_cast<uint8_t *>(obj) - offset);
-    return casted;
+namespace ZendCPP {
+template <typename T> ZENDCPP_ALWAYS_INLINE T *ObjectFetch(zend_object *obj) {
+  auto offset = reinterpret_cast<std::size_t>(
+      &reinterpret_cast<T *>(0)->ZEND_OBJECT_OFFSET_MEMBER);
+  auto *casted =
+      reinterpret_cast<T *>(reinterpret_cast<uint8_t *>(obj) - offset);
+  return casted;
+}
+
+template <typename T> ZENDCPP_ALWAYS_INLINE T *ObjectFetch(zval *val) {
+  return ObjectFetch<T>(Z_OBJ_P(val));
+}
+
+template <typename T>
+ZENDCPP_ALWAYS_INLINE T *Allocate(zend_class_entry *ce,
+                                  zend_object_handlers *handlers) {
+  auto *self =
+      static_cast<T *>(emalloc(sizeof(T) + zend_object_properties_size(ce)));
+  zend_object_std_init(&self->ZEND_OBJECT_OFFSET_MEMBER, ce);
+
+  if (zend_object_properties_size(ce) > 0) {
+    object_properties_init(&self->ZEND_OBJECT_OFFSET_MEMBER, ce);
+  }
+
+  self->zval.handlers = handlers;
+
+  return self;
 }
 } // namespace ZendCPP
