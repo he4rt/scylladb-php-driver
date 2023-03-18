@@ -4,7 +4,7 @@ include(CheckCCompilerFlag)
 
 function(target_optimize target native_arch)
     if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-        target_compile_options(${target} PRIVATE -O0 -g -ggdb)
+        target_compile_options(${target} PRIVATE -O0 -g3 -ggdb -gdwarf-4)
     endif ()
 
     if (${CMAKE_BUILD_TYPE} MATCHES "Release")

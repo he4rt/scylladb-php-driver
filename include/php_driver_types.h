@@ -272,12 +272,17 @@ php_driver_user_type_value_object_fetch(zend_object *obj) {
                  ((size_t)(&(((php_driver_user_type_value *)0)->zval))));
 }
 
+typedef struct php_driver_optional_timeout_ {
+  bool is_set;
+  double timeout;
+} php_driver_optional_timeout;
+
 typedef struct php_driver_cluster_ {
   cass_byte_t *data;
   CassCluster *cluster;
   uint32_t default_consistency;
   uint32_t default_page_size;
-  zval default_timeout;
+  php_driver_optional_timeout default_timeout;
   cass_bool_t persist;
   char *hash_key;
   int hash_key_len;
@@ -456,7 +461,7 @@ typedef struct php_driver_cluster_builder_ {
   php_driver_retry_policy *retry_policy;
   php_driver_timestamp_gen *timestamp_gen;
   php_driver_ssl *ssl_options;
-  zval default_timeout;
+  php_driver_optional_timeout default_timeout;
   zend_object zval;
 } php_driver_cluster_builder;
 
@@ -542,7 +547,7 @@ typedef struct php_driver_session_ {
   int default_page_size;
   char *keyspace;
   char *hash_key;
-  php5to7_zval default_timeout;
+  php_driver_optional_timeout default_timeout;
   cass_bool_t persist;
   zend_object zval;
 } php_driver_session;
@@ -734,6 +739,5 @@ typedef struct {
   zend_object_handlers std;
   php_driver_value_hash_t hash_value;
 } php_driver_value_handlers;
-
 
 END_EXTERN_C()

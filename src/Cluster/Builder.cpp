@@ -20,10 +20,10 @@
 
 #include <ZendCPP/ZendCPP.hpp>
 
+#include <classes.h>
 #include <php_driver.h>
 #include <php_driver_globals.h>
 #include <php_driver_types.h>
-#include <classes.h>
 
 #include <util/consistency.h>
 
@@ -114,6 +114,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build) {
   php_driver_cluster *cluster = PHP_DRIVER_GET_CLUSTER(return_value);
 
   cluster->persist = self->persist ? cass_true : cass_false;
+  cluster->default_consistency = self->default_consistency;
   cluster->default_consistency = self->default_consistency;
   cluster->default_page_size = self->default_page_size;
 
@@ -315,7 +316,8 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout) {
   auto *self = ZendCPP::ObjectFetch<php_driver_cluster_builder>(getThis());
 
   if (is_null) {
-    ZVAL_UNDEF(&self->default_timeout);
+    self->default_timeout.is_set = false;
+    self->default_timeout.timeout = .0;
     RETURN_ZVAL(getThis(), 1, 0);
   }
 
@@ -326,7 +328,9 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout) {
     return;
   }
 
-  ZVAL_DOUBLE(&self->default_timeout, timeout);
+  self->default_timeout.is_set = true;
+  self->default_timeout.timeout = timeout;
+
   RETURN_ZVAL(getThis(), 1, 0);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withContactPoints) {

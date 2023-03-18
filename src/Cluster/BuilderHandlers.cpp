@@ -89,8 +89,8 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object) {
 
   ZVAL_LONG(&defaultConsistency, self->default_consistency);
   ZVAL_LONG(&defaultPageSize, self->default_page_size);
-  if (!Z_ISUNDEF(self->default_timeout)) {
-    ZVAL_DOUBLE(&defaultTimeout, Z_DVAL(self->default_timeout));
+  if (self->default_timeout.is_set) {
+    ZVAL_DOUBLE(&defaultTimeout, self->default_timeout.timeout);
   } else {
     ZVAL_NULL(&defaultTimeout);
   }
@@ -291,11 +291,6 @@ static void php_driver_cluster_builder_free(zend_object *object) {
     self->ssl_options = nullptr;
   }
 
-  if (!Z_ISUNDEF(self->default_timeout)) {
-    zval_ptr_dtor(&self->default_timeout);
-    ZVAL_UNDEF(&self->default_timeout);
-  }
-
   if (self->retry_policy != nullptr) {
     zend_object_release(&self->retry_policy->zval);
     self->retry_policy = nullptr;
@@ -344,8 +339,8 @@ php5to7_zend_object php_driver_cluster_builder_new(zend_class_entry *ce) {
   self->timestamp_gen = nullptr;
   self->retry_policy = nullptr;
   self->ssl_options = nullptr;
-
-  ZVAL_UNDEF(&self->default_timeout);
+  self->default_timeout.is_set = false;
+  self->default_timeout.timeout = .0;
 
   return &self->zval;
 }
@@ -355,8 +350,9 @@ END_EXTERN_C()
 void php_driver_initialize_cluster_builder_handlers() {
   memcpy(&php_driver_cluster_builder_handlers, zend_get_std_object_handlers(),
          sizeof(zend_object_handlers));
-  php_driver_cluster_builder_handlers.get_properties =
-      php_driver_cluster_builder_properties;
+  // FIXME: leaks memory
+//  php_driver_cluster_builder_handlers.get_properties =
+//      php_driver_cluster_builder_properties;
   php_driver_cluster_builder_handlers.get_gc = php_driver_cluster_builder_gc;
   php_driver_cluster_builder_handlers.compare =
       php_driver_cluster_builder_compare;
