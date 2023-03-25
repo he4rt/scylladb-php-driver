@@ -6,6 +6,7 @@ namespace Cassandra\Tests\Feature\Statements;
 
 use Cassandra;
 use Cassandra\BatchStatement;
+use Cassandra\Tests\Feature\Utils;
 use Cassandra\Uuid;
 
 /**
@@ -28,7 +29,7 @@ $keyspace = 'batch_statements';
 $table = 'playlists';
 
 beforeAll(function () use($keyspace, $table) {
-    migrateKeyspace(<<<CQL
+    Utils::migrateKeyspace(<<<CQL
     CREATE KEYSPACE $keyspace WITH replication = {
         'class': 'SimpleStrategy',
         'replication_factor': 1
@@ -47,11 +48,11 @@ beforeAll(function () use($keyspace, $table) {
 });
 
 afterAll(function () use ($keyspace) {
-    dropKeyspace($keyspace);
+    Utils::dropKeyspace($keyspace);
 });
 
 test('Batch statements can contain simple and prepared statements', function () use ($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $insertQuery = "INSERT INTO playlists (id, song_id, artist, title, album) " .
         "VALUES (62c36092-82a1-3a00-93d1-46196ee77204, ?, ?, ?, ?)";

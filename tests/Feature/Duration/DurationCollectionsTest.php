@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Cassandra\Tests\Feature\Duration;
 
 use Cassandra\Duration;
+use Cassandra\Tests\Feature\Utils;
 use Cassandra\Type;
 
 $keyspace = 'duration_colletions';
 
 beforeAll(function () use ($keyspace) {
-    migrateKeyspace(<<<CQL
+    Utils::migrateKeyspace(<<<CQL
     CREATE KEYSPACE $keyspace WITH replication = {
             'class': 'SimpleStrategy',
             'replication_factor': 1
@@ -26,11 +27,11 @@ beforeAll(function () use ($keyspace) {
 });
 
 afterAll(function () use ($keyspace) {
-    dropKeyspace($keyspace);
+    Utils::dropKeyspace($keyspace);
 });
 
 test('Use the duration type in collections', function () use($keyspace) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $list = Type::collection(Type::duration())->create(
         new Duration(1, 2, 3)

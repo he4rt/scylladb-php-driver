@@ -6,12 +6,13 @@ namespace Cassandra\Tests\Feature\Statements;
 
 use Cassandra;
 use Cassandra\BatchStatement;
+use Cassandra\Tests\Feature\Utils;
 
 $keyspace = 'simple_string_queries';
 $table = 'playlists';
 
 beforeAll(function () use($keyspace, $table) {
-    migrateKeyspace(<<<CQL
+    Utils::migrateKeyspace(<<<CQL
       
     CREATE KEYSPACE $keyspace WITH replication = {
         'class': 'SimpleStrategy',
@@ -44,11 +45,11 @@ beforeAll(function () use($keyspace, $table) {
 });
 
 afterAll(function () use($keyspace) {
-    dropKeyspace($keyspace);
+    Utils::dropKeyspace($keyspace);
 });
 
 test('A simple CQL string can be used to execute queries', function () use($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
     $result  = $session->execute("SELECT * FROM $table");
 
     $expectations = [
@@ -81,7 +82,7 @@ test('A simple CQL string can be used to execute queries', function () use($keys
 
 test('Simple CQL strings can also be used in batch statements',
     function () use ($keyspace, $table) {
-        $session = scyllaDbConnection($keyspace);
+        $session = Utils::scyllaDbConnection($keyspace);
 
         $batch = new BatchStatement(Cassandra::BATCH_UNLOGGED);
 

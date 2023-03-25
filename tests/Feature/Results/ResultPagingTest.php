@@ -2,6 +2,8 @@
 
 namespace Cassandra\Tests\Feature\Results;
 
+use Cassandra\Tests\Feature\Utils;
+
 /**
  * Starting with Cassandra native protocol v2 (used by Apache Cassandra 2.0),
  * paging through query results is allowed.
@@ -40,7 +42,7 @@ beforeAll(function () use ($keyspace, $table, $dataProvider) {
         $insertQuery .= "INSERT INTO $table (key, value) VALUES ('$key', $value);" . PHP_EOL;
     }
 
-    migrateKeyspace(<<<CQL
+    Utils::migrateKeyspace(<<<CQL
     CREATE KEYSPACE $keyspace WITH replication = {
         'class': 'SimpleStrategy',
         'replication_factor': 1
@@ -53,11 +55,11 @@ beforeAll(function () use ($keyspace, $table, $dataProvider) {
 });
 
 afterAll(function () use ($keyspace) {
-    dropKeyspace($keyspace);
+    Utils::dropKeyspace($keyspace);
 });
 
 it('Paging through results synchronously', function () use ($table, $keyspace, $dataProvider) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $options = ['page_size' => 5];
     $rows = $session->execute("SELECT * FROM $table", $options);
@@ -78,7 +80,7 @@ it('Paging through results synchronously', function () use ($table, $keyspace, $
 });
 
 it('Accessing page info after loading next one', function () use ($table, $keyspace, $dataProvider) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $options = ['page_size' => 10];
     $firstPageRows = $session->execute("SELECT * FROM $table", $options);
@@ -92,7 +94,7 @@ it('Accessing page info after loading next one', function () use ($table, $keysp
 });
 
 it('Use paging state token to get next result', function () use ($table, $keyspace, $dataProvider) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $query = "SELECT * FROM $table";
     $options = ['page_size' => 2];

@@ -2,13 +2,14 @@
 declare(strict_types=1);
 
 use Cassandra\SimpleStatement;
+use Cassandra\Tests\Feature\Utils;
 use Cassandra\Uuid;
 
 $keyspace = 'simple_statements';
 $table = 'playlists';
 
 beforeAll(function () use($keyspace, $table) {
-    migrateKeyspace(<<<CQL
+    Utils::migrateKeyspace(<<<CQL
     CREATE KEYSPACE $keyspace WITH replication = {
         'class': 'SimpleStrategy',
         'replication_factor': 1
@@ -27,18 +28,18 @@ beforeAll(function () use($keyspace, $table) {
 });
 
 afterAll(function () use($keyspace) {
-    dropKeyspace($keyspace);
+    Utils::dropKeyspace($keyspace);
 });
 
 test('Simple statements are initialized with a CQL string', function () use ($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
     $statement = new SimpleStatement("SELECT * FROM $table");
     $result    = $session->execute($statement);
     expect($result->count())->toBe(0);
 });
 
 test('Simple statements support positional arguments', function () use($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $statement = new SimpleStatement(
         "INSERT INTO $table (id, song_id, artist, title, album) " .
@@ -86,7 +87,7 @@ test('Simple statements support positional arguments', function () use($keyspace
 });
 
 test('Simple statements also support named arguments', function() use ($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $statement = new SimpleStatement(
         "INSERT INTO $table (id, song_id, artist, title, album) " .
@@ -133,7 +134,7 @@ test('Simple statements also support named arguments', function() use ($keyspace
 });
 
 test('Simple statements also supports ":name" arguments', function () use ($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $songs = [
         [

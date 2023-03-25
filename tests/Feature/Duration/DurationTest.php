@@ -8,8 +8,10 @@ use Cassandra\Duration;
 $keyspace = 'duration';
 $table = 'durations';
 
+use Cassandra\Tests\Feature\Utils;
+
 beforeAll(function () use ($keyspace, $table) {
-    migrateKeyspace(<<<CQL
+    Utils::migrateKeyspace(<<<CQL
     CREATE KEYSPACE $keyspace WITH replication = {
         'class': 'SimpleStrategy',
         'replication_factor': 1
@@ -21,11 +23,11 @@ beforeAll(function () use ($keyspace, $table) {
 });
 
 afterAll(function () use ($keyspace) {
-    dropKeyspace($keyspace);
+    Utils::dropKeyspace($keyspace);
 });
 
 test('Use the duration type', function () use($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $durations = [
         ['two_days', new Duration(2, 0, 0)],

@@ -12,7 +12,7 @@
   "autoload-dev": {
     "psr-4": {
       "Cassandra\\Tests\\Unit\\": "Unit/",
-      "Cassandra\\Tests\\Feature\\": "Unit/"
+      "Cassandra\\Tests\\Feature\\": "Feature/"
     }
   },
   "require": {

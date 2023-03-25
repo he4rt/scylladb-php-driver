@@ -13,12 +13,13 @@ use DateTimeInterface;
 use Cassandra\Timestamp;
 use Cassandra\Collection;
 use Cassandra\SimpleStatement;
+use Cassandra\Tests\Feature\Utils;
 
 $collections = 'collections_testing';
 $nestedCollections = 'nested_collections_testing';
 
 beforeAll(function () use ($collections, $nestedCollections) {
-    migrateKeyspace(
+    Utils::migrateKeyspace(
         <<<CQL
     CREATE KEYSPACE $collections WITH replication = {
         'class': 'SimpleStrategy',
@@ -40,7 +41,7 @@ beforeAll(function () use ($collections, $nestedCollections) {
     CQL
     );
 
-    migrateKeyspace(
+    Utils::migrateKeyspace(
         <<<CQL
         CREATE KEYSPACE $nestedCollections WITH replication = {
             'class': 'SimpleStrategy',
@@ -57,12 +58,12 @@ beforeAll(function () use ($collections, $nestedCollections) {
 });
 
 afterAll(function () use ($collections, $nestedCollections) {
-    dropKeyspace($collections);
-    dropKeyspace($nestedCollections);
+    Utils::dropKeyspace($collections);
+    Utils::dropKeyspace($nestedCollections);
 });
 
 test('Using Cassandra collections', function () use ($collections) {
-    $session = scyllaDbConnection($collections);
+    $session = Utils::scyllaDbConnection($collections);
 
     $statement = new SimpleStatement('SELECT * FROM user');
 
@@ -121,7 +122,7 @@ test('Using Cassandra collections', function () use ($collections) {
 
 
 it('Using Cassandra nested collections', function () use ($nestedCollections) {
-    $session = scyllaDbConnection($nestedCollections);
+    $session = Utils::scyllaDbConnection($nestedCollections);
 
     $address = new Map(\Cassandra\Type::text(), \Cassandra\Type::text());
     $addresses = new Map(\Cassandra\Type::text(), $address->type());

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Cassandra\Tests\Feature\DefinedTypes;
 
+use Cassandra\Tests\Feature\Utils;
 use Cassandra\Uuid;
 
 $keyspace = 'user_defined_types';
 $table = 'users';
 
 beforeAll(function () use($keyspace, $table) {
-    migrateKeyspace(<<<CQL
+    Utils:: migrateKeyspace(<<<CQL
         CREATE KEYSPACE $keyspace WITH replication = {
             'class': 'SimpleStrategy',
             'replication_factor': 1
@@ -28,12 +29,12 @@ beforeAll(function () use($keyspace, $table) {
 });
 
 afterAll(function () use($keyspace) {
-    dropKeyspace($keyspace);
+    Utils::dropKeyspace($keyspace);
 });
 
 it('Using Cassandra user defined types from schema metadata', function () use($keyspace, $table) {
 
-    $session = scyllaDbConnection($keyspace);
+    $session = Utils::scyllaDbConnection($keyspace);
 
     $keyspace = $session->schema()->keyspace('user_defined_types');
     $addressType = $keyspace->userType("address");

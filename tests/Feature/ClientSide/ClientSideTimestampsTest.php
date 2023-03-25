@@ -33,7 +33,7 @@ $dataProvider = [
 ];
 
 beforeAll(function () use ($keyspace, $table) {
-    migrateKeyspace(<<<CQL
+    Cassandra\Tests\Feature\Utils::migrateKeyspace(<<<CQL
     CREATE KEYSPACE $keyspace WITH replication = {
         'class': 'SimpleStrategy',
         'replication_factor': 1
@@ -52,11 +52,11 @@ beforeAll(function () use ($keyspace, $table) {
 });
 
 afterAll(function () use ($keyspace) {
-    dropKeyspace($keyspace);
+    Cassandra\Tests\Feature\Utils::dropKeyspace($keyspace);
 });
 
 it('Create a simple statement with a client-side timestamps', function () use ($table, $keyspace, $insertQuery, $dataProvider) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Cassandra\Tests\Feature\Utils::scyllaDbConnection($keyspace);
 
     $songId = new Uuid('756716f7-2e54-4715-9f00-91dcbea6cf50');
     $songData = $dataProvider['Joséphine Baker'];
@@ -73,7 +73,7 @@ it('Create a simple statement with a client-side timestamps', function () use ($
 });
 
 it('Create a new session using a timestamp generator', function () use ($table, $keyspace, $dataProvider, $insertQuery) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Cassandra\Tests\Feature\Utils::scyllaDbConnection($keyspace);
     $songId = new Uuid('756716f7-2e54-4715-9f00-91dcbea6cf50');
     $songData = $dataProvider['Joséphine Baker'];
     $options = ['arguments' => ['song_id' => $songId, ...$songData], 'timestamp' => 1234];
@@ -91,7 +91,7 @@ it('Create a new session using a timestamp generator', function () use ($table, 
 });
 
 it('Create a batch with a client-side timestamp', function () use ($table, $keyspace, $dataProvider, $insertQuery) {
-    $session = scyllaDbConnection($keyspace);
+    $session = Cassandra\Tests\Feature\Utils::scyllaDbConnection($keyspace);
 
     $prepared = $session->prepare($insertQuery);
     $batch = new BatchStatement(Cassandra::BATCH_LOGGED);
