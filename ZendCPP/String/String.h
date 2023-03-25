@@ -98,9 +98,9 @@ public:
 
   bool operator!=(const String& rhs) const;
 
-  Zend::Internal::String::ByteIterator begin() noexcept;
+  ZendCPP::Internal::String::ByteIterator begin() noexcept;
 
-  Zend::Internal::String::ByteIterator end() noexcept;
+  ZendCPP::Internal::String::ByteIterator end() noexcept;
 
   ~String() noexcept;
 };

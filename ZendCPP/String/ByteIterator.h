@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace Zend::Internal::String
+namespace ZendCPP::Internal::String
 {
 struct ByteIterator {
 public:
