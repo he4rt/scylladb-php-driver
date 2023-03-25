@@ -38,7 +38,9 @@ jobs:
       - name: Composer install
         run: |
           composer install
+        working-directory: tests
       - name: Run tests
+        working-directory: tests
         run: |
           vendor/bin/pest
         env:
