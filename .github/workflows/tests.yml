@@ -18,18 +18,18 @@ jobs:
 #    with:
 #      image: php-8.0-zts
   test_php81:
-    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@v1.3.x
+    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@feat/init-cpp-api
     with:
       image: php-8.1
   test_php81_zts:
-    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@v1.3.x
+    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@feat/init-cpp-api
     with:
       image: php-8.1-zts
   test_php82:
-    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@v1.3.x
+    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@feat/init-cpp-api
     with:
       image: php-8.2
   test_php82_zts:
-    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@v1.3.x
+    uses: he4rt/scylladb-php-driver/.github/workflows/test.yml@feat/init-cpp-api
     with:
       image: php-8.2-zts
