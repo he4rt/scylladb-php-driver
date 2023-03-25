@@ -82,47 +82,131 @@ foreach ($result as $row) {                       // results and rows implement 
 
 ## Installation
 
-Today we have support to build the release version 
+Before you compile your driver, first check if your `php` and `php-config` matches the supported versions. If not, 
+please checkout to the available versions.
+
+```sh
+sudo update-alternatives --config php
+sudo update-alternatives --config php-config
+```
+> Supported Versions: 8.1 and 8.2.
+
+Next you will learn how to build the driver to:
+
+* Release/Production
+* Debug/Development
+* Optimized for Production (CAREFUL!!)
 
 ### Compiling Release Build
 
-need the php-dev to build it (right version for your environment)
+This build you can use it for Production purposes.
 
-```shell
-apt update -y 
-apt upgrade -y 
+To build your Driver, you should first download a few dependencies: 
+
+#### Debian/Ubuntu 
+````sh
+apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev
+pip3 install cmake
+
+# Single Line
 apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev && pip3 install cmake
+````
 
+After that, you can run the build command inside the repository root folder:
+````sh
 cmake --preset Release  && cd out/Release && sudo ninja install
-```
+````
 
-> ninja install needs to be running at sudo
+> `ninja install` needs root privileges. 
 
-move the cassandra.ini into your php environment
+After compiled, you will be at directory `scylladb-php-driver/out/Release` and at this folder you will need to move 
+the `cassandra.so` and `cassandra.ini` to PHP respective folders. 
+
+````shell
+# current directory: scylladb-php-driver/out/Release
+
+# PHP 8.1
+sudo cp ../../cassandra.ini /etc/php/8.1/cli/conf.d/10-cassandra.ini
+sudo cp cassandra.so /usr/lib/php/20210902/cassandra.so
+
+# PHP 8.2
+sudo cp ../../cassandra.ini /etc/php/8.2/cli/conf.d/10-cassandra.ini
+sudo cp cassandra.so /usr/lib/php/20220829/cassandra.so
+````
 
 ### Compiling Development Build
 
-```shell
+If you want to contribute to the project, you should follow the steps below.
 
+
+#### Debian/Ubuntu
+```shell
+apt update -y
+apt upgrade -y
+apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev
+pip3 install cmake cqlsh # CQL Shell - to connect into your ScyllaDB Cluster
+install-php-extensions intl zip pcntl gmp composer
+apt-get clean
+
+# Single Line
 apt update -y && apt upgrade -y && apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev && pip3 install cmake cqlsh && install-php-extensions intl zip pcntl gmp composer && apt-get clean
 
+```
+After that, you can run the build command inside the repository root folder:
+
+````sh
 cmake --preset Debug && cd out/Debug && ninja
+````
 
+We have a "debug.php" file in the root folder that you can use it for try connection with 
+the ScyllaDB Cluster (localhost) and check if is everything ok after change the source code.
+
+Also you can run the PestPHP test suits inside the project and check if the functions are working as expected.
+
+````shell
+## Debug Base Command
 php -d "extension=$(pwd)/out/Debug/cassandra.so" debug.php
-```
 
-### Compiling XTREME optimization (pls be careful so powerful)
+## PestPHP Test Suite
+./vendor/bin/pest -d "extension=$(pwd)/out/Debug/cassandra.so"
+````
 
-need the php-dev to build it (right version for your environment)
-perfect for your cpu < 
+### Compiling Optimized Build
 
-```shell
-apt update -y 
-apt upgrade -y 
+The "optimized build" brings a flag that makes the driver runs perfectly with your CPU. So, if you will use it, remember
+to build it inside the environment that you will use it.
+
+#### Debian/Ubuntu
+````sh
+apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev
+pip3 install cmake
+
+# Single Line
 apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev && pip3 install cmake
+````
 
+The only difference between the `Release` and `Optimized` is a flag called `-DPHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE=ON`.
+
+````shell
 cmake --preset Release -DPHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE=ON && cd out/Release && sudo ninja install
-```
+````
+
+> `ninja install` needs root privileges.
+
+After compiled, you will be at directory `scylladb-php-driver/out/Release` and at this folder you will need to move
+the `cassandra.so` and `cassandra.ini` to PHP respective folders.
+
+````shell
+# current directory: scylladb-php-driver/out/Release
+
+# PHP 8.1
+sudo cp ../../cassandra.ini /etc/php/8.1/cli/conf.d/10-cassandra.ini
+sudo cp cassandra.so /usr/lib/php/20210902/cassandra.so
+
+# PHP 8.2
+sudo cp ../../cassandra.ini /etc/php/8.2/cli/conf.d/10-cassandra.ini
+sudo cp cassandra.so /usr/lib/php/20220829/cassandra.so
+````
 
 ## Contributing
 
@@ -131,24 +215,7 @@ of the process.
 
 ## Running tests
 
-For your convenience a `Vagrantfile` with configuration ready for testing is
-available. To execute tests, run the following:
-
-```bash
-git clone https://github.com/datastax/php-driver.git
-cd php-driver
-git submodule update --init
-vagrant up
-vagrant ssh
-```
-
-Once you've logged in to the vagrant VM, run:
-
-```bash
-cd /usr/local/src/php-driver
-./bin/behat
-./bin/phpunit
-```
+Soon.
 
 ## Copyright
 
