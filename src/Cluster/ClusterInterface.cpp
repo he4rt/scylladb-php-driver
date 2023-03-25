@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Cluster.h"
+#include "ClusterInterface.h"
 
 BEGIN_EXTERN_C()
 #include "ClusterInterface_arginfo.h"

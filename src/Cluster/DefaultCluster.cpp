@@ -24,7 +24,7 @@
 #include <util/future.h>
 #include <util/ref.h>
 
-#include "Cluster.h"
+#include "ClusterInterface.h"
 #include "DefaultClusterHandlers.h"
 
 BEGIN_EXTERN_C()

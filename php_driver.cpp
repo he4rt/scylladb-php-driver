@@ -31,7 +31,7 @@
 #include <time.h>
 #include <uv.h>
 
-#include "src/Cluster/Cluster.h"
+#include "src/Cluster/ClusterInterface.h"
 #include "src/initilizer.h"
 
 BEGIN_EXTERN_C()

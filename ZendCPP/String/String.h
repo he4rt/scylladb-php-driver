@@ -6,9 +6,10 @@
 
 namespace ZendCPP
 {
-using string =
-  // TODO: Implement Forward iterator
-  class String
+
+void hex_encode(const uint8_t *src, size_t src_len, uint8_t *dst) noexcept;
+
+class String
 {
 private:
   zend_string* str;

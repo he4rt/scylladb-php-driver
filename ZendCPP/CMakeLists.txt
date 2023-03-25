@@ -3,7 +3,11 @@ enable_language(CXX)
 set_target_properties(zend PROPERTIES POSITION_INDEPENDENT_CODE ON)
 find_package(PHP REQUIRED)
 
+include(cmake/Instrisics.cmake)
+target_use_intrinsics(zend)
+
 target_include_directories(zend PUBLIC ${PHP_INCLUDES})
+
 
 add_subdirectory(String)
 target_link_libraries(zend Zend::String)

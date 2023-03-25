@@ -28,7 +28,7 @@
 #include <util/consistency.h>
 
 #include "BuilderHandlers.h"
-#include "Cluster.h"
+#include "ClusterInterface.h"
 #include "zend_portability.h"
 
 #include "src/initilizer.h"
