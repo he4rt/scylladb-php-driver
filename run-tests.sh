@@ -15,6 +15,9 @@ pushd out/Release || exit 1
 ninja install || exit 1
 
 popd || exit 1
+
 cp cassandra.ini /usr/local/etc/php/conf.d/cassandra.ini
+pushd tests || exit 1
 composer install
 php ./vendor/bin/pest
+popd || exit 1

@@ -17,12 +17,6 @@ String::String(const zend_string *other) noexcept
 String::String(zend_string *other) noexcept
     : str(zend_string_copy(other)) {}
 
-String::String(std::string &other) noexcept
-    : str(zend_string_init(other.c_str(), other.length(), false)) {}
-
-String::String(const std::string &other) noexcept
-    : str(zend_string_init(other.c_str(), other.length(), false)) {}
-
 String::String(const zval &zv) noexcept {
   if (Z_TYPE(zv) == IS_STRING) {
     str = Z_STR(zv);

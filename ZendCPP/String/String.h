@@ -32,10 +32,6 @@ public:
 
   explicit String(zend_string* other) noexcept;
 
-  explicit String(std::string& other) noexcept;
-
-  explicit String(const std::string& other) noexcept;
-
   explicit String(const zval& zv) noexcept;
 
   String(const String& other) noexcept
