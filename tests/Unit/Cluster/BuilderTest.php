@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Cassandra\Tests\Unit\Cluster;
 
 use Cassandra;
-use Cassandra\Exception\InvalidArgumentException;
+use function PHPUnit\Framework\assertTrue;
 
 use function PHPUnit\Framework\assertFalse;
-use function PHPUnit\Framework\assertTrue;
+use Cassandra\Exception\InvalidArgumentException;
 
 //test('test', function () {
 //   assertTrue(true);

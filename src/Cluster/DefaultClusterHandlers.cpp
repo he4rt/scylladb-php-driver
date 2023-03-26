@@ -63,7 +63,7 @@ END_EXTERN_C()
 void php_driver_initialize_default_cluster_handlers()
 {
     memcpy(&php_driver_default_cluster_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-    php_driver_default_cluster_handlers.get_properties = php_driver_default_cluster_properties;
+    // php_driver_default_cluster_handlers.get_properties = php_driver_default_cluster_properties;
     php_driver_default_cluster_handlers.compare = php_driver_default_cluster_compare;
     php_driver_default_cluster_handlers.free_obj = php_driver_default_cluster_free;
     php_driver_default_cluster_handlers.offset = XtOffsetOf(php_driver_cluster, zval);

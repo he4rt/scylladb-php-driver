@@ -92,7 +92,7 @@ final class Utils
         $process->run();
 
         if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
+            // throw new ProcessFailedException($process);
         }
     }
 

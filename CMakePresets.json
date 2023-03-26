@@ -33,6 +33,22 @@
         "CASS_CPP_STANDARD": "17",
         "CASS_USE_STATIC_LIBS": "ON"
       }
+    },
+    {
+      "name": "RelWithInfo",
+      "displayName": "RelWithInfo",
+      "description": "",
+      "generator": "Ninja",
+      "environment": {},
+      "binaryDir": "${sourceDir}/out/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithInfo",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "PHP_SCYLLADB_LIBUV_STATIC": "ON",
+        "PHP_SCYLLADB_LIBSCYLLADB_STATIC": "ON",
+        "CASS_CPP_STANDARD": "17",
+        "CASS_USE_STATIC_LIBS": "ON"
+      }
     }
   ]
 }

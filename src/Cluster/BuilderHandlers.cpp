@@ -300,6 +300,8 @@ static void php_driver_cluster_builder_free(zend_object *object) {
     zend_object_release(&self->timestamp_gen->zval);
     self->timestamp_gen = nullptr;
   }
+
+  zend_object_std_dtor(&self->zval);
 }
 php5to7_zend_object php_driver_cluster_builder_new(zend_class_entry *ce) {
   auto *self = ZendCPP::Allocate<php_driver_cluster_builder>(
