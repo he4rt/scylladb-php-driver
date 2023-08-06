@@ -360,39 +360,34 @@ static inline int user_type_compare(php_driver_type* type1, php_driver_type* typ
   return 0;
 }
 
-static inline int is_string_type(CassValueType type) {
+static ZENDCPP_ALWAYS_INLINE int is_string_type(CassValueType type) {
   return type == CASS_VALUE_TYPE_VARCHAR || type == CASS_VALUE_TYPE_TEXT;
 }
 
-int php_driver_type_compare(php_driver_type* type1, php_driver_type* type2) {
+int32_t php_driver_type_compare(php_driver_type* type1, php_driver_type* type2) {
   if (type1->type != type2->type) {
-    if (is_string_type(type1->type) &&
-        is_string_type(type2->type)) { /* varchar and text are aliases */
+    /* varchar and text are aliases */
+    if (is_string_type(type1->type) && is_string_type(type2->type)) {
       return 0;
     }
     return type1->type < type2->type ? -1 : 1;
-  } else {
-    switch (type1->type) {
-      case CASS_VALUE_TYPE_LIST:
-        return collection_compare(type1, type2);
-
-      case CASS_VALUE_TYPE_MAP:
-        return map_compare(type1, type2);
-
-      case CASS_VALUE_TYPE_SET:
-        return set_compare(type1, type2);
-
-      case CASS_VALUE_TYPE_TUPLE:
-        return tuple_compare(type1, type2);
-
-      case CASS_VALUE_TYPE_UDT:
-        return user_type_compare(type1, type2);
-
-      default:
-        break;
-    }
-    return 0;
   }
+
+  switch (type1->type) {
+    case CASS_VALUE_TYPE_LIST:
+      return collection_compare(type1, type2);
+    case CASS_VALUE_TYPE_MAP:
+      return map_compare(type1, type2);
+    case CASS_VALUE_TYPE_SET:
+      return set_compare(type1, type2);
+    case CASS_VALUE_TYPE_TUPLE:
+      return tuple_compare(type1, type2);
+    case CASS_VALUE_TYPE_UDT:
+      return user_type_compare(type1, type2);
+    default:
+      break;
+  }
+  return 0;
 }
 
 static inline void collection_string(php_driver_type* type, smart_str* string) {

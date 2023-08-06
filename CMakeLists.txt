@@ -64,6 +64,7 @@ add_subdirectory(util)
 add_subdirectory(src)
 add_subdirectory(src/Cluster)
 add_subdirectory(src/DateTime)
+add_subdirectory(src/Collections)
 add_subdirectory(src/Database)
 add_subdirectory(src/Numbers)
 add_subdirectory(src/Exception)
@@ -87,6 +88,7 @@ target_link_libraries(
         ext_scylladb::type
         ext_scylladb::datetime
         ext_scylladb::database
+        ext_scylladb::collections
         ext_scylladb::numbers
         ext_scylladb::ssl_options
         ext_scylladb::exceptions

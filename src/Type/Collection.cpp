@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/Collection.h"
+#include "src/Collections/Collection.h"
 
 #include <php_driver.h>
 #include <php_driver_types.h>
@@ -52,7 +52,7 @@ PHP_METHOD(TypeCollection, valueType) {
 
 PHP_METHOD(TypeCollection, __toString) {
   php_driver_type* self;
-  smart_str string = {NULL,0};
+  smart_str string = {NULL, 0};
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -86,17 +86,12 @@ PHP_METHOD(TypeCollection, create) {
 
   if (argc > 0) {
     for (i = 0; i < argc; i++) {
-      if (!php_driver_validate_object(
-              &args[i],
-              &self->data.collection.value_type)) {
-
+      if (!php_driver_validate_object(&args[i], &self->data.collection.value_type)) {
         return;
       }
 
       php_driver_collection_add(collection, &args[i]);
     }
-
-
   }
 }
 
@@ -119,12 +114,11 @@ ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_type_collection_methods[] = {
-    PHP_ME(TypeCollection, __construct, arginfo_none, ZEND_ACC_PRIVATE) PHP_ME(
-        TypeCollection, name, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(TypeCollection, valueType, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(
-            TypeCollection, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-            PHP_ME(TypeCollection, create, arginfo_value, ZEND_ACC_PUBLIC)
-                PHP_FE_END};
+    PHP_ME(TypeCollection, __construct, arginfo_none, ZEND_ACC_PRIVATE)
+        PHP_ME(TypeCollection, name, arginfo_none, ZEND_ACC_PUBLIC)
+            PHP_ME(TypeCollection, valueType, arginfo_none, ZEND_ACC_PUBLIC)
+                PHP_ME(TypeCollection, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
+                    PHP_ME(TypeCollection, create, arginfo_value, ZEND_ACC_PUBLIC) PHP_FE_END};
 
 static zend_object_handlers php_driver_type_collection_handlers;
 
@@ -154,9 +148,8 @@ static HashTable* php_driver_type_collection_properties(
 #endif
   HashTable* props = zend_std_get_properties(object);
 
-  PHP5TO7_ZEND_HASH_UPDATE(
-      props, "valueType", sizeof("valueType"),
-      &self->data.collection.value_type, sizeof(zval));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "valueType", sizeof("valueType"),
+                           &self->data.collection.value_type, sizeof(zval));
   Z_ADDREF_P(&self->data.collection.value_type);
 
   return props;
@@ -179,11 +172,9 @@ static void php_driver_type_collection_free(zend_object* object) {
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.collection.value_type);
 
   zend_object_std_dtor(&self->zendObject);
-
 }
 
-static zend_object* php_driver_type_collection_new(
-    zend_class_entry* ce) {
+static zend_object* php_driver_type_collection_new(zend_class_entry* ce) {
   php_driver_type* self = PHP5TO7_ZEND_OBJECT_ECALLOC(type, ce);
 
   self->type = CASS_VALUE_TYPE_LIST;
@@ -198,21 +189,17 @@ void php_driver_define_TypeCollection() {
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\Collection",
                    php_driver_type_collection_methods);
-  php_driver_type_collection_ce =
-      zend_register_internal_class_ex(&ce, php_driver_type_ce);
+  php_driver_type_collection_ce = zend_register_internal_class_ex(&ce, php_driver_type_ce);
   memcpy(&php_driver_type_collection_handlers, zend_get_std_object_handlers(),
          sizeof(zend_object_handlers));
-  php_driver_type_collection_handlers.get_properties =
-      php_driver_type_collection_properties;
+  php_driver_type_collection_handlers.get_properties = php_driver_type_collection_properties;
 #if PHP_VERSION_ID >= 50400
   php_driver_type_collection_handlers.get_gc = php_driver_type_collection_gc;
 #endif
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_type_collection_handlers.compare =
-      php_driver_type_collection_compare;
+  php_driver_type_collection_handlers.compare = php_driver_type_collection_compare;
 #else
-  php_driver_type_collection_handlers.compare_objects =
-      php_driver_type_collection_compare;
+  php_driver_type_collection_handlers.compare_objects = php_driver_type_collection_compare;
 #endif
   php_driver_type_collection_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_type_collection_ce->create_object = php_driver_type_collection_new;

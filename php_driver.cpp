@@ -16,6 +16,7 @@
 
 #include <src/Cluster/Cluster.h>
 #include <src/DateTime/DateTimeInternal.h>
+#include <src/Collections/Collection.h>
 
 #include <fcntl.h>
 #include <php_driver.h>
@@ -483,7 +484,7 @@ PHP_MINIT_FUNCTION(php_driver) {
 
   php_driver_define_Set();
   php_driver_define_Map();
-  php_driver_define_Collection();
+  php_driver_define_Collection(php_driver_value_ce);
   php_driver_define_Tuple();
   php_driver_define_UserTypeValue();
 

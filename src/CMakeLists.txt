@@ -7,8 +7,7 @@ target_sources(
         PRIVATE
         BatchStatement.cpp
         Blob.cpp
-        Collection.cpp
-        Core.cpp
+        Cassandra.cpp
         Custom.cpp
         ExecutionOptions.cpp
         Future.cpp
@@ -18,14 +17,11 @@ target_sources(
         FutureClose.cpp
         FutureValue.cpp
         Inet.cpp
-        Map.cpp
         DefaultSession.cpp
         PreparedStatement.cpp
         Session.cpp
-        Set.cpp
         SimpleStatement.cpp
         Statement.cpp
-        Tuple.cpp
         Type.cpp
         UserTypeValue.cpp
         Uuid.cpp

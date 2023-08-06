@@ -19,5 +19,7 @@
 #include <php_driver_types.h>
 
 BEGIN_EXTERN_C()
+void php_driver_define_Collection(zend_class_entry* value_interface);
+
 void php_driver_collection_add(php_driver_collection* collection, zval* object);
 END_EXTERN_C()

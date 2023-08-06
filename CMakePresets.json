@@ -71,9 +71,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithInfo",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-        "PHP_SCYLLADB_ENABLE_SANITIZERS": "OFF",
-        "SANITIZE_UNDEFINED": "OFF",
-        "SANITIZE_ADDRESS": "OFF",
+        "PHP_SCYLLADB_ENABLE_SANITIZERS": "ON",
+        "SANITIZE_UNDEFINED": "ON",
+        "SANITIZE_ADDRESS": "ON",
         "CUSTOM_PHP_CONFIG": "/root/php/bin/php-config"
       }
     }
