@@ -11,7 +11,7 @@ namespace Cassandra {
     final class Collection implements Value, \Countable, \Iterator
     {
 
-        public function __construct(Type $type)
+        public function __construct(Type|string $type)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Cassandra {
         {
         }
 
-        public function add(mixed $value): void
+        public function add(mixed ...$value): int
         {
         }
 

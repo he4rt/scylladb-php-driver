@@ -31,13 +31,13 @@ zend_class_entry *php_driver_collection_ce = nullptr;
 static php_driver_value_handlers php_driver_collection_handlers;
 
 void php_driver_collection_add(php_driver_collection *collection, zval *object) {
-  PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(&collection->values, object, sizeof(zval *));
+  (void)zend_hash_next_index_insert(&collection->values, object);
   Z_TRY_ADDREF_P(object);
   collection->dirty = 1;
 }
 
 static int php_driver_collection_del(php_driver_collection *collection, ulong index) {
-  if (zend_hash_index_del(&collection->values, index) == SUCCESS) {
+  if (zend_hash_index_del(&collection->values, index) == SUCCESS) [[likely]] {
     collection->dirty = 1;
     return 1;
   }
@@ -45,19 +45,17 @@ static int php_driver_collection_del(php_driver_collection *collection, ulong in
   return 0;
 }
 
-static zval *php_driver_collection_get(php_driver_collection *collection, ulong index) {
+static zval *php_driver_collection_get(php_driver_collection *collection, zend_long index) {
   zend_array *arr = &collection->values;
 
-  if (HT_FLAGS(arr) & HASH_FLAG_PACKED) [[likely]] {
-    if ((zend_ulong)(index) < (zend_ulong)(arr)->nNumUsed) [[likely]] {
-      auto val = &arr->arPacked[index];
+  if ((HT_FLAGS(arr) & HASH_FLAG_PACKED) > 0 && index < arr->nNumUsed) [[likely]] {
+    auto val = &arr->arPacked[index];
 
-      if (Z_TYPE_P(val) == IS_UNDEF) [[unlikely]] {
-        return nullptr;
-      }
-
-      return val;
+    if (Z_TYPE_P(val) == IS_UNDEF) [[unlikely]] {
+      return nullptr;
     }
+
+    return val;
   }
 
   auto val = _zend_hash_index_find(arr, index);
@@ -74,12 +72,12 @@ static std::optional<int> php_driver_collection_find(php_driver_collection *coll
   zval *current;
   ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
     zval compare;
-    if (is_identical_function(&compare, object, current) != SUCCESS) {
+    if (is_identical_function(&compare, object, current) != SUCCESS) [[unlikely]] {
       zend_throw_error(zend_ce_error, "Failed to use === operator to compare values");
       return std::nullopt;
     }
 
-    if (Z_TYPE(compare) == IS_TRUE) {
+    if (Z_TYPE(compare) == IS_TRUE) [[likely]] {
       return num_key;
     }
   }
@@ -90,26 +88,38 @@ static std::optional<int> php_driver_collection_find(php_driver_collection *coll
 
 ZEND_METHOD(Cassandra_Collection, __construct) {
   php_driver_collection *self;
-  zval *type;
+  zval *type = nullptr;
+  zend_string *str = nullptr;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &type) == FAILURE) return;
+  // clang-format off
+//  ZEND_PARSE_PARAMETERS_START(1, 1)
+//    Z_PARAM_OBJ_OF_CLASS_OR_STR(type, php_driver_type_ce, str)
+//  ZEND_PARSE_PARAMETERS_END();
+  // clang-format on
 
   self = PHP_DRIVER_GET_COLLECTION(getThis());
 
-  if (Z_TYPE_P(type) == IS_STRING) {
-    CassValueType value_type;
-    if (!php_driver_value_type(Z_STRVAL_P(type), &value_type)) return;
-    self->type = php_driver_type_collection_from_value_type(value_type);
-  } else if (Z_TYPE_P(type) == IS_OBJECT &&
-             instanceof_function(Z_OBJCE_P(type), php_driver_type_ce)) {
+  if (type != nullptr) [[likely]] {
     if (!php_driver_type_validate(type, "type")) {
       return;
     }
     self->type = php_driver_type_collection(type);
     Z_ADDREF_P(type);
-  } else {
-    INVALID_ARGUMENT(type, "a string or an instance of " PHP_DRIVER_NAMESPACE "\\Type");
   }
+
+  if (str != nullptr) [[likely]] {
+    CassValueType value_type;
+    if (php_driver_value_type(ZSTR_VAL(str), &value_type)) [[likely]] {
+      self->type = php_driver_type_collection_from_value_type(value_type);
+      return;
+    }
+    RETURN_THROWS();
+  }
+
+  zend_throw_exception(php_driver_invalid_argument_exception_ce,
+                       "$type must be a string or an instance of " PHP_DRIVER_NAMESPACE "\\Type",
+                       0);
+  RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Collection, type) {
@@ -123,29 +133,29 @@ ZEND_METHOD(Cassandra_Collection, values) {
 }
 
 ZEND_METHOD(Cassandra_Collection, add) {
-  php_driver_collection *self = NULL;
-  zval *args = NULL;
-  int argc = 0, i;
-  php_driver_type *type;
+  zval *args = nullptr;
+  int argc = 0;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) return;
+  // clang-format off
+  ZEND_PARSE_PARAMETERS_START(1, -1)
+    Z_PARAM_VARIADIC('+', args, argc)
+  ZEND_PARSE_PARAMETERS_END();
+  // clang-format on
 
-  self = PHP_DRIVER_GET_COLLECTION(getThis());
-  type = PHP_DRIVER_GET_TYPE(&self->type);
+  auto *self = ZendCPP::ObjectFetch<php_driver_collection>(getThis());
+  auto *type = ZendCPP::ObjectFetch<php_driver_type>(&self->type);
 
-  for (i = 0; i < argc; i++) {
-    if (Z_TYPE_P(&args[i]) == IS_NULL) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
-                              "Invalid value: null is not supported inside collections");
-      RETURN_FALSE;
+  for (int32_t i = 0; i < argc; i++) {
+    if (Z_TYPE_P(&args[i]) == IS_NULL) [[unlikely]] {
+      zend_throw_exception(php_driver_invalid_argument_exception_ce,
+                           "Invalid value: null is not supported inside collections", 0);
+      RETURN_THROWS();
     }
 
-    if (!php_driver_validate_object(&args[i], &type->data.collection.value_type)) {
-      RETURN_FALSE;
+    if (!php_driver_validate_object(&args[i], &type->data.collection.value_type)) [[unlikely]] {
+      RETURN_THROWS();
     }
-  }
 
-  for (i = 0; i < argc; i++) {
     php_driver_collection_add(self, &args[i]);
   }
 
@@ -181,7 +191,7 @@ ZEND_METHOD(Cassandra_Collection, get) {
 
   auto self = ZendCPP::ObjectFetch<php_driver_collection>(getThis());
 
-  if (auto value = php_driver_collection_get(self, key); value != nullptr) {
+  if (auto value = php_driver_collection_get(self, key); value != nullptr) [[likely]] {
     RETURN_ZVAL(value, 1, 0);
   }
 
@@ -200,8 +210,8 @@ ZEND_METHOD(Cassandra_Collection, find) {
 
   auto *collection = PHP_DRIVER_GET_COLLECTION(getThis());
 
-  if (auto idx = php_driver_collection_find(collection, object); idx) {
-    if (idx.value() >= 0) {
+  if (auto idx = php_driver_collection_find(collection, object); idx) [[likely]] {
+    if (idx.value() >= 0) [[likely]] {
       RETURN_LONG(idx.value());
     } else {
       zend_throw_exception(php_driver_range_exception_ce, "Value not found", 0);
@@ -281,7 +291,7 @@ static int php_driver_collection_compare(zval *obj1, zval *obj2) {
   auto *type1 = ZendCPP::ObjectFetch<php_driver_type>(&collection1->type);
   auto *type2 = ZendCPP::ObjectFetch<php_driver_type>(&collection2->type);
 
-  if (auto result = php_driver_type_compare(type1, type2); result != 0) {
+  if (auto result = php_driver_type_compare(type1, type2); result != 0) [[unlikely]] {
     return result;
   }
 
@@ -290,6 +300,19 @@ static int php_driver_collection_compare(zval *obj1, zval *obj2) {
 
   if (count1 != count2) {
     return count1 < count2 ? -1 : 1;
+  }
+
+  if ((HT_FLAGS(&collection1->values) & HASH_FLAG_PACKED) > 0 &&
+      (HT_FLAGS(&collection2->values) & HASH_FLAG_PACKED) > 0) [[likely]] {
+    for (uint32_t i = 0; i < count1; i++) {
+      auto current1 = &collection1->values.arPacked[i];
+      auto current2 = &collection2->values.arPacked[i];
+      if (auto result = php_driver_value_compare(current1, current2); result != 0) {
+        return result;
+      }
+    }
+
+    return 0;
   }
 
   for (uint32_t i = 0; i < count1; i++) {
@@ -327,8 +350,8 @@ static uint32_t php_driver_collection_hash_value(zval *obj) {
 
 static void php_driver_collection_free(zend_object *object) {
   auto *self = ZendCPP::ObjectFetch<php_driver_collection>(object);
-  zend_hash_destroy(&self->values);
-  if (!Z_ISUNDEF(self->type)) {
+  zend_array_release(&self->values);
+  if (!Z_ISUNDEF(self->type)) [[unlikely]] {
     zval_ptr_dtor(&self->type);
     ZVAL_UNDEF(&self->type);
   }
