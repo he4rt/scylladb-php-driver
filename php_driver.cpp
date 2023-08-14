@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-#include <src/Cluster/Cluster.h>
-#include <src/DateTime/DateTimeInternal.h>
-#include <src/Collections/Collection.h>
-
 #include <fcntl.h>
-#include <php_driver.h>
-#include <php_driver_globals.h>
-#include <php_driver_types.h>
-#include <php_ini.h>
+#include <src/Cluster/Cluster.h>
+#include <src/Collections/Collection.h>
+#include <src/DateTime/DateTimeInternal.h>
 #include <util/ref.h>
 #include <uv.h>
 #include <version.h>
 
 #include <ctime>
 
-
 BEGIN_EXTERN_C()
+#include <php_driver.h>
+#include <php_driver_globals.h>
+#include <php_driver_types.h>
+#include <php_ini.h>
+
 #include <ext/standard/info.h>
 
 #define PHP_DRIVER_SCALAR_TYPES_MAP(XX)    \
@@ -126,7 +125,7 @@ PHP_INI_END()
 
 static int le_php_driver_cluster_res;
 int php_le_php_driver_cluster() { return le_php_driver_cluster_res; }
-static void php_driver_cluster_dtor(zend_resource* rsrc) {
+static void php_driver_cluster_dtor(zend_resource *rsrc) {
   auto *cluster = (CassCluster *)rsrc->ptr;
 
   if (cluster) {
@@ -140,7 +139,7 @@ static void php_driver_cluster_dtor(zend_resource* rsrc) {
 
 static int le_php_driver_session_res;
 int php_le_php_driver_session() { return le_php_driver_session_res; }
-static void php_driver_session_dtor(zend_resource* rsrc) {
+static void php_driver_session_dtor(zend_resource *rsrc) {
   auto *psession = (php_driver_psession *)rsrc->ptr;
 
   if (psession) {
@@ -157,7 +156,7 @@ static void php_driver_session_dtor(zend_resource* rsrc) {
 
 static int le_php_driver_prepared_statement_res;
 int php_le_php_driver_prepared_statement() { return le_php_driver_prepared_statement_res; }
-static void php_driver_prepared_statement_dtor(zend_resource* rsrc) {
+static void php_driver_prepared_statement_dtor(zend_resource *rsrc) {
   auto *preparedStmt = (php_driver_pprepared_statement *)rsrc->ptr;
 
   if (preparedStmt) {
@@ -329,8 +328,8 @@ void throw_invalid_argument(zval *object, const char *object_name, const char *e
                               expected_type);
     }
   } else if (Z_TYPE_P(object) == IS_STRING) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
-                            "%s must be %s, %Z given", object_name, expected_type, object);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "%s must be %s, %Z given",
+                            object_name, expected_type, object);
   } else {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "%s must be %s, %Z given",
                             object_name, expected_type, object);
@@ -374,16 +373,7 @@ PHP_INI_MH(OnUpdateLog) {
     log_location = nullptr;
   }
   if (new_value) {
-    if (strcmp(ZSTR_VAL(new_value), "syslog") != 0) {
-      char realpath[MAXPATHLEN + 1];
-      if (VCWD_REALPATH(ZSTR_VAL(new_value), realpath)) {
-        log_location = strdup(realpath);
-      } else {
-        log_location = strdup(ZSTR_VAL(new_value));
-      }
-    } else {
-      log_location = strdup(ZSTR_VAL(new_value));
-    }
+    log_location = strdup(ZSTR_VAL(new_value));
   }
   uv_rwlock_wrunlock(&log_lock);
 
@@ -423,7 +413,6 @@ static PHP_GSHUTDOWN_FUNCTION(php_driver) {
   }
   php_driver_log_cleanup();
 }
-
 
 PHP_MINIT_FUNCTION(php_driver) {
   REGISTER_INI_ENTRIES();
@@ -535,7 +524,7 @@ PHP_MINIT_FUNCTION(php_driver) {
   php_driver_define_TypeUserType();
   php_driver_define_TypeCustom();
 
-  auto * retry_policy_interface = php_scylladb_define_RetryPolicy();
+  auto *retry_policy_interface = php_scylladb_define_RetryPolicy();
   php_scylladb_define_RetryPolicyDefault(retry_policy_interface);
   php_driver_define_RetryPolicyDowngradingConsistency(retry_policy_interface);
   php_driver_define_RetryPolicyFallthrough(retry_policy_interface);
