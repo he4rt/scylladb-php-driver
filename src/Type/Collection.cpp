@@ -28,7 +28,7 @@ PHP_METHOD(TypeCollection, __construct) {
   zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE
                           "\\Type\\Collection type is not supported.");
-  return;
+  RETURN_THROWS();
 }
 
 PHP_METHOD(TypeCollection, name) {

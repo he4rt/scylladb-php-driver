@@ -33,12 +33,10 @@ static zend_object_handlers php_driver_collection_handlers;
 void php_driver_collection_add(php_driver_collection *collection, zval *object) {
   (void)zend_hash_next_index_insert(&collection->values, object);
   Z_TRY_ADDREF_P(object);
-  collection->dirty = 1;
 }
 
 static int php_driver_collection_del(php_driver_collection *collection, ulong index) {
   if (zend_hash_index_del(&collection->values, index) == SUCCESS) [[likely]] {
-    collection->dirty = 1;
     return 1;
   }
 
@@ -87,24 +85,26 @@ static std::optional<int> php_driver_collection_find(php_driver_collection *coll
 }
 
 ZEND_METHOD(Cassandra_Collection, __construct) {
-  php_driver_collection *self;
-  zval *type = nullptr;
+  zend_object *type = nullptr;
   zend_string *str = nullptr;
 
   // clang-format off
-//  ZEND_PARSE_PARAMETERS_START(1, 1)
-//    Z_PARAM_OBJ_OF_CLASS_OR_STR(type, php_driver_type_ce, str)
-//  ZEND_PARSE_PARAMETERS_END();
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_OBJ_OF_CLASS_OR_STR(type, php_driver_type_ce, str)
+  ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  self = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *self = PHP_DRIVER_GET_COLLECTION(getThis());
 
   if (type != nullptr) [[likely]] {
-    if (!php_driver_type_validate(type, "type")) {
+    zval ztype;
+    ZVAL_OBJ(&ztype, type);
+
+    if (!php_driver_type_validate(&ztype, "type")) {
       return;
     }
-    self->type = php_driver_type_collection(type);
-    Z_ADDREF_P(type);
+    self->type = php_driver_type_collection(&ztype);
+    Z_ADDREF(ztype);
   }
 
   if (str != nullptr) [[likely]] {
@@ -264,19 +264,6 @@ static HashTable *php_driver_collection_gc(zend_object *object, zval **table, in
   return zend_std_get_properties(object);
 }
 
-static HashTable *php_driver_collection_properties(zend_object *object) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_collection>(object);
-  HashTable *props = zend_std_get_properties(object);
-
-  zend_hash_str_update(props, ZEND_STRS("type"), &self->type);
-  Z_ADDREF(self->type);
-
-  zval values;
-  ZVAL_ARR(&values, zend_array_dup(&self->values));
-  zend_hash_str_update(props, ZEND_STRS("values"), &values);
-  return props;
-}
-
 static int php_driver_collection_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
 
@@ -302,22 +289,13 @@ static int php_driver_collection_compare(zval *obj1, zval *obj2) {
     return count1 < count2 ? -1 : 1;
   }
 
-  if ((HT_FLAGS(&collection1->values) & HASH_FLAG_PACKED) > 0 &&
-      (HT_FLAGS(&collection2->values) & HASH_FLAG_PACKED) > 0) [[likely]] {
-    for (uint32_t i = 0; i < count1; i++) {
-      auto current1 = &collection1->values.arPacked[i];
-      auto current2 = &collection2->values.arPacked[i];
-      if (auto result = php_driver_value_compare(current1, current2); result != 0) {
-        return result;
-      }
-    }
+  const zend_array *col1 = &collection1->values;
+  const zend_array *col2 = &collection2->values;
 
-    return 0;
-  }
-
+  zval *current1, *current2;
   for (uint32_t i = 0; i < count1; i++) {
-    auto current1 = _zend_hash_index_find(&collection1->values, i);
-    auto current2 = _zend_hash_index_find(&collection2->values, i);
+    ZEND_HASH_INDEX_FIND(col1, i, current1, not_found);
+    ZEND_HASH_INDEX_FIND(col2, i, current2, not_found);
 
     if (auto result = php_driver_value_compare(current1, current2); result != 0) {
       return result;
@@ -325,6 +303,9 @@ static int php_driver_collection_compare(zval *obj1, zval *obj2) {
   }
 
   return 0;
+
+not_found:
+  return 1;
 }
 
 static void php_driver_collection_free(zend_object *object) {
@@ -339,7 +320,6 @@ static void php_driver_collection_free(zend_object *object) {
 static zend_object *php_driver_collection_new(zend_class_entry *ce) {
   auto *self = ZendCPP::Allocate<php_driver_collection>(ce, &php_driver_collection_handlers);
   _zend_hash_init(&self->values, 0, ZVAL_PTR_DTOR, false);
-  self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
   return &self->zendObject;
@@ -352,7 +332,6 @@ void php_driver_define_Collection(zend_class_entry *value_interface) {
 
   ZendCPP::InitHandlers<php_driver_collection>(&php_driver_collection_handlers);
 
-  php_driver_collection_handlers.get_properties = php_driver_collection_properties;
   php_driver_collection_handlers.get_gc = php_driver_collection_gc;
   php_driver_collection_handlers.compare = php_driver_collection_compare;
   php_driver_collection_handlers.free_obj = php_driver_collection_free;

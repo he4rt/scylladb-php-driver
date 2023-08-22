@@ -135,9 +135,7 @@ static zend_always_inline php_driver_duration *php_driver_duration_object_fetch(
 
 typedef struct php_driver_collection_ {
   zval type;
-  HashTable values;
-  unsigned hashv;
-  int dirty;
+  zend_array values;
   zend_object zendObject;
 } php_driver_collection;
 static zend_always_inline php_driver_collection *php_driver_collection_object_fetch(
