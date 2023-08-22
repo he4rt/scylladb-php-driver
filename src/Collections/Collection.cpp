@@ -44,23 +44,12 @@ static int php_driver_collection_del(php_driver_collection *collection, ulong in
 }
 
 static zval *php_driver_collection_get(php_driver_collection *collection, zend_long index) {
-  zend_array *arr = &collection->values;
+  const zend_array *arr = &collection->values;
+  zval *val;
+  ZEND_HASH_INDEX_FIND(arr, index, val, not_found);
 
-  if ((HT_FLAGS(arr) & HASH_FLAG_PACKED) > 0 && index < arr->nNumUsed) [[likely]] {
-    auto val = &arr->arPacked[index];
-
-    if (Z_TYPE_P(val) == IS_UNDEF) [[unlikely]] {
-      return nullptr;
-    }
-
-    return val;
-  }
-
-  auto val = _zend_hash_index_find(arr, index);
-  if (val == nullptr) [[unlikely]] {
-    return val;
-  }
-
+  return val;
+not_found:
   return nullptr;
 }
 

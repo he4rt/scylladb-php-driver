@@ -22,9 +22,6 @@
 #define uthash_malloc(sz) emalloc(sz)
 #define uthash_free(ptr, sz) efree(ptr)
 
-#define HASH_FUNCTION(key, keylen, num_bkts, hashv, bkt) \
-  hashv = php_driver_value_hash((zval *)key);            \
-  bkt = (hashv) & (num_bkts - 1U)
 #define HASH_KEYCOMPARE(a, b, len) php_driver_value_compare((zval *)a, (zval *)b)
 
 #undef HASH_ADD /* Previously defined in Zend/zend_hash.h */
@@ -48,10 +45,8 @@ struct php_driver_set_entry_ {
 
 #define PHP_DRIVER_COMPARE(a, b) ((a) < (b) ? -1 : (a) > (b))
 
-uint32_t php_driver_value_hash(zval *zvalue);
 int32_t php_driver_value_compare(zval *zvalue1, zval *zvalue2);
 int32_t php_driver_data_compare(Bucket *a, Bucket *b);
-uint32_t php_driver_mpz_hash(unsigned seed, mpz_t n);
 
 PHP_DRIVER_ALWAYS_INLINE uint32_t php_driver_bigint_hash(cass_int64_t value) {
   return (uint32_t)(value ^ (value >> 32));
