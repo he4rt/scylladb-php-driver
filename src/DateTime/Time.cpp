@@ -178,7 +178,7 @@ ZEND_METHOD(Cassandra_Time, __toString) {
   to_string(return_value, self);
 }
 
-static php_driver_value_handlers php_driver_time_handlers;
+static zend_object_handlers php_driver_time_handlers;
 
 static HashTable *php_driver_time_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
@@ -210,11 +210,6 @@ static int php_driver_time_compare(zval *obj1, zval *obj2) {
   return PHP_DRIVER_COMPARE(time1->time, time2->time);
 }
 
-static unsigned php_driver_time_hash_value(zval *obj) {
-  auto self = ZendCPP::ObjectFetch<php_scylladb_time>(obj);
-  return php_driver_bigint_hash(self->time);
-}
-
 static zend_object *php_driver_time_new(zend_class_entry *ce) {
   auto *self = ZendCPP::Allocate<php_scylladb_time>(ce, &php_driver_time_handlers);
   self->time = -1;
@@ -226,10 +221,9 @@ void php_driver_define_Time() {
   php_scylladb_time_ce->create_object = php_driver_time_new;
 
   ZendCPP::InitHandlers<php_scylladb_time>(&php_driver_time_handlers);
-  php_driver_time_handlers.std.get_properties = php_driver_time_properties;
-  php_driver_time_handlers.std.get_gc = php_driver_time_gc;
-  php_driver_time_handlers.std.compare = php_driver_time_compare;
-  php_driver_time_handlers.hash_value = php_driver_time_hash_value;
+  php_driver_time_handlers.get_properties = php_driver_time_properties;
+  php_driver_time_handlers.get_gc = php_driver_time_gc;
+  php_driver_time_handlers.compare = php_driver_time_compare;
 }
 
 END_EXTERN_C()

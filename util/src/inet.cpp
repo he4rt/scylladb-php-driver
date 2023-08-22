@@ -30,9 +30,9 @@
                           ip_address_describe_token(type), ((int)(in_ptr - in) - 1), in);       \
   return 0;
 
-enum token_type { TOKEN_END = 0, TOKEN_COLON, TOKEN_DOT, TOKEN_HEX, TOKEN_DEC, TOKEN_ILLEGAL };
+enum class InetTokenType { END = 0, COLON, DOT, HEX, DEC, ILLEGAL };
 
-enum parser_state {
+enum InetParserState {
   STATE_START = 0,
   STATE_FIELD = 1,
   STATE_COMPRESSED = 2,
@@ -44,28 +44,28 @@ enum parser_state {
   STATE_END = 8
 };
 
-static const char *ip_address_describe_token(enum token_type type) {
+static const char *ip_address_describe_token(enum InetTokenType type) {
   switch (type) {
-    case TOKEN_END:
+    case InetTokenType::END:
       return "end of address";
-    case TOKEN_COLON:
+    case InetTokenType::COLON:
       return "colon";
-    case TOKEN_DOT:
+    case InetTokenType::DOT:
       return "dot";
-    case TOKEN_HEX:
+    case InetTokenType::HEX:
       return "hex address field";
-    case TOKEN_DEC:
+    case InetTokenType::DEC:
       return "address field";
-    case TOKEN_ILLEGAL:
+    case InetTokenType::ILLEGAL:
       return "illegal character";
     default:
       return NULL;
   }
 }
 
-static enum token_type ip_address_tokenize(char *address, char *token, int *token_len,
-                                           char **next_token) {
-  enum token_type type;
+static enum InetTokenType ip_address_tokenize(char *address, char *token, int *token_len,
+                                              char **next_token) {
+  enum InetTokenType type;
 
   char ch;
   int len = 0;
@@ -89,22 +89,22 @@ static enum token_type ip_address_tokenize(char *address, char *token, int *toke
     }
 
     if (is_hex)
-      type = TOKEN_HEX;
+      type = InetTokenType::HEX;
     else
-      type = TOKEN_DEC;
+      type = InetTokenType::DEC;
   } else {
     switch (ch) {
       case '\0':
-        type = TOKEN_END;
+        type = InetTokenType::END;
         break;
       case ':':
-        type = TOKEN_COLON;
+        type = InetTokenType::COLON;
         break;
       case '.':
-        type = TOKEN_DOT;
+        type = InetTokenType::DOT;
         break;
       default:
-        type = TOKEN_ILLEGAL;
+        type = InetTokenType::ILLEGAL;
     }
 
     token[len++] = ch;
@@ -123,8 +123,8 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
   int token_len = -1;
   int prev_token_len = 0;
   char *in_ptr = in;
-  enum token_type type;
-  enum parser_state state = STATE_START;
+  enum InetTokenType type;
+  enum InetParserState state = STATE_START;
   int pos = -1;
   int compress_pos = -1;
   int ipv4_pos = -1;
@@ -145,7 +145,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
 
     type = ip_address_tokenize(in_ptr, token, &token_len, &in_ptr);
 
-    if (type == TOKEN_ILLEGAL) {
+    if (type == InetTokenType::ILLEGAL) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               R"(Illegal character "%c" at position %d in address "%s")", *token,
                               ((int)(in_ptr - in) - 1), in);
@@ -156,13 +156,13 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
       /* A colon is found. This must be the start of a compressed
        * group of zeroes.
        */
-      if (type == TOKEN_COLON) {
+      if (type == InetTokenType::COLON) {
         state = STATE_COMPRESSED;
         continue;
       }
 
       /* At this point, we expect an IP field. */
-      if (type != TOKEN_HEX && type != TOKEN_DEC) {
+      if (type != InetTokenType::HEX && type != InetTokenType::DEC) {
         EXPECTING_TOKEN("an address field or a colon");
       }
 
@@ -174,7 +174,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
      * compressed group of zeroes or an IPv6 field.
      */
     if (state == STATE_AFTERCOLON) {
-      if (type == TOKEN_COLON)
+      if (type == InetTokenType::COLON)
         state = STATE_COMPRESSED;
       else
         state = STATE_FIELD;
@@ -182,7 +182,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
 
     /* COMPRESSED: expect second colon of a compressed group of zeroes */
     if (state == STATE_COMPRESSED) {
-      if (type == TOKEN_COLON) {
+      if (type == InetTokenType::COLON) {
         /* Only one compressed zero block can exist. */
         if (compress_pos != -1) {
           zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
@@ -206,13 +206,13 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
       /* End of string is only valid after a zero compression
        * block "::".
        */
-      if (type == TOKEN_END && pos + 1 == compress_pos) break;
+      if (type == InetTokenType::END && pos + 1 == compress_pos) break;
 
       switch (type) {
-        case TOKEN_HEX:
+        case InetTokenType::HEX:
           state = STATE_AFTERHEX;
           break;
-        case TOKEN_DEC:
+        case InetTokenType::DEC:
           state = STATE_AFTERDEC;
           break;
         default:
@@ -237,9 +237,9 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
      * colon, which starts the next IPv6 field.
      */
     if (state == STATE_AFTERHEX) {
-      if (type == TOKEN_END) {
+      if (type == InetTokenType::END) {
         break;
-      } else if (type == TOKEN_COLON) {
+      } else if (type == InetTokenType::COLON) {
         state = STATE_AFTERCOLON;
         continue;
       } else {
@@ -252,12 +252,12 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
      * indicates the start of an IPv4 style address.
      */
     if (state == STATE_AFTERDEC) {
-      if (type == TOKEN_END) {
+      if (type == InetTokenType::END) {
         break;
-      } else if (type == TOKEN_COLON) {
+      } else if (type == InetTokenType::COLON) {
         state = STATE_AFTERCOLON;
         continue;
-      } else if (type == TOKEN_DOT) {
+      } else if (type == InetTokenType::DOT) {
         /* Rollback bytes that we assumed to be an IPv6 hex field */
         address[pos--] = 0;
         address[pos--] = 0;
@@ -275,7 +275,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
     /* IPV4BYTE: we're parsing an IPv4 style address representation
      * and are expecting the next byte for it (0-255). */
     if (state == STATE_IPV4BYTE) {
-      if (type == TOKEN_DEC) {
+      if (type == InetTokenType::DEC) {
         if (token_len > 1 && token[0] == '0') {
           zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                                   "Illegal IPv4 character \"%s\" at position %d "
@@ -325,7 +325,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
     /* IPV4DOT: we're parsing an IPv4 style address representation
      * and are expecting the next dot for it. */
     if (state == STATE_IPV4DOT) {
-      if (type == TOKEN_DOT) {
+      if (type == InetTokenType::DOT) {
         state = STATE_IPV4BYTE;
         continue;
       } else {
@@ -337,7 +337,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
      * are expected.
      */
     if (state == STATE_END) {
-      if (type == TOKEN_END)
+      if (type == InetTokenType::END)
         break;
       else {
         EXPECTING_TOKEN("the end of address");

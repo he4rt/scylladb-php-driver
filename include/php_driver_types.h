@@ -614,11 +614,6 @@ static zend_always_inline php_driver_type *php_driver_type_object_fetch(zend_obj
 
 typedef unsigned (*php_driver_value_hash_t)(zval *obj);
 
-typedef struct {
-  zend_object_handlers std;
-  php_driver_value_hash_t hash_value;
-} php_driver_value_handlers;
-
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_value_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_numeric_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_bigint_ce;

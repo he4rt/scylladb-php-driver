@@ -212,7 +212,7 @@ ZEND_METHOD(Cassandra_Timestamp, __toString) {
   RETURN_STRINGL_FAST(ret, len);
 }
 
-static php_driver_value_handlers php_driver_timestamp_handlers;
+static zend_object_handlers php_driver_timestamp_handlers;
 
 static HashTable *php_driver_timestamp_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
@@ -251,10 +251,6 @@ static int php_driver_timestamp_compare(zval *obj1, zval *obj2) {
   return PHP_DRIVER_COMPARE(timestamp1->timestamp, timestamp2->timestamp);
 }
 
-static unsigned php_driver_timestamp_hash_value(zval *obj) {
-  return php_driver_bigint_hash(ZendCPP::ObjectFetch<php_scylladb_timestamp>(obj)->timestamp);
-}
-
 static zend_object *php_driver_timestamp_new(zend_class_entry *ce) {
   auto self = ZendCPP::Allocate<php_scylladb_timestamp>(ce, &php_driver_timestamp_handlers);
   self->timestamp = -1;
@@ -266,9 +262,8 @@ void php_driver_define_Timestamp() {
   php_scylladb_timestamp_ce->create_object = php_driver_timestamp_new;
 
   ZendCPP::InitHandlers<php_scylladb_timestamp>(&php_driver_timestamp_handlers);
-  php_driver_timestamp_handlers.std.get_properties = php_driver_timestamp_properties;
-  php_driver_timestamp_handlers.std.get_gc = php_driver_timestamp_gc;
-  php_driver_timestamp_handlers.std.compare = php_driver_timestamp_compare;
-  php_driver_timestamp_handlers.hash_value = php_driver_timestamp_hash_value;
+  php_driver_timestamp_handlers.get_properties = php_driver_timestamp_properties;
+  php_driver_timestamp_handlers.get_gc = php_driver_timestamp_gc;
+  php_driver_timestamp_handlers.compare = php_driver_timestamp_compare;
 }
 END_EXTERN_C()

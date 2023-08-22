@@ -13,5 +13,6 @@ target_sources(
         Set.cpp
         Tuple.cpp
         UserType.cpp
+        Type.cpp
 )
 

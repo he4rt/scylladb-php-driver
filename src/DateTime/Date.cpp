@@ -172,7 +172,7 @@ ZEND_METHOD(Cassandra_Date, __toString) {
   efree(ret);
 }
 
-static php_driver_value_handlers php_scylladb_date_handlers;
+static zend_object_handlers php_scylladb_date_handlers;
 
 static HashTable *php_scylladb_date_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
@@ -205,11 +205,6 @@ static int php_scylladb_date_compare(zval *obj1, zval *obj2) {
   return PHP_DRIVER_COMPARE(date1->date, date2->date);
 }
 
-static unsigned php_scylladb_date_hash_value(zval *obj) {
-  auto self = ZendCPP::ObjectFetch<php_scylladb_date>(obj);
-  return 31 * 17 + self->date;
-}
-
 static zend_object *php_scylladb_date_new(zend_class_entry *ce) {
   auto *self = ZendCPP::Allocate<php_scylladb_date>(ce, &php_scylladb_date_handlers);
   self->date = 0;
@@ -221,10 +216,9 @@ void php_driver_define_Date() {
   php_scylladb_date_ce->create_object = php_scylladb_date_new;
 
   ZendCPP::InitHandlers<php_scylladb_date>(&php_scylladb_date_handlers);
-  php_scylladb_date_handlers.std.get_properties = php_scylladb_date_properties;
-  php_scylladb_date_handlers.std.get_gc = php_scylladb_date_gc;
-  php_scylladb_date_handlers.std.compare = php_scylladb_date_compare;
-  php_scylladb_date_handlers.hash_value = php_scylladb_date_hash_value;
+  php_scylladb_date_handlers.get_properties = php_scylladb_date_properties;
+  php_scylladb_date_handlers.get_gc = php_scylladb_date_gc;
+  php_scylladb_date_handlers.compare = php_scylladb_date_compare;
 }
 
 END_EXTERN_C()

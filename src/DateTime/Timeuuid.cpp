@@ -49,7 +49,8 @@ zend_result php_driver_timeuuid_init(zval *returnValue, zend_string *str = nullp
 
   if (str != nullptr) {
     if (cass_uuid_from_string(ZSTR_VAL(str), &self->uuid) != CASS_OK) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "Invalid UUID: '%s'", ZSTR_VAL(str));
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "Invalid UUID: '%s'",
+                              ZSTR_VAL(str));
       return FAILURE;
     }
 
@@ -182,9 +183,9 @@ static zend_function_entry php_driver_timeuuid_methods[] = {
                         PHP_ME(Timeuuid, time, arginfo_none, ZEND_ACC_PUBLIC)
                             PHP_ME(Timeuuid, toDateTime, arginfo_none, ZEND_ACC_PUBLIC) PHP_FE_END};
 
-static php_driver_value_handlers php_driver_timeuuid_handlers;
+static zend_object_handlers php_driver_timeuuid_handlers;
 
-static HashTable *php_driver_timeuuid_gc(zend_object *object, zval** table, int *n) {
+static HashTable *php_driver_timeuuid_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
   return zend_std_get_properties(object);
@@ -226,20 +227,12 @@ static int php_driver_timeuuid_compare(zval *obj1, zval *obj2) {
   return 0;
 }
 
-static unsigned php_driver_timeuuid_hash_value(zval *obj) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(obj);
-
-  return php_driver_combine_hash(
-      (self->uuid.time_and_version ^ (self->uuid.time_and_version >> 32)),
-      (self->uuid.clock_seq_and_node ^ (self->uuid.clock_seq_and_node >> 32)));
-}
-
 static void php_driver_timeuuid_free(zend_object *object) {
   php_driver_uuid *self = PHP5TO7_ZEND_OBJECT_GET(uuid, object);
   zend_object_std_dtor(&self->zendObject);
 }
 
-static zend_object* php_driver_timeuuid_new(zend_class_entry *ce) {
+static zend_object *php_driver_timeuuid_new(zend_class_entry *ce) {
   auto *self = PHP5TO7_ZEND_OBJECT_ECALLOC(uuid, ce);
 
   PHP5TO7_ZEND_OBJECT_INIT_EX(uuid, timeuuid, self, ce);
@@ -254,13 +247,11 @@ void php_driver_define_Timeuuid() {
                         php_driver_uuid_interface_ce);
   memcpy(&php_driver_timeuuid_handlers, zend_get_std_object_handlers(),
          sizeof(zend_object_handlers));
-  php_driver_timeuuid_handlers.std.get_properties = php_driver_timeuuid_properties;
-  php_driver_timeuuid_handlers.std.get_gc = php_driver_timeuuid_gc;
-  php_driver_timeuuid_handlers.std.compare = php_driver_timeuuid_compare;
+  php_driver_timeuuid_handlers.get_properties = php_driver_timeuuid_properties;
+  php_driver_timeuuid_handlers.get_gc = php_driver_timeuuid_gc;
+  php_driver_timeuuid_handlers.compare = php_driver_timeuuid_compare;
   php_driver_timeuuid_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_timeuuid_ce->create_object = php_driver_timeuuid_new;
-
-  php_driver_timeuuid_handlers.hash_value = php_driver_timeuuid_hash_value;
-  php_driver_timeuuid_handlers.std.clone_obj = nullptr;
+  php_driver_timeuuid_handlers.clone_obj = nullptr;
 }
 END_EXTERN_C()

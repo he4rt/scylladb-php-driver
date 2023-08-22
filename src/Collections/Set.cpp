@@ -283,7 +283,7 @@ static zend_function_entry php_driver_set_methods[] = {
         PHP_ME(Set, valid, arginfo_valid, ZEND_ACC_PUBLIC)
             PHP_ME(Set, rewind, arginfo_rewind, ZEND_ACC_PUBLIC) PHP_FE_END};
 
-static php_driver_value_handlers php_driver_set_handlers;
+static zend_object_handlers php_driver_set_handlers;
 
 static HashTable* php_driver_set_gc(
 #if PHP_MAJOR_VERSION >= 8
@@ -361,23 +361,6 @@ static int php_driver_set_compare(zval* obj1, zval* obj2) {
   return 0;
 }
 
-static unsigned php_driver_set_hash_value(zval* obj) {
-  unsigned hashv = 0;
-  php_driver_set_entry *curr, *temp;
-  php_driver_set* self = PHP_DRIVER_GET_SET(obj);
-
-  if (!self->dirty) return self->hashv;
-
-  HASH_ITER(hh, self->entries, curr, temp) {
-    hashv = php_driver_combine_hash(hashv, php_driver_value_hash(&curr->value));
-  }
-
-  self->hashv = hashv;
-  self->dirty = 0;
-
-  return hashv;
-}
-
 static void php_driver_set_free(zend_object* object) {
   php_driver_set* self = PHP5TO7_ZEND_OBJECT_GET(set, object);
   php_driver_set_entry *curr, *temp;
@@ -409,28 +392,15 @@ void php_driver_define_Set() {
 
   INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Set", php_driver_set_methods);
   php_driver_set_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_set_ce, 1, php_driver_value_ce);
+  zend_class_implements(php_driver_set_ce, 3, php_driver_value_ce, zend_ce_countable,
+                        zend_ce_iterator);
   memcpy(&php_driver_set_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_set_handlers.std.get_properties = php_driver_set_properties;
-#if PHP_VERSION_ID >= 50400
-  php_driver_set_handlers.std.get_gc = php_driver_set_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_set_handlers.std.compare = php_driver_set_compare;
-#else
-  php_driver_set_handlers.std.compare_objects = php_driver_set_compare;
-#endif
+  php_driver_set_handlers.get_properties = php_driver_set_properties;
+  php_driver_set_handlers.get_gc = php_driver_set_gc;
+  php_driver_set_handlers.compare = php_driver_set_compare;
   php_driver_set_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_set_ce->create_object = php_driver_set_new;
-
-#if PHP_VERSION_ID < 80100
-  zend_class_implements(php_driver_set_ce, 2, spl_ce_Countable, zend_ce_iterator);
-#else
-  zend_class_implements(php_driver_set_ce, 2, zend_ce_countable, zend_ce_iterator);
-#endif
-
-  php_driver_set_handlers.hash_value = php_driver_set_hash_value;
-  php_driver_set_handlers.std.clone_obj = NULL;
+  php_driver_set_handlers.clone_obj = NULL;
 }
 
 END_EXTERN_C()

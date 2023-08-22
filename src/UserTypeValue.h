@@ -16,8 +16,11 @@
 
 #pragma once
 
+#include <php.h>
+#include <php_driver_types.h>
+
 BEGIN_EXTERN_C()
-void php_driver_user_type_value_set(php_driver_user_type_value *user_type_value, const char *name, size_t name_length,
-                                    zval *object);
+void php_driver_user_type_value_set(php_driver_user_type_value *user_type_value, const char *name,
+                                    size_t name_length, zval *object);
 
 END_EXTERN_C()

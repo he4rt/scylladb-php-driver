@@ -22,7 +22,6 @@ target_sources(
         Session.cpp
         SimpleStatement.cpp
         Statement.cpp
-        Type.cpp
         UserTypeValue.cpp
         Uuid.cpp
         UuidInterface.cpp

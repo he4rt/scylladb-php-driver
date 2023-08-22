@@ -28,7 +28,7 @@ BEGIN_EXTERN_C()
 #include "Collection_arginfo.h"
 
 zend_class_entry *php_driver_collection_ce = nullptr;
-static php_driver_value_handlers php_driver_collection_handlers;
+static zend_object_handlers php_driver_collection_handlers;
 
 void php_driver_collection_add(php_driver_collection *collection, zval *object) {
   (void)zend_hash_next_index_insert(&collection->values, object);
@@ -327,27 +327,6 @@ static int php_driver_collection_compare(zval *obj1, zval *obj2) {
   return 0;
 }
 
-static uint32_t php_driver_collection_hash_value(zval *obj) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_collection>(obj);
-
-  if (!self->dirty) {
-    return self->hashv;
-  }
-
-  zval *current = nullptr;
-  uint32_t hashv = 0;
-
-  ZEND_HASH_FOREACH_VAL(&self->values, current) {
-    hashv = php_driver_combine_hash(hashv, php_driver_value_hash(current));
-  }
-  ZEND_HASH_FOREACH_END();
-
-  self->hashv = hashv;
-  self->dirty = 0;
-
-  return hashv;
-}
-
 static void php_driver_collection_free(zend_object *object) {
   auto *self = ZendCPP::ObjectFetch<php_driver_collection>(object);
   zend_array_release(&self->values);
@@ -373,11 +352,10 @@ void php_driver_define_Collection(zend_class_entry *value_interface) {
 
   ZendCPP::InitHandlers<php_driver_collection>(&php_driver_collection_handlers);
 
-  php_driver_collection_handlers.std.get_properties = php_driver_collection_properties;
-  php_driver_collection_handlers.std.get_gc = php_driver_collection_gc;
-  php_driver_collection_handlers.std.compare = php_driver_collection_compare;
-  php_driver_collection_handlers.hash_value = php_driver_collection_hash_value;
-  php_driver_collection_handlers.std.free_obj = php_driver_collection_free;
-  php_driver_collection_handlers.std.clone_obj = nullptr;
+  php_driver_collection_handlers.get_properties = php_driver_collection_properties;
+  php_driver_collection_handlers.get_gc = php_driver_collection_gc;
+  php_driver_collection_handlers.compare = php_driver_collection_compare;
+  php_driver_collection_handlers.free_obj = php_driver_collection_free;
+  php_driver_collection_handlers.clone_obj = nullptr;
 }
 END_EXTERN_C()

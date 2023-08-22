@@ -40,13 +40,8 @@ PHP_METHOD(TypeCollection, name) {
 }
 
 PHP_METHOD(TypeCollection, valueType) {
-  php_driver_type* self;
-
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
-
-  self = PHP_DRIVER_GET_TYPE(getThis());
+  ZEND_PARSE_PARAMETERS_NONE();
+  php_driver_type* self = PHP_DRIVER_GET_TYPE(getThis());
   RETURN_ZVAL(&self->data.collection.value_type, 1, 0);
 }
 

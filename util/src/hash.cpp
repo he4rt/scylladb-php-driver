@@ -41,8 +41,6 @@ PHP_DRIVER_ALWAYS_INLINE uint32_t php_driver_value_hash(zval* zvalue) {
       return 0;
     case IS_STRING:
       return zend_inline_hash_func(Z_STRVAL_P(zvalue), Z_STRLEN_P(zvalue));
-    case IS_OBJECT:
-      return ((php_driver_value_handlers*)Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue);
     default:
       return 0;
   }

@@ -867,33 +867,25 @@ zval php_driver_type_custom(const char* name, size_t name_length) {
                           describe_token(token), ((int)(str - validator) - 1), validator);     \
   return FAILURE;
 
-enum token_type {
-  TOKEN_ILLEGAL = 0,
-  TOKEN_PAREN_OPEN,
-  TOKEN_PAREN_CLOSE,
-  TOKEN_COMMA,
-  TOKEN_COLON,
-  TOKEN_NAME,
-  TOKEN_END
-};
+enum class TypesTokenType { ILLEGAL = 0, PAREN_OPEN, PAREN_CLOSE, COMMA, COLON, NAME, END };
 
-enum parser_state { STATE_CLASS = 0, STATE_AFTER_CLASS, STATE_AFTER_PARENS, STATE_END };
+enum class TypesParserState { CLASS = 0, AFTER_CLASS, AFTER_PARENS, END };
 
-static const char* describe_token(enum token_type token) {
+static const char* describe_token(enum TypesTokenType token) {
   switch (token) {
-    case TOKEN_ILLEGAL:
+    case TypesTokenType::ILLEGAL:
       return "illegal character";
-    case TOKEN_PAREN_OPEN:
+    case TypesTokenType::PAREN_OPEN:
       return "opening parenthesis";
-    case TOKEN_PAREN_CLOSE:
+    case TypesTokenType::PAREN_CLOSE:
       return "closing parenthesis";
-    case TOKEN_COMMA:
+    case TypesTokenType::COMMA:
       return "comma";
-    case TOKEN_COLON:
+    case TypesTokenType::COLON:
       return "colon";
-    case TOKEN_NAME:
+    case TypesTokenType::NAME:
       return "alphanumeric character";
-    case TOKEN_END:
+    case TypesTokenType::END:
       return "end of string";
     default:
       return "unknown token";
@@ -902,18 +894,18 @@ static const char* describe_token(enum token_type token) {
 
 static int isletter(char ch) { return isalnum(ch) || ch == '.'; }
 
-static enum token_type next_token(const char* str, size_t len, const char** token_str,
-                                  size_t* token_len, const char** str_out, size_t* len_out) {
-  enum token_type type;
+static enum TypesTokenType next_token(const char* str, size_t len, const char** token_str,
+                                      size_t* token_len, const char** str_out, size_t* len_out) {
+  enum TypesTokenType type;
   unsigned int i = 0;
   char c = str[i];
 
   if (len == 0) {
-    return TOKEN_END;
+    return TypesTokenType::END;
   }
 
   if (isalnum(c)) {
-    type = TOKEN_NAME;
+    type = TypesTokenType::NAME;
     while (i < len) {
       if (!isletter(str[i])) {
         break;
@@ -923,26 +915,26 @@ static enum token_type next_token(const char* str, size_t len, const char** toke
   } else {
     switch (c) {
       case '\0':
-        type = TOKEN_END;
+        type = TypesTokenType::END;
         break;
       case '(':
-        type = TOKEN_PAREN_OPEN;
+        type = TypesTokenType::PAREN_OPEN;
         i++;
         break;
       case ')':
-        type = TOKEN_PAREN_CLOSE;
+        type = TypesTokenType::PAREN_CLOSE;
         i++;
         break;
       case ',':
-        type = TOKEN_COMMA;
+        type = TypesTokenType::COMMA;
         i++;
         break;
       case ':':
-        type = TOKEN_COLON;
+        type = TypesTokenType::COLON;
         i++;
         break;
       default:
-        type = TOKEN_ILLEGAL;
+        type = TypesTokenType::ILLEGAL;
     }
   }
 
@@ -989,15 +981,15 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
   size_t len;
   const char* token_str;
   size_t token_len;
-  enum parser_state state;
-  enum token_type token;
+  enum TypesParserState state;
+  enum TypesTokenType token;
   struct node_s* root;
   struct node_s* node;
   struct node_s* child;
 
   token_str = NULL;
   token_len = 0;
-  state = STATE_CLASS;
+  state = TypesParserState::CLASS;
   str = validator;
   len = validator_len;
   root = php_driver_parse_node_new();
@@ -1006,20 +998,20 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
   while (1) {
     token = next_token(str, len, &token_str, &token_len, &str, &len);
 
-    if (token == TOKEN_ILLEGAL) {
+    if (token == TypesTokenType::ILLEGAL) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
-                              "Illegal character \"%c\" at position %d in \"%s\"", *token_str,
+                              R"(Illegal character "%c" at position %d in "%s")", *token_str,
                               ((int)(str - validator) - 1), validator);
       php_driver_parse_node_free(root);
       return FAILURE;
     }
 
-    if (state == STATE_AFTER_PARENS) {
-      if (token == TOKEN_COMMA) {
+    if (state == TypesParserState::AFTER_PARENS) {
+      if (token == TypesTokenType::COMMA) {
         if (node->parent == NULL) {
           EXPECTING_TOKEN("end of string");
         }
-        state = STATE_CLASS;
+        state = TypesParserState::CLASS;
 
         child = php_driver_parse_node_new();
         child->parent = node->parent;
@@ -1029,23 +1021,23 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
 
         node = child;
         continue;
-      } else if (token == TOKEN_PAREN_CLOSE) {
+      } else if (token == TypesTokenType::PAREN_CLOSE) {
         if (node->parent == NULL) {
           EXPECTING_TOKEN("end of string");
         }
 
         node = node->parent;
         continue;
-      } else if (token == TOKEN_END) {
+      } else if (token == TypesTokenType::END) {
         break;
       } else {
         EXPECTING_TOKEN("a comma, a closing parenthesis or an end of string");
       }
     }
 
-    if (state == STATE_AFTER_CLASS) {
-      if (token == TOKEN_PAREN_OPEN) {
-        state = STATE_CLASS;
+    if (state == TypesParserState::AFTER_CLASS) {
+      if (token == TypesTokenType::PAREN_OPEN) {
+        state = TypesParserState::CLASS;
 
         child = php_driver_parse_node_new();
         child->parent = node;
@@ -1063,8 +1055,8 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
 
         node = child;
         continue;
-      } else if (token == TOKEN_COMMA || token == TOKEN_COLON) {
-        state = STATE_CLASS;
+      } else if (token == TypesTokenType::COMMA || token == TypesTokenType::COLON) {
+        state = TypesParserState::CLASS;
 
         child = php_driver_parse_node_new();
         child->parent = node->parent;
@@ -1074,12 +1066,12 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
 
         node = child;
         continue;
-      } else if (token == TOKEN_PAREN_CLOSE) {
-        state = STATE_AFTER_PARENS;
+      } else if (token == TypesTokenType::PAREN_CLOSE) {
+        state = TypesParserState::AFTER_PARENS;
 
         node = node->parent;
         continue;
-      } else if (token == TOKEN_END) {
+      } else if (token == TypesTokenType::END) {
         break;
       } else {
         php_driver_parse_node_free(root);
@@ -1087,12 +1079,12 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
       }
     }
 
-    if (state == STATE_CLASS) {
-      if (token != TOKEN_NAME) {
+    if (state == TypesParserState::CLASS) {
+      if (token != TypesTokenType::NAME) {
         php_driver_parse_node_free(root);
         EXPECTING_TOKEN("fully qualified class name");
       }
-      state = STATE_AFTER_CLASS;
+      state = TypesParserState::AFTER_CLASS;
 
       node->name = token_str;
       node->name_length = token_len;
