@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
+#include "math.h"
+
 #include <errno.h>
 #include <gmp.h>
-#include <stdlib.h>
-
 #include <php_driver.h>
 #include <php_driver_types.h>
-
-#include "math.h"
+#include <stdlib.h>
 
 extern zend_class_entry* php_driver_invalid_argument_exception_ce;
 
-static int
-prepare_string_conversion(char* in, int* pos, int* negative)
-{
-  int base  = 0;
+static int prepare_string_conversion(char* in, int* pos, int* negative) {
+  int base = 0;
   int point = 0;
 
   /* Advance the pointer; ignore sign */
@@ -55,83 +52,83 @@ prepare_string_conversion(char* in, int* pos, int* negative)
   return base;
 }
 
-int
-php_driver_parse_float(char* in, int in_len, cass_float_t* number )
-{
+int php_driver_parse_float(char* in, int in_len, cass_float_t* number) {
   char* end;
   errno = 0;
 
-  *number = (cass_float_t) strtof(in, &end);
+  *number = (cass_float_t)strtof(in, &end);
 
   if (errno == ERANGE) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 , "Value is too small or too big for float: '%s'", in);
+    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+                            "Value is too small or too big for float: '%s'", in);
     return 0;
   }
 
   if (errno || end == in) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid float value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid float value: '%s'", in);
     return 0;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid characters were found in value: '%s'", in);
     return 0;
   }
 
   return 1;
 }
 
-int
-php_driver_parse_double(char* in, int in_len, cass_double_t* number )
-{
+int php_driver_parse_double(char* in, int in_len, cass_double_t* number) {
   char* end;
   errno = 0;
 
-  *number = (cass_double_t) strtod(in, &end);
+  *number = (cass_double_t)strtod(in, &end);
 
   if (errno == ERANGE) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 , "Value is too small or too big for double: '%s'", in);
+    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+                            "Value is too small or too big for double: '%s'", in);
     return 0;
   }
 
   if (errno || end == in) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid double value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid double value: '%s'", in);
     return 0;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid characters were found in value: '%s'", in);
     return 0;
   }
 
   return 1;
 }
 
-int
-php_driver_parse_int(char* in, int in_len, cass_int32_t* number )
-{
-  char* end          = NULL;
-  int pos            = 0;
-  int negative       = 0;
+int php_driver_parse_int(char* in, int in_len, cass_int32_t* number) {
+  char* end = NULL;
+  int pos = 0;
+  int negative = 0;
   cass_uint32_t temp = 0;
-  int base           = 0;
+  int base = 0;
 
-  base  = prepare_string_conversion(in, &pos, &negative);
+  base = prepare_string_conversion(in, &pos, &negative);
   errno = 0;
-  temp  = (cass_uint32_t) strtoul(in + pos, &end, base);
+  temp = (cass_uint32_t)strtoul(in + pos, &end, base);
 
   if (negative) {
-    if (temp > (cass_uint32_t) INT_MAX + 1) {
-      errno   = ERANGE;
+    if (temp > (cass_uint32_t)INT_MAX + 1) {
+      errno = ERANGE;
       *number = INT_MIN;
-    } else if (temp == (cass_uint32_t) INT_MAX + 1) {
+    } else if (temp == (cass_uint32_t)INT_MAX + 1) {
       *number = INT_MIN;
     } else {
-      *number = -((cass_int32_t) temp);
+      *number = -((cass_int32_t)temp);
     }
   } else {
-    if (temp > (cass_uint32_t) INT_MAX) {
-      errno   = ERANGE;
+    if (temp > (cass_uint32_t)INT_MAX) {
+      errno = ERANGE;
       *number = INT_MAX;
     } else {
       *number = temp;
@@ -139,49 +136,49 @@ php_driver_parse_int(char* in, int in_len, cass_int32_t* number )
   }
 
   if (errno == ERANGE) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 ,
+    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
                             "value must be between %d and %d, %s given", INT_MIN, INT_MAX, in);
     return 0;
   }
 
   if (errno || end == &in[pos]) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid integer value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid integer value: '%s'", in);
     return 0;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid characters were found in value: '%s'", in);
     return 0;
   }
 
   return 1;
 }
 
-int
-php_driver_parse_bigint(char* in, int in_len, cass_int64_t* number )
-{
-  char* end          = NULL;
-  int pos            = 0;
-  int negative       = 0;
+int php_driver_parse_bigint(char* in, int in_len, cass_int64_t* number) {
+  char* end = NULL;
+  int pos = 0;
+  int negative = 0;
   cass_uint64_t temp = 0;
-  int base           = 0;
+  int base = 0;
 
-  base  = prepare_string_conversion(in, &pos, &negative);
+  base = prepare_string_conversion(in, &pos, &negative);
   errno = 0;
-  temp  = (cass_uint64_t) strtoull(in + pos, &end, base);
+  temp = (cass_uint64_t)strtoull(in + pos, &end, base);
 
   if (negative) {
-    if (temp > (cass_uint64_t) INT64_MAX + 1) {
-      errno   = ERANGE;
+    if (temp > (cass_uint64_t)INT64_MAX + 1) {
+      errno = ERANGE;
       *number = INT64_MIN;
-    } else if (temp == (cass_uint64_t) INT64_MAX + 1) {
+    } else if (temp == (cass_uint64_t)INT64_MAX + 1) {
       *number = INT64_MIN;
     } else {
-      *number = -((cass_int64_t) temp);
+      *number = -((cass_int64_t)temp);
     }
   } else {
-    if (temp > (cass_uint64_t) INT64_MAX) {
-      errno   = ERANGE;
+    if (temp > (cass_uint64_t)INT64_MAX) {
+      errno = ERANGE;
       *number = INT64_MAX;
     } else {
       *number = temp;
@@ -189,47 +186,46 @@ php_driver_parse_bigint(char* in, int in_len, cass_int64_t* number )
   }
 
   if (errno == ERANGE) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 ,
-                            "value must be between " LL_FORMAT " and " LL_FORMAT ", %s given", INT64_MIN, INT64_MAX, in);
+    zend_throw_exception_ex(php_driver_range_exception_ce, 0,
+                            "value must be between " PRId64 " and " PRId64 ", %s given", INT64_MIN,
+                            INT64_MAX, in);
     return 0;
   }
 
   if (errno || end == &in[pos]) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid integer value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid integer value: '%s'", in);
     return 0;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid characters were found in value: '%s'", in);
     return 0;
   }
 
   return 1;
 }
 
-int
-php_driver_parse_varint(char* in, int in_len, mpz_t* number )
-{
-  int pos      = 0;
+int php_driver_parse_varint(char* in, int in_len, mpz_t* number) {
+  int pos = 0;
   int negative = 0;
-  int base     = 0;
+  int base = 0;
 
   base = prepare_string_conversion(in, &pos, &negative);
 
   if (mpz_set_str(*number, &in[pos], base) == -1) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid integer value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Invalid integer value: '%s'", in);
     return 0;
   }
 
-  if (negative)
-    mpz_neg(*number, *number);
+  if (negative) mpz_neg(*number, *number);
 
   return 1;
 }
 
-int
-php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
-{
+int php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale) {
   /*  start is the index into the char array where the significand starts */
   int start = 0;
   /*
@@ -246,7 +242,7 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
    * out will be storing the string representation of the integer part
    * of the decimal value
    */
-  char* out = (char*) ecalloc((in_len + 1), sizeof(char));
+  char* out = (char*)ecalloc((in_len + 1), sizeof(char));
   /*  holds length of the formatted integer number */
   int out_len = 0;
 
@@ -295,7 +291,7 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
   /* Hex or binary */
   if (maybe_octal && (in[point + 1] == 'b' || in[point + 1] == 'x')) {
     *scale = 0;
-    return php_driver_parse_varint(in, in_len, number );
+    return php_driver_parse_varint(in, in_len, number);
   }
 
   /*
@@ -308,7 +304,8 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
     if (c == '.') {
       /* If dot != -1 then we've seen more than one decimal point. */
       if (dot != -1) {
-        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Multiple '.' (dots) in the number '%s'", in);
+        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                                "Multiple '.' (dots) in the number '%s'", in);
         return 0;
       }
 
@@ -322,7 +319,8 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
      * exponent and is not a hexadecimal digit.
      */
     else if (!isxdigit(c)) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Unrecognized character '%c' at position %d", c, point);
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "Unrecognized character '%c' at position %d", c, point);
       return 0;
     }
 
@@ -332,12 +330,11 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
   /* Octal number */
   if (maybe_octal && dot == -1) {
     *scale = 0;
-    return php_driver_parse_varint(in, in_len, number );
+    return php_driver_parse_varint(in, in_len, number);
   }
 
   /* Prepend a negative sign if necessary. */
-  if (negative)
-    out[0] = '-';
+  if (negative) out[0] = '-';
 
   if (dot != -1) {
     /*
@@ -348,7 +345,7 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
     memcpy(&out[negative + dot - start], &in[dot + 1], point - dot);
 
     out_len = point - start + negative - 1;
-    *scale  = point - 1 - dot;
+    *scale = point - 1 - dot;
   } else {
     /*
      * If there was no decimal then the unscaled value is just the number
@@ -356,16 +353,18 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
      */
     memcpy(&out[negative], &in[start], point - start);
     out_len = point - start + negative;
-    *scale  = 0;
+    *scale = 0;
   }
 
   if (out_len == 0) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "No digits seen in value: '%s'", in);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "No digits seen in value: '%s'", in);
     return 0;
   }
 
   if (mpz_set_str(*number, out, 10) == -1) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Unable to extract integer part of decimal value: '%s', %s", in, out);
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "Unable to extract integer part of decimal value: '%s', %s", in, out);
     efree(out);
     return 0;
   }
@@ -382,20 +381,21 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
 
     point++;
     /* Ignore a '+' sign. */
-    if (in[point] == '+')
-      point++;
+    if (in[point] == '+') point++;
 
     /*
      * Throw an exception if there were no digits found after the 'e'
      * or 'E'.
      */
     if (point >= in_len) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "No exponent following e or E in value: '%s'", in);
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "No exponent following e or E in value: '%s'", in);
       return 0;
     }
 
     if (!sscanf(&in[point], "%d", &diff)) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%s'", in);
+      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "Malformed exponent in value: '%s'", in);
       return 0;
     }
 
@@ -405,38 +405,33 @@ php_driver_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
   return 1;
 }
 
-void
-php_driver_format_integer(mpz_t number, char** out, int* out_len)
-{
+void php_driver_format_integer(mpz_t number, char** out, int* out_len) {
   /* Adding 2 ensures enough space for the null-terminator and negative sign */
-  *out = (char*) emalloc(mpz_sizeinbase(number, 10) + 2);
+  *out = (char*)emalloc(mpz_sizeinbase(number, 10) + 2);
   mpz_get_str(*out, 10, number);
   *out_len = strlen(*out);
 }
 
-void
-php_driver_format_decimal(mpz_t number, long scale, char** out, int* out_len)
-{
-  char* tmp    = NULL;
+void php_driver_format_decimal(mpz_t number, long scale, char** out, int* out_len) {
+  char* tmp = NULL;
   size_t total = 0;
-  size_t len   = mpz_sizeinbase(number, 10);
+  size_t len = mpz_sizeinbase(number, 10);
   int negative = 0;
-  int point    = -1;
+  int point = -1;
 
   if (scale == 0) {
     php_driver_format_integer(number, out, out_len);
     return;
   }
 
-  if (mpz_sgn(number) < 0)
-    negative = 1;
+  if (mpz_sgn(number) < 0) negative = 1;
 
   // Ultimately, we want to return a string representation of this decimal. So allocate
   // a buffer that could hold this decimal in the worst possible conservative case.
 
-  // absolute length + negative sign + point sign + scale (in case we end up with a number with leading 0s) +
-  // exponent modifier and sign.
-  tmp = (char*) emalloc(len + negative + 1 + scale + 2);
+  // absolute length + negative sign + point sign + scale (in case we end up with a number with
+  // leading 0s) + exponent modifier and sign.
+  tmp = (char*)emalloc(len + negative + 1 + scale + 2);
   mpz_get_str(tmp, 10, number);
 
   // Update len to be the true length of the string representation of |number|. mpz_sizeinbase
@@ -457,13 +452,12 @@ php_driver_format_decimal(mpz_t number, long scale, char** out, int* out_len)
       // current position
       int i = 0;
 
-      // Move the numeric part (skip leading minus if needed) of tmp right by enough bytes to make room for
-      // 0.0000 (as many leading zeroes as necessary).
+      // Move the numeric part (skip leading minus if needed) of tmp right by enough bytes to make
+      // room for 0.0000 (as many leading zeroes as necessary).
       memmove(&(tmp[shift_start + 2 - point]), &(tmp[shift_start]), len);
 
       // This is a (possibly negative) number with a 0 integer part.
-      if (negative)
-        tmp[i++] = '-';
+      if (negative) tmp[i++] = '-';
 
       tmp[i++] = '0';
       tmp[i++] = '.';
@@ -474,7 +468,7 @@ php_driver_format_decimal(mpz_t number, long scale, char** out, int* out_len)
         point++;
       }
 
-      total      = i + len;
+      total = i + len;
       tmp[total] = '\0';
     } else {
       // e.g. 1.2, -1.2
@@ -496,12 +490,12 @@ php_driver_format_decimal(mpz_t number, long scale, char** out, int* out_len)
     // Very small positive or negative number that we want to express in scientific notation:
     // 0.000000004, -0.000000004
 
-    int exponent      = -1;
+    int exponent = -1;
     int exponent_size = -1;
 
     // Calculate the exponent value and its size.
-    exponent      = point - 1;
-    exponent_size = (int) ceil(log10(abs(exponent) + 2)) + 1;
+    exponent = point - 1;
+    exponent_size = (int)ceil(log10(abs(exponent) + 2)) + 1;
 
     // If we only have one significant digit, we want to produce a string like
     // 1E-9. If we have more significant digits, then 1.123E-9.
@@ -523,13 +517,11 @@ php_driver_format_decimal(mpz_t number, long scale, char** out, int* out_len)
     }
   }
 
-  *out     = tmp;
+  *out = tmp;
   *out_len = total;
 }
 
-void
-import_twos_complement(cass_byte_t* data, size_t size, mpz_t* number)
-{
+void import_twos_complement(cass_byte_t* data, size_t size, mpz_t* number) {
   mpz_import(*number, size, 1, sizeof(cass_byte_t), 1, 0, data);
 
   /* negative value */
@@ -546,16 +538,14 @@ import_twos_complement(cass_byte_t* data, size_t size, mpz_t* number)
   }
 }
 
-cass_byte_t*
-export_twos_complement(mpz_t number, size_t* size)
-{
+cass_byte_t* export_twos_complement(mpz_t number, size_t* size) {
   cass_byte_t* bytes;
 
   if (mpz_sgn(number) == 0) {
     /* mpz_export() returns NULL for 0 */
-    bytes  = (cass_byte_t*) malloc(sizeof(cass_byte_t));
+    bytes = (cass_byte_t*)malloc(sizeof(cass_byte_t));
     *bytes = 0;
-    *size  = 1;
+    *size = 1;
   } else if (mpz_sgn(number) == -1) {
     /*  mpz_export() ignores sign and only exports abs(number)
      *  so this needs to convert the number to the two's complement
@@ -588,7 +578,7 @@ export_twos_complement(mpz_t number, size_t* size)
     mpz_set_ui(temp, 1);
     mpz_mul_2exp(temp, temp, 8 * n);
     mpz_add(temp, number, temp);
-    bytes = (cass_byte_t*) mpz_export(NULL, size, 1, sizeof(cass_byte_t), 1, 0, temp);
+    bytes = (cass_byte_t*)mpz_export(NULL, size, 1, sizeof(cass_byte_t), 1, 0, temp);
     mpz_clear(temp);
   } else {
     /* mpz_export() always returns a unsigned number and can have
@@ -597,8 +587,8 @@ export_twos_complement(mpz_t number, size_t* size)
      */
 
     /* round to the nearest byte and add space for a leading 0 byte */
-    *size    = (mpz_sizeinbase(number, 2) + 7) / 8 + 1;
-    bytes    = malloc(*size);
+    *size = (mpz_sizeinbase(number, 2) + 7) / 8 + 1;
+    bytes = (cass_byte_t*)malloc(*size);
     bytes[0] = 0;
     mpz_export(bytes + 1, NULL, 1, sizeof(cass_byte_t), 1, 0, number);
   }

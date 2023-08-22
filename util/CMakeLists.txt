@@ -5,6 +5,7 @@ target_sources(
         util
         PRIVATE
         src/bytes.cpp
+        src/math.cpp
         src/collections.cpp
         src/future.cpp
         src/hash.cpp
