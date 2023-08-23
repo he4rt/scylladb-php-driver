@@ -16,12 +16,15 @@
 
 #include "src/UserTypeValue.h"
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include <php.h>
+#include <php_driver.h>
+#include <php_driver_types.h>
+#include <util/collections.h>
+#include <util/hash.h>
+#include <util/types.h>
+
 #include "src/Type/UserType.h"
-#include "util/collections.h"
-#include "util/hash.h"
-#include "util/types.h"
+
 BEGIN_EXTERN_C()
 zend_class_entry *php_driver_user_type_value_ce = NULL;
 
@@ -97,7 +100,7 @@ PHP_METHOD(UserTypeValue, __construct) {
       }
     } else if (Z_TYPE_P(sub_type) == IS_OBJECT &&
                instanceof_function(Z_OBJCE_P(sub_type), php_driver_type_ce)) {
-      if (!php_driver_type_validate(sub_type, "sub_type")) {
+      if (!php_driver_type_validate(Z_OBJ_P(sub_type))) {
         return;
       }
       if (php_driver_type_user_type_add(type, name, strlen(name), sub_type)) {

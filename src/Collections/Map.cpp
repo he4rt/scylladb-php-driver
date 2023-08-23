@@ -174,7 +174,7 @@ PHP_METHOD(Map, __construct) {
     key_type = &scalar_key_type;
   } else if (Z_TYPE_P(key_type) == IS_OBJECT &&
              instanceof_function(Z_OBJCE_P(key_type), php_driver_type_ce)) {
-    if (!php_driver_type_validate(key_type, "keyType")) {
+    if (!php_driver_type_validate(Z_OBJ_P(key_type))) {
       return;
     }
     Z_ADDREF_P(key_type);
@@ -191,7 +191,7 @@ PHP_METHOD(Map, __construct) {
     value_type = &scalar_value_type;
   } else if (Z_TYPE_P(value_type) == IS_OBJECT &&
              instanceof_function(Z_OBJCE_P(value_type), php_driver_type_ce)) {
-    if (!php_driver_type_validate(value_type, "valueType")) {
+    if (!php_driver_type_validate(Z_OBJ_P(value_type))) {
       return;
     }
     Z_ADDREF_P(value_type);

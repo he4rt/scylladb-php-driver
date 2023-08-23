@@ -94,7 +94,7 @@ PHP_METHOD(Tuple, __construct) {
       }
     } else if (Z_TYPE_P(sub_type) == IS_OBJECT &&
                instanceof_function(Z_OBJCE_P(sub_type), php_driver_type_ce)) {
-      if (!php_driver_type_validate(sub_type, "type")) {
+      if (!php_driver_type_validate(Z_OBJ_P(sub_type))) {
         return;
       }
       if (php_driver_type_tuple_add(type, sub_type)) {

@@ -86,12 +86,10 @@ ZEND_METHOD(Cassandra_Collection, __construct) {
   auto *self = PHP_DRIVER_GET_COLLECTION(getThis());
 
   if (type != nullptr) [[likely]] {
-    zval ztype;
-    ZVAL_OBJ(&ztype, type);
-
-    if (!php_driver_type_validate(&ztype, "type")) {
+    if (!php_driver_type_validate(type)) {
       return;
     }
+    zval ztype;
     self->type = php_driver_type_collection(&ztype);
     Z_ADDREF(ztype);
   }

@@ -1,16 +1,37 @@
 # Development
 
-* CMake used instead of autoconf and makefiles
-* Removed support for PHP 5.x
 * Version of the extension gets updated from CMakeLists.txt
+* CMake Build Presets
 * Setup Pest Testing
 * Support for PHP 8.3
 * Default Dynamic Linking for LibUV and LibScyllaDB
 * Support for Cassandra 4.0 using LibCassandra from DataStax
+* Dynamic and static linking against LibUV and LibScyllaDB/LibCassandra
+* Different Profile builds (Development, Production, Production with debug information)
+
+## BREAKING
+
+* CMake used instead of autoconf and makefiles
+* Removed support for PHP 5.x
+* Removed support for PHP 7.x
+* Removed support for PHP 8.0
+
+## Internal Changes
+
+* DateTime classes refactored and improved performance
+* RetryPolicy classes refactored and improved performance
+* Scripts for building PHP for Development of the driver and Intellisense
+* Docker file and Docker Compose for building and testing the driver in isolated environment
 
 # 1.3.8
 
-*  Support for PHP 8.2
+* Support for PHP 8.2
+* Migration from C to C++
+* Removing PHP Build system in favor of CMake
+* Upgraded `Cassandra\Cluster\Builder` class to new PHP argument parsing API
+* Reduce memory usage from `Cassandra\Cluster\Builder`
+* Migrate from Behat to PestPHP
+* Migrated from TravisCI to Github Actions.
 
 # 1.3.7
 

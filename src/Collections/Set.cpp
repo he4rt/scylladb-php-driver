@@ -121,7 +121,7 @@ PHP_METHOD(Set, __construct) {
     self->type = php_driver_type_set_from_value_type(value_type);
   } else if (Z_TYPE_P(type) == IS_OBJECT &&
              instanceof_function(Z_OBJCE_P(type), php_driver_type_ce)) {
-    if (!php_driver_type_validate(type, "type")) {
+    if (!php_driver_type_validate(Z_OBJ_P(type))) {
       return;
     }
     self->type = php_driver_type_set(type);
