@@ -64,14 +64,14 @@ static uv_once_t log_once = UV_ONCE_INIT;
 static char *log_location = nullptr;
 static uv_rwlock_t log_lock;
 
-#if CURRENT_CPP_DRIVER_VERSION < CPP_DRIVER_VERSION(2, 16, 2)
-#error C/C++ driver version 2.16.2 or greater required
+#if CURRENT_CPP_DRIVER_VERSION < CPP_DRIVER_VERSION(2, 16, 0)
+#error C/C++ driver version 2.16.0 or greater required
 #endif
 
 ZEND_DECLARE_MODULE_GLOBALS(php_driver)
 
 static PHP_GINIT_FUNCTION(php_driver);
-static PHP_GSHUTDOWN_FUNCTION(php_driver);
+PHP_GSHUTDOWN_FUNCTION(php_driver);
 
 // clang-format off
 const zend_function_entry php_driver_functions[] = {
@@ -311,25 +311,17 @@ zend_class_entry *exception_class(CassError rc) {
 
 void throw_invalid_argument(zval *object, const char *object_name, const char *expected_type) {
   if (Z_TYPE_P(object) == IS_OBJECT) {
-    const char *cls_name = NULL;
-    size_t cls_len;
-
     zend_string *str = Z_OBJ_HANDLER_P(object, get_class_name)(Z_OBJ_P(object));
-    cls_name = str->val;
-    cls_len = str->len;
-    if (cls_name) {
+    if (str) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "%s must be %s, an instance of %.*s given", object_name,
-                              expected_type, (int)cls_len, cls_name);
+                              expected_type, ZSTR_VAL(str), ZSTR_LEN(str));
       zend_string_release(str);
     } else {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "%s must be %s, an instance of Unknown Class given", object_name,
                               expected_type);
     }
-  } else if (Z_TYPE_P(object) == IS_STRING) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "%s must be %s, %Z given",
-                            object_name, expected_type, object);
   } else {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "%s must be %s, %Z given",
                             object_name, expected_type, object);
@@ -388,26 +380,9 @@ static PHP_GINIT_FUNCTION(php_driver) {
   php_driver_globals->persistent_clusters = 0;
   php_driver_globals->persistent_sessions = 0;
   php_driver_globals->persistent_prepared_statements = 0;
-  ZVAL_UNDEF(&php_driver_globals->type_varchar);
-  ZVAL_UNDEF(&php_driver_globals->type_text);
-  ZVAL_UNDEF(&php_driver_globals->type_blob);
-  ZVAL_UNDEF(&php_driver_globals->type_ascii);
-  ZVAL_UNDEF(&php_driver_globals->type_bigint);
-  ZVAL_UNDEF(&php_driver_globals->type_smallint);
-  ZVAL_UNDEF(&php_driver_globals->type_counter);
-  ZVAL_UNDEF(&php_driver_globals->type_int);
-  ZVAL_UNDEF(&php_driver_globals->type_varint);
-  ZVAL_UNDEF(&php_driver_globals->type_boolean);
-  ZVAL_UNDEF(&php_driver_globals->type_decimal);
-  ZVAL_UNDEF(&php_driver_globals->type_double);
-  ZVAL_UNDEF(&php_driver_globals->type_float);
-  ZVAL_UNDEF(&php_driver_globals->type_inet);
-  ZVAL_UNDEF(&php_driver_globals->type_timestamp);
-  ZVAL_UNDEF(&php_driver_globals->type_uuid);
-  ZVAL_UNDEF(&php_driver_globals->type_timeuuid);
 }
 
-static PHP_GSHUTDOWN_FUNCTION(php_driver) {
+PHP_GSHUTDOWN_FUNCTION(php_driver) {
   if (php_driver_globals->uuid_gen) {
     cass_uuid_gen_free(php_driver_globals->uuid_gen);
   }
@@ -539,21 +514,9 @@ PHP_MINIT_FUNCTION(php_driver) {
 
 PHP_MSHUTDOWN_FUNCTION(php_driver) { return SUCCESS; }
 
-PHP_RINIT_FUNCTION(php_driver) {
-#define XX_SCALAR(name, value) ZVAL_UNDEF(&PHP_DRIVER_G(type_##name));
-  PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
-#undef XX_SCALAR
+PHP_RINIT_FUNCTION(php_driver) { return SUCCESS; }
 
-  return SUCCESS;
-}
-
-PHP_RSHUTDOWN_FUNCTION(php_driver) {
-#define XX_SCALAR(name, value) PHP5TO7_ZVAL_MAYBE_DESTROY(PHP_DRIVER_G(type_##name));
-  PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
-#undef XX_SCALAR
-
-  return SUCCESS;
-}
+PHP_RSHUTDOWN_FUNCTION(php_driver) { return SUCCESS; }
 
 PHP_MINFO_FUNCTION(php_driver) {
   char buf[256];

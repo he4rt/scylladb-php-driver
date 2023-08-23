@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+#include <php.h>
 #include <php_driver.h>
-#include <php_driver_globals.h>
 #include <php_driver_types.h>
 #include <util/types.h>
 #include <zend_smart_str.h>
@@ -257,14 +257,17 @@ zval php_driver_type_from_data_type(const CassDataType* data_type) {
   return ztype;
 }
 
-int php_driver_type_validate(zval* object, const char* object_name) {
-  if (!instanceof_function(Z_OBJCE_P(object), php_driver_type_scalar_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_collection_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_map_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_set_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_tuple_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_user_type_ce)) {
-    throw_invalid_argument(object, object_name, "a valid " PHP_DRIVER_NAMESPACE "\\Type");
+int php_driver_type_validate(const zend_object* object) {
+  if (!instanceof_function(object->ce, php_driver_type_scalar_ce) &&
+      !instanceof_function(object->ce, php_driver_type_collection_ce) &&
+      !instanceof_function(object->ce, php_driver_type_map_ce) &&
+      !instanceof_function(object->ce, php_driver_type_set_ce) &&
+      !instanceof_function(object->ce, php_driver_type_tuple_ce) &&
+      !instanceof_function(object->ce, php_driver_type_user_type_ce)) {
+    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                            "object must be an instance of " PHP_DRIVER_NAMESPACE
+                            "\\Type, %s given",
+                            ZSTR_VAL(object->ce->name));
     return 0;
   }
   return 1;
@@ -708,14 +711,11 @@ zval php_driver_type_scalar(CassValueType type) {
   zval result;
   ZVAL_UNDEF(&result);
 
-#define XX_SCALAR(name, value)                                          \
-  if (value == type) {                                                  \
-    if (Z_ISUNDEF(PHP_DRIVER_G(TYPE_CODE(name)))) {                     \
-      PHP_DRIVER_G(TYPE_CODE(name)) = php_driver_type_scalar_new(type); \
-    }                                                                   \
-    Z_ADDREF_P(&PHP_DRIVER_G(TYPE_CODE(name)));                         \
-    return PHP_DRIVER_G(TYPE_CODE(name));                               \
-  }
+#define XX_SCALAR(name, value)                   \
+  if (value == type) {                           \
+    zval val = php_driver_type_scalar_new(type); \
+    return val;                                  \
+  }                                              \
   PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
   zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "Invalid type");

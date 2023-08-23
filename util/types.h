@@ -20,10 +20,9 @@
 #include <php_driver.h>
 #include <php_driver_types.h>
 
-
 zval php_driver_type_from_data_type(const CassDataType* data_type);
 
-int php_driver_type_validate(zval* object, const char* object_name);
+int php_driver_type_validate(const zend_object* object);
 int php_driver_type_compare(php_driver_type* type1, php_driver_type* type2);
 void php_driver_type_string(php_driver_type* type, smart_str* smart);
 
@@ -37,8 +36,7 @@ zval php_driver_type_collection(zval* value_type);
 zval php_driver_type_collection_from_value_type(CassValueType type);
 
 zval php_driver_type_map(zval* key_type, zval* value_type);
-zval php_driver_type_map_from_value_types(CassValueType key_type,
-                                                  CassValueType value_type);
+zval php_driver_type_map_from_value_types(CassValueType key_type, CassValueType value_type);
 
 zval php_driver_type_tuple();
 
@@ -46,8 +44,7 @@ zval php_driver_type_user_type();
 
 zval php_driver_type_custom(const char* name, size_t name_length);
 
-int php_driver_parse_column_type(const char* validator, size_t validator_len,
-                                 int* reversed_out, int* frozen_out,
-                                 zval* type_out);
+int php_driver_parse_column_type(const char* validator, size_t validator_len, int* reversed_out,
+                                 int* frozen_out, zval* type_out);
 
 void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS);
