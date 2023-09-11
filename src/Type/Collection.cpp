@@ -27,7 +27,7 @@ zend_class_entry* php_driver_type_collection_ce = nullptr;
 PHP_METHOD(TypeCollection, __construct) {
   zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE
-                          "\\Type\\Collection type is not supported.");
+                          "\\Type\\Collections type is not supported.");
   RETURN_THROWS();
 }
 
@@ -64,7 +64,7 @@ PHP_METHOD(TypeCollection, __toString) {
 
 PHP_METHOD(TypeCollection, create) {
   php_driver_type* self;
-  php_driver_collection* collection;
+  php_scylladb_collection* collection;
   zval* args = NULL;
   int argc = 0, i;
 
@@ -182,7 +182,7 @@ static zend_object* php_driver_type_collection_new(zend_class_entry* ce) {
 void php_driver_define_TypeCollection() {
   zend_class_entry ce;
 
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\Collection",
+  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\Collections",
                    php_driver_type_collection_methods);
   php_driver_type_collection_ce = zend_register_internal_class_ex(&ce, php_driver_type_ce);
   memcpy(&php_driver_type_collection_handlers, zend_get_std_object_handlers(),

@@ -80,7 +80,7 @@ static zend_class_entry *register_class_Cassandra_Collection(zend_class_entry *c
 {
 	zend_class_entry ce, *class_entry;
 
-	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Collection", class_Cassandra_Collection_methods);
+	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Collections", class_Cassandra_Collection_methods);
 	class_entry = zend_register_internal_class_ex(&ce, NULL);
 	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 3, class_entry_Cassandra_Value, class_entry_Countable, class_entry_Iterator);

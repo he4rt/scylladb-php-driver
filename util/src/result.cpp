@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <Collections/Collections.h>
 #include <php_driver.h>
 #include <php_driver_types.h>
 #include <util/math.h>
@@ -47,7 +48,7 @@ int php_driver_value(const CassValue *value, const CassDataType *data_type, zval
   php_driver_blob *blob = NULL;
   php_driver_inet *inet = NULL;
   php_driver_duration *duration = NULL;
-  php_driver_collection *collection = NULL;
+  php_scylladb_collection *collection = NULL;
   php_driver_map *map = NULL;
   php_driver_set *set = NULL;
   php_driver_tuple *tuple = NULL;

@@ -15,14 +15,17 @@
  */
 
 #include <fcntl.h>
-#include <src/Cluster/Cluster.h>
-#include <src/Collections/Collection.h>
-#include <src/DateTime/DateTimeInternal.h>
 #include <util/ref.h>
 #include <uv.h>
 #include <version.h>
 
 #include <ctime>
+
+
+#include <src/Cluster/Cluster.h>
+#include <src/Collections/Collection.h>
+#include <src/DateTime/DateTimeInternal.h>
+#include <src/RetryPolicy/RetryPolicy.h>
 
 BEGIN_EXTERN_C()
 #include <php_driver.h>
@@ -499,11 +502,7 @@ PHP_MINIT_FUNCTION(php_driver) {
   php_driver_define_TypeUserType();
   php_driver_define_TypeCustom();
 
-  auto *retry_policy_interface = php_scylladb_define_RetryPolicy();
-  php_scylladb_define_RetryPolicyDefault(retry_policy_interface);
-  php_driver_define_RetryPolicyDowngradingConsistency(retry_policy_interface);
-  php_driver_define_RetryPolicyFallthrough(retry_policy_interface);
-  php_driver_define_RetryPolicyLogging(retry_policy_interface);
+  php_scylladb_define_RetryPolicy();
 
   php_driver_define_TimestampGenerator();
   php_driver_define_TimestampGeneratorMonotonic();

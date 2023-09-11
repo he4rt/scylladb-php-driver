@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include <RetryPolicy/RetryPolicy.h>
 #include <php.h>
 #include <php_driver.h>
+
+#include "RetryPolicy/RetryPolicy.h"
 
 BEGIN_EXTERN_C()
 
@@ -133,16 +134,6 @@ static zend_always_inline php_driver_duration *php_driver_duration_object_fetch(
                                  ((size_t)(&(((php_driver_duration *)0)->zendObject))));
 }
 
-typedef struct php_driver_collection_ {
-  zval type;
-  zend_array values;
-  zend_object zendObject;
-} php_driver_collection;
-static zend_always_inline php_driver_collection *php_driver_collection_object_fetch(
-    zend_object *obj) {
-  return (php_driver_collection *)((char *)obj -
-                                   ((size_t)(&(((php_driver_collection *)0)->zendObject))));
-}
 
 typedef struct php_driver_map_entry_ php_driver_map_entry;
 
@@ -361,7 +352,7 @@ typedef struct php_driver_cluster_builder_ {
   uint16_t port;
   php_driver_load_balancing load_balancing_policy;
   cass_bool_t persist;
-  php_driver_retry_policy *retry_policy;
+  php_scylladb_retry_policy *retry_policy;
   php_driver_timestamp_gen *timestamp_gen;
   php_driver_ssl *ssl_options;
   zval default_timeout;
@@ -801,18 +792,6 @@ void php_driver_define_TypeMap();
 void php_driver_define_TypeTuple();
 void php_driver_define_TypeUserType();
 void php_driver_define_TypeCustom();
-
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_default_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_retry_policy_downgrading_consistency_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_retry_policy_fallthrough_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_retry_policy_logging_ce;
-
-zend_class_entry *php_scylladb_define_RetryPolicy(void);
-void php_scylladb_define_RetryPolicyDefault(zend_class_entry *retry_policy_interface);
-void php_driver_define_RetryPolicyDowngradingConsistency(zend_class_entry *retry_policy_interface);
-void php_driver_define_RetryPolicyFallthrough(zend_class_entry *retry_policy_interface);
-void php_driver_define_RetryPolicyLogging(zend_class_entry *retry_policy_interface);
 
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_timestamp_gen_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_timestamp_gen_monotonic_ce;

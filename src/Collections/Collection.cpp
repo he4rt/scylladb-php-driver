@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include "Collection.h"
+#include "./Collection.h"
 
+#include <Collections/Collections.h>
 #include <php_driver.h>
 #include <php_driver_types.h>
 #include <util/collections.h>
@@ -30,20 +31,15 @@ BEGIN_EXTERN_C()
 zend_class_entry *php_driver_collection_ce = nullptr;
 static zend_object_handlers php_driver_collection_handlers;
 
-void php_driver_collection_add(php_driver_collection *collection, zval *object) {
-  (void)zend_hash_next_index_insert(&collection->values, object);
-  Z_TRY_ADDREF_P(object);
-}
-
-static int php_driver_collection_del(php_driver_collection *collection, ulong index) {
+static bool php_driver_collection_del(php_scylladb_collection *collection, ulong index) {
   if (zend_hash_index_del(&collection->values, index) == SUCCESS) [[likely]] {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
-static zval *php_driver_collection_get(php_driver_collection *collection, zend_long index) {
+static zval *php_driver_collection_get(php_scylladb_collection *collection, zend_long index) {
   const zend_array *arr = &collection->values;
   zval *val;
   ZEND_HASH_INDEX_FIND(arr, index, val, not_found);
@@ -53,14 +49,14 @@ not_found:
   return nullptr;
 }
 
-static std::optional<int> php_driver_collection_find(php_driver_collection *collection,
+static std::optional<int> php_driver_collection_find(php_scylladb_collection *collection,
                                                      zval *object) {
   zend_ulong num_key;
   zval *current;
   ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
     zval compare;
-    if (is_identical_function(&compare, object, current) != SUCCESS) [[unlikely]] {
-      zend_throw_error(zend_ce_error, "Failed to use === operator to compare values");
+    if (is_equal_function(&compare, object, current) != SUCCESS) [[unlikely]] {
+      zend_throw_error(zend_ce_error, "Failed to use == operator to compare values");
       return std::nullopt;
     }
 
@@ -68,7 +64,7 @@ static std::optional<int> php_driver_collection_find(php_driver_collection *coll
       return num_key;
     }
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&collection->values);
+  ZEND_HASH_FOREACH_END();
 
   return -1;
 }
@@ -83,7 +79,7 @@ ZEND_METHOD(Cassandra_Collection, __construct) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  auto *self = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
 
   if (type != nullptr) [[likely]] {
     if (!php_driver_type_validate(type)) {
@@ -110,12 +106,12 @@ ZEND_METHOD(Cassandra_Collection, __construct) {
 }
 
 ZEND_METHOD(Cassandra_Collection, type) {
-  php_driver_collection *self = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_Collection, values) {
-  auto *collection = ZendCPP::ObjectFetch<php_driver_collection>(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
   RETURN_ARR(zend_array_dup(&collection->values));
 }
 
@@ -129,7 +125,7 @@ ZEND_METHOD(Cassandra_Collection, add) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  auto *self = ZendCPP::ObjectFetch<php_driver_collection>(getThis());
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
   auto *type = ZendCPP::ObjectFetch<php_driver_type>(&self->type);
 
   for (int32_t i = 0; i < argc; i++) {
@@ -158,7 +154,7 @@ ZEND_METHOD(Cassandra_Collection, remove) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
 
   if (php_driver_collection_del(collection, (ulong)index)) {
     RETURN_TRUE;
@@ -176,7 +172,7 @@ ZEND_METHOD(Cassandra_Collection, get) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  auto self = ZendCPP::ObjectFetch<php_driver_collection>(getThis());
+  auto self = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
 
   if (auto value = php_driver_collection_get(self, key); value != nullptr) [[likely]] {
     RETURN_ZVAL(value, 1, 0);
@@ -195,7 +191,7 @@ ZEND_METHOD(Cassandra_Collection, find) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  auto *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
 
   if (auto idx = php_driver_collection_find(collection, object); idx) [[likely]] {
     if (idx.value() >= 0) [[likely]] {
@@ -209,39 +205,37 @@ ZEND_METHOD(Cassandra_Collection, find) {
 }
 
 ZEND_METHOD(Cassandra_Collection, count) {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
   RETURN_LONG(zend_hash_num_elements(&collection->values));
 }
 
 ZEND_METHOD(Cassandra_Collection, current) {
-  zval *current;
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
 
-  if (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA(&collection->values, current)) {
-    RETURN_ZVAL(current, 1, 0);
-  }
+  zval *current = zend_hash_get_current_data(&collection->values);
+  RETURN_ZVAL(current, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_Collection, key) {
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
+
   zend_ulong num_key;
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
-  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
-    RETURN_LONG(num_key);
-  }
+  assert(zend_hash_get_current_key(&collection->values, nullptr, &num_key) == HASH_KEY_IS_LONG);
+  RETURN_LONG(num_key);
 }
 
 ZEND_METHOD(Cassandra_Collection, next) {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
   zend_hash_move_forward(&collection->values);
 }
 
 ZEND_METHOD(Cassandra_Collection, valid) {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
   RETURN_BOOL(zend_hash_has_more_elements(&collection->values) == SUCCESS);
 }
 
 ZEND_METHOD(Cassandra_Collection, rewind) {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  auto *collection = ZendCPP::ObjectFetch<php_scylladb_collection>(getThis());
   zend_hash_internal_pointer_reset(&collection->values);
 }
 
@@ -259,8 +253,8 @@ static int php_driver_collection_compare(zval *obj1, zval *obj2) {
     return 1;
   }
 
-  auto *collection1 = ZendCPP::ObjectFetch<php_driver_collection>(obj1);
-  auto *collection2 = ZendCPP::ObjectFetch<php_driver_collection>(obj2);
+  auto *collection1 = ZendCPP::ObjectFetch<php_scylladb_collection>(obj1);
+  auto *collection2 = ZendCPP::ObjectFetch<php_scylladb_collection>(obj2);
 
   auto *type1 = ZendCPP::ObjectFetch<php_driver_type>(&collection1->type);
   auto *type2 = ZendCPP::ObjectFetch<php_driver_type>(&collection2->type);
@@ -296,7 +290,7 @@ not_found:
 }
 
 static void php_driver_collection_free(zend_object *object) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_collection>(object);
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_collection>(object);
   zend_array_release(&self->values);
   if (!Z_ISUNDEF(self->type)) [[unlikely]] {
     zval_ptr_dtor(&self->type);
@@ -305,23 +299,24 @@ static void php_driver_collection_free(zend_object *object) {
 }
 
 static zend_object *php_driver_collection_new(zend_class_entry *ce) {
-  auto *self = ZendCPP::Allocate<php_driver_collection>(ce, &php_driver_collection_handlers);
+  auto *self = ZendCPP::Allocate<php_scylladb_collection>(ce, &php_driver_collection_handlers);
   _zend_hash_init(&self->values, 0, ZVAL_PTR_DTOR, false);
   ZVAL_UNDEF(&self->type);
 
   return &self->zendObject;
 }
 
+END_EXTERN_C()
+
 void php_driver_define_Collection(zend_class_entry *value_interface) {
   php_driver_collection_ce =
       register_class_Cassandra_Collection(value_interface, zend_ce_countable, zend_ce_iterator);
   php_driver_collection_ce->create_object = php_driver_collection_new;
 
-  ZendCPP::InitHandlers<php_driver_collection>(&php_driver_collection_handlers);
+  ZendCPP::InitHandlers<php_scylladb_collection>(&php_driver_collection_handlers);
 
   php_driver_collection_handlers.get_gc = php_driver_collection_gc;
   php_driver_collection_handlers.compare = php_driver_collection_compare;
   php_driver_collection_handlers.free_obj = php_driver_collection_free;
   php_driver_collection_handlers.clone_obj = nullptr;
 }
-END_EXTERN_C()

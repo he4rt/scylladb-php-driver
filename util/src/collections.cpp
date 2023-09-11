@@ -180,9 +180,9 @@ int php_driver_validate_object(zval* object, zval* ztype) {
       return 1;
     case CASS_VALUE_TYPE_LIST:
       if (!INSTANCE_OF(php_driver_collection_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Collection");
+        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Collections");
       } else {
-        php_driver_collection* collection = PHP_DRIVER_GET_COLLECTION(object);
+        php_scylladb_collection* collection = PHP_DRIVER_GET_COLLECTION(object);
         php_driver_type* collection_type = PHP_DRIVER_GET_TYPE(&(collection->type));
         if (php_driver_type_compare(collection_type, type) != 0) {
           return 0;
@@ -286,7 +286,7 @@ static int php_driver_collection_append(CassCollection* collection, zval* value,
   php_driver_duration* duration;
   size_t size;
   cass_byte_t* data;
-  php_driver_collection* coll;
+  php_scylladb_collection* coll;
   php_driver_map* map;
   php_driver_set* set;
   php_driver_tuple* tup;
@@ -422,7 +422,7 @@ static int php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value,
   php_driver_duration* duration;
   size_t size;
   cass_byte_t* data;
-  php_driver_collection* coll;
+  php_scylladb_collection* coll;
   php_driver_map* map;
   php_driver_set* set;
   php_driver_tuple* tup;
@@ -561,7 +561,7 @@ static int php_driver_user_type_set(CassUserType* ut, const char* name, zval* va
   php_driver_duration* duration;
   size_t size;
   cass_byte_t* data;
-  php_driver_collection* coll;
+  php_scylladb_collection* coll;
   php_driver_map* map;
   php_driver_set* set;
   php_driver_tuple* tuple;
@@ -714,7 +714,7 @@ int php_driver_collection_from_set(php_driver_set* set, CassCollection** collect
   return result;
 }
 
-int php_driver_collection_from_collection(php_driver_collection* coll,
+int php_driver_collection_from_collection(php_scylladb_collection* coll,
                                           CassCollection** collection_ptr) {
   int result = 1;
   zval* current;

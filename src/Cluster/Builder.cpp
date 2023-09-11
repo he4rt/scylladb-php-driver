@@ -648,7 +648,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRetryPolicy)
     ZEND_PARSE_PARAMETERS_END();
 
     php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    auto *policy = ZendCPP::ObjectFetch<php_driver_retry_policy>(retry_policy);
+    auto *policy = ZendCPP::ObjectFetch<php_scylladb_retry_policy>(retry_policy);
 
     if (self->retry_policy != nullptr)
     {

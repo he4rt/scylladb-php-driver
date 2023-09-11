@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include <ZendCPP/ZendCPP.hpp>
 #include <RetryPolicy/RetryPolicy.h>
+
+#include <ZendCPP/ZendCPP.hpp>
 
 BEGIN_EXTERN_C()
 
@@ -25,8 +26,8 @@ zend_class_entry *php_scylladb_retry_policy_default_ce = nullptr;
 
 static zend_object_handlers php_scylladb_retry_policy_default_handlers;
 
-PHP_SCYLLADB_API php_driver_retry_policy *php_scylladb_retry_policy_default_instantiate(zval *dst)
-{
+PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_instantiate(
+    zval *dst) {
   zval val;
 
   if (object_init_ex(&val, php_scylladb_retry_policy_default_ce) == FAILURE) {
@@ -35,32 +36,31 @@ PHP_SCYLLADB_API php_driver_retry_policy *php_scylladb_retry_policy_default_inst
 
   ZVAL_OBJ(dst, Z_OBJ(val));
 
-  auto* obj = ZendCPP::ObjectFetch<php_driver_retry_policy>(dst);
+  auto *obj = ZendCPP::ObjectFetch<php_scylladb_retry_policy>(dst);
   obj->policy = cass_retry_policy_default_new();
   return obj;
 }
 
-
-static void php_scylladb_retry_policy_default_free(zend_object *object)
-{
-  auto *self = ZendCPP::ObjectFetch<php_driver_retry_policy>(object);
+static void php_scylladb_retry_policy_default_free(zend_object *object) {
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_retry_policy>(object);
 
   cass_retry_policy_free(self->policy);
 }
 
-static zend_object*php_scylladb_retry_policy_default_new(zend_class_entry *ce)
-{
-  auto *self = ZendCPP::Allocate<php_driver_retry_policy>(ce, &php_scylladb_retry_policy_default_handlers);
+static zend_object *php_scylladb_retry_policy_default_new(zend_class_entry *ce) {
+  auto *self =
+      ZendCPP::Allocate<php_scylladb_retry_policy>(ce, &php_scylladb_retry_policy_default_handlers);
   self->policy = cass_retry_policy_default_new();
   return &self->zendObject;
 }
 
-void php_scylladb_define_RetryPolicyDefault(zend_class_entry* retry_policy_interface)
-{
-  php_scylladb_retry_policy_default_ce = register_class_Cassandra_RetryPolicy_DefaultPolicy(retry_policy_interface);
+END_EXTERN_C()
+
+void php_scylladb_define_RetryPolicyDefault(zend_class_entry *interface) {
+  php_scylladb_retry_policy_default_ce =
+      register_class_Cassandra_RetryPolicy_DefaultPolicy(interface);
   php_scylladb_retry_policy_default_ce->create_object = php_scylladb_retry_policy_default_new;
 
-  ZendCPP::InitHandlers<php_driver_retry_policy>(&php_scylladb_retry_policy_default_handlers);
+  ZendCPP::InitHandlers<php_scylladb_retry_policy>(&php_scylladb_retry_policy_default_handlers);
   php_scylladb_retry_policy_default_handlers.free_obj = php_scylladb_retry_policy_default_free;
 }
-END_EXTERN_C()

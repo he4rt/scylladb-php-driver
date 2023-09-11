@@ -40,22 +40,28 @@ static void free_statement(void* statement) { cass_statement_free((CassStatement
 static void free_schema(void* schema) { cass_schema_meta_free((CassSchemaMeta*)schema); }
 
 static int bind_argument_by_index(CassStatement* statement, size_t index, zval* value) {
-  if (Z_TYPE_P(value) == IS_NULL) CHECK_RESULT(cass_statement_bind_null(statement, index));
+  if (Z_TYPE_P(value) == IS_NULL) {
+    CHECK_RESULT(cass_statement_bind_null(statement, index));
+  }
 
-  if (Z_TYPE_P(value) == IS_STRING)
+  if (Z_TYPE_P(value) == IS_STRING) {
     CHECK_RESULT(cass_statement_bind_string(statement, index, Z_STRVAL_P(value)));
+  }
 
-  if (Z_TYPE_P(value) == IS_DOUBLE)
+  if (Z_TYPE_P(value) == IS_DOUBLE) {
     CHECK_RESULT(cass_statement_bind_double(statement, index, Z_DVAL_P(value)));
+  }
 
-  if (Z_TYPE_P(value) == IS_LONG)
+  if (Z_TYPE_P(value) == IS_LONG) {
     CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
+  }
 
-  if (PHP_SCYLLADB_Z_IS_TRUE_P(value))
+  if (Z_TYPE_P(value) == IS_TRUE)
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
 
-  if (PHP_SCYLLADB_Z_IS_FALSE_P(value))
+  if (Z_TYPE_P(value) == IS_FALSE) {
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
+  }
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
     if (instanceof_function(Z_OBJCE_P(value), php_driver_float_ce)) {
@@ -158,7 +164,7 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
     if (instanceof_function(Z_OBJCE_P(value), php_driver_collection_ce)) {
       CassError rc;
       CassCollection* collection;
-      php_driver_collection* coll = PHP_DRIVER_GET_COLLECTION(value);
+      php_scylladb_collection* coll = PHP_DRIVER_GET_COLLECTION(value);
       if (!php_driver_collection_from_collection(coll, &collection)) return FAILURE;
 
       rc = cass_statement_bind_collection(statement, index, collection);
@@ -315,7 +321,7 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
     if (instanceof_function(Z_OBJCE_P(value), php_driver_collection_ce)) {
       CassError rc;
       CassCollection* collection;
-      php_driver_collection* coll = PHP_DRIVER_GET_COLLECTION(value);
+      php_scylladb_collection* coll = PHP_DRIVER_GET_COLLECTION(value);
       if (!php_driver_collection_from_collection(coll, &collection)) return FAILURE;
 
       rc = cass_statement_bind_collection_by_name(statement, name, collection);
@@ -568,7 +574,7 @@ PHP_METHOD(DefaultSession, execute) {
     if (opts->serial_consistency >= 0) serial_consistency = opts->serial_consistency;
 
     if (!Z_ISUNDEF(opts->retry_policy))
-      retry_policy = (ZendCPP::ObjectFetch<php_driver_retry_policy>(&opts->retry_policy))->policy;
+      retry_policy = (ZendCPP::ObjectFetch<php_scylladb_retry_policy>(&opts->retry_policy))->policy;
 
     timestamp = opts->timestamp;
   }
@@ -709,7 +715,7 @@ PHP_METHOD(DefaultSession, executeAsync) {
     if (opts->serial_consistency >= 0) serial_consistency = opts->serial_consistency;
 
     if (!Z_ISUNDEF(opts->retry_policy))
-      retry_policy = ZendCPP::ObjectFetch<php_driver_retry_policy>((&opts->retry_policy))->policy;
+      retry_policy = ZendCPP::ObjectFetch<php_scylladb_retry_policy>((&opts->retry_policy))->policy;
 
     timestamp = opts->timestamp;
   }
