@@ -26,7 +26,6 @@ zend_class_entry* php_driver_set_ce = NULL;
 
 int php_driver_set_add(php_driver_set* set, zval* object) {
   php_driver_set_entry* entry;
-  php_driver_type* type;
 
   if (Z_TYPE_P(object) == IS_NULL) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
@@ -34,7 +33,7 @@ int php_driver_set_add(php_driver_set* set, zval* object) {
     return 0;
   }
 
-  type = PHP_DRIVER_GET_TYPE(&set->type);
+  php_driver_type* type = PHP_DRIVER_GET_TYPE(&set->type);
 
   if (!php_driver_validate_object(object, &type->data.set.value_type)) {
     return 0;

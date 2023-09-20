@@ -150,6 +150,7 @@ static zend_always_inline php_driver_map *php_driver_map_object_fetch(zend_objec
   return (php_driver_map *)((char *)obj - ((size_t)(&(((php_driver_map *)0)->zendObject))));
 }
 
+
 typedef struct php_driver_set_entry_ php_driver_set_entry;
 
 typedef struct php_driver_set_ {
