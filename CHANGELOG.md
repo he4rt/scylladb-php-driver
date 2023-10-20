@@ -1,4 +1,7 @@
-# Development
+# 2.0.0 -> DEV
+
+
+# 1.4.0
 
 * CMake used instead of autoconf and makefiles
 * Removed support for PHP 5.x
