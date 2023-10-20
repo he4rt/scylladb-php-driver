@@ -1,4 +1,4 @@
 BasedOnStyle: Google
 
-Language: Cpp
+Language: C
 ColumnLimit: 100
