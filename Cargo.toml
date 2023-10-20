@@ -9,6 +9,13 @@ crate-type = ["lib", "cdylib"]
 
 [dependencies]
 phper = { version = "0.12" }
+scylla = "0.10"
+tokio = { version = "1", features = ["full"] }
+futures = "0.3.6"
+uuid = "1.0"
+bigdecimal = "0.2.0"
+num-bigint = "0.3"
+future-utils = "0.12.1"
 
 [dev-dependencies]
 phper-test = { version = "0.12" }
