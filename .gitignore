@@ -1,5 +1,5 @@
 # Directories to ignore
-/.idea/
+.idea/
 /.vagrant/
 /bin/
 /build/
