@@ -1,0 +1,17 @@
+[package]
+name = "scylla-driver"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+driver-common = { version = "*", path = "../driver-common" }
+phper = { version = "0.12" }
+scylla = "0.10"
+uuid = "1.0"
+bigdecimal = "0.2.0"
+num-bigint = "0.3"
+
+[dev-dependencies]
+phper-test = { version = "0.12" }

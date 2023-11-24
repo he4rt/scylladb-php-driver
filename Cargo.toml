@@ -2,27 +2,29 @@
 name = "scylladb"
 version = "2.0.0"
 edition = "2021"
+resolver = "2"
 
 [features]
-scylladb = []
-cassandra = []
+default = ["scylla"]
+scylla = ["dep:scylla-driver"]
+cassandra = ["dep:cassandra-driver"]
 
 [workspace]
-members = ["scylla", "cassandra"]
+members = ["scylla-driver", "cassandra-driver", "driver-common"]
 
 [lib]
 name = "scylladb"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
+scylla-driver = { version = "*", path = "./scylla-driver", optional = true }
+driver-common = { version = "*", path = "./driver-common" }
+cassandra-driver = { version = "*", path = "./cassandra-driver", optional = true }
 phper = { version = "0.12" }
-scylla = "0.10"
-tokio = { version = "1", features = ["full"] }
 futures = "0.3.6"
-uuid = "1.0"
-bigdecimal = "0.2.0"
-num-bigint = "0.3"
 future-utils = "0.12.1"
+cfg-if = { version = "1.0.0" }
+thiserror = "1.0.50"
 
 [dev-dependencies]
 phper-test = { version = "0.12" }

@@ -1,16 +1,15 @@
-use std::cell::Cell;
-use std::rc::Rc;
-use std::sync::Arc;
-use tokio::runtime::Runtime;
-
 use phper::ini::Policy;
 use phper::modules::Module;
 use phper::php_get_module;
-use tokio::sync::oneshot;
 
-use crate::cluster::make_cluster_builder_class;
+use driver_common::runtimes::Runtime;
+use driver_common::Driver;
 
-mod cluster;
+#[cfg(all(feature = "scylla", feature = "cassandra"))]
+compile_error!("feature \"scylla\" and feature \"cassandra\" cannot be enabled at the same time");
+
+#[cfg(all(not(feature = "scylla"), not(feature = "cassandra")))]
+compile_error!("feature \"scylla\" or feature \"cassandra\" must be enabled for compilation");
 
 #[php_get_module]
 pub fn get_module() -> Module {
@@ -20,36 +19,37 @@ pub fn get_module() -> Module {
         env!("CARGO_PKG_AUTHORS"),
     );
 
-    // TODO: Create and issue on `phper` to support OnModify callback for INI
-    module.add_ini("scylladb.log_level", "error".to_string(), Policy::All);
-    module.add_ini("scylladb.log", "scylladb.log".to_string(), Policy::All);
+    #[cfg(feature = "cassandra")]
+    let _d = {
+        module.add_ini("cassandra.log_level", "error".to_string(), Policy::All);
+        module.add_ini(
+            "cassandra.log",
+            "/var/log/php-cassandra/cassandra.log".to_string(),
+            Policy::All,
+        );
+    };
 
-    let rt = Arc::new(Runtime::new().unwrap());
-    let rt1 = Arc::clone(&rt);
+    #[cfg(feature = "scylla")]
+    let mut d = {
+        module.add_ini("scylladb.log_level", "error".to_string(), Policy::All);
+        module.add_ini(
+            "scylladb.log",
+            "/var/log/php-scylladb/scylladb.log".to_string(),
+            Policy::All,
+        );
 
-    let handle = Rc::new(Cell::new(None));
-    let handle1 = Rc::clone(&handle);
+        scylla_driver::ScyllaDBDriver
+    };
 
-    let (sx, rx) = oneshot::channel::<()>();
+    let runtime = driver_common::runtimes::spawn().unwrap();
 
-    module.on_module_init(move || {
-        handle.set(Some(std::thread::spawn(move || {
-            rt.block_on(async {
-                let _ = rx.await;
-            });
-        })));
-    });
+    d.register(runtime.handle());
 
     module.on_module_shutdown(move || {
-        drop(sx);
-
-        match handle1.take() {
-            Some(handle) => handle.join().unwrap(),
-            None => {}
-        };
+        if let Err(inner) = runtime.stop() {
+            phper::error!("Failed to stop Runtime: {:?}", inner);
+        }
     });
-
-    module.add_class(make_cluster_builder_class(rt1.handle().clone()));
 
     module
 }
