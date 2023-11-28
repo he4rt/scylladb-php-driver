@@ -17,9 +17,10 @@ impl<T: Handle> ClusterBuilder<T> {
     }
 }
 
-pub const CLUSTER_BUILDER_CLASS_NAME: &str = "ScyllaDB\\Cluster\\Builder";
+pub const CONNECTION_BUILDER_CLASS_NAME: &str = "ScyllaDB\\Connection\\Builder";
+pub const CONNECTION_CLASS_NAME: &str = "ScyllaDB\\Connection\\Connection";
 
-pub(self) fn build<T: Handle>(
+ fn build<T: Handle>(
     this: &mut StateObj<ClusterBuilder<T>>,
     _: &mut [ZVal],
 ) -> Result<(), phper::Error> {
@@ -43,7 +44,7 @@ pub(self) fn build<T: Handle>(
 
 pub(crate) fn make_cluster_builder_class<T: Handle>(handle: T) -> ClassEntity<ClusterBuilder<T>> {
     let mut class: ClassEntity<ClusterBuilder<T>> =
-        ClassEntity::new_with_state_constructor(CLUSTER_BUILDER_CLASS_NAME, move || {
+        ClassEntity::new_with_state_constructor(CONNECTION_BUILDER_CLASS_NAME, move || {
             ClusterBuilder::new(handle.clone())
         });
 
