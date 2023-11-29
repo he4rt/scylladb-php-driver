@@ -11,7 +11,7 @@ pub trait Runtime {
 
 pub trait PhpFuture<T> {
     fn ready(&self) -> bool;
-    fn wait(self) -> T;.
+    fn wait(self) -> T;
 
     ///
     /// Safety: This function is safe only if ready() retuns true
