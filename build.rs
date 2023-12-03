@@ -1,5 +1,5 @@
 use std::env::VarError;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 const PHP_VERSIONS: &[&str] = &["8.3", "8.2", "8.1"];
@@ -28,7 +28,7 @@ fn find_php_config(cwd: impl AsRef<str>) -> String {
         Ok(value) => {
             println!("cargo:rerun-if-env-changed=PHP_CONFIG");
             value
-        },
+        }
         Err(VarError::NotPresent) => {
             let php_version = std::env::var("PHP_VERISON");
 
@@ -41,7 +41,7 @@ fn find_php_config(cwd: impl AsRef<str>) -> String {
 
                 println!("{:?}", sorterd_versions);
 
-                if sorterd_versions.len() > 0 {
+                if !sorterd_versions.is_empty() {
                     sorterd_versions[0].clone()
                 } else {
                     format!("{}/php/bin/php-config", cwd.as_ref())

@@ -13,8 +13,8 @@ pub trait PhpFuture<T> {
     fn ready(&self) -> bool;
     fn wait(self) -> T;
 
-    ///
-    /// Safety: This function is safe only if ready() retuns true
+    /// # Safety
+    /// This function is safe only if ready() retuns true
     /// since it consumes the Future itself, it will drop Mutex and Condvar
     unsafe fn value(self) -> T;
 }
