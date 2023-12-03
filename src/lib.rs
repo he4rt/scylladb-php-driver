@@ -1,6 +1,8 @@
 use phper::ini::Policy;
 use phper::modules::Module;
 use phper::php_get_module;
+use tracing_appender::non_blocking;
+use tracing_subscriber::{fmt::layer as fmt_layer, prelude::*, registry};
 
 use driver_common::runtimes::Runtime;
 use driver_common::Driver;
@@ -10,6 +12,8 @@ compile_error!("feature \"scylla\" and feature \"cassandra\" cannot be enabled a
 
 #[cfg(all(not(feature = "scylla"), not(feature = "cassandra")))]
 compile_error!("feature \"scylla\" or feature \"cassandra\" must be enabled for compilation");
+
+fn setup_tracking() {}
 
 #[php_get_module]
 pub fn get_module() -> Module {
@@ -41,14 +45,33 @@ pub fn get_module() -> Module {
         scylla_driver::ScyllaDBDriver
     };
 
+    let (stdout_non_blocking, stdout_guard) = non_blocking(std::io::stdout());
+
+    let stdout_layer = fmt_layer()
+        .with_ansi(false)
+        .with_level(true)
+        .with_thread_names(false)
+        .with_target(false)
+        .with_writer(stdout_non_blocking);
+
+    let reg = registry().with(stdout_layer);
+
+    reg.init();
+
     let runtime = driver_common::runtimes::spawn().unwrap();
 
     d.register(runtime.handle());
 
-    module.on_module_shutdown(move || {
+    module.on_module_init(|_info| {
+        setup_tracking();
+    });
+
+    module.on_module_shutdown(move |_info| {
         if let Err(inner) = runtime.stop() {
             phper::error!("Failed to stop Runtime: {:?}", inner);
         }
+
+        drop(stdout_guard);
     });
 
     module

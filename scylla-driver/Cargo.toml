@@ -7,11 +7,11 @@ edition = "2021"
 
 [dependencies]
 driver-common = { version = "*", path = "../driver-common" }
-phper = { version = "0.12" }
+phper = { version = "0.13", branch = "master", git = "https://github.com/dmalusev/phper" }
 scylla = "0.10"
 uuid = "1.0"
 bigdecimal = "0.2.0"
 num-bigint = "0.3"
 
 [dev-dependencies]
-phper-test = { version = "0.12" }
+phper-test = { version = "0.13", branch = "master", git = "https://github.com/dmalusev/phper" }

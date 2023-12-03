@@ -20,14 +20,26 @@ crate-type = ["lib", "cdylib"]
 scylla-driver = { version = "*", path = "./scylla-driver", optional = true }
 driver-common = { version = "*", path = "./driver-common" }
 cassandra-driver = { version = "*", path = "./cassandra-driver", optional = true }
-phper = { version = "0.12" }
+phper = { version = "0.13", branch = "master", git = "https://github.com/dmalusev/phper" }
 futures = "0.3.6"
 future-utils = "0.12.1"
 cfg-if = { version = "1.0.0" }
 thiserror = "1.0.50"
+tracing = { version = "0.1", features = [] }
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = [
+    "parking_lot",
+    "serde",
+    "serde_json",
+    "time",
+    "tracing",
+    "once_cell",
+    "env-filter",
+] }
+
 
 [dev-dependencies]
-phper-test = { version = "0.12" }
+phper-test = { version = "0.13", branch = "master", git = "https://github.com/dmalusev/phper" }
 
 [build-dependencies]
-phper-build = { version = "0.12" }
+phper-build = { version = "0.13", branch = "master", git = "https://github.com/dmalusev/phper" }

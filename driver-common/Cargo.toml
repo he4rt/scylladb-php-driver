@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-phper = "0.12"
+phper =  { version = "0.13", branch = "master",git = "https://github.com/dmalusev/phper" }
 parking_lot = { version = "0.12.1", features = ["arc_lock"] }
 
 [dev-dependencies]
-phper-test = { version = "0.12" }
+phper-test = { version = "0.13", branch = "master",git = "https://github.com/dmalusev/phper" }
