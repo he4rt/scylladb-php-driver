@@ -1,4 +1,4 @@
-name: 'Docker Development Image'
+name: 'Docker Test Image'
 
 on:
   workflow_dispatch:
