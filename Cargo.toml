@@ -34,7 +34,6 @@ tracing-subscriber = { version = "0.3", features = [
     "time",
     "tracing",
     "once_cell",
-    "env-filter",
 ] }
 
 
