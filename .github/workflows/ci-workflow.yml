@@ -37,6 +37,8 @@ jobs:
           - "8.1.26-zts"
           - "8.2.12-zts"
           - "8.3.0-zts"
+        rust:
+          - stable
 
     runs-on: ${{ matrix.os }}
     container: malusevd99/scylladb-php-driver:php-${{ matrix.php-version }}
@@ -45,6 +47,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Setup Rust ToolChain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt,clippy
 
       - name: Setup cargo cache
         uses: actions/cache@v3
