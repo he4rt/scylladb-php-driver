@@ -26,7 +26,7 @@ final class Bigint implements Value, Numeric {
     /**
      * Creates a new 64bit integer.
      *
-     * @param string $value integer value as a string
+     * @param string|int|float|Bigint $value integer value
      */
     public function __construct($value) { }
 

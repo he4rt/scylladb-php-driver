@@ -190,7 +190,7 @@ php_driver_parse_bigint(char* in, int in_len, cass_int64_t* number )
 
   if (errno == ERANGE) {
     zend_throw_exception_ex(php_driver_range_exception_ce, 0 ,
-                            "value must be between " LL_FORMAT " and " LL_FORMAT ", %s given", INT64_MIN, INT64_MAX, in);
+                            "value must be between %" PRId64 " and %" PRId64 ", %s given", INT64_MIN, INT64_MAX, in);
     return 0;
   }
 
@@ -598,7 +598,7 @@ export_twos_complement(mpz_t number, size_t* size)
 
     /* round to the nearest byte and add space for a leading 0 byte */
     *size    = (mpz_sizeinbase(number, 2) + 7) / 8 + 1;
-    bytes    = malloc(*size);
+    bytes    = (cass_byte_t*) malloc(*size);
     bytes[0] = 0;
     mpz_export(bytes + 1, NULL, 1, sizeof(cass_byte_t), 1, 0, number);
   }
