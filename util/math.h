@@ -22,6 +22,7 @@ void import_twos_complement(cass_byte_t* data, size_t size, mpz_t* number);
 cass_byte_t* export_twos_complement(mpz_t number, size_t* size);
 
 int php_driver_parse_float(char* in, int in_len, cass_float_t* number);
+int php_driver_parse_double(char* in, int in_len, cass_double_t* number);
 int php_driver_parse_int(char* in, int in_len, cass_int32_t* number);
 int php_driver_parse_bigint(char* in, int in_len, cass_int64_t* number);
 int php_driver_parse_varint(char* in, int in_len, mpz_t* number);
