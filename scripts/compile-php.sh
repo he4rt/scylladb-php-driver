@@ -39,43 +39,104 @@ is_linux() {
   return 1
 }
 
-install_deps() {
-  if which_linux "Ubuntu"; then
-    sudo apt-get install \
-      libssl-dev \
-      bison \
-      re2c \
-      libxml2-dev \
-      libicu-dev \
-      libsqlite3-dev \
-      zlib1g-dev \
-      libcurl4-openssl-dev \
-      libreadline-dev \
-      libffi-dev \
-      libonig-dev \
-      libbz2-dev \
-      libsodium-dev \
-      libgmp-dev \
-      libasan8 \
-      libubsan1 \
-      libzip-dev -y >>/dev/null || exit 1
+is_macos() {
+  local value
+
+  value=$(uname -s)
+
+  if [ "$value" = "Darwin" ]; then
+    return 0
   fi
 
-  if which_linux "Fedora Linux"; then
-    # TODO: install libasan and libubsan
-    sudo dnf install \
-      openssl-devel \
-      sqlite-devel \
-      zlib-devel \
-      libcurl-devel \
-      readline-devel \
-      libffi-devel \
-      oniguruma-devel \
-      bzip2-devel \
-      libsodium-devel \
-      gmp-devel \
-      libzip-devel -y >>/dev/null || exit 1
+  return 1
+}
+
+install_macos_dep() {
+  local package_path
+  local path
+  local PKG_CONFIG=""
+  local PATH_EXPORT=""
+
+  for package in "$@"; do
+    output=$(brew install "$package")
+
+    package_path=$(perl -lne 'print $1 if /export PKG_CONFIG_PATH=\"(.*)\"/;' <"$output")
+    path=$(perl -lne 'print $1 if /export PATH=\"(.*):$PATH\"/;' <"$output")
+    if [ -n "$package_path" ]; then
+      PKG_CONFIG="$PKG_CONFIG:$package_path"
+    fi
+    if [ -n "$path" ]; then
+      PATH_EXPORT="$PATH_EXPORT$path:"
+    fi
+  done
+
+  if [ -n "$PKG_CONFIG" ]; then
+    echo "export PKG_CONFIG_PATH=\"\$PKG_CONFIG_PATH$PKG_CONFIG\"" >>~/.profile
   fi
+
+  if [ -n "$PATH_EXPORT" ]; then
+    echo "export PATH=\"$PATH_EXPORT\$PATH\"" >>~/.profile
+  fi
+
+}
+
+install_deps() {
+  if is_macos; then
+    install_macos_dep \
+      pkg-config \
+      bison \
+      re2c \
+      libxml2 \
+      sqlite3 \
+      zlib-ng \
+      readline \
+      libiconv \
+      libffi \
+      libsodium \
+      libzip
+  fi
+
+  if is_linux; then
+    if which_linux "Ubuntu"; then
+      sudo apt-get install \
+        pkg-config \
+        build-essential \
+        libssl-dev \
+        bison \
+        re2c \
+        libxml2-dev \
+        libicu-dev \
+        libsqlite3-dev \
+        zlib1g-dev \
+        libcurl4-openssl-dev \
+        libreadline-dev \
+        libffi-dev \
+        libonig-dev \
+        libbz2-dev \
+        libsodium-dev \
+        libgmp-dev \
+        libasan8 \
+        libubsan1 \
+        libzip-dev -y >>/dev/null || exit 1
+    fi
+
+    if which_linux "Fedora Linux"; then
+      # TODO: install libasan and libubsan
+      sudo dnf install \
+        openssl-devel \
+        sqlite-devel \
+        zlib-devel \
+        libcurl-devel \
+        readline-devel \
+        libffi-devel \
+        oniguruma-devel \
+        bzip2-devel \
+        libsodium-devel \
+        gmp-devel \
+        libzip-devel -y || exit 1
+    fi
+  fi
+
 }
 
 compile_php() {
@@ -97,13 +158,11 @@ compile_php() {
     --enable-sockets
     --with-zip
     --with-pic
-    --with-readline
     --enable-mbstring
     --with-sqlite3
     --enable-fpm
     --enable-calendar
     --enable-bcmath
-    --with-bz2
     --with-gmp
     --with-gettext
     --with-mysqli
@@ -133,6 +192,10 @@ compile_php() {
     config+=("--enable-address-sanitizer" "--enable-undefined-sanitizer")
   fi
 
+  if is_macos; then
+    config+=("--with-iconv=/usr/local/opt/libiconv")
+  fi
+
   rm -rf "$OUTPUT_PATH" || exit 1
   mkdir -p "$OUTPUT_PATH" || exit 1
 
@@ -150,17 +213,17 @@ compile_php() {
   pushd "$OUTPUT_PATH/src" || exit 1
 
   {
-    ./buildconf --force >>/dev/null || exit 1
-    ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" --prefix="$OUTPUT_PATH" "${config[@]}" >>/dev/null || exit 1
+    ./buildconf --force
+    ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" --prefix="$OUTPUT_PATH" "${config[@]}" || exit 1
     make "-j$(nproc)" || exit 1
     make install || exit 1
-  } >>/dev/null
+  }
 
   popd || exit 1
 }
 
 check_deps() {
-  deps="wget make git cmake gcc g++"
+  deps="wget make git gcc g++"
 
   for dep in $deps; do
     [ -z "$(command -v "$dep")" ] && echo "Unsatisfied dependency: $dep" && exit 1
@@ -169,12 +232,12 @@ check_deps() {
 
 check_deps
 
-while getopts "v:z:o:sd:ka" option; do
+while getopts "v:zo:sdka" option; do
   case "$option" in
   "v") PHP_VERSION="$OPTARG" ;;
-  "z") PHP_ZTS="$OPTARG" ;;
+  "z") PHP_ZTS="yes" ;;
   "o") OUTPUT="$OPTARG" ;;
-  "d") ENABLE_DEBUG="$OPTARG" ;;
+  "d") ENABLE_DEBUG="yes" ;;
   "k") KEEP_PHP_SOURCE="yes" ;;
   "s") ENABLE_SANITIZERS="yes" ;;
   "a") WITHOUT_VERSION="yes" ;;
@@ -187,7 +250,7 @@ if [[ -z "$WITHOUT_VERSION" ]]; then
 fi
 
 if [[ -z "$PHP_ZTS" ]]; then
-  PHP_ZTS="no"
+  PHP_ZTS="nts"
 fi
 
 if [[ -z "$KEEP_PHP_SOURCE" ]]; then
@@ -214,6 +277,8 @@ fi
 CFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer"
 CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer"
 
-install_deps || exit 1
+# install_deps || exit 1
+
+echo "Compiling PHP $PHP_VERSION in $OUTPUT: Debug mode: $ENABLE_DEBUG, Thread Safety: $PHP_ZTS, Sanitizers: $ENABLE_SANITIZERS"
 
 compile_php "$PHP_ZTS" "$ENABLE_DEBUG" "$KEEP_PHP_SOURCE" || exit 1

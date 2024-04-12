@@ -1,8 +1,4 @@
 add_library(zend_strings STATIC
-        String.cpp
-        String.h
-        ByteIterator.cpp
-        ByteIterator.h
         Builder.cpp
         Builder.h
 )

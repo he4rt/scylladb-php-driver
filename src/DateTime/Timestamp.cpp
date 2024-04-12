@@ -52,9 +52,9 @@ static time_now php_driver_time_now() {
   cass_int64_t microseconds;
 #if defined(__APPLE__) && defined(__MACH__)
   struct timeval ts {};
-  gettimeofday(&tv, NULL);
-  seconds = (cass_int64_t)tv.tv_sec;
-  microseconds = (cass_int64_t)tv.tv_usec;
+  gettimeofday(&ts, NULL);
+  seconds = (cass_int64_t)ts.tv_sec;
+  microseconds = (cass_int64_t)ts.tv_usec;
 #else
   struct timespec ts {};
   clock_gettime(CLOCK_REALTIME, &ts);
@@ -149,8 +149,7 @@ ZEND_METHOD(Cassandra_Timestamp, toDateTime) {
     ZendCPP::StringBuilder builder(32);
 
     auto str = builder.Append(sec).Append('.').Append(millisec).Build();
-    str.IncrementRef();
-    return str.ZendString();
+    return zend_string_copy(str);
   });
 
   if (status == FAILURE) [[unlikely]] {

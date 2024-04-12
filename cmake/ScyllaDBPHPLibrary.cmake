@@ -4,27 +4,30 @@ include(CheckCCompilerFlag)
 
 function(scylladb_php_library target enable_sanitizers native_arch lto)
     target_include_directories(
-            ${target}
-            PUBLIC
-            ${PHP_INCLUDES}
-            ${PROJECT_SOURCE_DIR}/include
-            ${PROJECT_BINARY_DIR}
-            ${PROJECT_SOURCE_DIR}
-            ${PHP_INCLUDES}
+        ${target}
+        PUBLIC
+        ${PHP_INCLUDES}
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_BINARY_DIR}
+        ${PROJECT_SOURCE_DIR}
+        ${PHP_INCLUDES}
+        ${libscylladb_SOURCE_DIR}/include
+        ${LIBGMP_INCLUDE_DIRS}
     )
 
-    target_compile_features(${target} PUBLIC cxx_std_20 c_std_17)
+        target_compile_features(${target} PUBLIC cxx_std_20 c_std_23)
 
     set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_EXTENSIONS OFF)
 
-    set(CMAKE_C_STANDARD 17)
+    set(CMAKE_C_STANDARD 23)
     set(CMAKE_C_STANDARD_REQUIRED ON)
     set(CMAKE_C_EXTENSIONS OFF)
 
     target_compile_options(
-            ${target} PRIVATE
+            ${target}
+            PRIVATE
             -fPIC
             -Wall
             -Wextra
@@ -48,6 +51,10 @@ function(scylladb_php_library target enable_sanitizers native_arch lto)
         add_sanitize_undefined(${target})
         add_sanitize_address(${target})
     endif ()
+
+    if (${APPLE})
+        target_link_options(${target} PRIVATE -undefined dynamic_lookup)
+    endif()
 
     scylladb_php_target_optimize(${target} ${native_arch} ${lto})
 endfunction()

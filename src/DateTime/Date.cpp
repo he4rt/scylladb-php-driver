@@ -122,8 +122,7 @@ ZEND_METHOD(Cassandra_Date, toDateTime) {
         builder
             .Append(cass_date_time_to_epoch(self->date, time_obj != nullptr ? time_obj->time : 0))
             .Build();
-    str.IncrementRef();
-    return str.ZendString();
+    return zend_string_copy(str);
   });
 
   if (status == FAILURE) [[unlikely]] {

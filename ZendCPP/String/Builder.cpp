@@ -37,8 +37,8 @@ std::size_t StringBuilder::Length() const noexcept {
   return *this;
 }
 
-[[nodiscard]] ZendCPP::String StringBuilder::Build() noexcept {
-  return ZendCPP::String::InternalNoCopy(smart_str_extract(&m_builder));
+[[nodiscard]] zend_string * StringBuilder::Build() noexcept {
+  return smart_str_extract(&m_builder);
 }
 
 StringBuilder& StringBuilder::operator<<(const char* str) noexcept {
@@ -191,20 +191,12 @@ StringBuilder& StringBuilder::operator<<(double value) noexcept {
   smart_str_append_double(&m_builder, value, 6, false);
   return *this;
 }
-StringBuilder& StringBuilder::operator<<(const String& value) noexcept {
-  smart_str_append(&m_builder, value.ZendString());
-  return *this;
-}
 StringBuilder& StringBuilder::Append(double value) noexcept {
   smart_str_append_double(&m_builder, value, 6, false);
   return *this;
 }
 StringBuilder& StringBuilder::Append(float value) noexcept {
   smart_str_append_double(&m_builder, value, 6, false);
-  return *this;
-}
-StringBuilder& StringBuilder::Append(const String& value) noexcept {
-  smart_str_append(&m_builder, value.ZendString());
   return *this;
 }
 

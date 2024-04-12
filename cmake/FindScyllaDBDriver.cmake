@@ -11,7 +11,8 @@ if (PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC)
     if (PHP_SCYLLADB_LIBUV_FROM_SRC)
         CPMAddPackage(
                 NAME libscylladb
-                GITHUB_REPOSITORY scylladb/cpp-driver
+                GITHUB_REPOSITORY "scylladb/cpp-driver"
+                GIT_TAG master
                 OPTIONS
                 "CASS_CPP_STANDARD 17"
                 "CASS_BUILD_STATIC ${CASS_BUILD_STATIC}"
@@ -19,7 +20,7 @@ if (PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC)
                 "CASS_USE_STD_ATOMIC ON"
                 "CASS_USE_TIMERFD ON"
                 "CASS_USE_LIBSSH2 ON"
-                "CASS_USE_ZLIB ON"
+                "CASS_USE_ZLIB OFF"
                 "CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fPIC"
                 "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fPIC -Wno-error=redundant-move"
                 "LIBUV_LIBRARY ${LIBUV_LIBRARY}"
@@ -28,7 +29,8 @@ if (PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC)
     else ()
         CPMAddPackage(
                 NAME libscylladb
-                GITHUB_REPOSITORY scylladb/cpp-driver
+                GITHUB_REPOSITORY "scylladb/cpp-driver"
+                GIT_TAG master
                 OPTIONS
                 "CASS_CPP_STANDARD 17"
                 "CASS_BUILD_STATIC ${CASS_BUILD_STATIC}"
@@ -36,7 +38,7 @@ if (PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC)
                 "CASS_USE_STD_ATOMIC ON"
                 "CASS_USE_TIMERFD ON"
                 "CASS_USE_LIBSSH2 ON"
-                "CASS_USE_ZLIB ON"
+                "CASS_USE_ZLIB OFF"
                 "CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fPIC"
                 "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fPIC -Wno-error=redundant-move"
         )
@@ -49,6 +51,7 @@ if (PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC)
         target_link_libraries(ext_scylladb PRIVATE "libscylla-cpp-driver.so")
     endif ()
 
+    target_include_directories(ext_scylladb PUBLIC ${libscylladb_SOURCE_DIR}/include)
 else ()
     find_package(PkgConfig REQUIRED)
 

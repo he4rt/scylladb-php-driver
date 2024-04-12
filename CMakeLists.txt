@@ -22,7 +22,7 @@ set(PHP_SCYLLADB_STABILITY "devel")
 set(PHP_SCYLLADB_VERSION_FULL "${PHP_SCYLLADB_VERSION_MAJOR}.${PHP_SCYLLADB_VERSION_MINOR}.${PHP_SCYLLADB_VERSION_PATCH}-${PHP_SCYLLADB_STABILITY}")
 set(PHP_SCYLLADB_VERSION "${PHP_SCYLLADB_VERSION_MAJOR}.${PHP_SCYLLADB_VERSION_MINOR}.${PHP_SCYLLADB_VERSION_PATCH}-dev")
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake")
@@ -33,15 +33,18 @@ option(PHP_SCYLLADB_ENABLE_COVERAGE "Enable coverage" OFF)
 option(PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE "Optimise for current machine" OFF)
 
 # PHP Options
-option(PHP_DEBUG_FOR_PHP_CONFIG "Debug or Release" ON)
-option(PHP_THREAD_SAFE_FOR_PHP_CONFIG "ZTS(zts) or NTS(nts)" OFF)
+
 set(CUSTOM_PHP_CONFIG "" CACHE STRING "Custom PHP config path")
 set(PHP_VERSION_FOR_PHP_CONFIG "8.3" CACHE STRING "PHP version")
 
+option(PHP_DEBUG_FOR_PHP_CONFIG "Debug or Release" ON)
+option(PHP_THREAD_SAFE_FOR_PHP_CONFIG "ZTS(zts) or NTS(nts)" OFF)
+
 option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" OFF)
 option(PHP_SCYLLADB_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
-option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" OFF)
-option(PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC "Build LibScyllaDB from Source" OFF)
+
+option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" ON)
+option(PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC "Build LibScyllaDB from Source" ON)
 
 option(PHP_SCYLLADB_USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
 option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" OFF)
@@ -51,13 +54,20 @@ find_package(PHPConfig REQUIRED)
 find_package(PHP REQUIRED)
 find_package(Sanitizers REQUIRED)
 find_package(LibUV REQUIRED)
+find_package(LibGMP REQUIRED)
+
+
+#pkg_check_modules(LIBZIP REQUIRED IMPORTED_TARGET zlib)
+#
+#target_link_libraries(ext_scylladb PRIVATE ${LIBZIP_LIBRARIES})
+#target_link_directories(ext_scylladb PRIVATE ${LIBZIP_LIBRARY_DIRS})
+#target_include_directories(ext_scylladb PUBLIC ${LIBZIP_INCLUDE_DIRS})
 
 if (PHP_SCYLLADB_USE_LIBCASSANDRA)
     find_package(CassandraDriver REQUIRED)
 else ()
     find_package(ScyllaDBDriver REQUIRED)
 endif ()
-
 
 add_subdirectory(ZendCPP)
 add_subdirectory(util)

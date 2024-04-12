@@ -38,9 +38,9 @@ static cass_int64_t php_scylladb_time_now_ns() {
   cass_int64_t nanoseconds;
 #if defined(__APPLE__) && defined(__MACH__)
   struct timeval ts {};
-  gettimeofday(&tv, NULL);
-  seconds = (cass_int64_t)tv.tv_sec;
-  nanoseconds = (cass_int64_t)tv.tv_usec * 1000;
+  gettimeofday(&ts, NULL);
+  seconds = (cass_int64_t)ts.tv_sec;
+  nanoseconds = (cass_int64_t)ts.tv_usec * 1000;
 #else
   struct timespec ts {};
   clock_gettime(CLOCK_REALTIME, &ts);

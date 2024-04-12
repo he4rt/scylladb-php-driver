@@ -3,8 +3,6 @@
 #include <php.h>
 #include <zend_smart_str_public.h>
 
-#include "String.h"
-
 namespace ZendCPP {
 class StringBuilder {
  public:
@@ -24,7 +22,7 @@ class StringBuilder {
   [[nodiscard]] StringBuilder& Extend(std::size_t size) noexcept;
   [[nodiscard]] std::size_t Length() const noexcept;
 
-  [[nodiscard]] String Build() noexcept;
+  [[nodiscard]] zend_string* Build() noexcept;
 
 #if PHP_VERSION_ID > 80100
   [[nodiscard]] StringBuilder& TrimToSize() noexcept;
@@ -50,7 +48,6 @@ class StringBuilder {
   StringBuilder& operator<<(float value) noexcept;
   StringBuilder& operator<<(double value) noexcept;
 
-  StringBuilder& operator<<(const ZendCPP::String& value) noexcept;
   StringBuilder& operator<<(const zval* value) noexcept;
 
   StringBuilder& Append(const char* str) noexcept;
@@ -80,7 +77,6 @@ class StringBuilder {
   StringBuilder& Append(float value) noexcept;
   StringBuilder& Append(double value) noexcept;
 
-  StringBuilder& Append(const ZendCPP::String& value) noexcept;
   StringBuilder& Append(const zval* value) noexcept;
 
  private:
