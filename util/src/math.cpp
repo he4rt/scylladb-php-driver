@@ -82,32 +82,6 @@ php_driver_parse_float(char* in, int in_len, cass_float_t* number )
 }
 
 int
-php_driver_parse_double(char* in, int in_len, cass_double_t* number )
-{
-  char* end;
-  errno = 0;
-
-  *number = (cass_double_t) strtod(in, &end);
-
-  if (errno == ERANGE) {
-    zend_throw_exception_ex(php_driver_range_exception_ce, 0 , "Value is too small or too big for double: '%s'", in);
-    return 0;
-  }
-
-  if (errno || end == in) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid double value: '%s'", in);
-    return 0;
-  }
-
-  if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
-    return 0;
-  }
-
-  return 1;
-}
-
-int
 php_driver_parse_int(char* in, int in_len, cass_int32_t* number )
 {
   char* end          = NULL;
