@@ -9,6 +9,7 @@ target_sources(
         src/future.cpp
         src/hash.cpp
         src/inet.cpp
+        src/math.cpp
         src/ref.cpp
         src/result.cpp
         src/types.cpp
