@@ -1,5 +1,13 @@
 # Development
 
+# 1.3.10
+
+* fix:  math.cpp and math.h from utils added to CMakeLists.txt
+* feat: MacOS support for scripts/compile-php.sh
+* feat: Ext-ScyllaDB/CassandraDB support MacOS
+
+# 1.3.9
+
 * CMake used instead of autoconf and makefiles
 * Removed support for PHP 5.x
 * Version of the extension gets updated from CMakeLists.txt
