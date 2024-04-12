@@ -164,7 +164,7 @@ php_driver_parse_bigint(char* in, int in_len, cass_int64_t* number )
 
   if (errno == ERANGE) {
     zend_throw_exception_ex(php_driver_range_exception_ce, 0 ,
-                            "value must be between " LL_FORMAT " and " LL_FORMAT ", %s given", INT64_MIN, INT64_MAX, in);
+                            "value must be between %" PRId64 " and %" PRId64 ", %s given", INT64_MIN, INT64_MAX, in);
     return 0;
   }
 
