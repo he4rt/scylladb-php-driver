@@ -572,7 +572,7 @@ export_twos_complement(mpz_t number, size_t* size)
 
     /* round to the nearest byte and add space for a leading 0 byte */
     *size    = (mpz_sizeinbase(number, 2) + 7) / 8 + 1;
-    bytes    = malloc(*size);
+    bytes    = (cass_byte_t*) malloc(*size);
     bytes[0] = 0;
     mpz_export(bytes + 1, NULL, 1, sizeof(cass_byte_t), 1, 0, number);
   }
