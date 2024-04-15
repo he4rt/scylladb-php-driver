@@ -6,24 +6,24 @@ print_usage() {
   echo "Usage: compile-php.sh [OPTION] [ARG]"
   echo "-v ARG php version"
   echo "-o ARG output path, default: $(pwd)"
-  echo "-z (yes|no) Use ZTS"
-  echo "-d (yes|no) Compile in debug mode"
+  echo "-z Use ZTS"
+  echo "-d Compile in debug mode"
   echo "-k keep PHP source code"
   echo "-a compile PHP without version suffix"
   echo "-s Use Memory and Undefined Sanitizers"
   echo "----------"
   echo "Example: compiling PHP 8.2.7 in debug mode with Thread Safety"
-  echo "./compile-php.sh -v 8.2.7 -s -d yes -z yes"
+  echo "./compile-php.sh -v 8.2.7 -s -d -z"
   echo ""
 }
 
 which_linux() {
-  local value=$1
-
-  if grep "NAME=\"$value\"" "/etc/os-release" >>/dev/null; then
+  local val=$(grep "NAME=\"$1\"" "/etc/os-release")
+  
+  if [ "$val" = "NAME=$1" ]; then
     return 0
   fi
-
+  
   return 1
 }
 
@@ -91,12 +91,30 @@ install_deps() {
       zlib-ng \
       readline \
       libiconv \
-      libffi \
-      libsodium \
-      libzip
+      libff
   fi
 
   if is_linux; then
+    if which_linux "Fedora Linux"; then
+      sudo dnf install \
+        re2c \
+        cmake \
+        gcc \
+        ninja-build \
+        openssl-devel \
+        libubsan \
+        libasan \
+        sqlite-devel \
+        zlib-devel \
+        libcurl-devel \
+        readline-devel \
+        libffi-devel \
+        oniguruma-devel \
+        libxml2-devel \
+        libsodium-devel \
+        gmp-devel -y || exit 1
+    fi
+
     if which_linux "Ubuntu"; then
       sudo apt-get install \
         pkg-config \
@@ -112,29 +130,13 @@ install_deps() {
         libreadline-dev \
         libffi-dev \
         libonig-dev \
-        libbz2-dev \
         libsodium-dev \
         libgmp-dev \
         libasan8 \
         libubsan1 \
-        libzip-dev -y >>/dev/null || exit 1
+        libzip-dev -y || exit 1
     fi
 
-    if which_linux "Fedora Linux"; then
-      # TODO: install libasan and libubsan
-      sudo dnf install \
-        openssl-devel \
-        sqlite-devel \
-        zlib-devel \
-        libcurl-devel \
-        readline-devel \
-        libffi-devel \
-        oniguruma-devel \
-        bzip2-devel \
-        libsodium-devel \
-        gmp-devel \
-        libzip-devel -y || exit 1
-    fi
   fi
 
 }
@@ -156,17 +158,11 @@ compile_php() {
     --with-ffi
     --enable-pcntl
     --enable-sockets
-    --with-zip
     --with-pic
     --enable-mbstring
     --with-sqlite3
-    --enable-fpm
     --enable-calendar
-    --enable-bcmath
     --with-gmp
-    --with-gettext
-    --with-mysqli
-    --with-sodium
   )
 
   local OUTPUT_PATH="$OUTPUT/php/"
@@ -200,7 +196,7 @@ compile_php() {
   mkdir -p "$OUTPUT_PATH" || exit 1
 
   if [ ! -f "php-$PHP_VERSION.tar.gz" ]; then
-    wget -O "php-$PHP_VERSION.tar.gz" "https://github.com/php/php-src/archive/refs/tags/php-$PHP_VERSION.tar.gz" >>/dev/null || exit 1
+    wget -O "php-$PHP_VERSION.tar.gz" "https://github.com/php/php-src/archive/refs/tags/php-$PHP_VERSION.tar.gz" || exit 1
   fi
 
   tar -C "$OUTPUT_PATH" -xzf "php-$PHP_VERSION.tar.gz" || exit 1
@@ -277,7 +273,7 @@ fi
 CFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer"
 CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer"
 
-# install_deps || exit 1
+install_deps || exit 1
 
 echo "Compiling PHP $PHP_VERSION in $OUTPUT: Debug mode: $ENABLE_DEBUG, Thread Safety: $PHP_ZTS, Sanitizers: $ENABLE_SANITIZERS"
 
