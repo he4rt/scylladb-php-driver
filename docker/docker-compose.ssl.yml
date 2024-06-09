@@ -1,0 +1,49 @@
+networks:
+  scylladbtest:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.5.0/24
+          gateway: 10.10.5.1
+volumes:
+  scylla1:
+  scylla2:
+
+services:
+  scylla1:
+    image: scylladb/scylla
+    container_name: scylla1
+    restart: unless-stopped
+    command: --smp=1
+    environment:
+      - "SCYLLA_JMX_ADDR=-ja 0.0.0.0"
+      - "SCYLLA_JMX_REMOTE=-r"
+    networks:
+      scylladbtest:
+        ipv4_address: 10.10.5.4
+    ports:
+      - '9042:9042'
+      - '19042:19042'
+    volumes:
+      - scylla1:/var/lib/scylla
+      - ./scylladb/scylla.yaml:/etc/scylla/scylla.yaml
+      - ./scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties
+    expose:
+      - "7199"
+  scylla2:
+    image: scylladb/scylla
+    container_name: scylla2
+    restart: unless-stopped
+    command: --smp=1 --seeds=scylla1
+    environment:
+      - "SCYLLA_JMX_ADDR=-ja 0.0.0.0"
+      - "SCYLLA_JMX_REMOTE=-r"
+    networks:
+      scylladbtest:
+        ipv4_address: 10.10.5.5
+    volumes:
+      - scylla2:/var/lib/scylla
+      - ./scylladb/scylla.yaml:/etc/scylla/scylla.yaml
+      - ./scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties
+    expose:
+      - "7199"

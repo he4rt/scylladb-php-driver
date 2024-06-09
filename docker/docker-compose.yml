@@ -1,9 +1,6 @@
-version: '3.9'
-
 networks:
   scylladbtest:
     driver: bridge
-    name: scylladbphpdriver
     ipam:
       config:
         - subnet: 10.10.5.0/24

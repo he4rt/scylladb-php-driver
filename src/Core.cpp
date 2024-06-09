@@ -24,7 +24,7 @@ PHP_DRIVER_CORE_METHOD(cluster) {
 }
 
 PHP_DRIVER_CORE_METHOD(ssl) {
-  object_init_ex(return_value, php_driver_ssl_builder_ce);
+  object_init_ex(return_value, php_scylladb_ssl_builder_ce);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)

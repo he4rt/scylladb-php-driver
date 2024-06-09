@@ -17,6 +17,21 @@
       }
     },
     {
+      "name": "DebugLibCassandra",
+      "displayName": "DebugLibCassandra",
+      "description": "Use LibCassandra instead of LibScyllaDB",
+      "generator": "Ninja",
+      "environment": {},
+      "binaryDir": "${sourceDir}/out/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "PHP_SCYLLADB_ENABLE_SANITIZERS": "ON",
+        "SANITIZE_UNDEFINED": "ON",
+        "SANITIZE_ADDRESS": "ON"
+      }
+    },
+    {
       "name": "Release",
       "displayName": "Release",
       "description": "",

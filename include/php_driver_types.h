@@ -16,9 +16,11 @@
 
 #pragma once
 
+#include <RetryPolicy/RetryPolicy.h>
 #include <php.h>
 #include <php_driver.h>
-#include <RetryPolicy/RetryPolicy.h>
+
+#include "SSLOptions/SSLOptions.h"
 
 BEGIN_EXTERN_C()
 
@@ -42,7 +44,6 @@ BEGIN_EXTERN_C()
 #define PHP_DRIVER_GET_FUTURE_CLOSE(obj) php_driver_future_close_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_FUTURE_SESSION(obj) php_driver_future_session_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_SESSION(obj) php_driver_session_object_fetch(Z_OBJ_P(obj))
-#define PHP_DRIVER_GET_SSL(obj) php_driver_ssl_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_SSL_BUILDER(obj) php_driver_ssl_builder_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_SCHEMA(obj) php_driver_schema_object_fetch(Z_OBJ_P(obj))
 #define PHP_DRIVER_GET_KEYSPACE(obj) php_driver_keyspace_object_fetch(Z_OBJ_P(obj))
@@ -343,16 +344,6 @@ static zend_always_inline php_driver_future_rows *php_driver_future_rows_object_
 }
 
 
-typedef struct php_driver_ssl_
-{
-    CassSsl *ssl;
-    zend_object zendObject;
-} php_driver_ssl;
-static zend_always_inline php_driver_ssl *php_driver_ssl_object_fetch(zend_object *obj)
-{
-    return (php_driver_ssl *)((char *)obj - ((size_t)(&(((php_driver_ssl *)0)->zendObject))));
-}
-
 typedef struct php_driver_timestamp_gen_
 {
     CassTimestampGen *gen;
@@ -399,7 +390,7 @@ typedef struct php_driver_cluster_builder_
     cass_bool_t persist;
     php_driver_retry_policy *retry_policy;
     php_driver_timestamp_gen *timestamp_gen;
-    php_driver_ssl *ssl_options;
+    php_scylladb_ssl *ssl_options;
     zval default_timeout;
 
     zend_object zendObject;
@@ -488,21 +479,6 @@ typedef struct php_driver_session_
 static zend_always_inline php_driver_session *php_driver_session_object_fetch(zend_object *obj)
 {
     return (php_driver_session *)((char *)obj - offsetof(php_driver_session, zendObject));
-}
-
-typedef struct php_driver_ssl_builder_
-{
-    int flags;
-    char **trusted_certs;
-    int trusted_certs_cnt;
-    char *client_cert;
-    char *private_key;
-    char *passphrase;
-    zend_object zendObject;
-} php_driver_ssl_builder;
-static zend_always_inline php_driver_ssl_builder *php_driver_ssl_builder_object_fetch(zend_object *obj)
-{
-    return (php_driver_ssl_builder *)((char *)obj - ((size_t)(&(((php_driver_ssl_builder *)0)->zendObject))));
 }
 
 typedef struct php_driver_schema_
@@ -752,8 +728,7 @@ extern PHP_SCYLLADB_API zend_class_entry *php_driver_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_default_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_cluster_builder_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_default_cluster_builder_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_ssl_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_ssl_builder_ce;
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssl_builder_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_future_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_future_prepared_statement_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_driver_future_rows_ce;
@@ -865,12 +840,6 @@ void php_driver_define_TypeMap();
 void php_driver_define_TypeTuple();
 void php_driver_define_TypeUserType();
 void php_driver_define_TypeCustom();
-
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_default_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_retry_policy_downgrading_consistency_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_retry_policy_fallthrough_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_retry_policy_logging_ce;
 
 zend_class_entry*php_scylladb_define_RetryPolicy(void);
 void php_scylladb_define_RetryPolicyDefault(zend_class_entry* retry_policy_interface);

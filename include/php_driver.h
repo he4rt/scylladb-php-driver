@@ -207,7 +207,7 @@ typedef unsigned long ulong;
 
     zend_class_entry *exception_class(CassError rc);
 
-    void throw_invalid_argument(zval *object, const char *object_name, const char *expected_type);
+    void throw_invalid_argument(const zval *object, const char *object_name, const char *expected_type);
 
 #define INVALID_ARGUMENT(object, expected)                                                                             \
     do                                                                                                                 \

@@ -56,10 +56,10 @@ static time_now php_driver_time_now() {
   seconds = (cass_int64_t)ts.tv_sec;
   microseconds = (cass_int64_t)ts.tv_usec;
 #else
-  struct timespec ts {};
+  timespec ts{};
   clock_gettime(CLOCK_REALTIME, &ts);
-  seconds = (cass_int64_t)ts.tv_sec;
-  microseconds = (cass_int64_t)ts.tv_nsec / 1000;
+  seconds = ts.tv_sec;
+  microseconds = ts.tv_nsec / 1000;
 #endif
   return time_now{seconds, microseconds};
 }

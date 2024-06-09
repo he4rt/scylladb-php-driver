@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zend_API.h>
+#include <cstring>
 
 #if defined(__GNUC__)
 #if __GNUC__ >= 3
@@ -53,6 +54,7 @@ ZENDCPP_ALWAYS_INLINE T *ObjectFetch(zval *obj) {
 template <typename T>
 ZENDCPP_ALWAYS_INLINE T *Allocate(zend_class_entry *ce, zend_object_handlers *handlers) {
   auto *self = static_cast<T *>(emalloc(sizeof(T) + zend_object_properties_size(ce)));
+  std::memset(self, 0, sizeof(T));
   zend_object_std_init(&self->ZEND_OBJECT_OFFSET_MEMBER, ce);
 
   if (zend_object_properties_size(ce) > 0) {

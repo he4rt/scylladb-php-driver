@@ -6,4 +6,5 @@ target_sources(
         ssl_options
         PRIVATE
         Builder.cpp
+        SSLOptions.cpp
 )
