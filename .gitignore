@@ -55,6 +55,6 @@ cassandra.log
 /**/PHP-Parser*
 /**/vendor/
 /**/.idea/
-/**/.idea/
 php-old/
 target/
+docker/scylladb/certs/

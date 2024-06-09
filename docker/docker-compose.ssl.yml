@@ -26,7 +26,8 @@ services:
       - '19042:19042'
     volumes:
       - scylla1:/var/lib/scylla
-      - ./scylladb/scylla.yaml:/etc/scylla/scylla.yaml
+      - ./scylladb/scylla.ssl.yaml:/etc/scylla/scylla.yaml
+      - ./scylladb/certs:/etc/scylla/certs
       - ./scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties
     expose:
       - "7199"
@@ -43,7 +44,8 @@ services:
         ipv4_address: 10.10.5.5
     volumes:
       - scylla2:/var/lib/scylla
-      - ./scylladb/scylla.yaml:/etc/scylla/scylla.yaml
+      - ./scylladb/scylla.ssl.yaml:/etc/scylla/scylla.yaml
+      - ./scylladb/certs:/etc/scylla/certs
       - ./scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties
     expose:
       - "7199"
