@@ -1,0 +1,18 @@
+name: 'Docker Test Image'
+
+on:
+  schedule:
+    # Build base image on 1 and 15 day every month
+    - cron: '0 0 1,15 * *'
+  workflow_call:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        tag: ['8.1.29', '8.2.20', '8.3.8']
+        zts: [yes, no]
+    uses: ".github/workflows/docker-image.yml"
+    with:
+      php: ${{ matrix.tag }}
+      zts: ${{ matrix.zts }}

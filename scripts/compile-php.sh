@@ -91,7 +91,7 @@ install_deps() {
       zlib-ng \
       readline \
       libiconv \
-      libff
+      libffi
   fi
 
   if is_linux; then

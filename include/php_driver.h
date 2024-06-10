@@ -54,6 +54,9 @@ extern "C"
 #include <ext/spl/spl_iterators.h>
 
 #include "api.h"
+#include "DateTime/Date.h"
+#include "RetryPolicy/RetryPolicy.h"
+#include "SSLOptions/SSLOptions.h"
 
 #define PHP_DRIVER_NAMESPACE "Cassandra"
 

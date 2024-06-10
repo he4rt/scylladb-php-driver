@@ -1,6 +1,6 @@
-FROM ubuntu:22.04 as base
+FROM ubuntu:24.04 as base
 
-ARG PHP_VERSION=8.2.8
+ARG PHP_VERSION=8.3.8
 ARG PHP_ZTS="no"
 
 ENV PATH="$PATH:$HOME/.local/bin:$HOME/php/bin"
@@ -20,14 +20,31 @@ RUN apt-get update -y \
         python3 \
         python3-pip \
         unzip \
-        mlocate \
+        plocate \
         build-essential \
         ninja-build \
         libasan8 \
         libssl-dev \
         libubsan1 \
-    && pip3 install cmake cqlsh \
-    && apt-get clean
+        cmake \
+        pipx \
+        libssl-dev \
+        bison \
+        re2c \
+        libxml2-dev \
+        libicu-dev \
+        libsqlite3-dev \
+        zlib1g-dev \
+        libcurl4-openssl-dev \
+        libreadline-dev \
+        libffi-dev \
+        libonig-dev \
+        libsodium-dev \
+        libgmp-dev \
+        libasan8 \
+        libubsan1 \
+        libzip-dev \
+    && pipx install cqlsh
 
 COPY ./scripts /tmp/scripts
 

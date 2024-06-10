@@ -7,44 +7,31 @@ on:
         type: string
         description: 'Image Tag'
         required: true
-        default: 'php-8.2.6'
   workflow_call:
     inputs:
       image:
         type: string
         description: 'Image Tag'
         required: true
-        default: 'php-8.2.6'
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: malusevd99/scylladb-php-driver:${{ inputs.image }}
+    container: malusevd99/scylladb-php-driver:php-${{ inputs.image }}
     services:
       scylladb:
-        image: scylladb/scylla:5.1
-        ports:
-          - 9042:9042
+        image: scylladb/scylla
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           submodules: recursive
-      - name: Compile using CMake
-        run: |
-          export PATH="$PATH:/usr/local/bin:/root/php/bin"
-          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu:/usr/local/lib/:/usr/lib:/lib:/usr/local/lib/x86_64-linux-gnu"
-          ./scripts/compile-extension.sh
-      - name: Composer install
-        working-directory: ./tests
-        run: |
-          export PATH="$PATH:/usr/local/bin:/root/php/bin"
-          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu:/usr/local/lib/:/usr/lib:/lib:/usr/local/lib/x86_64-linux-gnu"
-          /root/php/bin/php /bin/composer install
       - name: Run tests
         working-directory: ./tests
         run: |
           export PATH="$PATH:/usr/local/bin:/root/php/bin"
           export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu:/usr/local/lib/:/usr/lib:/lib:/usr/local/lib/x86_64-linux-gnu"
+          ./scripts/compile-extension.sh
+          /root/php/bin/php /bin/composer install
           /root/php/bin/php ./vendor/bin/pest
         env:
           SCYLLADB_HOSTS: scylladb
