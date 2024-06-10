@@ -29,15 +29,14 @@ jobs:
 
           cmake --preset ${{ matrix.preset }} || exit 1
 
-          pushd out/${{ matrix.preset }} || exit 1
+          cd out/${{ matrix.preset }} || exit 1
           ninja install || exit 1
-          popd || exit 1
+          cd ../../
 
           PHP_INI=$("php" --ini | grep "php.ini" | awk '{ print $5 }' | xargs -I {} printf '%s/php.ini' {})
 
           cat cassandra.ini >> "$PHP_INI" || exit 1
 
-          pushd tests
+          cd tests
           php /bin/composer install
           php ./vendor/bin/pest
-          popd
