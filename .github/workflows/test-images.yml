@@ -17,3 +17,6 @@ jobs:
     with:
       php: ${{ matrix.tag }}
       zts: ${{ matrix.zts }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
