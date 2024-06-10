@@ -45,7 +45,7 @@ jobs:
       - name: Build and push API
         id: docker_build_zts
         uses: docker/build-push-action@v4
-        if: ${{ github.event.inputs.zts == 'yes' }}
+        if: ${{ inputs.zts == 'yes' }}
         with:
           file: Dockerfile
           context: .
@@ -53,17 +53,17 @@ jobs:
           pull: true
           platforms: linux/amd64
           target: base
-          tags: malusevd99/scylladb-php-driver:php-${{ github.event.inputs.php }}-zts
+          tags: malusevd99/scylladb-php-driver:php-${{ inputs.php }}-zts
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            PHP_VERSION=${{ github.event.inputs.php }}
-            PHP_ZTS=${{ github.event.inputs.zts }}
+            PHP_VERSION=${{ inputs.php }}
+            PHP_ZTS=${{ inputs.zts }}
             PHP_DEBUG="yes"
       - name: Build and push API
         id: docker_build_nts
         uses: docker/build-push-action@v4
-        if: ${{ github.event.inputs.zts == 'no' }}
+        if: ${{ inputs.zts == 'no' }}
         with:
           file: Dockerfile
           context: .
@@ -71,10 +71,10 @@ jobs:
           pull: true
           platforms: linux/amd64
           target: base
-          tags: malusevd99/scylladb-php-driver:php-${{ github.event.inputs.php }}
+          tags: malusevd99/scylladb-php-driver:php-${{ inputs.php }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            PHP_VERSION=${{ github.event.inputs.php }}
-            PHP_ZTS=${{ github.event.inputs.zts }}
+            PHP_VERSION=${{ inputs.php }}
+            PHP_ZTS=${{ inputs.zts }}
             PHP_DEBUG="yes"
