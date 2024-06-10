@@ -47,7 +47,7 @@ jobs:
         uses: docker/build-push-action@v4
         if: ${{ inputs.zts == 'yes' }}
         with:
-          file: Dockerfile
+          file: ./docker/Dockerfile
           context: .
           push: true
           pull: true
@@ -65,7 +65,7 @@ jobs:
         uses: docker/build-push-action@v4
         if: ${{ inputs.zts == 'no' }}
         with:
-          file: Dockerfile
+          file: ./docker/Dockerfile
           context: .
           push: true
           pull: true
