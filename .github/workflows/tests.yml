@@ -7,11 +7,12 @@ on:
   pull_request:
     branches:
       - v1.3.x
+
 jobs:
   test:
     strategy:
       matrix:
         tag: ['8.1.28', '8.2.20', '8.3.8', '8.1.28-zts', '8.2.20-zts', '8.3.8-zts']
-    uses: ".github/workflows/test.yml"
+    uses: "./.github/workflows/test.yml"
     with:
       image: ${{ matrix.tag }}

@@ -1,4 +1,4 @@
-name: 'Docker Test Image'
+name: 'Build Docker Images for Testing'
 
 on:
   schedule:
@@ -12,7 +12,7 @@ jobs:
       matrix:
         tag: ['8.1.29', '8.2.20', '8.3.8']
         zts: [yes, no]
-    uses: ".github/workflows/docker-image.yml"
+    uses: "./.github/workflows/docker-image.yml"
     with:
       php: ${{ matrix.tag }}
       zts: ${{ matrix.zts }}
