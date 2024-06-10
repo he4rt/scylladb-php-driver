@@ -42,6 +42,7 @@ else ()
         pkg_check_modules(LIBUV REQUIRED IMPORTED_TARGET libuv)
     endif ()
 
+    message(STATUS "LibUV ${LIBUV_INCLUDE_DIRS}")
     target_link_libraries(ext_scylladb PRIVATE ${LIBUV_LIBRARIES})
     target_link_directories(ext_scylladb PRIVATE ${LIBUV_LIBRARY_DIRS})
     target_include_directories(ext_scylladb PUBLIC ${LIBUV_INCLUDE_DIRS})

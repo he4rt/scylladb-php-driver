@@ -3,6 +3,7 @@ include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
 
 function(scylladb_php_library target enable_sanitizers native_arch lto)
+    message(STATUS, "CASSANDRA_H ${CASSANDRA_H}")
     target_include_directories(
         ${target}
         PUBLIC
@@ -13,6 +14,7 @@ function(scylladb_php_library target enable_sanitizers native_arch lto)
         ${PHP_INCLUDES}
         ${libscylladb_SOURCE_DIR}/include
         ${LIBGMP_INCLUDE_DIRS}
+            ${CASSANDRA_H}
     )
 
         target_compile_features(${target} PUBLIC cxx_std_20 c_std_23)

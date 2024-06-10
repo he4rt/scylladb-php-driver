@@ -1,40 +1,43 @@
 name: 'Test PHP Extension'
 
 on:
-  workflow_dispatch:
-    inputs:
-      image:
-        type: string
-        description: 'Image Tag'
-        required: true
   workflow_call:
-    inputs:
-      image:
-        type: string
-        description: 'Image Tag'
-        required: true
+  push:
+    branches:
+      - v1.3.x
+  pull_request:
+    branches:
+      - v1.3.x
 jobs:
   test:
-    runs-on: ubuntu-latest
-    container: malusevd99/scylladb-php-driver:php-${{ inputs.image }}
-    services:
-      scylladb:
-        image: scylladb/scylla
+    strategy:
+      matrix:
+        php: ['8.1.29', '8.2.20', '8.3.8', '8.1.29-zts', '8.2.20-zts', '8.3.8-zts']
+        os: ['ubuntu-latest']
+        preset: ['CICassandra', 'CIScylla']
+    runs-on: ${{ matrix.os }}
+    container: malusevd99/scylladb-php-driver:php-${{ matrix.php }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
       - name: Run tests
-        working-directory: ./tests
         run: |
           export PATH="$PATH:/usr/local/bin:/root/php/bin"
           export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib/x86_64-linux-gnu:/usr/local/lib/:/usr/lib:/lib:/usr/local/lib/x86_64-linux-gnu"
-          ./scripts/compile-extension.sh
-          /root/php/bin/php /bin/composer install
-          /root/php/bin/php ./vendor/bin/pest
-        env:
-          SCYLLADB_HOSTS: scylladb
-          SCYLLADB_PORT: 9042
-          SCYLLADB_USERNAME: cassandra
-          SCYLLADB_PASSWORD: cassandra
+
+          cmake --preset ${{ matrix.preset }} || exit 1
+
+          pushd out/${{ matrix.preset }} || exit 1
+          ninja install || exit 1
+          popd || exit 1
+
+          PHP_INI=$("php" --ini | grep "php.ini" | awk '{ print $5 }' | xargs -I {} printf '%s/php.ini' {})
+
+          cat cassandra.ini >> "$PHP_INI" || exit 1
+
+          pushd tests
+          php /bin/composer install
+          php ./vendor/bin/pest
+          popd

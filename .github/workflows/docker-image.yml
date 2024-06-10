@@ -44,7 +44,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push API
         id: docker_build_zts
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         if: ${{ inputs.zts == 'yes' }}
         with:
           file: ./docker/Dockerfile
@@ -62,7 +62,7 @@ jobs:
             PHP_DEBUG="yes"
       - name: Build and push API
         id: docker_build_nts
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         if: ${{ inputs.zts == 'no' }}
         with:
           file: ./docker/Dockerfile

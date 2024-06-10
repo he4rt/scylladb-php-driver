@@ -8,19 +8,19 @@ class StringBuilder {
  public:
   struct str_with_size {
     const char* str;
-    std::size_t size;
+    size_t size;
   };
 
   StringBuilder() noexcept = default;
-  explicit StringBuilder(std::size_t size) noexcept;
+  explicit StringBuilder(size_t size) noexcept;
 
   StringBuilder& operator=(const StringBuilder& other) = delete;
   StringBuilder(const StringBuilder& other) = delete;
   StringBuilder(StringBuilder&& other) noexcept;
-  ~StringBuilder();
+  ~StringBuilder() noexcept;
 
-  [[nodiscard]] StringBuilder& Extend(std::size_t size) noexcept;
-  [[nodiscard]] std::size_t Length() const noexcept;
+  [[nodiscard]] StringBuilder& Extend(size_t size) noexcept;
+  [[nodiscard]] size_t Length() const noexcept;
 
   [[nodiscard]] zend_string* Build() noexcept;
 
@@ -52,14 +52,14 @@ class StringBuilder {
 
   StringBuilder& Append(const char* str) noexcept;
   StringBuilder& Append(const str_with_size& str) noexcept;
-  StringBuilder& Append(const char* str, std::size_t size) noexcept;
+  StringBuilder& Append(const char* str, size_t size) noexcept;
   StringBuilder& Append(const zend_string* str) noexcept;
   StringBuilder& Append(zend_string* str) noexcept;
   StringBuilder& Append(const StringBuilder& other) noexcept;
 
   StringBuilder& AppendEscaped(const char* str) noexcept;
   StringBuilder& AppendEscaped(const str_with_size& str) noexcept;
-  StringBuilder& AppendEscaped(const char* str, std::size_t size) noexcept;
+  StringBuilder& AppendEscaped(const char* str, size_t size) noexcept;
   StringBuilder& AppendEscaped(const zend_string* str) noexcept;
   StringBuilder& AppendEscaped(const StringBuilder& other) noexcept;
 

@@ -43,8 +43,8 @@ option(PHP_THREAD_SAFE_FOR_PHP_CONFIG "ZTS(zts) or NTS(nts)" OFF)
 option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" OFF)
 option(PHP_SCYLLADB_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
 
-option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" ON)
-option(PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC "Build LibScyllaDB from Source" ON)
+option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" OFF)
+option(PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC "Build LibScyllaDB from Source" OFF)
 
 option(PHP_SCYLLADB_USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
 option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" OFF)
@@ -55,13 +55,6 @@ find_package(PHP REQUIRED)
 find_package(Sanitizers REQUIRED)
 find_package(LibUV REQUIRED)
 find_package(LibGMP REQUIRED)
-
-
-#pkg_check_modules(LIBZIP REQUIRED IMPORTED_TARGET zlib)
-#
-#target_link_libraries(ext_scylladb PRIVATE ${LIBZIP_LIBRARIES})
-#target_link_directories(ext_scylladb PRIVATE ${LIBZIP_LIBRARY_DIRS})
-#target_include_directories(ext_scylladb PUBLIC ${LIBZIP_INCLUDE_DIRS})
 
 if (PHP_SCYLLADB_USE_LIBCASSANDRA)
     find_package(CassandraDriver REQUIRED)
