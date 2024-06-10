@@ -7,6 +7,7 @@
 #include <ZendCPP/ZendCPP.hpp>
 
 BEGIN_EXTERN_C()
+
 typedef struct {
   int64_t flags;
   zend_string **trusted_certs;

@@ -15,13 +15,13 @@
  */
 
 #include <SSLOptions/SSLOptions.h>
-#include <php.h>
+#include <expected>
+#include <utility>
+
 #include <php_driver.h>
+#include <php.h>
 #include <php_driver_types.h>
 
-#include <expected>
-#include <ext/standard/php_filestat.h>
-#include <utility>
 
 static std::expected<zend_string *, zend_result> file_get_contents(const zend_string *path) {
   php_stream *stream =
@@ -44,6 +44,8 @@ static std::expected<zend_string *, zend_result> file_get_contents(const zend_st
 }
 
 BEGIN_EXTERN_C()
+#include <ext/standard/php_filestat.h>
+
 #include "Builder_arginfo.h"
 
 zend_class_entry *php_scylladb_ssl_builder_ce = nullptr;
