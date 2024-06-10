@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+
 #include "php_driver.h"
 #include "php_driver_types.h"
 
 BEGIN_EXTERN_C()
+#include <spl/spl_exceptions.h>
 
 zend_class_entry *php_driver_domain_exception_ce = NULL;
 

@@ -50,14 +50,6 @@ extern "C"
 #endif
 
 
-#include <ext/spl/spl_exceptions.h>
-#include <ext/spl/spl_iterators.h>
-
-#include "api.h"
-#include "DateTime/Date.h"
-#include "RetryPolicy/RetryPolicy.h"
-#include "SSLOptions/SSLOptions.h"
-
 #define PHP_DRIVER_NAMESPACE "Cassandra"
 
 #define PHP_DRIVER_NAMESPACE_ZEND_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null)                               \

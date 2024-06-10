@@ -7,6 +7,7 @@
 #include <util/types.h>
 
 BEGIN_EXTERN_C()
+#include <spl/spl_exceptions.h>
 
 zend_class_entry *php_driver_duration_ce = nullptr;
 
