@@ -5,6 +5,7 @@ on:
     # Build base image on 1 and 15 day every month
     - cron: '0 0 1,15 * *'
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   build:
