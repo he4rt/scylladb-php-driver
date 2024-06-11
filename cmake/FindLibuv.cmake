@@ -7,9 +7,8 @@ if (PHP_SCYLLADB_LIBUV_FROM_SRC)
 
     CPMAddPackage(
             NAME libuv
-            VERSION 1.44.2
-            URL https://github.com/libuv/libuv/tarball/v1.44.2
-            URL_HASH MD5=3e22e24d53aab67252907dfa004a6b53
+            VERSION 1.48.0
+            URL https://github.com/libuv/libuv/tarball/v1.48.0
             OPTIONS
             "BUILD_TESTING OFF"
             "BUILD_BENCHMARKS OFF"
@@ -25,16 +24,15 @@ if (PHP_SCYLLADB_LIBUV_FROM_SRC)
     else ()
         set(LIBUV_LIBRARY "${libuv_BINARY_DIR}/libuv.so")
     endif ()
+    set(LIBUV_LIBRARY_DIRS "${libuv_BINARY_DIR}")
 
     if (PHP_SCYLLADB_LIBUV_STATIC)
-        target_compile_definitions(ext_scylladb PRIVATE -DUV_STATIC)
         target_link_libraries(ext_scylladb PRIVATE uv_a)
     else ()
         target_link_libraries(ext_scylladb PRIVATE uv)
     endif ()
 else ()
     find_package(PkgConfig REQUIRED)
-
     if (PHP_SCYLLADB_LIBUV_STATIC)
         target_compile_definitions(ext_scylladb PRIVATE -DUV_STATIC)
         pkg_check_modules(LIBUV REQUIRED IMPORTED_TARGET libuv-static)
@@ -42,7 +40,6 @@ else ()
         pkg_check_modules(LIBUV REQUIRED IMPORTED_TARGET libuv)
     endif ()
 
-    message(STATUS "LibUV ${LIBUV_INCLUDE_DIRS}")
     target_link_libraries(ext_scylladb PRIVATE ${LIBUV_LIBRARIES})
     target_link_directories(ext_scylladb PRIVATE ${LIBUV_LIBRARY_DIRS})
     target_include_directories(ext_scylladb PUBLIC ${LIBUV_INCLUDE_DIRS})

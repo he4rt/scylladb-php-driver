@@ -19,11 +19,11 @@ print_usage() {
 
 which_linux() {
   local val=$(grep "NAME=\"$1\"" "/etc/os-release")
-  
+
   if [ "$val" = "NAME=$1" ]; then
     return 0
   fi
-  
+
   return 1
 }
 
@@ -147,22 +147,25 @@ compile_php() {
   local KEEP_PHP_SOURCE="$3"
 
   local PHP_BASE_VERSION=$(echo "$PHP_VERSION" | cut -d. -f1,2)
+
   local config=(
     --enable-embed=static
     --enable-phpdbg
     --enable-opcache
     --disable-short-tags
+    --enable-phpdbg-debug
+    --enable-rtld-now
     --with-openssl
     --with-zlib
     --with-curl
     --with-ffi
     --enable-pcntl
+    --with-pear
     --enable-sockets
     --with-pic
     --enable-mbstring
     --with-sqlite3
     --enable-calendar
-    --with-gmp
   )
 
   local OUTPUT_PATH="$OUTPUT/php/"
@@ -189,7 +192,7 @@ compile_php() {
   fi
 
   if is_macos; then
-    config+=("--with-iconv=/usr/local/opt/libiconv")
+    config+=("--with-iconv=/opt/homebrew/opt/libiconv")
   fi
 
   rm -rf "$OUTPUT_PATH" || exit 1
@@ -275,6 +278,6 @@ CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer"
 
 install_deps || exit 1
 
-echo "Compiling PHP $PHP_VERSION in $OUTPUT: Debug mode: $ENABLE_DEBUG, Thread Safety: $PHP_ZTS, Sanitizers: $ENABLE_SANITIZERS"
+pritnf "\n\nCompiling PHP $PHP_VERSION in $OUTPUT: Debug mode: $ENABLE_DEBUG, Thread Safety: $PHP_ZTS, Sanitizers: $ENABLE_SANITIZERS\n"
 
 compile_php "$PHP_ZTS" "$ENABLE_DEBUG" "$KEEP_PHP_SOURCE" || exit 1

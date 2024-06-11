@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.24)
 project(php-ext-scylladb LANGUAGES C CXX)
 add_library(ext_scylladb SHARED)
+cmake_policy(SET CMP0079 NEW)
 
 # if build type is not set, default to debug
-if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     set(CMAKE_BUILD_TYPE "Debug")
-endif ()
+endif()
 
 include(GNUInstallDirs)
 include(CheckSymbolExists)
@@ -33,34 +34,45 @@ option(PHP_SCYLLADB_ENABLE_COVERAGE "Enable coverage" OFF)
 option(PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE "Optimise for current machine" OFF)
 
 # PHP Options
-
 set(CUSTOM_PHP_CONFIG "" CACHE STRING "Custom PHP config path")
 set(PHP_VERSION_FOR_PHP_CONFIG "8.3" CACHE STRING "PHP version")
 
 option(PHP_DEBUG_FOR_PHP_CONFIG "Debug or Release" ON)
 option(PHP_THREAD_SAFE_FOR_PHP_CONFIG "ZTS(zts) or NTS(nts)" OFF)
 
-option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" OFF)
-option(PHP_SCYLLADB_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
+if(CMAKE_HOST_APPLE)
+    option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" ON)
+else()
+    option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" OFF)
+endif()
 
-option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" OFF)
-option(PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC "Build LibScyllaDB from Source" OFF)
+option(PHP_SCYLLADB_LIBUV_FROM_SRC "Build LibUV from Source" ON)
+
+if(CMAKE_HOST_APPLE)
+    option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" ON)
+else()
+    option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" OFF)
+endif()
 
 option(PHP_SCYLLADB_USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
-option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" OFF)
-option(PHP_SCYLLADB_LIBCASSANDRA_FROM_SRC "Build LibCassandra from Source" OFF)
+
+if(CMAKE_HOST_APPLE)
+    option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" ON)
+else()
+    option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" OFF)
+endif()
 
 find_package(PHPConfig REQUIRED)
 find_package(PHP REQUIRED)
 find_package(Sanitizers REQUIRED)
-find_package(LibUV REQUIRED)
+find_package(Libuv REQUIRED)
 find_package(LibGMP REQUIRED)
 
-if (PHP_SCYLLADB_USE_LIBCASSANDRA)
+if(PHP_SCYLLADB_USE_LIBCASSANDRA)
     find_package(CassandraDriver REQUIRED)
-else ()
+else()
     find_package(ScyllaDBDriver REQUIRED)
-endif ()
+endif()
 
 add_subdirectory(ZendCPP)
 add_subdirectory(util)
@@ -83,21 +95,20 @@ target_sources(ext_scylladb PUBLIC FILE_SET headers TYPE HEADERS FILES "${HEADER
 target_sources(ext_scylladb PRIVATE php_driver.cpp)
 
 target_link_libraries(
-        ext_scylladb PRIVATE
-        Zend
-        ext_scylladb::src
-        ext_scylladb::utils
-        ext_scylladb::type
-        ext_scylladb::datetime
-        ext_scylladb::database
-        ext_scylladb::numbers
-        ext_scylladb::ssl_options
-        ext_scylladb::exceptions
-        ext_scylladb::cluster::builder
-        ext_scylladb::retry_policy
-        ext_scylladb::timestamp_generator
+    ext_scylladb PRIVATE
+    Zend
+    ext_scylladb::src
+    ext_scylladb::utils
+    ext_scylladb::type
+    ext_scylladb::datetime
+    ext_scylladb::database
+    ext_scylladb::numbers
+    ext_scylladb::ssl_options
+    ext_scylladb::exceptions
+    ext_scylladb::cluster::builder
+    ext_scylladb::retry_policy
+    ext_scylladb::timestamp_generator
 )
-
 
 check_include_file("dlfcn.h" HAVE_DLFCN_H)
 check_include_file("stdio.h" HAVE_STDIO_H)
@@ -112,17 +123,17 @@ check_include_file("unistd.h" HAVE_UNISTD_H)
 set(HAVE_STRINGS_H 0)
 
 configure_file(
-        config.in
-        config.h
-        USE_SOURCE_PERMISSIONS
-        NEWLINE_STYLE UNIX
+    config.in
+    config.h
+    USE_SOURCE_PERMISSIONS
+    NEWLINE_STYLE UNIX
 )
 
 configure_file(
-        version.h.in
-        version.h
-        USE_SOURCE_PERMISSIONS
-        NEWLINE_STYLE UNIX
+    version.h.in
+    version.h
+    USE_SOURCE_PERMISSIONS
+    NEWLINE_STYLE UNIX
 )
 
 target_compile_definitions(ext_scylladb PRIVATE -DCOMPILE_DL_CASSANDRA -DHAVE_CONFIG_H)

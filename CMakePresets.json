@@ -43,8 +43,6 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "PHP_SCYLLADB_USE_LIBCASSANDRA": "OFF",
-        "PHP_SCYLLADB_LIBSCYLLADB_STATIC": "OFF",
-        "PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC": "OFF",
         "SANITIZE_UNDEFINED": "OFF",
         "SANITIZE_ADDRESS": "OFF"
       }
@@ -61,8 +59,6 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "PHP_SCYLLADB_USE_LIBCASSANDRA": "ON",
         "SANITIZE_UNDEFINED": "OFF",
-        "PHP_SCYLLADB_LIBCASSANDRA_STATIC": "OFF",
-        "PHP_SCYLLADB_LIBCASSANDRA_FROM_SRC": "OFF",
         "SANITIZE_ADDRESS": "OFF"
       }
     },
@@ -77,8 +73,6 @@
         "CMAKE_BUILD_TYPE": "RelWithInfo",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "PHP_SCYLLADB_ENABLE_SANITIZERS": "OFF",
-        "PHP_SCYLLADB_LIBSCYLLADB_STATIC": "OFF",
-        "PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC": "OFF",
         "SANITIZE_UNDEFINED": "OFF",
         "SANITIZE_ADDRESS": "OFF"
       }
@@ -94,8 +88,6 @@
         "CMAKE_BUILD_TYPE": "RelWithInfo",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "PHP_SCYLLADB_USE_LIBCASSANDRA": "ON",
-        "PHP_SCYLLADB_LIBCASSANDRA_STATIC": "OFF",
-        "PHP_SCYLLADB_LIBCASSANDRA_FROM_SRC": "OFF",
         "PHP_SCYLLADB_ENABLE_SANITIZERS": "OFF",
         "SANITIZE_UNDEFINED": "OFF",
         "SANITIZE_ADDRESS": "OFF"

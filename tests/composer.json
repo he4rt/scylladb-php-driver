@@ -12,9 +12,7 @@
   "autoload-dev": {
     "psr-4": {
       "Cassandra\\Tests\\": "./"
-    },
-    "files": [
-    ]
+    }
   },
   "require": {
     "php": "^8.1",
@@ -22,7 +20,7 @@
     "nesbot/carbon": "^3.5"
   },
   "require-dev": {
-    "pestphp/pest": "^1.22"
+    "pestphp/pest": "^2.34"
   },
   "config": {
     "allow-plugins": {

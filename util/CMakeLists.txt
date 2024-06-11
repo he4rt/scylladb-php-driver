@@ -1,6 +1,8 @@
 add_library(util STATIC)
 add_library(ext_scylladb::utils ALIAS util)
+
 scylladb_php_library(util OFF ${PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE} ON)
+
 target_sources(
         util
         PRIVATE
