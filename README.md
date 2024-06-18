@@ -48,7 +48,7 @@ Cassandra's native protocol. The current version works with:
 * PHP 8.1 and 8.2
 * 64-bit (x64)
 * Thread safe (TS) and non-thread safe (NTS)
-* Compilers: GCC 10.0+ and Clang 14+
+* Compilers: GCC 13.0+, Clang 16+ and c++23
 
 <!-- ## Documentation
 
