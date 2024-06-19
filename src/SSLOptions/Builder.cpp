@@ -15,7 +15,6 @@
  */
 
 #include <SSLOptions/SSLOptions.h>
-#include <expected>
 #include <utility>
 
 #include <php_driver.h>
@@ -23,13 +22,16 @@
 #include <php_driver_types.h>
 
 
-static std::expected<zend_string *, zend_result> file_get_contents(const zend_string *path) {
+BEGIN_EXTERN_C()
+#include <ext/standard/php_filestat.h>
+
+static zend_result file_get_contents(const zend_string *path, zend_string** out_val) {
   php_stream *stream =
       php_stream_open_wrapper(ZSTR_VAL(path), "rb", USE_PATH | REPORT_ERRORS, NULL);
   if (!stream) {
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
                             "The path '%s' doesn't exist or is not readable", ZSTR_VAL(path));
-    return std::unexpected(FAILURE);
+    return FAILURE;
   }
 
   zend_string *str = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
@@ -37,14 +39,13 @@ static std::expected<zend_string *, zend_result> file_get_contents(const zend_st
 
   if (!str) {
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Failed to allocate enough memory");
-    return std::unexpected(FAILURE);
+    return FAILURE;
   }
 
-  return str;
-}
+  *out_val = str;
 
-BEGIN_EXTERN_C()
-#include <ext/standard/php_filestat.h>
+  return SUCCESS;
+}
 
 #include "Builder_arginfo.h"
 
@@ -64,13 +65,11 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
 
   if (builder->trusted_certs) {
     for (size_t i = 0; i < builder->trusted_certs_cnt; i++) {
-      auto result = file_get_contents(builder->trusted_certs[i]);
-
-      if (result.error() == FAILURE) {
+      zend_string* str;
+      if (file_get_contents(builder->trusted_certs[i], &str) == FAILURE) {
         return;
       }
 
-      zend_string *str = result.value();
       const CassError rc = cass_ssl_add_trusted_cert_n(ssl->ssl, ZSTR_VAL(str), ZSTR_LEN(str));
       zend_string_release(str);
 
@@ -82,13 +81,11 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
   }
 
   if (builder->client_cert) {
-    auto result = file_get_contents(builder->client_cert);
-
-    if (result.error() == FAILURE) {
+    zend_string *str = nullptr;
+    if (file_get_contents(builder->client_cert, &str) == FAILURE) {
       return;
     }
 
-    zend_string *str = result.value();
     const CassError rc = cass_ssl_set_cert_n(ssl->ssl, ZSTR_VAL(str), ZSTR_LEN(str));
     zend_string_release(str);
     if (rc != CASS_OK) {
@@ -98,13 +95,12 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
   }
 
   if (builder->private_key) {
-    auto result = file_get_contents(builder->private_key);
+    zend_string *str = nullptr;
 
-    if (result.error() == FAILURE) {
+    if (file_get_contents(builder->private_key, &str) == FAILURE) {
       return;
     }
 
-    zend_string *str = result.value();
     const CassError rc = cass_ssl_set_cert_n(ssl->ssl, ZSTR_VAL(str), ZSTR_LEN(str));
     zend_string_release(str);
     if (rc != CASS_OK) {
