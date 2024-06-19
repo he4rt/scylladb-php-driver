@@ -1,12 +1,37 @@
 cmake_minimum_required(VERSION 3.24)
+
+if (POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif ()
+
+if (POLICY CMP0054)
+    cmake_policy(SET CMP0054 NEW)
+endif ()
+
+if (POLICY CMP0079)
+    cmake_policy(SET CMP0079 NEW)
+endif ()
+
+if (POLICY CMP0108)
+    cmake_policy(SET CMP0108 NEW)
+endif ()
+
+if (POLICY CMP0109)
+    cmake_policy(SET CMP0109 NEW)
+endif ()
+
+if (POLICY CMP0128)
+    cmake_policy(SET CMP0128 NEW)
+endif ()
+
+
 project(php-ext-scylladb LANGUAGES C CXX)
 add_library(ext_scylladb SHARED)
-cmake_policy(SET CMP0079 NEW)
 
 # if build type is not set, default to debug
-if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     set(CMAKE_BUILD_TYPE "Debug")
-endif()
+endif ()
 
 include(GNUInstallDirs)
 include(CheckSymbolExists)
@@ -18,13 +43,13 @@ include(cmake/ScyllaDBPHPLibrary.cmake)
 
 set(PHP_SCYLLADB_VERSION_MAJOR 1)
 set(PHP_SCYLLADB_VERSION_MINOR 3)
-set(PHP_SCYLLADB_VERSION_PATCH 11)
+set(PHP_SCYLLADB_VERSION_PATCH 12)
 set(PHP_SCYLLADB_STABILITY "devel")
 set(PHP_SCYLLADB_VERSION_FULL "${PHP_SCYLLADB_VERSION_MAJOR}.${PHP_SCYLLADB_VERSION_MINOR}.${PHP_SCYLLADB_VERSION_PATCH}-${PHP_SCYLLADB_STABILITY}")
 set(PHP_SCYLLADB_VERSION "${PHP_SCYLLADB_VERSION_MAJOR}.${PHP_SCYLLADB_VERSION_MINOR}.${PHP_SCYLLADB_VERSION_PATCH}-dev")
 
-set(CMAKE_C_STANDARD 23)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake")
 
@@ -40,27 +65,27 @@ set(PHP_VERSION_FOR_PHP_CONFIG "8.3" CACHE STRING "PHP version")
 option(PHP_DEBUG_FOR_PHP_CONFIG "Debug or Release" ON)
 option(PHP_THREAD_SAFE_FOR_PHP_CONFIG "ZTS(zts) or NTS(nts)" OFF)
 
-if(CMAKE_HOST_APPLE)
+if (CMAKE_HOST_APPLE)
     option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" ON)
-else()
+else ()
     option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" OFF)
-endif()
+endif ()
 
 option(PHP_SCYLLADB_LIBUV_FROM_SRC "Build LibUV from Source" ON)
 
-if(CMAKE_HOST_APPLE)
+if (CMAKE_HOST_APPLE)
     option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" ON)
-else()
+else ()
     option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" OFF)
-endif()
+endif ()
 
 option(PHP_SCYLLADB_USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
 
-if(CMAKE_HOST_APPLE)
+if (CMAKE_HOST_APPLE)
     option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" ON)
-else()
+else ()
     option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" OFF)
-endif()
+endif ()
 
 find_package(PHPConfig REQUIRED)
 find_package(PHP REQUIRED)
@@ -68,11 +93,11 @@ find_package(Sanitizers REQUIRED)
 find_package(Libuv REQUIRED)
 find_package(LibGMP REQUIRED)
 
-if(PHP_SCYLLADB_USE_LIBCASSANDRA)
+if (PHP_SCYLLADB_USE_LIBCASSANDRA)
     find_package(CassandraDriver REQUIRED)
-else()
+else ()
     find_package(ScyllaDBDriver REQUIRED)
-endif()
+endif ()
 
 add_subdirectory(ZendCPP)
 add_subdirectory(util)
@@ -95,19 +120,19 @@ target_sources(ext_scylladb PUBLIC FILE_SET headers TYPE HEADERS FILES "${HEADER
 target_sources(ext_scylladb PRIVATE php_driver.cpp)
 
 target_link_libraries(
-    ext_scylladb PRIVATE
-    Zend
-    ext_scylladb::src
-    ext_scylladb::utils
-    ext_scylladb::type
-    ext_scylladb::datetime
-    ext_scylladb::database
-    ext_scylladb::numbers
-    ext_scylladb::ssl_options
-    ext_scylladb::exceptions
-    ext_scylladb::cluster::builder
-    ext_scylladb::retry_policy
-    ext_scylladb::timestamp_generator
+        ext_scylladb PRIVATE
+        Zend
+        ext_scylladb::src
+        ext_scylladb::utils
+        ext_scylladb::type
+        ext_scylladb::datetime
+        ext_scylladb::database
+        ext_scylladb::numbers
+        ext_scylladb::ssl_options
+        ext_scylladb::exceptions
+        ext_scylladb::cluster::builder
+        ext_scylladb::retry_policy
+        ext_scylladb::timestamp_generator
 )
 
 check_include_file("dlfcn.h" HAVE_DLFCN_H)
@@ -123,17 +148,17 @@ check_include_file("unistd.h" HAVE_UNISTD_H)
 set(HAVE_STRINGS_H 0)
 
 configure_file(
-    config.in
-    config.h
-    USE_SOURCE_PERMISSIONS
-    NEWLINE_STYLE UNIX
+        config.in
+        config.h
+        USE_SOURCE_PERMISSIONS
+        NEWLINE_STYLE UNIX
 )
 
 configure_file(
-    version.h.in
-    version.h
-    USE_SOURCE_PERMISSIONS
-    NEWLINE_STYLE UNIX
+        version.h.in
+        version.h
+        USE_SOURCE_PERMISSIONS
+        NEWLINE_STYLE UNIX
 )
 
 target_compile_definitions(ext_scylladb PRIVATE -DCOMPILE_DL_CASSANDRA -DHAVE_CONFIG_H)
