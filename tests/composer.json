@@ -15,12 +15,12 @@
     }
   },
   "require": {
-    "php": "^8.1",
-    "symfony/process": "^7.1",
+    "php": "^8.1|^8.2|^8.3",
+    "symfony/process": "^6",
     "nesbot/carbon": "^3.5"
   },
   "require-dev": {
-    "pestphp/pest": "^2.34"
+    "pestphp/pest": "^2.35"
   },
   "config": {
     "allow-plugins": {
