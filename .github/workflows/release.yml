@@ -44,15 +44,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           author: true
           releaseUrl: ${{ steps.release.outputs.url }}
-<<<<<<< HEAD
           issues: true
-=======
-          issues: false
->>>>>>> d34657b4 (feature(ci): add release github actions)
           pullRequests: true
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update CHANGELOG.md"
           branch: v1.3.x
-          commit_options: '--no-verify --signoff'
+          commit_options: "--no-verify --signoff"
           file_pattern: CHANGELOG.md
