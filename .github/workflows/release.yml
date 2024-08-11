@@ -44,7 +44,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           author: true
           releaseUrl: ${{ steps.release.outputs.url }}
-          issues: false
+          issues: true
           pullRequests: true
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
