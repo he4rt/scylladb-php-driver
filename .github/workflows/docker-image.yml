@@ -62,7 +62,7 @@ jobs:
           push: true
           pull: true
           platforms: linux/amd64
-          target: base
+          target: final
           tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-php-${{ inputs.php }}-zts
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -82,7 +82,7 @@ jobs:
           push: true
           pull: true
           platforms: linux/amd64
-          target: base
+          target: final
           tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-php-${{ inputs.php }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
