@@ -102,11 +102,10 @@
       "binaryDir": "${sourceDir}/out/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithInfo",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "PHP_SCYLLADB_ENABLE_SANITIZERS": "ON",
         "SANITIZE_UNDEFINED": "ON",
         "SANITIZE_ADDRESS": "ON",
-        "CUSTOM_PHP_CONFIG": "/root/php/bin/php-config"
+        "CUSTOM_PHP_CONFIG": "/php/bin/php-config"
       }
     },
     {
@@ -118,11 +117,10 @@
       "binaryDir": "${sourceDir}/out/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithInfo",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "PHP_SCYLLADB_ENABLE_SANITIZERS": "ON",
         "SANITIZE_UNDEFINED": "ON",
         "SANITIZE_ADDRESS": "ON",
-        "CUSTOM_PHP_CONFIG": "/root/php/bin/php-config"
+        "CUSTOM_PHP_CONFIG": "/php/bin/php-config"
       }
     }
   ]
