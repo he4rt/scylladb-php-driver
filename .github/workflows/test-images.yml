@@ -12,10 +12,12 @@ jobs:
       matrix:
         tag: ['8.1.29', '8.2.20', '8.3.8']
         zts: [yes, no]
+        ubuntu_version: ['22.04', '24.04']
     uses: "./.github/workflows/docker-image.yml"
     with:
       php: ${{ matrix.tag }}
       zts: ${{ matrix.zts }}
+      ubuntu_version: ${{ matrix.ubuntu_version }}
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

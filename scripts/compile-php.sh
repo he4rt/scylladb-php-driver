@@ -168,7 +168,7 @@ compile_php() {
     --enable-calendar
   )
 
-  local OUTPUT_PATH="$OUTPUT/php/"
+  local OUTPUT_PATH="$OUTPUT"
 
   if [[ "$WITHOUT_VERSION" == "yes" ]]; then
     OUTPUT_PATH="$OUTPUT_PATH/$PHP_BASE_VERSION"
@@ -231,14 +231,14 @@ check_deps() {
 
 check_deps
 
-while getopts "v:zo:sdka" option; do
+while getopts "v:zo:s:d:ka" option; do
   case "$option" in
   "v") PHP_VERSION="$OPTARG" ;;
-  "z") PHP_ZTS="yes" ;;
+  "z") PHP_ZTS="$OPTARG" ;;
   "o") OUTPUT="$OPTARG" ;;
-  "d") ENABLE_DEBUG="yes" ;;
+  "d") ENABLE_DEBUG="$OPTARG" ;;
   "k") KEEP_PHP_SOURCE="yes" ;;
-  "s") ENABLE_SANITIZERS="yes" ;;
+  "s") ENABLE_SANITIZERS="$OPTARG" ;;
   "a") WITHOUT_VERSION="yes" ;;
   *) print_usage ;;
   esac
