@@ -1,34 +1,34 @@
-name: 'Docker Test Image'
+name: "Docker Test Image"
 
 on:
   workflow_dispatch:
     inputs:
       php:
-        description: 'PHP Version'
+        description: "PHP Version"
         required: true
       zts:
-        description: 'ZTS (Zend Thread Safety)'
+        description: "ZTS (Zend Thread Safety)"
         required: true
       ubuntu_version:
         type: string
-        description: 'Ubuntu Version'
+        description: "Ubuntu Version"
         required: false
-        default: '22.04'
+        default: "22.04"
   workflow_call:
     inputs:
       php:
         type: string
-        description: 'PHP Version'
+        description: "PHP Version"
         required: true
       zts:
         type: string
-        description: 'ZTS (Zend Thread Safety)'
+        description: "ZTS (Zend Thread Safety)"
         required: true
       ubuntu_version:
         type: string
-        description: 'Ubuntu Version'
+        description: "Ubuntu Version"
         required: false
-        default: '22.04'
+        default: "22.04"
     secrets:
       DOCKER_USERNAME:
         required: true
