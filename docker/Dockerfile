@@ -21,6 +21,8 @@ ENV TZ="UTC"
 RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
     && echo "$TZ" > /etc/timezone \
     && apt-get update -y \
+    && CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2); [ "$CODENAME" = "focal" ] && apt-get install -y libasan6 \
+    || apt-get install -y libasan8 \
     && apt-get install -y \
     pkg-config \
     ccache \
@@ -31,11 +33,9 @@ RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
     clang \
     build-essential \
     ninja-build \
-    libasan8 \
     libubsan1 \
     libssl-dev \
     zlib1g-dev \
-    libasan8 \
     libubsan1 \
     cmake
 
