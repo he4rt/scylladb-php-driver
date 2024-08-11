@@ -163,13 +163,14 @@ ENV PATH="$PATH:/root/.local/bin:/php/bin"
 
 RUN apt-get update \
     && apt-get upgrade -y \
+    && CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2); [ "$CODENAME" = "focal" ] && apt-get install -y mlocate python3.8-venv \
+    || apt-get install -y plocate \
     && apt-get install -y \
     pipx \
     gdb \
     python3 \
     python3-pip \
     unzip \
-    plocate \
     clang-format \
     lldb \
     libonig5 \
