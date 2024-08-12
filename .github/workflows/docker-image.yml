@@ -9,6 +9,11 @@ on:
       zts:
         description: 'ZTS (Zend Thread Safety)'
         required: true
+      ubuntu_version:
+        type: string
+        description: 'Ubuntu Version'
+        required: false
+        default: '22.04'
   workflow_call:
     inputs:
       php:
@@ -19,6 +24,11 @@ on:
         type: string
         description: 'ZTS (Zend Thread Safety)'
         required: true
+      ubuntu_version:
+        type: string
+        description: 'Ubuntu Version'
+        required: false
+        default: '22.04'
     secrets:
       DOCKER_USERNAME:
         required: true
@@ -52,14 +62,16 @@ jobs:
           push: true
           pull: true
           platforms: linux/amd64
-          target: base
-          tags: malusevd99/scylladb-php-driver:php-${{ inputs.php }}-zts
+          target: final
+          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-php-${{ inputs.php }}-zts
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             PHP_VERSION=${{ inputs.php }}
             PHP_ZTS=${{ inputs.zts }}
+            UBUNTU_VERSION=${{ inputs.ubuntu_version }}
             PHP_DEBUG="yes"
+
       - name: Build and push API
         id: docker_build_nts
         uses: docker/build-push-action@v5
@@ -70,11 +82,12 @@ jobs:
           push: true
           pull: true
           platforms: linux/amd64
-          target: base
-          tags: malusevd99/scylladb-php-driver:php-${{ inputs.php }}
+          target: final
+          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-php-${{ inputs.php }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             PHP_VERSION=${{ inputs.php }}
             PHP_ZTS=${{ inputs.zts }}
+            UBUNTU_VERSION=${{ inputs.ubuntu_version }}
             PHP_DEBUG="yes"
