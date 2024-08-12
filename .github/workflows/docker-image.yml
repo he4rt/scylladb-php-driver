@@ -11,9 +11,9 @@ on:
         required: true
       ubuntu_version:
         type: string
-        description: "Ubuntu Version"
+        description: 'Ubuntu Version'
         required: false
-        default: "22.04"
+        default: '24.04'
   workflow_call:
     inputs:
       php:
@@ -28,7 +28,7 @@ on:
         type: string
         description: "Ubuntu Version"
         required: false
-        default: "22.04"
+        default: "24.04"
     secrets:
       DOCKER_USERNAME:
         required: true
