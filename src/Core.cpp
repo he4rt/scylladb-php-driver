@@ -142,8 +142,7 @@ void php_driver_define_Core() {
   zend_declare_class_constant_string(php_driver_core_ce, ZEND_STRL("TYPE_INET"),
                                      "inet");
 
-  zend_declare_class_constant_string(php_driver_core_ce, ZEND_STRL("VERSION"),
-                                     PHP_DRIVER_VERSION_FULL);
+  zend_declare_class_constant_string(php_driver_core_ce, ZEND_STRL("VERSION"), PHP_DRIVER_VERSION);
 
   snprintf(buf, sizeof(buf), "%d.%d.%d%s", CASS_VERSION_MAJOR,
            CASS_VERSION_MINOR, CASS_VERSION_PATCH,

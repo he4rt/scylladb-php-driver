@@ -20,13 +20,17 @@ on:
         type: string
         description: "PHP Version"
         required: true
+      debug:
+        type: string
+        description: "PHP Debug -> Options [yes, no]"
+        required: false
       zts:
         type: string
-        description: "ZTS (Zend Thread Safety)"
+        description: "ZTS (Zend Thread Safety) -> Options [yes, no]"
         required: true
       ubuntu_version:
         type: string
-        description: "Ubuntu Version"
+        description: "Ubuntu Version -> Options [20.04, 22.04, 24.04]"
         required: false
         default: "24.04"
     secrets:
@@ -52,30 +56,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push API
-        id: docker_build_zts
-        uses: docker/build-push-action@v5
-        if: ${{ inputs.zts == 'yes' }}
-        with:
-          file: ./docker/Dockerfile
-          context: .
-          push: true
-          pull: true
-          platforms: linux/amd64
-          target: final
-          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-php-${{ inputs.php }}-zts
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            PHP_VERSION=${{ inputs.php }}
-            PHP_ZTS=${{ inputs.zts }}
-            UBUNTU_VERSION=${{ inputs.ubuntu_version }}
-            PHP_DEBUG="yes"
+      - name: Extract PHP Version and ZTS
+        id: version
+        run: |
+          export PHP_VERSION="$(echo ${{ inputs.php }} | grep -oP '^\d+\.\d+')"
+          PHP_ENDING="php-$PHP_VERSION"
+
+          [[ ${{ inputs.zts }} == "yes" ]] && PHP_ENDING="$PHP_ENDING-zts"
+          [[ ${{ inputs.debug }} == "yes" ]] && PHP_ENDING="$PHP_ENDING-debug"
+
+          echo "php_ending=$PHP_ENDING" >> $GITHUB_ENV
 
       - name: Build and push API
-        id: docker_build_nts
+        id: docker_build
         uses: docker/build-push-action@v5
-        if: ${{ inputs.zts == 'no' }}
         with:
           file: ./docker/Dockerfile
           context: .
@@ -83,11 +77,12 @@ jobs:
           pull: true
           platforms: linux/amd64
           target: final
-          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-php-${{ inputs.php }}
+          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-${{ steps.version.outputs.php }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
+            UBUNTU_VERSION=${{ inputs.ubuntu_version }}
             PHP_VERSION=${{ inputs.php }}
             PHP_ZTS=${{ inputs.zts }}
-            UBUNTU_VERSION=${{ inputs.ubuntu_version }}
-            PHP_DEBUG="yes"
+            PHP_DEBUG=${{ inputs.debug }}
+            PHP_MEM_SANITIZERS=${{ inputs.debug }}
