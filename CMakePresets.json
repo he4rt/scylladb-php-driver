@@ -102,9 +102,9 @@
       "binaryDir": "${sourceDir}/out/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithInfo",
-        "PHP_SCYLLADB_ENABLE_SANITIZERS": "ON",
-        "SANITIZE_UNDEFINED": "ON",
-        "SANITIZE_ADDRESS": "ON",
+        "PHP_SCYLLADB_ENABLE_SANITIZERS": "OFF",
+        "SANITIZE_UNDEFINED": "OFF",
+        "SANITIZE_ADDRESS": "OFF",
         "CUSTOM_PHP_CONFIG": "/php/bin/php-config"
       }
     },
@@ -117,6 +117,36 @@
       "binaryDir": "${sourceDir}/out/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithInfo",
+        "PHP_SCYLLADB_ENABLE_SANITIZERS": "OFF",
+        "SANITIZE_UNDEFINED": "OFF",
+        "SANITIZE_ADDRESS": "OFF",
+        "CUSTOM_PHP_CONFIG": "/php/bin/php-config"
+      }
+    },
+    {
+      "name": "CIScyllaDebug",
+      "displayName": "GithubActions CIScylla",
+      "description": "",
+      "generator": "Ninja",
+      "environment": {},
+      "binaryDir": "${sourceDir}/out/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PHP_SCYLLADB_ENABLE_SANITIZERS": "ON",
+        "SANITIZE_UNDEFINED": "ON",
+        "SANITIZE_ADDRESS": "ON",
+        "CUSTOM_PHP_CONFIG": "/php/bin/php-config"
+      }
+    },
+    {
+      "name": "CICassandraDebug",
+      "displayName": "GithubActions CI",
+      "description": "",
+      "generator": "Ninja",
+      "environment": {},
+      "binaryDir": "${sourceDir}/out/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
         "PHP_SCYLLADB_ENABLE_SANITIZERS": "ON",
         "SANITIZE_UNDEFINED": "ON",
         "SANITIZE_ADDRESS": "ON",

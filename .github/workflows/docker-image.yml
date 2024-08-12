@@ -1,4 +1,4 @@
-name: "Docker Test Image"
+name: "Build Docker Image"
 
 on:
   workflow_dispatch:
@@ -77,7 +77,7 @@ jobs:
           pull: true
           platforms: linux/amd64
           target: final
-          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-${{ steps.version.outputs.php }}
+          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-${{ steps.version.outputs.php_ending }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
