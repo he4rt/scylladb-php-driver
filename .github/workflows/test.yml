@@ -1,4 +1,4 @@
-name: 'Test PHP Extension'
+name: "Test PHP Extension"
 
 on:
   workflow_call:
@@ -12,12 +12,12 @@ jobs:
   test:
     strategy:
       matrix:
-        php: ['8.1.29', '8.2.20', '8.3.8', '8.1.29-zts', '8.2.20-zts', '8.3.8-zts']
+        php: ['8.1', '8.2', '8.3', '8.1-zts', '8.2-zts', '8.3-zts']
         os: ['ubuntu-20.04', 'ubuntu-24.04']
-        preset: ['CICassandra', 'CIScylla']
+        preset: ['CICassandraDebug', 'CIScyllaDebug']
       fail-fast: false
     runs-on: ubuntu-latest
-    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}
+    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}-debug
     steps:
       - uses: actions/checkout@v4
         with:
