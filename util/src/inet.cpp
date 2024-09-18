@@ -379,8 +379,16 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
         int src_pos = compress_pos + move_len - i - 1;
         int dst_pos = CASS_INET_V6_LENGTH - i - 1;
 
-        address[dst_pos] = address[src_pos];
-        address[src_pos] = 0;
+        // Bounds check for src_pos and dst_pos to prevent string overflow
+        if (src_pos >= 0 && src_pos < CASS_INET_V6_LENGTH && dst_pos >= 0 && dst_pos < CASS_INET_V6_LENGTH) {
+          address[dst_pos] = address[src_pos];
+          address[src_pos] = 0;
+        } else {
+          // Throw exception if out of bounds
+          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+                              "Index out of bounds: src_pos = %d, dst_pos = %d, array size = %d",
+                              src_pos, dst_pos, CASS_INET_V6_LENGTH);
+        }
       }
     }
 
