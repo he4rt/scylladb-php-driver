@@ -1,3 +1,11 @@
+<div align="center">
+  
+[![Build Docker Image](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml/badge.svg)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml)
+[![ScyllaDB Unnoficial Discord Server](https://img.shields.io/badge/ScyllaDB_Developers-Discord_Server-4C388C)](https://discord.gg/B6rutCXvgp)
+
+</div>
+
+
 # ScyllaDB/CassandraDB Driver for PHP
 
 [![Build Status](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml/badge.svg?branch=v1.3.x)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml)
