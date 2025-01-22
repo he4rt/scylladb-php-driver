@@ -2,48 +2,23 @@
 
 #include <cassandra.h>
 #include <gmp.h>
-#include <version.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
+#include <sys/types.h>
 #include <unistd.h>
-#endif
+#include <version.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include <math.h>
-
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
-
-#include <php.h>
-
 #include <Zend/zend_exceptions.h>
 #include <Zend/zend_interfaces.h>
 #include <Zend/zend_types.h>
+#include <inttypes.h>
+#include <math.h>
+#include <php.h>
+#include <string.h>
 
 #if PHP_VERSION_ID < 80100
 #error PHP 8.1.0 or later is required in order to build the driver

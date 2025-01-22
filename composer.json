@@ -1,0 +1,60 @@
+{
+  "name": "codelieutenant/scylla-driver",
+  "version": "1.3.12",
+  "type": "php-ext",
+  "authors": [
+    {
+      "name": "Dusan Malusev",
+      "email": "dusan@dusanmalusev.dev"
+    }
+  ],
+  "minimum-stability": "stable",
+  "license": "Apache-2.0",
+  "description": "ScyllaDB/Cassandra PHP driver",
+  "require": {
+    "php": ">= 8.1",
+    "ext-date": "*"
+  },
+  "php-ext": {
+    "extension-name": "cassandra",
+    "configure-options": [
+      {
+        "name": "enable-debug",
+        "description": "Enable debug mode"
+      },
+      {
+        "name": "with-cpu-type",
+        "description": "CPU type to optimize for",
+        "needs-value": true
+      },
+      {
+        "name": "enable-sanitizers",
+        "description": "link with address and mem sanitizers"
+      },
+      {
+        "name": "enable-lto",
+        "description": "Enable LTO (Link Time Optimization)"
+      },
+      {
+        "name": "enable-avx",
+        "description": "Enable AVX"
+      },
+      {
+        "name": "enable-avx2",
+        "description": "Enable AVX2"
+      },
+      {
+        "name": "enable-libuv-static",
+        "description": "whether to link with libuv statically"
+      },
+      {
+        "name": "enable-driver-static",
+        "description": "whether to link with driver statically"
+      },
+      {
+        "name": "enable-libcassandra",
+        "description": "whether to link with libcassandra"
+      }
+    ]
+  }
+}

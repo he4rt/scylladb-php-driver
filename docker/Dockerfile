@@ -2,7 +2,7 @@ ARG UBUNTU_VERSION="24.04"
 
 FROM ubuntu:$UBUNTU_VERSION AS base
 
-ARG LIBUV_VERSION="v1.48.0"
+ARG LIBUV_VERSION="v1.50.0"
 ARG LIBUV_BUILD_TYPE="RelWithInfo"
 ARG LIBUV_REPO="https://github.com/libuv/libuv.git"
 
@@ -12,16 +12,16 @@ ENV CXX="g++"
 ENV CFLAGS="-fPIC"
 ENV CXXFLAGS="-fPIC"
 ENV CMAKE_CXX_COMPILER_LAUNCHER="ccache"
-ENV PATH="$PATH:/usr/local/bin"
+ENV PATH="$PATH:/usr/local/bin:/root/.local/bin:/php/bin"
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:/usr/local/lib:/usr/lib:/lib:/lib64:/usr/local/lib/x86_64-linux-gnu"
 ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV TZ="UTC"
 
-RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
+RUN --mount=type=cache,target=/var/cache/apt ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
     && echo "$TZ" > /etc/timezone \
     && apt-get update -y \
-    && CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2); [ "$CODENAME" = "focal" ] && apt-get install -y libasan6 \
+    && CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2); [ "$CODENAME" = "focal" ] && apt-get install -y libasan6 python3.8-venv \
     || apt-get install -y libasan8 \
     && apt-get install -y \
     pkg-config \
@@ -37,33 +37,46 @@ RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
     libssl-dev \
     zlib1g-dev \
     libubsan1 \
-    cmake
+    pipx \
+    gdb \
+    python3 \
+    python3-pip \
+    unzip \
+    clang-format \
+    lldb \
+    libonig5 \
+    libgmp-dev \
+    vim \
+    ca-certificates \
+    procps \
+    curl \
+    wget \
+    && pipx install cqlsh \
+    && pipx install cmake
 
 RUN git clone --depth 1 $LIBUV_REPO /libuv-src  \
     && cd libuv-src \
     && git fetch --tags \
     && git checkout -b $LIBUV_VERSION tags/$LIBUV_VERSION \
-    && mkdir build \
-    && cd build \
-    && LDFLAGS="-flto -g" cmake -G Ninja \
+    && LDFLAGS="-flto -g" cmake -G Ninja -B build \
     -DBUILD_TESTING=OFF \
     -DBUILD_BENCHMARKS=OFF \
     -DLIBUV_BUILD_SHARED=ON \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-    -DCMAKE_BUILD_TYPE="$LIBUV_BUILD_TYPE" .. \
-    && ninja install \
-    && cd .. rm -rf build
+    -DCMAKE_BUILD_TYPE="$LIBUV_BUILD_TYPE" \
+    && cmake --build build \
+    && rm -rf build
 
 FROM base AS php_build
 
-ARG PHP_VERSION="8.3.8"
-ARG PHP_ZTS="no"
+ARG PHP_VERSION="8.3"
+ARG PHP_THREAD_MODEL="nts"
 ARG PHP_DEBUG="no"
 ARG PHP_MEM_SANITIZERS="no"
 
 COPY ./scripts /tmp/scripts
 
-RUN apt-get -y install \
+RUN --mount=type=cache,target=/var/cache/apt  apt-get -y install \
     bison \
     autoconf \
     re2c \
@@ -78,7 +91,7 @@ RUN apt-get -y install \
 
 ENV PATH="$PATH:/php/bin"
 
-RUN /tmp/scripts/compile-php.sh -v $PHP_VERSION -o /php -s $PHP_MEM_SANITIZERS -d $PHP_DEBUG -z $PHP_ZTS \
+RUN /tmp/scripts/compile-php.sh -v $PHP_VERSION -o /php -s $PHP_MEM_SANITIZERS -d $PHP_DEBUG -z $PHP_THREAD_MODEL -a \
     && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/php/bin --filename=composer \
     && chmod +x /php/bin/composer \
@@ -97,9 +110,7 @@ ENV LDFLAGS="-flto -g"
 
 RUN git clone --depth 1 $SCYLLADB_DRIVER_REPO /scylladb-cpp-src \
     && cd /scylladb-cpp-src \
-    && mkdir build \
-    && cd build \
-    && cmake -G Ninja \
+    && cmake -G Ninja -B build \
     -DCASS_CPP_STANDARD=17 \
     -DCASS_BUILD_STATIC=ON \
     -DCASS_BUILD_SHARED=ON \
@@ -111,9 +122,9 @@ RUN git clone --depth 1 $SCYLLADB_DRIVER_REPO /scylladb-cpp-src \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DCMAKE_EXPORT_COMPILE_COMMANDS="OFF" \
     -DCMAKE_INSTALL_PREFIX="/scylladb-cpp" \
-    -DCMAKE_BUILD_TYPE="$SCYLLADB_DRIVER_BUILD_TYPE" .. \
-    && ninja install \
-    && cd ../ && rm -rf build
+    -DCMAKE_BUILD_TYPE="$SCYLLADB_DRIVER_BUILD_TYPE" \
+    && cmake --build \
+    rm -rf build
 
 FROM base AS cassandra_cpp_driver_build
 
@@ -125,9 +136,7 @@ ENV LDFLAGS="-flto -g"
 
 RUN git clone --depth 1 $CASSANDRA_DRIVER_REPO /cassandra-cpp-src \
     && cd /cassandra-cpp-src \
-    && mkdir build \
-    && cd build \
-    && cmake -G Ninja \
+    && cmake -G Ninja -B build \
     -DCASS_CPP_STANDARD=17 \
     -DCASS_BUILD_STATIC=ON \
     -DCASS_BUILD_SHARED=ON \
@@ -144,9 +153,8 @@ RUN git clone --depth 1 $CASSANDRA_DRIVER_REPO /cassandra-cpp-src \
     -DCMAKE_EXPORT_COMPILE_COMMANDS="OFF" \
     -DCMAKE_INSTALL_PREFIX="/cassandra-cpp" \
     -DCMAKE_BUILD_TYPE="$CASSANDRA_DRIVER_BUILD_TYPE" \
-    .. \
-    && ninja install \
-    && cd ../ && rm -rf build
+    && cmake --build build \
+    && rm -rf build
 
 FROM base AS final
 
@@ -159,26 +167,3 @@ COPY --from=php_build /php /php
 
 ENV PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/cassandra-cpp/lib/pkgconfig:/scylladb-cpp/lib/pkgconfig"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/scylladb-cpp/lib:/cassandra-cpp/lib"
-ENV PATH="$PATH:/root/.local/bin:/php/bin"
-
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2); [ "$CODENAME" = "focal" ] && apt-get install -y mlocate python3.8-venv \
-    || apt-get install -y plocate \
-    && apt-get install -y \
-    pipx \
-    gdb \
-    python3 \
-    python3-pip \
-    unzip \
-    clang-format \
-    lldb \
-    libonig5 \
-    libgmp-dev \
-    vim \
-    ca-certificates \
-    procps \
-    curl \
-    wget \
-    && pipx install cqlsh \
-    && updatedb

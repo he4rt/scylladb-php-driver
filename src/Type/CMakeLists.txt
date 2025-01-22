@@ -1,7 +1,7 @@
 add_library(type STATIC)
 add_library(ext_scylladb::type ALIAS type)
+scylladb_php_library(type OFF "${CPU_TYPE}" "${ENABLE_LTO}")
 
-scylladb_php_library(type OFF ${PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE} ON)
 
 target_sources(
         type

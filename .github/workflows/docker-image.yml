@@ -6,14 +6,22 @@ on:
       php:
         description: "PHP Version"
         required: true
-      zts:
-        description: "ZTS (Zend Thread Safety)"
+        default: '8.4'
+      threading:
+        type: string
+        description: "nts or zts"
         required: true
+        default: "nts"
       ubuntu_version:
         type: string
         description: 'Ubuntu Version'
         required: false
         default: '24.04'
+      debug:
+        type: string
+        description: "PHP Debug -> Options [yes, no]"
+        default: "no"
+        required: false
   workflow_call:
     inputs:
       php:
@@ -24,9 +32,9 @@ on:
         type: string
         description: "PHP Debug -> Options [yes, no]"
         required: false
-      zts:
+      threading:
         type: string
-        description: "ZTS (Zend Thread Safety) -> Options [yes, no]"
+        description: "nts or zts"
         required: true
       ubuntu_version:
         type: string
@@ -41,7 +49,7 @@ on:
 
 jobs:
   build-docker-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,10 +67,8 @@ jobs:
       - name: Extract PHP Version and ZTS
         id: version
         run: |
-          export PHP_VERSION="$(echo ${{ inputs.php }} | grep -oP '^\d+\.\d+')"
-          PHP_ENDING="php-$PHP_VERSION"
+          PHP_ENDING="php-${{ inputs.php }}-${{ inputs.threading }}"
 
-          [[ ${{ inputs.zts }} == "yes" ]] && PHP_ENDING="$PHP_ENDING-zts"
           [[ ${{ inputs.debug }} == "yes" ]] && PHP_ENDING="$PHP_ENDING-debug"
 
           echo "php_ending=$PHP_ENDING" >> $GITHUB_ENV
@@ -83,6 +89,6 @@ jobs:
           build-args: |
             UBUNTU_VERSION=${{ inputs.ubuntu_version }}
             PHP_VERSION=${{ inputs.php }}
-            PHP_ZTS=${{ inputs.zts }}
+            PHP_THREAD_MODEL=${{ inputs.threading }}
             PHP_DEBUG=${{ inputs.debug }}
             PHP_MEM_SANITIZERS=${{ inputs.debug }}

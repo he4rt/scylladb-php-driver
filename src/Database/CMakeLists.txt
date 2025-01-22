@@ -1,6 +1,8 @@
 add_library(database STATIC)
 add_library(ext_scylladb::database ALIAS database)
-scylladb_php_library(database OFF ${PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE} ON)
+
+scylladb_php_library(database OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+
 
 target_sources(
         database

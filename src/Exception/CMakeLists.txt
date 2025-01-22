@@ -1,6 +1,7 @@
 add_library(exceptions STATIC)
 add_library(ext_scylladb::exceptions ALIAS exceptions)
-scylladb_php_library(exceptions OFF ${PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE} ON)
+scylladb_php_library(exceptions OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+
 
 target_sources(
         exceptions

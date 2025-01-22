@@ -1,4 +1,10 @@
 #pragma once
 
 #define PHP_DRIVER_NAME "cassandra"
-#define PHP_DRIVER_VERSION "@PHP_SCYLLADB_VERSION@"
+#define PHP_DRIVER_VERSION "@PHP_SCYLLADB_DRIVER_VERSION@"
+
+#define PACKAGE_NAME "scylladb"
+#define PACKAGE_STRING "scylladb-@PHP_SCYLLADB_DRIVER_VERSION@"
+#define PACKAGE_TARNAME "scylladb"
+#define PACKAGE_VERSION "@PHP_SCYLLADB_DRIVER_VERSION@"
+#define PACKAGE_URL "https://github.com/he4rt/scylladb-php-driver"

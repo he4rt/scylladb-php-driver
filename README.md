@@ -1,5 +1,5 @@
 <div align="center">
-  
+
 [![Build Docker Image](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml/badge.svg)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml)
 [![ScyllaDB Unnoficial Discord Server](https://img.shields.io/badge/ScyllaDB_Developers-Discord_Server-4C388C)](https://discord.gg/B6rutCXvgp)
 
@@ -83,7 +83,7 @@ $session   = $cluster->connect($keyspace);        // create session, optionally 
 $statement = new Cassandra\SimpleStatement(       // also supports prepared and batch statements
     'SELECT keyspace_name, columnfamily_name FROM schema_columnfamilies'
 );
-$querySent = $session->execute($statement);  
+$querySent = $session->execute($statement);
 $result    = $querySent->get();                      // wait for the result, with an optional timeout
 
 foreach ($result as $row) {                       // results and rows implement Iterator, Countable and ArrayAccess
@@ -157,19 +157,23 @@ We provide common setups using CMake Presets. You can use them by passing the pr
 * ReleaseLibCassandra (Release with LibCassandra)
 
 ````
-option(PHP_SCYLLADB_ENABLE_SANITIZERS "Enable sanitizers" OFF)
-option(PHP_SCYLLADB_ENABLE_COVERAGE "Enable coverage" OFF)
-option(PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE "Optimise for current machine" OFF)
+option(ENABLE_SANITIZERS "Enable sanitizers" OFF)
+option(ENABLE_AVX "Enable AVX" OFF)
+option(ENABLE_AVX2 "Enable AVX2" OFF)
+option(ENABLE_LTO "Enable LTO" OFF)
+set(CPU_TYPE "x86-64-v3" CACHE STRING "For x86_64 = x86-64|x86-64-v2|x86-64-v3|x86-64-v4|native")
 
+# PHP Options
+set(CUSTOM_PHP_CONFIG "" CACHE STRING "Custom PHP config path")
+set(PHP_VERSION_FOR_PHP_CONFIG "8.3" CACHE STRING "PHP version")
+option(PHP_DEBUG "Debug or Release" ON)
+option(PHP_THREAD_SAFE "ZTS(zts) or NTS(nts)" OFF)
 
-option(PHP_SCYLLADB_LIBUV_STATIC "Statically link libuv" OFF)
-option(PHP_SCYLLADB_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
-option(PHP_SCYLLADB_LIBSCYLLADB_STATIC "Statically link LibScyllaDB" OFF)
-option(PHP_SCYLLADB_LIBSCYLLADB_FROM_SRC "Build LibScyllaDB from Source" OFF)
+option(LINK_LIBUV_STATIC "Statically link libuv" OFF)
+option(BUILD_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
 
-option(PHP_SCYLLADB_USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
-option(PHP_SCYLLADB_LIBCASSANDRA_STATIC "Statically link LibCassandra" OFF)
-option(PHP_SCYLLADB_LIBCASSANDRA_FROM_SRC "Build LibCassandra from Source" OFF)
+option(PHP_DRIVER_STATIC "Statically link PHP Driver" OFF)
+option(USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
 
 ````
 
@@ -182,111 +186,16 @@ To build your Driver, you should first download a few dependencies:
 #### Debian/Ubuntu
 
 ````sh
-apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev
-pip3 install cmake
-
-# Single Line
-apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev && pip3 install cmake
+apt install -y pipx build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev && pipx install cmake
 ````
 
 After that, you can run the build command inside the repository root folder:
 
 ````sh
-cmake --preset Release  && cd out/Release && sudo ninja install
-````
-
-> `ninja install` needs root privileges.
-
-After compiled, you will be at directory `scylladb-php-driver/out/Release` and at this folder you will need to move
-the `cassandra.so` and `cassandra.ini` to PHP respective folders.
-
-````shell
-# current directory: scylladb-php-driver/out/Release
-
-# PHP 8.1
-sudo cp ../../cassandra.ini /etc/php/8.1/cli/conf.d/10-cassandra.ini
-sudo cp cassandra.so /usr/lib/php/20210902/cassandra.so
-
-# PHP 8.2
-sudo cp ../../cassandra.ini /etc/php/8.2/cli/conf.d/10-cassandra.ini
-sudo cp cassandra.so /usr/lib/php/20220829/cassandra.so
-````
-
-### Compiling Development Build
-
-If you want to contribute to the project, you should follow the steps below.
-
-#### Debian/Ubuntu
-
-```shell
-apt update -y
-apt upgrade -y
-apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev
-pip3 install cmake cqlsh # CQL Shell - to connect into your ScyllaDB Cluster
-install-php-extensions intl zip pcntl gmp composer
-apt-get clean
-
-# Single Line
-apt update -y && apt upgrade -y && apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev && pip3 install cmake cqlsh && install-php-extensions intl zip pcntl gmp composer && apt-get clean
-
-```
-
-After that, you can run the build command inside the repository root folder:
-
-````sh
-cmake --preset Debug && cd out/Debug && ninja
-````
-
-We have a "debug.php" file in the root folder that you can use it for try connection with
-the ScyllaDB Cluster (localhost) and check if is everything ok after change the source code.
-
-Also you can run the PestPHP test suits inside the project and check if the functions are working as expected.
-
-````shell
-## Debug Base Command
-php -d "extension=$(pwd)/out/Debug/cassandra.so" debug.php
-
-## PestPHP Test Suite
-./vendor/bin/pest -d "extension=$(pwd)/out/Debug/cassandra.so"
-````
-
-### Compiling Optimized Build
-
-The "optimized build" brings a flag that makes the driver runs perfectly with your CPU. So, if you will use it, remember
-to build it inside the environment that you will use it.
-
-#### Debian/Ubuntu
-
-````sh
-apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev
-pip3 install cmake
-
-# Single Line
-apt install -y python3 python3-pip unzip mlocate build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev && pip3 install cmake
-````
-
-The only difference between the `Release` and `Optimized` is a flag
-called `-DPHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE=ON`.
-
-````shell
-cmake --preset Release -DPHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE=ON && cd out/Release && sudo ninja install
-````
-
-> `ninja install` needs root privileges.
-
-After compiled, you will be at directory `scylladb-php-driver/out/Release` and at this folder you will need to move
-the `cassandra.so` and `cassandra.ini` to PHP respective folders.
-
-````shell
-# current directory: scylladb-php-driver/out/Release
-
-# PHP 8.1
-sudo cp ../../cassandra.ini /etc/php/8.1/cli/conf.d/10-cassandra.ini
-sudo cp cassandra.so /usr/lib/php/20210902/cassandra.so
-
-# PHP 8.2
-sudo cp ../../cassandra.ini /etc/php/8.2/cli/conf.d/10-cassandra.ini
-sudo cp cassandra.so /usr/lib/php/20220829/cassandra.so
+phpize
+./configure
+make -j$(nproc)
+sudo make install
 ````
 
 ## Contributing

@@ -1,8 +1,8 @@
-name: "Build Docker Images"
+name: 'Build Docker Images'
 
 on:
   schedule:
-    - cron: "0 0 1,15 * *"
+    - cron: '0 0 1,15 * *'
   workflow_call:
   workflow_dispatch:
 
@@ -10,14 +10,14 @@ jobs:
   build:
     strategy:
       matrix:
-        tag: ["8.1.29", "8.2.20", "8.3.8"]
-        zts: ['yes', 'no']
+        tag: ['8.1', '8.2', '8.3', '8.4']
+        threading: ['zts', 'nts']
         debug: ['yes', 'no']
-        ubuntu_version: ["20.04", "22.04", "24.04"]
-    uses: "./.github/workflows/docker-image.yml"
+        ubuntu_version: ['20.04', '22.04', '24.04']
+    uses: './.github/workflows/docker-image.yml'
     with:
       php: ${{ matrix.tag }}
-      zts: ${{ matrix.zts }}
+      threading: ${{ matrix.threading }}
       ubuntu_version: ${{ matrix.ubuntu_version }}
       debug: ${{ matrix.debug }}
     secrets:

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -xe
+
+declare -a PHP_VERSIONS=("8.4" "8.3" "8.2")
+
+mkdir -p php
+
+./scripts/compile-libuv.sh
+./scripts/compile-cpp-driver.sh "scylladb"
+./scripts/compile-cpp-driver.sh "datastax"
+
+for version in "${PHP_VERSIONS[@]}"
+do
+    ./scripts/compile-php.sh -o "$(pwd)/php" -v "$version" -s -d
+done

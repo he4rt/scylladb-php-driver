@@ -16,13 +16,13 @@ else ()
 
     set(hint "${PROJECT_SOURCE_DIR}/php/${PHP_VERSION_FOR_PHP_CONFIG}")
 
-    if (${PHP_DEBUG_FOR_PHP_CONFIG})
+    if (${PHP_DEBUG})
         set(hint "${hint}-debug")
     else ()
         set(hint "${hint}-release")
     endif ()
 
-    if (${PHP_THREAD_SAFE_FOR_PHP_CONFIG})
+    if (${PHP_THREAD_SAFE})
         set(hint "${hint}-zts")
     else ()
         set(hint "${hint}-nts")

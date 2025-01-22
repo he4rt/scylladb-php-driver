@@ -10,7 +10,7 @@ on:
 
 jobs:
   tag:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.tag.outputs.tag }}
       prerelease: ${{ (!!steps.prerelease.outputs.is_prerelease) || false }}
@@ -30,13 +30,13 @@ jobs:
         id: prerelease
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: ['tag']
     strategy:
       matrix:
         php: ['8.1', '8.1-zts', '8.2', '8.2-zts', '8.3', '8.3-zts']
-        os: ['ubuntu-20.04', 'ubuntu-24.04']
-        preset: ['CICassandra', 'CIScylla']
+        os: ['ubuntu-20.04', 'ubuntu-22.04', 'ubuntu-24.04']
+        driver: ['scylladb', 'cassandra']
       fail-fast: true
     container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}
     steps:
@@ -44,36 +44,23 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-      - name: Extract PHP Version and ZTS
-        id: name
-        run: |
-          [ "CICassandra" = "${{ matrix.preset }}" ] && echo 'extension="cassandra-${{ matrix.os }}-${{ matrix.php }}"' >> $GITHUB_ENV
-
-          [ "CIScylla" = "${{ matrix.preset }}" ] && echo 'extension="scylla-${{ matrix.os }}-${{ matrix.php }}"' >> $GITHUB_ENV
 
       - name: Build Driver
+        shell: bash
         run: |
-          cmake --preset ${{ matrix.preset }} -DPHP_SCYLLADB_VERSION=${{ needs.tag.outputs.version }} || exit 1
-
-          cd out/${{ matrix.preset }} || exit 1
-          ninja build || exit 1
-          cd ../../
-
-          mv out/${{ matrix.preset }}/cassandra.so || exit 1
-          sed -i "s/extension = cassandra/extension = ${{ steps.name.outputs.extension }}/g" cassandra.ini || exit 1
-
-          tar czf ${{ steps.name.outputs.extension }}.tar.gz ${{ steps.name.outputs.extension }}.so cassandra.ini
+          ./build.sh ${{ matrix.driver }} ${{ needs.tag.outputs.version }}
+          tar czf ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.driver }}.tar.gz cassandra.so cassandra.ini
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.name.outputs.extension }}
-          path: ${{ steps.name.outputs.extension }}.tar.gz
+          name: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.driver }}.tar.gz
+          path: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.driver }}.tar.gz
           if-no-files-found: error
           retention-days: 5
           overwrite: true
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: ["build", 'tag']
     steps:
       - uses: actions/download-artifact@v4
@@ -86,7 +73,7 @@ jobs:
         with:
           make_latest: ${{ !needs.tag.outputs.prerelease }}
           name: "v${{ needs.tag.outputs.version }}"
-          tag_name: "v${{  needs.tag.outputs.version }}"
+          tag_name: "v${{ needs.tag.outputs.version }}"
           generate_release_notes: true
           append_body: true
           prerelease: ${{ needs.tag.outputs.prerelease }}

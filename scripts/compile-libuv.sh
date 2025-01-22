@@ -1,4 +1,6 @@
-LIBUV_VERSION="v1.48.0"
+#!/bin/bash
+
+LIBUV_VERSION="v1.50.0"
 LIBUV_REPO="https://github.com/libuv/libuv.git"
 CURRENT_DIR="$(pwd)"
 
@@ -10,20 +12,14 @@ git fetch --tags
 
 git checkout -b $LIBUV_VERSION tags/$LIBUV_VERSION
 
-mkdir build || exit 1
-
-cd build || exit 1
-
-LDFLAGS="-flto" CFLAGS="-fPIC" cmake -G Ninja \
+LDFLAGS="-flto" CFLAGS="-fPIC" cmake -G Ninja -B build \
     -DBUILD_TESTING=OFF \
     -DBUILD_BENCHMARKS=OFF \
-    -DLIBUV_BUILD_SHARED=ON \
+    -DLIBUV_BUILD_SHARED=OFF \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-    -DCMAKE_BUILD_TYPE="RelWithInfo" ..
+    -DCMAKE_BUILD_TYPE="RelWithInfo"
 
-LDFLAGS="-flto" CFLAGS="-fPIC" ninja install
-
-cd .. || exit
+LDFLAGS="-flto" CFLAGS="-fPIC" cmake --build build
 
 rm -rf build
 

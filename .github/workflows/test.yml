@@ -12,27 +12,45 @@ jobs:
   test:
     strategy:
       matrix:
-        php: ['8.1', '8.2', '8.3', '8.1-zts', '8.2-zts', '8.3-zts']
-        os: ['ubuntu-20.04', 'ubuntu-24.04']
-        preset: ['CICassandraDebug', 'CIScyllaDebug']
+        php: ['8.1', '8.2', '8.3', '8.4']
+        threading: ['zts', 'nts']
+        os: ['ubuntu-22.04', 'ubuntu-24.04']
+        driver: ['scylladb', 'cassandra']
       fail-fast: false
-    runs-on: ubuntu-latest
-    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}-debug
+    runs-on: ubuntu-24.04
+    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-debug
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
-      - name: Run tests
+      - name: Cache Vendor
+        uses: actions/cache@v3
+        with:
+          path: tests/vendor
+          key: ${{ runner.os }}-${{ matrix.php }}-vendor-${{ hashFiles('**/composer.lock') }}
+
+      - name: Build
+        run: ./scripts/build.sh ${{ matrix.driver }}
+
+      - name: Install PHP Dependencies
+        working-directory: tests
+        shell: bash
         run: |
-          cmake --preset ${{ matrix.preset }} || exit 1
+          php -d extension=cassandra /php/bin/composer \
+            --ignore-platform-reqs \
+            --no-ansi \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress \
+            install
 
-          cd out/${{ matrix.preset }} || exit 1
-          ninja install || exit 1
-          cd ../../
-
-          cat cassandra.ini >> "$(php-config --ini-path | xargs -I {} printf '%s/php.ini' {})" || exit 1
-
-          cd tests
-          composer install
-          php ./vendor/bin/pest
+      - name: Run tests
+        working-directory: tests
+        shell: bash
+        run: |
+          php -d extension=cassandra ./vendor/bin/pest \
+          	--colors=always \
+          	--fail-on-risky \
+          	--fail-on-warning \
+          	--fail-on-deprecation

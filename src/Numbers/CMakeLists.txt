@@ -1,6 +1,7 @@
 add_library(numbers STATIC)
 add_library(ext_scylladb::numbers ALIAS numbers)
-scylladb_php_library(numbers OFF ${PHP_SCYLLADB_OPTIMISE_FOR_CURRENT_MACHINE} ON)
+scylladb_php_library(numbers OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+
 
 target_sources(
         numbers
