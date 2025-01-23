@@ -52,6 +52,19 @@ RUN --mount=type=cache,target=/var/cache/apt ln -snf "/usr/share/zoneinfo/$TZ" /
     curl \
     jq \
     wget \
+		bison \
+		re2c \
+		libxml2-dev \
+		libicu-dev \
+		libsqlite3-dev \
+		zlib1g-dev \
+		libcurl4-openssl-dev \
+		libreadline-dev \
+		libffi-dev \
+		libonig-dev \
+		libsodium-dev \
+		libgmp-dev \
+		libzip-dev \
     && pipx install cqlsh \
     && pipx install cmake
 
@@ -77,19 +90,6 @@ ARG PHP_DEBUG="no"
 ARG PHP_MEM_SANITIZERS="no"
 
 COPY ./scripts /tmp/scripts
-
-RUN --mount=type=cache,target=/var/cache/apt  apt-get -y install \
-    bison \
-    autoconf \
-    re2c \
-    libxml2-dev \
-    libicu-dev \
-    libsqlite3-dev \
-    zlib1g-dev \
-    libcurl4-openssl-dev \
-    libffi-dev \
-    libonig-dev \
-    libzip-dev
 
 ENV PATH="$PATH:/php/bin"
 

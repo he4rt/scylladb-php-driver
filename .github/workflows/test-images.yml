@@ -13,7 +13,7 @@ jobs:
         tag: ['8.1', '8.2', '8.3', '8.4']
         threading: ['zts', 'nts']
         debug: ['yes', 'no']
-        ubuntu_version: ['20.04', '22.04', '24.04']
+        ubuntu_version: ['22.04', '24.04']
     uses: './.github/workflows/docker-image.yml'
     with:
       php: ${{ matrix.tag }}

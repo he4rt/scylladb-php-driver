@@ -109,7 +109,6 @@ install_deps() {
         libonig-dev \
         libsodium-dev \
         libgmp-dev \
-        libasan8 \
         libubsan1 \
         libzip-dev -y || exit 1
     fi
@@ -187,5 +186,4 @@ compile_php() {
   popd || exit 1
 }
 
-install_deps || exit 1
 compile_php

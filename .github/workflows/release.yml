@@ -35,7 +35,7 @@ jobs:
     strategy:
       matrix:
         php: ['8.1', '8.1-zts', '8.2', '8.2-zts', '8.3', '8.3-zts']
-        os: ['ubuntu-20.04', 'ubuntu-22.04', 'ubuntu-24.04']
+        os: ['ubuntu-22.04', 'ubuntu-24.04']
         driver: ['scylladb', 'cassandra']
       fail-fast: true
     container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}
