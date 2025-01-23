@@ -50,6 +50,7 @@ RUN --mount=type=cache,target=/var/cache/apt ln -snf "/usr/share/zoneinfo/$TZ" /
     ca-certificates \
     procps \
     curl \
+    jq \
     wget \
     && pipx install cqlsh \
     && pipx install cmake
@@ -65,11 +66,12 @@ RUN git clone --depth 1 $LIBUV_REPO /libuv-src  \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DCMAKE_BUILD_TYPE="$LIBUV_BUILD_TYPE" \
     && cmake --build build \
+    && cmake --install build \
     && rm -rf build
 
 FROM base AS php_build
 
-ARG PHP_VERSION="8.3"
+ARG PHP_VERSION="8.4"
 ARG PHP_THREAD_MODEL="nts"
 ARG PHP_DEBUG="no"
 ARG PHP_MEM_SANITIZERS="no"
@@ -91,11 +93,12 @@ RUN --mount=type=cache,target=/var/cache/apt  apt-get -y install \
 
 ENV PATH="$PATH:/php/bin"
 
-RUN /tmp/scripts/compile-php.sh -v $PHP_VERSION -o /php -s $PHP_MEM_SANITIZERS -d $PHP_DEBUG -z $PHP_THREAD_MODEL -a \
-    && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+RUN --mount=type=cache,target=/var/cache/apt /tmp/scripts/compile-php.sh -v $PHP_VERSION -o /php -s $PHP_MEM_SANITIZERS -d $PHP_DEBUG -z $PHP_THREAD_MODEL -a
+
+RUN wget -c -O composer-setup.php 'https://getcomposer.org/installer' \
     && php composer-setup.php --install-dir=/php/bin --filename=composer \
     && chmod +x /php/bin/composer \
-    && php -r "unlink('composer-setup.php');" \
+    && rm -f composer-setup.php \
     && rm -rf /tmp/scripts
 
 COPY ./docker/php.ini /php/lib/php.ini
@@ -123,8 +126,9 @@ RUN git clone --depth 1 $SCYLLADB_DRIVER_REPO /scylladb-cpp-src \
     -DCMAKE_EXPORT_COMPILE_COMMANDS="OFF" \
     -DCMAKE_INSTALL_PREFIX="/scylladb-cpp" \
     -DCMAKE_BUILD_TYPE="$SCYLLADB_DRIVER_BUILD_TYPE" \
-    && cmake --build \
-    rm -rf build
+    && cmake --build  build \
+    && cmake --install build \
+    && rm -rf build
 
 FROM base AS cassandra_cpp_driver_build
 
@@ -154,6 +158,7 @@ RUN git clone --depth 1 $CASSANDRA_DRIVER_REPO /cassandra-cpp-src \
     -DCMAKE_INSTALL_PREFIX="/cassandra-cpp" \
     -DCMAKE_BUILD_TYPE="$CASSANDRA_DRIVER_BUILD_TYPE" \
     && cmake --build build \
+    && cmake --install build \
     && rm -rf build
 
 FROM base AS final

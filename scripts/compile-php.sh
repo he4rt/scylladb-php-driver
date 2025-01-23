@@ -73,7 +73,7 @@ is_linux() {
 install_deps() {
   if is_linux; then
     if [[ "$NAME" == "Fedora Linux" ]]; then
-      sudo dnf install \
+      dnf install \
         re2c \
         cmake \
         gcc \
@@ -93,7 +93,7 @@ install_deps() {
     fi
 
     if [[ "$NAME" == "Ubuntu" ]]; then
-      sudo apt-get install \
+      apt-get install \
         pkg-config \
         build-essential \
         libssl-dev \
@@ -118,9 +118,17 @@ install_deps() {
 
 compile_php() {
   local config=(
-    --disable-short-tags
-    --enable-rtld-now
-    --with-pic
+      --enable-opcache
+      --enable-rtld-now
+      --with-openssl
+      --with-zlib
+      --with-curl
+      --enable-pcntl
+      --with-pear
+      --enable-sockets
+      --enable-mbstring
+      --disable-short-tags
+      --with-pic
   )
 
   local FULL_PHP_VERSION
@@ -171,7 +179,7 @@ compile_php() {
       --prefix="$OUTPUT_PATH" \
       "${config[@]}" || exit 1
   else
-    ./configure CFLAGS="-O3 -flto" CXXFLAGS="-O3 -flto" --prefix="$OUTPUT_PATH" "${config[@]}" || exit 1
+    ./configure CFLAGS="-O3" CXXFLAGS="-O3" --prefix="$OUTPUT_PATH" "${config[@]}" || exit 1
   fi
   make "-j$(nproc)" || exit 1
   make install || exit 1
