@@ -32,6 +32,7 @@ RUN --mount=type=cache,target=/var/cache/apt ln -snf "/usr/share/zoneinfo/$TZ" /
     g++ \
     clang \
     build-essential \
+    autoconf \
     ninja-build \
     libubsan1 \
     libssl-dev \
