@@ -38,7 +38,7 @@ on:
         required: true
       ubuntu_version:
         type: string
-        description: "Ubuntu Version -> Options [20.04, 22.04, 24.04]"
+        description: "Ubuntu Version -> Options [22.04, 24.04]"
         required: false
         default: "24.04"
     secrets:
@@ -64,31 +64,41 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Extract PHP Version and ZTS
-        id: version
-        run: |
-          PHP_ENDING="php-${{ inputs.php }}-${{ inputs.threading }}"
-
-          [[ ${{ inputs.debug }} == "yes" ]] && PHP_ENDING="$PHP_ENDING-debug"
-
-          echo "php_ending=$PHP_ENDING" >> $GITHUB_ENV
-
       - name: Build and push API
-        id: docker_build
+        if: ${{ inputs.debug != 'yes' }}
         uses: docker/build-push-action@v5
         with:
           file: ./docker/Dockerfile
           context: .
           push: true
           pull: true
-          platforms: linux/amd64
+          platforms: linux/amd64/v3,linux/arm64/v8
           target: final
-          tags: malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-${{ steps.version.outputs.php_ending }}
+          tags: "malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-${{ inputs.php }}-${{ inputs.threading }}"
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             UBUNTU_VERSION=${{ inputs.ubuntu_version }}
             PHP_VERSION=${{ inputs.php }}
             PHP_THREAD_MODEL=${{ inputs.threading }}
-            PHP_DEBUG=${{ inputs.debug }}
-            PHP_MEM_SANITIZERS=${{ inputs.debug }}
+            PHP_DEBUG=no
+            PHP_MEM_SANITIZERS=no
+      - name: Build and push API
+        if: ${{ inputs.debug == 'yes' }}
+        uses: docker/build-push-action@v5
+        with:
+          file: ./docker/Dockerfile
+          context: .
+          push: true
+          pull: true
+          platforms: linux/amd64/v3,linux/arm64/v8
+          target: final
+          tags: "malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-${{ inputs.php }}-${{ inputs.threading }}-debug"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            UBUNTU_VERSION=${{ inputs.ubuntu_version }}
+            PHP_VERSION=${{ inputs.php }}
+            PHP_THREAD_MODEL=${{ inputs.threading }}
+            PHP_DEBUG=yes
+            PHP_MEM_SANITIZERS=yes

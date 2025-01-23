@@ -18,7 +18,7 @@ jobs:
         driver: ['scylladb', 'cassandra']
       fail-fast: false
     runs-on: ubuntu-24.04
-    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-debug
+    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}-debug
     steps:
       - uses: actions/checkout@v4
         with:
