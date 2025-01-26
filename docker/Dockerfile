@@ -18,7 +18,7 @@ ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV TZ="UTC"
 
-RUN --mount=type=cache,target=/var/cache/apt ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
+RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
     && echo "$TZ" > /etc/timezone \
     && apt-get update -y \
     && CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2); [ "$CODENAME" = "focal" ] && apt-get install -y libasan6 python3.8-venv \
@@ -53,19 +53,19 @@ RUN --mount=type=cache,target=/var/cache/apt ln -snf "/usr/share/zoneinfo/$TZ" /
     curl \
     jq \
     wget \
-		bison \
-		re2c \
-		libxml2-dev \
-		libicu-dev \
-		libsqlite3-dev \
-		zlib1g-dev \
-		libcurl4-openssl-dev \
-		libreadline-dev \
-		libffi-dev \
-		libonig-dev \
-		libsodium-dev \
-		libgmp-dev \
-		libzip-dev \
+    bison \
+    re2c \
+    libxml2-dev \
+    libicu-dev \
+    libsqlite3-dev \
+    zlib1g-dev \
+    libcurl4-openssl-dev \
+    libreadline-dev \
+    libffi-dev \
+    libonig-dev \
+    libsodium-dev \
+    libgmp-dev \
+    libzip-dev \
     && pipx install cqlsh \
     && pipx install cmake
 
@@ -94,7 +94,7 @@ COPY ./scripts /tmp/scripts
 
 ENV PATH="$PATH:/php/bin"
 
-RUN --mount=type=cache,target=/var/cache/apt /tmp/scripts/compile-php.sh -v $PHP_VERSION -o /php -s $PHP_MEM_SANITIZERS -d $PHP_DEBUG -z $PHP_THREAD_MODEL -a
+RUN /tmp/scripts/compile-php.sh -v $PHP_VERSION -o /php -s $PHP_MEM_SANITIZERS -d $PHP_DEBUG -z $PHP_THREAD_MODEL -a
 
 RUN wget -c -O composer-setup.php 'https://getcomposer.org/installer' \
     && php composer-setup.php --install-dir=/php/bin --filename=composer \
