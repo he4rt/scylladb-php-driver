@@ -5,9 +5,10 @@
          colors="true"
 >
     <testsuites>
-        <testsuite name="Feature Test Suite">
+        <!-- TODO: Bring them back when Scylla and Cassandra Clusters are in oreder -->
+        <!-- <testsuite name="Feature Test Suite">
             <directory suffix="Test.php">./Feature</directory>
-        </testsuite>
+        </testsuite> -->
         <testsuite name="Unit Test Suite">
             <directory suffix="Test.php">./Unit</directory>
         </testsuite>
