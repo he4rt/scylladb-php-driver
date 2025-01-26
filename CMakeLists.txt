@@ -63,7 +63,11 @@ option(USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
 
 find_package(PHPConfig REQUIRED)
 find_package(PHP REQUIRED)
-find_package(Sanitizers REQUIRED)
+
+if (ENABLE_SANITIZERS)
+    find_package(Sanitizers REQUIRED)
+endif()
+
 find_package(Libuv REQUIRED)
 find_package(LibGMP REQUIRED)
 find_package(CPPDriver REQUIRED)
