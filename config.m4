@@ -123,7 +123,7 @@ clean: cmake_clean
 
 .PHONY: cmake_build
 cmake_build:
-		$CMAKE -G "$CMAKE_GENERATOR" -B build/ \\
+		$CMAKE -G "$CMAKE_GENERATOR" -B out/ \\
 			-DCUSTOM_PHP_CONFIG=$PHP_CONFIG \\
 			-DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \\
 			-DCPU_TYPE=$CMAKE_CPU_TYPE \\
@@ -134,14 +134,14 @@ cmake_build:
 			-DLINK_LIBUV_STATIC=$CMAKE_LINK_LIBUV_STATIC \\
 			-DPHP_DRIVER_STATIC=$CMAKE_DRIVER_STATIC \\
 			-DUSE_LIBCASSANDRA=$CMAKE_USE_CASSANDRA \\
-			-DCMAKE_INSTALL_PREFIX=./build/install \\
+			-DCMAKE_INSTALL_PREFIX=./out/install \\
 			-DPHP_SCYLLADB_DRIVER_VERSION=$CMAKE_PHP_DRIVER_VERSION
-		cmake --build build/
+		cmake --build out/
 
-	if [[ -f ./build/cassandra.dylib ]] ; then \\
-		cp ./build/cassandra.dylib ./modules/cassandra.so ; fi
-	if [[ -f ./build/cassandra.so ]] ; then \\
-		cp ./build/cassandra.so ./modules/cassandra.so ; fi
+	if [[ -f ./out/cassandra.dylib ]] ; then \\
+		cp ./out/cassandra.dylib ./modules/cassandra.so ; fi
+	if [[ -f ./out/cassandra.so ]] ; then \\
+		cp ./out/cassandra.so ./modules/cassandra.so ; fi
 
 .PHONY: cmake_clean
 cmake_clean:

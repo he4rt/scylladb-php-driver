@@ -3,6 +3,9 @@
 DRIVER=${1:-"scylladb"}
 VERSION=${2:-"master"}
 
+rm -rf out
+
+phpize --clean
 phpize
 
 if [[ "$DRIVER" == "cassandra" ]]; then
@@ -24,4 +27,4 @@ fi
 
 make "-j$(nproc)" || exit 1
 make install
-mv "$(php-config --extension-dir)/cassandra.so" .
+# mv "$(php-config --extension-dir)/cassandra.so" .

@@ -12,13 +12,15 @@ extern "C"
 {
 #endif
 
+#include <inttypes.h>
+#include <math.h>
+#include <string.h>
+
+#include <php.h>
+
 #include <Zend/zend_exceptions.h>
 #include <Zend/zend_interfaces.h>
 #include <Zend/zend_types.h>
-#include <inttypes.h>
-#include <math.h>
-#include <php.h>
-#include <string.h>
 
 #if PHP_VERSION_ID < 80100
 #error PHP 8.1.0 or later is required in order to build the driver
