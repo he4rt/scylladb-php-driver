@@ -15,6 +15,7 @@ jobs:
         debug: ['yes', 'no']
         ubuntu_version: ['22.04', '24.04']
       fail-fast: false
+      max-parallel: 6
     uses: './.github/workflows/docker-image.yml'
     with:
       php: ${{ matrix.tag }}
