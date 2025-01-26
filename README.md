@@ -8,7 +8,7 @@
 
 # ScyllaDB/CassandraDB Driver for PHP
 
-[![Build Status](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml/badge.svg?branch=v1.3.x)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml)
+[![Build Status](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml/badge.svg?branch=v1.3.x)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/test.yml)
 
 A modern, [feature-rich][Features] and highly tunable PHP client library
 for [ScyllaDB](https://github.com/scylladb/scylladb) and
