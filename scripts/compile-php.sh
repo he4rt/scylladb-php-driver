@@ -26,7 +26,6 @@ ENABLE_DEBUG="no"
 OUTPUT="$(pwd)/php"
 ENABLE_SANITIZERS="no"
 
-
 while getopts "v:o:z:s:d:a" option; do
   case "$option" in
   "v") PHP_VERSION="$OPTARG" ;;
@@ -51,10 +50,10 @@ fetch_versions() {
 }
 
 fetch_latest_php_version() {
-   (fetch_versions "1" && fetch_versions "2" && fetch_versions "3") | \
-    /bin/grep -E "^php-$PHP_VERSION\.[0-9]+$" | \
-    sed 's/^php-//' | \
-    sort -V | \
+  (fetch_versions "1" && fetch_versions "2" && fetch_versions "3") |
+    /bin/grep -E "^php-$PHP_VERSION\.[0-9]+$" |
+    sed 's/^php-//' |
+    sort -V |
     tail -n 1
 }
 
@@ -117,17 +116,17 @@ install_deps() {
 
 compile_php() {
   local config=(
-      --enable-opcache
-      --enable-rtld-now
-      --with-openssl
-      --with-zlib
-      --with-curl
-      --enable-pcntl
-      --with-pear
-      --enable-sockets
-      --enable-mbstring
-      --disable-short-tags
-      --with-pic
+    --enable-opcache
+    --enable-rtld-now
+    --with-openssl
+    --with-zlib
+    --with-curl
+    --enable-pcntl
+    --with-pear
+    --enable-sockets
+    --enable-mbstring
+    --disable-short-tags
+    --with-pic
   )
 
   local FULL_PHP_VERSION
@@ -178,7 +177,7 @@ compile_php() {
       --prefix="$OUTPUT_PATH" \
       "${config[@]}" || exit 1
   else
-    ./configure CFLAGS="-O3" CXXFLAGS="-O3" --prefix="$OUTPUT_PATH" "${config[@]}" || exit 1
+    ./configure CFLAGS="-O2" CXXFLAGS="-O2" --prefix="$OUTPUT_PATH" "${config[@]}" || exit 1
   fi
   make "-j$(nproc)" || exit 1
   make install || exit 1

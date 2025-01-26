@@ -72,7 +72,7 @@ jobs:
           context: .
           push: true
           pull: true
-          platforms: linux/amd64/v3,linux/arm64/v8
+          platforms: linux/amd64
           target: final
           tags: "malusevd99/scylladb-php-driver:ubuntu-${{ inputs.ubuntu_version }}-${{ inputs.php }}-${{ inputs.threading }}"
           cache-from: type=gha
