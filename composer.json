@@ -1,6 +1,6 @@
 {
   "name": "codelieutenant/scylla-driver",
-  "version": "1.3.12",
+  "version": "1.3.13",
   "type": "php-ext",
   "authors": [
     {
