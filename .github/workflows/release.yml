@@ -52,7 +52,7 @@ jobs:
       - name: Build Driver
         shell: bash
         run: |
-          ./build.sh ${{ matrix.driver }} ${{ needs.tag.outputs.version }}
+          ./scripts/build.sh ${{ matrix.driver }} ${{ needs.tag.outputs.version }}
           tar czf ${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz cassandra.so cassandra.ini
 
       - uses: actions/upload-artifact@v4
