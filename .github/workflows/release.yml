@@ -39,7 +39,7 @@ jobs:
         threading: ['zts', 'nts']
         driver: ['scylladb', 'cassandra']
       fail-fast: true
-    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}
+    container: malusevd99/scylladb-phpdriver:${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,12 +49,12 @@ jobs:
         shell: bash
         run: |
           ./build.sh ${{ matrix.driver }} ${{ needs.tag.outputs.version }}
-          tar czf ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz cassandra.so cassandra.ini
+          tar czf ${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz cassandra.so cassandra.ini
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz
-          path: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz
+          name: ${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz
+          path: ${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz
           if-no-files-found: error
           retention-days: 5
           overwrite: true
