@@ -39,7 +39,11 @@ jobs:
         threading: ['zts', 'nts']
         driver: ['scylladb', 'cassandra']
       fail-fast: true
-    container: malusevd99/scylladb-phpdriver:${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}
+    container:
+      image: malusevd99/scylladb-php-driver:${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}
+      credentials:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
         with:
