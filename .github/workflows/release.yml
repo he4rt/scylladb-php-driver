@@ -34,27 +34,27 @@ jobs:
     needs: ['tag']
     strategy:
       matrix:
-        php: ['8.1', '8.1-zts', '8.2', '8.2-zts', '8.3', '8.3-zts']
+        php: ['8.1', '8.2', '8.3', '8.4']
         os: ['ubuntu-22.04', 'ubuntu-24.04']
+        threading: ['zts', 'nts']
         driver: ['scylladb', 'cassandra']
       fail-fast: true
-    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}
+    container: malusevd99/scylladb-php-driver:${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
 
       - name: Build Driver
         shell: bash
         run: |
           ./build.sh ${{ matrix.driver }} ${{ needs.tag.outputs.version }}
-          tar czf ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.driver }}.tar.gz cassandra.so cassandra.ini
+          tar czf ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz cassandra.so cassandra.ini
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.driver }}.tar.gz
-          path: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.driver }}.tar.gz
+          name: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz
+          path: ${{ matrix.os }}-php-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}.tar.gz
           if-no-files-found: error
           retention-days: 5
           overwrite: true
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/download-artifact@v4
         id: artifacts
         with:
-          merge-multiple: true
+          merge-multiple: false
       - name: Release
         uses: softprops/action-gh-release@v2
         id: release
