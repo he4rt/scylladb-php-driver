@@ -27,4 +27,4 @@ fi
 
 make "-j$(nproc)" || exit 1
 make install
-# mv "$(php-config --extension-dir)/cassandra.so" .
+cp "$(php-config --extension-dir)/cassandra.so" .
