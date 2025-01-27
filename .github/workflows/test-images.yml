@@ -5,7 +5,14 @@ on:
     - cron: '0 0 1,15 * *'
   workflow_call:
   workflow_dispatch:
-
+  push:
+    branches:
+      - v1.3.x
+    paths:
+      - 'docker/Dockerfile'
+      - 'docker/php.ini'
+      - '.github/workflows/test-images.yml'
+      - '.github/workflows/docker-image.yml'
 jobs:
   build:
     strategy:

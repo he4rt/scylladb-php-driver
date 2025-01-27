@@ -5,9 +5,23 @@ on:
   push:
     branches:
       - v1.3.x
+    paths:
+      - 'cmake/**'
+      - 'src/**'
+      - 'include/**'
+      - 'utils/**'
+      - 'tests/**'
+      - '.github/workflows/test.yml'
   pull_request:
     branches:
       - v1.3.x
+    paths:
+      - 'cmake/**'
+      - 'src/**'
+      - 'include/**'
+      - 'utils/**'
+      - 'tests/**'
+      - '.github/workflows/test.yml'
 jobs:
   test:
     strategy:
