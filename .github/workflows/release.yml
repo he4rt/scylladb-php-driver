@@ -70,10 +70,8 @@ jobs:
       - uses: actions/download-artifact@v4
         id: artifacts
         with:
+          path: /tmp/artifacts
           merge-multiple: false
-      - name: All .tar.gz files
-        id: files
-        run: echo "data=\"$(find ${{ steps.artifacts.outputs.download-path }} -name '*.tar.gz' -type f -printf '%p\n')\"" >> $GITHUB_OUTPUT
       - name: Release
         uses: softprops/action-gh-release@v2
         id: release
@@ -84,7 +82,8 @@ jobs:
           generate_release_notes: true
           append_body: true
           prerelease: ${{ needs.tag.outputs.prerelease }}
-          files: ${{ steps.files.outputs.data }}
+          files: |
+            /tmp/artifacts/*
           fail_on_unmatched_files: true
       - name: "Generate release changelog"
         uses: heinrichreimer/action-github-changelog-generator@v2.4
