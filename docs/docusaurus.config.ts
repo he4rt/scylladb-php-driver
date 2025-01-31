@@ -10,26 +10,23 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://he4rt.github.io',
+  url: 'http://localhost:8000',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/scylladb-php-driver',
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'Basement Devs', // Usually your GitHub org/user name.
   projectName: 'scylladb-php-driver', // Usually your repo name.
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
-  },
+
 
   presets: [
     [
@@ -78,7 +75,11 @@ const config: Config = {
           position: 'left',
           label: 'Getting Started',
         },
-        {to: '/api', label: 'Driver API', position: 'left'},
+        {
+          href:  'http://localhost:8000/api/',
+          label: 'API Documentation',
+          position: 'left',
+        },
         {
           href: 'https://github.com/he4rt/scylladb-php-driver',
           label: 'GitHub',
