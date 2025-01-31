@@ -58,3 +58,4 @@ cassandra.log
 php-old/
 target/
 docker/scylladb/certs/
+.cache
