@@ -1,0 +1,74 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - v1.3.x
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Project Documentation
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      #####################################
+      # Generate Docusaurus documentation #
+      #####################################
+      - name: Install Pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: 'docs/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        working-directory: docs
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Docusaurus documentation
+        env:
+          DOCS_ENV: production
+        working-directory: docs
+        run: pnpm run build --out-dir=../build
+
+      # Generate Doctum documentation
+      - name: build doctum docs
+        uses: sudo-bot/action-doctum@v5
+        env:
+          DOCS_ENV: production
+        with:
+          config-file: doctum-config.php
+          method: 'update'
+          cli-args: '--output-format=github --no-ansi --no-progress -v'
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          name: github-pages
+          path: docs
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: [build]
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy uploaded artifact
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
