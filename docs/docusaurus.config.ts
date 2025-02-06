@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
-const docs_env = process.env.NODE_SOMETHING || 'local';
+const docs_env = process.env.DOCS_ENV || 'local';
 const isProd = docs_env === 'production';
 const url = isProd
         ? 'https://he4rt.github.io'
