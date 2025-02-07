@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - v1.3.x
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,6 +25,7 @@ jobs:
         uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
         with:
           run_install: false
+          package_json_file: docs/package.json
 
       - name: Install Node.js
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
@@ -56,7 +58,7 @@ jobs:
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           name: github-pages
-          path: docs
+          path: build
 
   deploy:
     name: Deploy to GitHub Pages
