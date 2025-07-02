@@ -222,7 +222,7 @@ void php_driver_define_Blob() {
 #if PHP_MAJOR_VERSION >= 8
   php_driver_blob_handlers.std.compare = php_driver_blob_compare;
 #else
-  php_driver_blob_handlers.std.compare_objects = php_driver_blob_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_blob_handlers.std, php_driver_blob_compare);
 #endif
 #endif
   php_driver_blob_ce->ce_flags |= ZEND_ACC_FINAL;

@@ -256,7 +256,7 @@ void php_driver_define_Timeuuid() {
          sizeof(zend_object_handlers));
   php_driver_timeuuid_handlers.std.get_properties = php_driver_timeuuid_properties;
   php_driver_timeuuid_handlers.std.get_gc = php_driver_timeuuid_gc;
-  php_driver_timeuuid_handlers.std.compare = php_driver_timeuuid_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_timeuuid_handlers.std, php_driver_timeuuid_compare);
   php_driver_timeuuid_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_timeuuid_ce->create_object = php_driver_timeuuid_new;
 

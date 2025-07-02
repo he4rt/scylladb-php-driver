@@ -653,11 +653,7 @@ void php_driver_define_Map()
 #if PHP_VERSION_ID >= 50400
   php_driver_map_handlers.std.get_gc          = php_driver_map_gc;
 #endif
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_map_handlers.std.compare = php_driver_map_compare;
-#else
-  php_driver_map_handlers.std.compare_objects = php_driver_map_compare;
-#endif
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_map_handlers.std, php_driver_map_compare);
   php_driver_map_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_map_ce->create_object = php_driver_map_new;
 

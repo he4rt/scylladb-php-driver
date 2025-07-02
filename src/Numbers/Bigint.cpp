@@ -555,7 +555,7 @@ void php_driver_define_Bigint()
 #if PHP_MAJOR_VERSION >= 8
     php_driver_bigint_handlers.std.compare = php_driver_bigint_compare;
 #else
-    php_driver_bigint_handlers.std.compare_objects = php_driver_bigint_compare;
+    PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_bigint_handlers.std, php_driver_bigint_compare);
 #endif
     php_driver_bigint_handlers.std.cast_object = static_cast<zend_object_cast_t>(php_driver_bigint_cast);
 

@@ -222,7 +222,7 @@ void php_driver_define_Date() {
   ZendCPP::InitHandlers<php_scylladb_date>(&php_scylladb_date_handlers);
   php_scylladb_date_handlers.std.get_properties = php_scylladb_date_properties;
   php_scylladb_date_handlers.std.get_gc = php_scylladb_date_gc;
-  php_scylladb_date_handlers.std.compare = php_scylladb_date_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_scylladb_date_handlers.std, php_scylladb_date_compare);
   php_scylladb_date_handlers.hash_value = php_scylladb_date_hash_value;
 }
 

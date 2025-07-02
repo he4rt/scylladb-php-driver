@@ -534,11 +534,7 @@ void php_driver_define_Varint()
     php_driver_varint_handlers.std.get_gc = php_driver_varint_gc;
 #endif
 
-#if PHP_MAJOR_VERSION >= 8
-    php_driver_varint_handlers.std.compare = php_driver_varint_compare;
-#else
-    php_driver_varint_handlers.std.compare_objects = php_driver_varint_compare;
-#endif
+    PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_varint_handlers.std, php_driver_varint_compare);
     php_driver_varint_handlers.std.cast_object = php_driver_varint_cast;
 
     php_driver_varint_handlers.hash_value = php_driver_varint_hash_value;

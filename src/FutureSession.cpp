@@ -178,7 +178,7 @@ void php_driver_define_FutureSession()
 #if PHP_MAJOR_VERSION >= 8
   php_driver_future_session_handlers.compare = php_driver_future_session_compare;
 #else
-  php_driver_future_session_handlers.compare_objects = php_driver_future_session_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_future_session_handlers, php_driver_future_session_compare);
 #endif
   php_driver_future_session_handlers.clone_obj = nullptr;
 }

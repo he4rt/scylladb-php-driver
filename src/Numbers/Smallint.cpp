@@ -599,7 +599,7 @@ void php_driver_define_Smallint()
 #if PHP_MAJOR_VERSION >= 8
     php_driver_smallint_handlers.std.compare = php_driver_smallint_compare;
 #else
-    php_driver_smallint_handlers.std.compare_objects = php_driver_smallint_compare;
+    PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_smallint_handlers.std, php_driver_smallint_compare);
 #endif
     php_driver_smallint_handlers.std.cast_object = php_driver_smallint_cast;
 

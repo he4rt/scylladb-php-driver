@@ -691,7 +691,7 @@ void php_driver_define_Decimal()
 #if PHP_MAJOR_VERSION >= 8
     php_driver_decimal_handlers.std.compare = php_driver_decimal_compare;
 #else
-    php_driver_decimal_handlers.std.compare_objects = php_driver_decimal_compare;
+    PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_decimal_handlers.std, php_driver_decimal_compare);
 #endif
     php_driver_decimal_handlers.std.cast_object = static_cast<zend_object_cast_t>(php_driver_decimal_cast);
 

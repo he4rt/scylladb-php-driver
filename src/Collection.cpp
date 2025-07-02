@@ -494,7 +494,7 @@ void php_driver_define_Collection()
 #if PHP_MAJOR_VERSION >= 8
   php_driver_collection_handlers.std.compare = php_driver_collection_compare;
 #else
-  php_driver_collection_handlers.std.compare_objects = php_driver_collection_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_collection_handlers.std, php_driver_collection_compare);
 #endif
   php_driver_collection_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_collection_ce->create_object = php_driver_collection_new;

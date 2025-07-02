@@ -267,7 +267,7 @@ void php_driver_define_Timestamp() {
   ZendCPP::InitHandlers<php_scylladb_timestamp>(&php_driver_timestamp_handlers);
   php_driver_timestamp_handlers.std.get_properties = php_driver_timestamp_properties;
   php_driver_timestamp_handlers.std.get_gc = php_driver_timestamp_gc;
-  php_driver_timestamp_handlers.std.compare = php_driver_timestamp_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_timestamp_handlers.std, php_driver_timestamp_compare);
   php_driver_timestamp_handlers.hash_value = php_driver_timestamp_hash_value;
 }
 END_EXTERN_C()

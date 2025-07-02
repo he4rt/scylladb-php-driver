@@ -532,7 +532,7 @@ void php_driver_define_Float()
 #if PHP_MAJOR_VERSION >= 8
   php_driver_float_handlers.std.compare = php_driver_float_compare;
 #else
-  php_driver_float_handlers.std.compare_objects = php_driver_float_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_float_handlers.std, php_driver_float_compare);
 #endif
   php_driver_float_handlers.std.cast_object     = php_driver_float_cast;
 

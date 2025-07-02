@@ -594,7 +594,7 @@ void php_driver_define_Tinyint()
 #if PHP_MAJOR_VERSION >= 8
     php_driver_tinyint_handlers.std.compare = php_driver_tinyint_compare;
 #else
-    php_driver_tinyint_handlers.std.compare_objects = php_driver_tinyint_compare;
+    PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_tinyint_handlers.std, php_driver_tinyint_compare);
 #endif
     php_driver_tinyint_handlers.std.cast_object = php_driver_tinyint_cast;
 

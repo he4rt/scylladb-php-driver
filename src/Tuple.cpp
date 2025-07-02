@@ -477,7 +477,7 @@ void php_driver_define_Tuple()
 #if PHP_MAJOR_VERSION >= 8
   php_driver_tuple_handlers.std.compare = php_driver_tuple_compare;
 #else
-  php_driver_tuple_handlers.std.compare_objects = php_driver_tuple_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_tuple_handlers.std, php_driver_tuple_compare);
 #endif
   php_driver_tuple_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_tuple_ce->create_object = php_driver_tuple_new;

@@ -109,7 +109,7 @@ void php_driver_define_FutureValue()
 #if PHP_MAJOR_VERSION >= 8
   php_driver_future_value_handlers.compare = php_driver_future_value_compare;
 #else
-  php_driver_future_value_handlers.compare_objects = php_driver_future_value_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_future_value_handlers, php_driver_future_value_compare);
 #endif
   php_driver_future_value_handlers.clone_obj = NULL;
 }

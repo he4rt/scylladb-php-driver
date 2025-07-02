@@ -132,7 +132,7 @@ void php_driver_define_FuturePreparedStatement()
 #if PHP_MAJOR_VERSION >= 8
   php_driver_future_prepared_statement_handlers.compare = php_driver_future_prepared_statement_compare;
 #else
-  php_driver_future_prepared_statement_handlers.compare_objects = php_driver_future_prepared_statement_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_future_prepared_statement_handlers, php_driver_future_prepared_statement_compare);
 #endif
   php_driver_future_prepared_statement_handlers.clone_obj = NULL;
 }

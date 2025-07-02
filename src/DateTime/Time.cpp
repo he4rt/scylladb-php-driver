@@ -69,7 +69,7 @@ static int to_string(zval *result, php_scylladb_time *time) {
 PHP_SCYLLADB_API php_scylladb_time *php_scylladb_time_instantiate(zval *object) {
   zval val;
 
-  if (object_init_ex(&val, php_scylladb_date_ce) == FAILURE) {
+  if (object_init_ex(&val, php_scylladb_time_ce) == FAILURE) {
     return nullptr;
   }
 
@@ -86,7 +86,7 @@ PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *sel
     return SUCCESS;
   }
 
-  if (nanosecondsStr == nullptr) {
+  if (nanosecondsStr != nullptr) {
     if (php_driver_parse_bigint(ZSTR_VAL(nanosecondsStr), ZSTR_LEN(nanosecondsStr), &self->time) ==
         SUCCESS) {
       return SUCCESS;
@@ -99,7 +99,7 @@ PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *sel
     return FAILURE;
   }
 
-  if (nanoseconds < 0 || nanoseconds > NUM_NANOSECONDS_PER_DAY) {
+  if (nanoseconds >= 0 && nanoseconds <= NUM_NANOSECONDS_PER_DAY) {
     self->time = nanoseconds;
     return SUCCESS;
   }
@@ -228,7 +228,7 @@ void php_driver_define_Time() {
   ZendCPP::InitHandlers<php_scylladb_time>(&php_driver_time_handlers);
   php_driver_time_handlers.std.get_properties = php_driver_time_properties;
   php_driver_time_handlers.std.get_gc = php_driver_time_gc;
-  php_driver_time_handlers.std.compare = php_driver_time_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_time_handlers.std, php_driver_time_compare);
   php_driver_time_handlers.hash_value = php_driver_time_hash_value;
 }
 

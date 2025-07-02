@@ -514,7 +514,7 @@ void php_driver_define_UserTypeValue()
 #if PHP_MAJOR_VERSION >= 8
   php_driver_user_type_value_handlers.std.compare = php_driver_user_type_value_compare;
 #else
-  php_driver_user_type_value_handlers.std.compare_objects = php_driver_user_type_value_compare;
+  PHP_DRIVER_SET_COMPARE_HANDLER(php_driver_user_type_value_handlers.std, php_driver_user_type_value_compare);
 #endif
   php_driver_user_type_value_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_user_type_value_ce->create_object = php_driver_user_type_value_new;

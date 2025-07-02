@@ -26,6 +26,19 @@ extern "C"
 #error PHP 8.1.0 or later is required in order to build the driver
 #endif
 
+// PHP 8.4 compatibility macros
+#if PHP_VERSION_ID >= 80400
+#define PHP_DRIVER_PHP84_COMPAT
+#endif
+
+// Object comparison compatibility macro
+#if PHP_VERSION_ID >= 80000
+#define PHP_DRIVER_SET_COMPARE_HANDLER(handlers, compare_func) \
+    handlers.compare = compare_func
+#else
+#define PHP_DRIVER_SET_COMPARE_HANDLER(handlers, compare_func) \
+    handlers.compare_objects = compare_func
+#endif
 
 #define PHP_DRIVER_NAMESPACE "Cassandra"
 
@@ -166,6 +179,44 @@ typedef unsigned long ulong;
         }                                                                                                              \
     } while (0)
 
+// Enhanced memory safety macros for PHP 8.4 compatibility
+#define PHP_DRIVER_SAFE_ZVAL_DESTROY(zv) \
+    do { \
+        if (!Z_ISUNDEF(zv) && Z_REFCOUNTED(zv)) { \
+            if (Z_REFCOUNT(zv) > 0) { \
+                zval_ptr_dtor(&(zv)); \
+            } \
+            ZVAL_UNDEF(&(zv)); \
+        } \
+    } while (0)
+
+#define PHP_DRIVER_SAFE_OBJECT_INIT(obj, ce) \
+    do { \
+        if (obj) { \
+            zend_object_std_init(&(obj)->zendObject, ce); \
+            object_properties_init(&(obj)->zendObject, ce); \
+        } \
+    } while (0)
+
+// Safe object handler initialization for PHP 8.4
+#define PHP_DRIVER_INIT_OBJECT_HANDLERS(handlers, type_name) \
+    do { \
+        memcpy(&handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers)); \
+        handlers.offset = XtOffsetOf(php_driver_##type_name, zendObject); \
+        handlers.free_obj = php_driver_##type_name##_free; \
+        handlers.clone_obj = NULL; \
+    } while (0)
+
+// Safe zval copy with reference counting
+#define PHP_DRIVER_SAFE_ZVAL_COPY(dst, src) \
+    do { \
+        if (!Z_ISUNDEF_P(src)) { \
+            ZVAL_COPY(dst, src); \
+        } else { \
+            ZVAL_UNDEF(dst); \
+        } \
+    } while (0)
+
     extern zend_module_entry php_driver_module_entry;
 #define phpext_cassandra_ptr &php_driver_module_entry
 
@@ -214,6 +265,12 @@ typedef unsigned long ulong;
 #define PHP_DRIVER_DEFAULT_LOG PHP_DRIVER_NAME ".log"
 #define PHP_DRIVER_DEFAULT_LOG_LEVEL "ERROR"
 
+// Safe object fetch macros for PHP 8.4 segfault prevention
+#define PHP_DRIVER_SAFE_OBJECT_FETCH(type_name, obj) \
+    ((obj) ? php_driver_##type_name##_object_fetch(Z_OBJ_P(obj)) : NULL)
+
+#define PHP_DRIVER_SAFE_ZEND_OBJECT_FETCH(type_name, zend_obj) \
+    ((zend_obj) ? php_driver_##type_name##_object_fetch(zend_obj) : NULL)
 
 #ifdef __cplusplus
 }
