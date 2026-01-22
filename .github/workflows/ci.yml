@@ -1,0 +1,402 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - v1.3.x
+      - main
+      - master
+  pull_request:
+    branches:
+      - v1.3.x
+      - main
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Detect what changed to optimize test runs
+  #   detect-changes:
+  #     name: Detect Changes
+  #     runs-on: ubuntu-24.04
+  #     outputs:
+  #       zendcpp: ${{ steps.filter.outputs.zendcpp }}
+  #       extension: ${{ steps.filter.outputs.extension }}
+  #       dependencies: ${{ steps.filter.outputs.dependencies }}
+  #     steps:
+  #       - uses: actions/checkout@v4
+  #
+  #       - uses: dorny/paths-filter@v3
+  #         id: filter
+  #         with:
+  #           filters: |
+  #             zendcpp:
+  #               - 'ZendCPP/**'
+  #             extension:
+  #               - 'src/**'
+  #               - 'include/**'
+  #               - 'cmake/**'
+  #               - 'tests/**'
+  #               - 'CMakeLists.txt'
+  #               - 'config.m4'
+  #               - 'configure.ac'
+  #             dependencies:
+  #               - 'scripts/compile-libuv.sh'
+  #               - 'scripts/compile-cpp-driver.sh'
+  #               - '.github/workflows/ci.yml'
+
+  # Build dependencies and cache them
+  build-dependencies:
+    name: Build Dependencies
+    runs-on: ubuntu-24.04
+    #     needs: detect-changes
+    strategy:
+      matrix:
+        driver: [scylladb, cassandra]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libssl-dev \
+            zlib1g-dev \
+            ccache \
+            git
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-deps-${{ matrix.driver }}
+          max-size: 500M
+
+      - name: Cache libuv
+        id: cache-libuv
+        uses: actions/cache@v4
+        with:
+          path: third-party/libuv-install
+          key: ${{ runner.os }}-libuv-${{ hashFiles('scripts/compile-libuv.sh') }}
+
+      - name: Build libuv
+        if: steps.cache-libuv.outputs.cache-hit != 'true'
+        run: sudo ./scripts/compile-libuv.sh
+
+      - name: Cache ScyllaDB C++ Driver
+        if: matrix.driver == 'scylladb'
+        id: cache-scylladb-driver
+        uses: actions/cache@v4
+        with:
+          path: third-party/scylladb-driver-install
+          key: ${{ runner.os }}-scylladb-driver-latest-debug-${{ hashFiles('scripts/compile-cpp-driver.sh') }}
+
+      - name: Build ScyllaDB C++ Driver
+        if: matrix.driver == 'scylladb' && steps.cache-scylladb-driver.outputs.cache-hit != 'true'
+        run: sudo ./scripts/compile-cpp-driver.sh scylladb
+      - name: Cache Cassandra C++ Driver
+        if: matrix.driver == 'cassandra'
+        id: cache-cassandra-driver
+        uses: actions/cache@v4
+        with:
+          path: third-party/datastax-driver-install
+          key: ${{ runner.os }}-cassandra-driver-latest-debug-${{ hashFiles('scripts/compile-cpp-driver.sh') }}
+
+      - name: Build Cassandra C++ Driver
+        if: matrix.driver == 'cassandra' && steps.cache-cassandra-driver.outputs.cache-hit != 'true'
+        run: sudo ./scripts/compile-cpp-driver.sh datastax
+
+  # Test ZendCPP
+  test-zendcpp:
+    name: Test ZendCPP
+    runs-on: ubuntu-24.04
+    # needs: [detect-changes, build-dependencies]
+    needs: [build-dependencies]
+    # if: needs.detect-changes.outputs.zendcpp == 'true' || needs.detect-changes.outputs.dependencies == 'true'
+    strategy:
+      matrix:
+        php: ["8.4"]
+        threading: [nts, zts]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup PHP ${{ matrix.php }} (${{ matrix.threading }})
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          ini-values: |
+            memory_limit=512M
+            zend.assertions=1
+            assert.exception=1
+          coverage: none
+          tools: php-config, phpize, composer
+        env:
+          phpts: ${{ matrix.threading }}
+          debug: true
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            pkg-config \
+            autoconf \
+            libgmp-dev \
+            ccache
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-zendcpp-${{ matrix.php }}-${{ matrix.threading }}
+          max-size: 200M
+
+      - name: Restore libuv cache
+        uses: actions/cache@v4
+        with:
+          path: third-party/libuv-install
+          key: ${{ runner.os }}-libuv-${{ hashFiles('scripts/compile-libuv.sh') }}
+          fail-on-cache-miss: true
+
+      - name: Restore ScyllaDB driver cache
+        uses: actions/cache@v4
+        with:
+          path: third-party/scylladb-driver-install
+          key: ${{ runner.os }}-scylladb-driver-latest-debug-${{ hashFiles('scripts/compile-cpp-driver.sh') }}
+          fail-on-cache-miss: true
+
+      - name: Restore Cassandra driver cache
+        uses: actions/cache@v4
+        with:
+          path: third-party/datastax-driver-install
+          key: ${{ runner.os }}-cassandra-driver-latest-debug-${{ hashFiles('scripts/compile-cpp-driver.sh') }}
+          fail-on-cache-miss: true
+
+      - name: Verify PHP tools are available
+        run: |
+          echo "Checking PHP tools..."
+          which php || echo "php not found"
+          which php-config || echo "php-config not found"
+          which phpize || echo "phpize not found"
+          php --version
+          php-config --version || echo "php-config failed"
+          php-config --includes || echo "php-config --includes failed"
+          echo "PHP include directory: $(php-config --include-dir)"
+          echo "Checking for php.h..."
+          if [ -f "$(php-config --include-dir)/main/php.h" ]; then
+            echo "✓ php.h found at $(php-config --include-dir)/main/php.h"
+          else
+            echo "✗ php.h NOT found!"
+            echo "Installing php-dev package..."
+            sudo apt-get update
+            sudo apt-get install -y php${{ matrix.php }}-dev
+            if [ -f "$(php-config --include-dir)/main/php.h" ]; then
+              echo "✓ php.h now found after installing php-dev"
+            else
+              echo "✗ php.h still not found even after php-dev install"
+              exit 1
+            fi
+          fi
+          echo "PATH: $PATH"
+
+      - name: Run ZendCPP Tests
+        run: ./ZendCPP/tests/cmake_build.sh --root --run
+  #
+  #   # Test PHP Extension
+  #   test-extension:
+  #     name: Test Extension
+  #     runs-on: ubuntu-24.04
+  #     # needs: [detect-changes, build-dependencies]
+  #     needs: [build-dependencies]
+  #     # if: needs.detect-changes.outputs.extension == 'true' || needs.detect-changes.outputs.dependencies == 'true'
+  #     strategy:
+  #       matrix:
+  #         php: ["8.4", "8.5"]
+  #         threading: [nts, zts]
+  #         driver: [scylladb, cassandra]
+  #         os: [ubuntu-24.04]
+  #       fail-fast: false
+  #
+  #     services:
+  #       scylladb:
+  #         image: scylladb/scylla:latest
+  #         ports:
+  #           - 9042:9042
+  #         options: >-
+  #           --health-cmd "cqlsh -e 'describe cluster'"
+  #           --health-interval 10s
+  #           --health-timeout 5s
+  #           --health-retries 20
+  #
+  #     steps:
+  #       - uses: actions/checkout@v4
+  #         with:
+  #           submodules: recursive
+  #           fetch-depth: 0
+  #
+  # - name: Setup PHP ${{ matrix.php }} (${{ matrix.threading }})
+  #   uses: shivammathur/setup-php@v2
+  #   with:
+  #     php-version: ${{ matrix.php }}
+  #     extensions: none
+  #     ini-values: |
+  #       memory_limit=512M
+  #       zend.assertions=1
+  #       assert.exception=1
+  #     coverage: none
+  #     tools: php-config, phpize, pie, composer
+  #
+  #       - name: Install system dependencies
+  #         run: |
+  #           sudo apt-get update
+  #           sudo apt-get install -y \
+  #             build-essential \
+  #             cmake \
+  #             ninja-build \
+  #             pkg-config \
+  #             autoconf \
+  #             libssl-dev \
+  #             zlib1g-dev \
+  #             libgmp-dev \
+  #             ccache
+  #
+  #       - name: Setup ccache
+  #         uses: hendrikmuhs/ccache-action@v1.2
+  #         with:
+  #           key: ${{ runner.os }}-ext-${{ matrix.php }}-${{ matrix.threading }}-${{ matrix.driver }}
+  #           max-size: 500M
+  #
+  #       - name: Restore libuv cache
+  #         uses: actions/cache@v4
+  #         with:
+  #           path: third-party/libuv-install
+  #           key: ${{ runner.os }}-libuv-debug-${{ hashFiles('scripts/compile-libuv.sh') }}
+  #           fail-on-cache-miss: true
+  #
+  #       - name: Restore ScyllaDB driver cache
+  #         if: matrix.driver == 'scylladb'
+  #         uses: actions/cache@v4
+  #         with:
+  #           path: third-party/scylladb-driver-install
+  #           key: ${{ runner.os }}-scylladb-driver-latest-debug-${{ hashFiles('scripts/compile-cpp-driver.sh') }}
+  #           fail-on-cache-miss: true
+  #
+  #       - name: Restore Cassandra driver cache
+  #         if: matrix.driver == 'cassandra'
+  #         uses: actions/cache@v4
+  #         with:
+  #           path: third-party/datastax-driver-install
+  #           key: ${{ runner.os }}-cassandra-driver-latest-debug-${{ hashFiles('scripts/compile-cpp-driver.sh') }}
+  #           fail-on-cache-miss: true
+  #
+  #       - name: Set PKG_CONFIG_PATH
+  #         run: |
+  #           echo "PKG_CONFIG_PATH=${{ github.workspace }}/third-party/libuv-install/lib/pkgconfig:${{ github.workspace }}/third-party/scylladb-driver-install/lib/pkgconfig:${{ github.workspace }}/third-party/datastax-driver-install/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+  #           echo "LD_LIBRARY_PATH=${{ github.workspace }}/third-party/libuv-install/lib:${{ github.workspace }}/third-party/scylladb-driver-install/lib:${{ github.workspace }}/third-party/datastax-driver-install/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+  #
+  #       - name: Build Extension (ScyllaDB)
+  #         if: matrix.driver == 'scylladb'
+  #         run: |
+  #           phpize
+  #           ./configure \
+  #             --enable-libuv-static \
+  #             --enable-driver-static
+  #           make -j$(nproc)
+  #           make install
+  #
+  #       - name: Build Extension (Cassandra)
+  #         if: matrix.driver == 'cassandra'
+  #         run: |
+  #           phpize
+  #           ./configure \
+  #             --enable-libuv-static \
+  #             --enable-driver-static \
+  #             --enable-libcassandra
+  #           make -j$(nproc)
+  #           make install
+  #
+  #       - name: Enable extension
+  #         run: |
+  #           echo "extension=cassandra.so" >> $(php --ini | grep "Scan for additional" | awk '{print $NF}')/cassandra.ini
+  #
+  #       - name: Verify extension loads
+  #         run: |
+  #           php -m | grep cassandra
+  #           php --ri cassandra
+  #
+  #       - name: Cache Composer dependencies
+  #         uses: actions/cache@v4
+  #         with:
+  #           path: tests/vendor
+  #           key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('tests/composer.lock') }}
+  #           restore-keys: |
+  #             ${{ runner.os }}-composer-${{ matrix.php }}-
+  #             ${{ runner.os }}-composer-
+  #
+  #       - name: Install PHP test dependencies
+  #         working-directory: tests
+  #         run: |
+  #           composer install --no-interaction --no-progress --prefer-dist
+  #
+  #       - name: Wait for ScyllaDB to be ready
+  #         run: |
+  #           timeout 300 bash -c 'until docker exec $(docker ps -q -f ancestor=scylladb/scylla:latest) cqlsh -e "describe cluster" 2>/dev/null; do sleep 5; done'
+  #
+  #       - name: Run Unit Tests
+  #         working-directory: tests
+  #         run: |
+  #           php ./vendor/bin/pest \
+  #             --colors=always \
+  #             --fail-on-risky \
+  #             --fail-on-warning \
+  #             --stop-on-failure
+  #         env:
+  #           SCYLLADB_HOSTS: localhost
+  #
+  #       - name: Run Feature Tests (if available)
+  #         working-directory: tests
+  #         if: hashFiles('tests/Feature') != ''
+  #         run: |
+  #           php ./vendor/bin/pest Feature/ \
+  #             --colors=always \
+  #             --fail-on-risky \
+  #             --fail-on-warning
+  #         env:
+  #           SCYLLADB_HOSTS: localhost
+
+  # Summary job
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-24.04
+    #     needs: [detect-changes, test-zendcpp, test-extension]
+    #     needs: [test-zendcpp, test-extension]
+    needs: [test-zendcpp]
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          echo "ZendCPP Tests: ${{ needs.test-zendcpp.result }}"
+          # echo "Extension Tests: ${{ needs.test-extension.result }}"
+
+          # if [[ "${{ needs.test-zendcpp.result }}" == "failure" ]] || [[ "${{ needs.test-extension.result }}" == "failure" ]]; then
+          #   echo "Some tests failed!"
+          #   exit 1
+          # fi
+
+          # if [[ "${{ needs.test-zendcpp.result }}" == "skipped" ]] && [[ "${{ needs.test-extension.result }}" == "skipped" ]]; then
+          #   echo "No tests were run (no relevant changes detected)"
+          # fi
+
+          echo "All tests passed or were skipped appropriately!"

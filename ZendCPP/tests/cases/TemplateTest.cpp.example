@@ -1,0 +1,53 @@
+/**
+ * Template for creating new tests
+ *
+ * Copy this file to tests/cases/YourFeatureTest.cpp and modify
+ */
+
+#include "../framework/TestFramework.hpp"
+#include <ZendCPP/ZendCPP.hpp>
+
+using namespace ZendCPPTest;
+
+// Example test 1
+ZENDCPP_TEST(YourFeature, test_basic) {
+    // Your test code here
+
+    // Example: Test HashTable
+    ZendCPP::HashTable ht;
+    ht.SetString("key", "value");
+
+    // Assertions
+    ASSERT_TRUE(ht.Has("key"));
+    ASSERT_EQUAL(std::string(ht.GetString("key")), std::string("value"));
+}
+
+// Example test 2
+ZENDCPP_TEST(YourFeature, test_edge_cases) {
+    // Test edge cases
+
+    ZendCPP::Array arr;
+    ASSERT_TRUE(arr.IsEmpty());
+
+    arr.AppendLong(42);
+    ASSERT_FALSE(arr.IsEmpty());
+    ASSERT_EQUAL(arr.Size(), 1);
+}
+
+// Example test 3
+ZENDCPP_TEST(YourFeature, test_error_handling) {
+    // Test error conditions
+
+    bool caught = false;
+    try {
+        // Code that might throw
+        throw std::runtime_error("Expected error");
+    } catch (const std::exception& e) {
+        caught = true;
+    }
+
+    ASSERT_TRUE(caught);
+}
+
+// Add more tests as needed
+// ZENDCPP_TEST(YourFeature, another_test) { ... }

@@ -61,6 +61,9 @@ option(BUILD_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
 option(PHP_DRIVER_STATIC "Statically link PHP Driver" OFF)
 option(USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
 
+# Add local library paths to PKG_CONFIG_PATH for libraries built in third-party
+set(ENV{PKG_CONFIG_PATH} "${PROJECT_SOURCE_DIR}/third-party/libuv-install/lib/pkgconfig:${PROJECT_SOURCE_DIR}/third-party/scylladb-driver-install/lib/pkgconfig:${PROJECT_SOURCE_DIR}/third-party/datastax-driver-install/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+
 find_package(PHPConfig REQUIRED)
 find_package(PHP REQUIRED)
 
@@ -75,6 +78,13 @@ find_package(CPPDriver REQUIRED)
 add_subdirectory(ZendCPP)
 add_subdirectory(util)
 add_subdirectory(src)
+
+# Optionally build ZendCPP tests
+if(BUILD_ZENDCPP_TESTS)
+    message(STATUS "Building ZendCPP tests...")
+    add_subdirectory(ZendCPP/tests)
+endif()
+
 add_subdirectory(src/Cluster)
 add_subdirectory(src/DateTime)
 add_subdirectory(src/Database)
@@ -122,3 +132,10 @@ target_compile_definitions(ext_scylladb PRIVATE -DCOMPILE_DL_CASSANDRA)
 set_target_properties(ext_scylladb PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(ext_scylladb PROPERTIES PREFIX "")
 set_target_properties(ext_scylladb PROPERTIES OUTPUT_NAME "cassandra")
+
+# macOS-specific linker flags to allow undefined symbols (resolved by PHP at runtime)
+if(APPLE)
+    target_link_options(ext_scylladb PRIVATE -undefined dynamic_lookup)
+    message(STATUS "macOS detected: Added -undefined dynamic_lookup for PHP extension")
+endif()
+

@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-. /etc/os-release
-
 print_usage() {
   echo ""
   echo "Usage: compile-php.sh [OPTION] [ARG]"
   echo "-v ARG php version"
-  echo "-o ARG output path, default: $(pwd)"
+  echo "-o ARG output path, default: <project_root>/third-party/php"
   echo "-z Use ZTS"
   echo "-d Compile in debug mode"
   echo "-k keep PHP source code"
@@ -19,11 +17,12 @@ print_usage() {
   echo ""
 }
 
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PHP_VERSION="8.4"
 WITH_VERSION="yes"
 PHP_THREAD_MODEL="nts"
 ENABLE_DEBUG="no"
-OUTPUT="$(pwd)/php"
+OUTPUT="$PROJECT_ROOT/third-party/php"
 ENABLE_SANITIZERS="no"
 
 while getopts "v:o:z:s:d:a" option; do
@@ -51,7 +50,7 @@ fetch_versions() {
 
 fetch_latest_php_version() {
   (fetch_versions "1" && fetch_versions "2" && fetch_versions "3") |
-    /bin/grep -E "^php-$PHP_VERSION\.[0-9]+$" |
+    grep -E "^php-$PHP_VERSION\.[0-9]+$" |
     sed 's/^php-//' |
     sort -V |
     tail -n 1
@@ -69,8 +68,30 @@ is_linux() {
   return 1
 }
 
+is_macos() {
+  local value
+
+  value="$(uname -s)"
+
+  if [ "$value" = "Darwin" ]; then
+    return 0
+  fi
+
+  return 1
+}
+
+get_cpu_count() {
+  if is_macos; then
+    sysctl -n hw.ncpu
+  else
+    nproc
+  fi
+}
+
 install_deps() {
   if is_linux; then
+    . /etc/os-release
+
     if [[ "$NAME" == "Fedora Linux" ]]; then
       dnf install \
         re2c \
@@ -111,6 +132,29 @@ install_deps() {
         libubsan1 \
         libzip-dev -y || exit 1
     fi
+  elif is_macos; then
+    if ! command -v brew &> /dev/null; then
+      echo "Homebrew is required but not installed. Please install it from https://brew.sh"
+      exit 1
+    fi
+
+    brew install \
+      re2c \
+      cmake \
+      ninja \
+      bison \
+      openssl \
+      sqlite \
+      zlib \
+      curl \
+      readline \
+      libffi \
+      oniguruma \
+      libxml2 \
+      icu4c \
+      libsodium \
+      gmp \
+      libzip || exit 1
   fi
 }
 
@@ -128,6 +172,11 @@ compile_php() {
     --disable-short-tags
     --with-pic
   )
+
+  # Add iconv for macOS
+  if is_macos; then
+    config+=("--with-iconv=$(brew --prefix)/opt/libiconv")
+  fi
 
   local FULL_PHP_VERSION
   FULL_PHP_VERSION="$(fetch_latest_php_version)"
@@ -172,14 +221,14 @@ compile_php() {
   ./buildconf --force
   if [ "$ENABLE_DEBUG" = "yes" ]; then
     ./configure \
-      CFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
-      CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
+      CFLAGS="-g -ggdb -g3 -gdwarf-5 -fno-omit-frame-pointer" \
+      CXXFLAGS="-g -ggdb -g3 -gdwarf-5 -fno-omit-frame-pointer" \
       --prefix="$OUTPUT_PATH" \
       "${config[@]}" || exit 1
   else
     ./configure CFLAGS="-O2" CXXFLAGS="-O2" --prefix="$OUTPUT_PATH" "${config[@]}" || exit 1
   fi
-  make "-j$(nproc)" || exit 1
+  make "-j$(get_cpu_count)" || exit 1
   make install || exit 1
 
   popd || exit 1

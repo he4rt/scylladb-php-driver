@@ -1,0 +1,26 @@
+# CMake build directory
+build/
+cmake-build-*/
+
+# Generated files
+compile_commands.json
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Built extension
+*.so
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+.phpunit.result.cache
+
+# Mac
+.DS_Store

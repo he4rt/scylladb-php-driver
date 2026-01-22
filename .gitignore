@@ -58,3 +58,14 @@ cassandra.log
 php-old/
 target/
 docker/scylladb/certs/
+# Third-party local builds
+third-party/libuv/
+third-party/libuv-src/
+third-party/libuv-install/
+third-party/scylladb-driver/
+third-party/scylladb-cpp-src/
+third-party/scylladb-driver-install/
+third-party/datastax-driver/
+third-party/cassandra-cpp-src/
+third-party/datastax-driver-install/
+third-party/php/

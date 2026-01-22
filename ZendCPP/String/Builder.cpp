@@ -4,6 +4,8 @@
 
 #include <utility>
 
+#include "String.hpp"
+
 namespace ZendCPP {
 
 StringBuilder::StringBuilder(std::size_t size) noexcept {
@@ -37,8 +39,10 @@ std::size_t StringBuilder::Length() const noexcept {
   return *this;
 }
 
-[[nodiscard]] zend_string * StringBuilder::Build() noexcept {
-  return smart_str_extract(&m_builder);
+[[nodiscard]] zend_string* StringBuilder::Build() noexcept { return smart_str_extract(&m_builder); }
+
+[[nodiscard]] String StringBuilder::BuildZString() noexcept {
+  return String(smart_str_extract(&m_builder), false);
 }
 
 StringBuilder& StringBuilder::operator<<(const char* str) noexcept {

@@ -1,0 +1,55 @@
+# Valgrind suppression file for ZendCPP Test Framework
+#
+# The test framework intentionally keeps some memory allocated for the
+# lifetime of the extension. These are not leaks, they're static data.
+
+{
+   test_framework_registry
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_Znwm
+   ...
+   fun:*TestRegistry*
+}
+
+{
+   test_framework_test_cases
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_Znwm
+   ...
+   fun:*TestRegistrar*
+}
+
+{
+   test_framework_strings
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_Znwm
+   ...
+   fun:*basic_string*
+}
+
+{
+   test_framework_vectors
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_Znwm
+   ...
+   fun:*vector*TestCase*
+}
+
+# PHP internal allocations
+{
+   php_zend_alloc
+   Memcheck:Leak
+   ...
+   fun:zend_*
+}
+
+{
+   php_emalloc
+   Memcheck:Leak
+   ...
+   fun:_emalloc*
+}

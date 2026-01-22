@@ -16,11 +16,11 @@ run_tests() {
         "/ext-scylladb-php-$php_version/run-tests.sh" || exit 1
 }
 
-run_tests "8.1"
-run_tests "8.1-zts"
 run_tests "8.2"
 run_tests "8.2-zts"
 run_tests "8.3"
 run_tests "8.3-zts"
 run_tests "8.4"
 run_tests "8.4-zts"
+run_tests "8.5"
+run_tests "8.5-zts"

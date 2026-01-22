@@ -1,0 +1,73 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default Config",
+      "description": "Default build configuration",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Debug build with symbols",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Release build with optimizations",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "asan",
+      "displayName": "AddressSanitizer",
+      "description": "Debug build with AddressSanitizer",
+      "inherits": "debug",
+      "cacheVariables": {
+        "ENABLE_ASAN": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "jobs": 4
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "jobs": 4
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "jobs": 4
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "jobs": 4
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

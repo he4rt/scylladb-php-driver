@@ -1,10 +1,47 @@
+# Set PKG_CONFIG_PATH to prioritize third-party installations
+set(SCYLLADB_LOCAL_PATH "${PROJECT_SOURCE_DIR}/third-party/scylladb-driver-install")
+set(DATASTAX_LOCAL_PATH "${PROJECT_SOURCE_DIR}/third-party/datastax-driver-install")
+
+# Determine which .pc files to look for based on static/shared setting
+if(USE_LIBCASSANDRA)
+    if (PHP_DRIVER_STATIC)
+        set(DRIVER_PC_NAME "cassandra_static.pc")
+    else()
+        set(DRIVER_PC_NAME "cassandra.pc")
+    endif()
+    set(DRIVER_LOCAL_PATH "${DATASTAX_LOCAL_PATH}")
+    set(DRIVER_NAME "Cassandra")
+else()
+    if (PHP_DRIVER_STATIC)
+        set(DRIVER_PC_NAME "scylla-cpp-driver_static.pc")
+    else()
+        set(DRIVER_PC_NAME "scylla-cpp-driver.pc")
+    endif()
+    set(DRIVER_LOCAL_PATH "${SCYLLADB_LOCAL_PATH}")
+    set(DRIVER_NAME "ScyllaDB")
+endif()
+
+message(STATUS "Looking for ${DRIVER_NAME} driver (static: ${PHP_DRIVER_STATIC})")
+
+# Add local paths to PKG_CONFIG_PATH if they exist
+set(DRIVER_PC_FILE "${DRIVER_LOCAL_PATH}/lib/pkgconfig/${DRIVER_PC_NAME}")
+if(EXISTS "${DRIVER_PC_FILE}")
+    set(ENV{PKG_CONFIG_PATH} "${DRIVER_LOCAL_PATH}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    message(STATUS "✓ Found local ${DRIVER_NAME} driver: ${DRIVER_PC_FILE}")
+else()
+    message(STATUS "✗ Local ${DRIVER_NAME} driver not found at: ${DRIVER_PC_FILE}")
+    message(STATUS "Will search for system installation...")
+endif()
+
 find_package(PkgConfig REQUIRED)
 
 if(USE_LIBCASSANDRA)
     if (PHP_DRIVER_STATIC)
         pkg_check_modules(LIBCASSANDRA REQUIRED IMPORTED_TARGET cassandra_static)
+        message(STATUS "Using static Cassandra driver: ${LIBCASSANDRA_LIBRARIES}")
     else ()
         pkg_check_modules(LIBCASSANDRA REQUIRED IMPORTED_TARGET cassandra)
+        message(STATUS "Using shared Cassandra driver: ${LIBCASSANDRA_LIBRARIES}")
     endif ()
 
     target_link_libraries(ext_scylladb PRIVATE ${LIBCASSANDRA_LIBRARIES})
@@ -14,8 +51,10 @@ if(USE_LIBCASSANDRA)
 else()
     if (PHP_DRIVER_STATIC)
         pkg_check_modules(LIBSCYLLADB REQUIRED IMPORTED_TARGET scylla-cpp-driver_static)
+        message(STATUS "Using static ScyllaDB driver: ${LIBSCYLLADB_LIBRARIES}")
     else ()
         pkg_check_modules(LIBSCYLLADB REQUIRED IMPORTED_TARGET scylla-cpp-driver)
+        message(STATUS "Using shared ScyllaDB driver: ${LIBSCYLLADB_LIBRARIES}")
     endif ()
 
     target_include_directories(ext_scylladb PUBLIC "${LIBSCYLLADB_INCLUDE_DIRS}")

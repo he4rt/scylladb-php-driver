@@ -3,6 +3,8 @@
 #include <php.h>
 #include <zend_smart_str_public.h>
 
+#include "String.hpp"
+
 namespace ZendCPP {
 class StringBuilder {
  public:
@@ -23,6 +25,7 @@ class StringBuilder {
   [[nodiscard]] size_t Length() const noexcept;
 
   [[nodiscard]] zend_string* Build() noexcept;
+  String BuildZString() noexcept;
 
 #if PHP_VERSION_ID > 80100
   [[nodiscard]] StringBuilder& TrimToSize() noexcept;

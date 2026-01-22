@@ -2,9 +2,9 @@
 
 set -xe
 
-declare -a PHP_VERSIONS=("8.4" "8.3" "8.2")
+declare -a PHP_VERSIONS=("8.5" "8.4" "8.3" "8.2")
 
-mkdir -p php
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.."; pwd)"
 
 ./scripts/compile-libuv.sh
 ./scripts/compile-cpp-driver.sh "scylladb"
@@ -12,5 +12,5 @@ mkdir -p php
 
 for version in "${PHP_VERSIONS[@]}"
 do
-    ./scripts/compile-php.sh -o "$(pwd)/php" -v "$version" -s -d
+    ./scripts/compile-php.sh -o "$PROJECT_ROOT/third-party/php" -v "$version" -s yes -d yes
 done

@@ -1,12 +1,17 @@
 #!/bin/bash
 
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.."; pwd)"
+
 DRIVER=${1:-"scylladb"}
 VERSION=${2:-"master"}
+PHP_VERSION=${3:-"8.2"}
+
+PHP_DIR=${4:-"$PROJECT_ROOT/third-party/php/$PHP_VERSION-debug-nts/bin"}
 
 rm -rf out
 
-phpize --clean
-phpize
+"$PHP_DIR/phpize" --clean
+"$PHP_DIR/phpize"
 
 if [[ "$DRIVER" == "cassandra" ]]; then
     ./configure \
@@ -27,4 +32,4 @@ fi
 
 make "-j$(nproc)" || exit 1
 make install
-cp "$(php-config --extension-dir)/cassandra.so" .
+cp "$("$PHP_DIR/php-config" --extension-dir)/cassandra.so" .
