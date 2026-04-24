@@ -44,7 +44,7 @@ runs:
 
     - name: Build
       shell: bash
-      run: cmake --build cmake-build --parallel "$(nproc)"
+      run: cmake --build cmake-build --parallel "$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
 
     - name: Install extension
       shell: bash

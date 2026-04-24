@@ -6,8 +6,10 @@ include(CheckCXXCompilerFlag)
 
 # ── Pre-check compiler capabilities once at configure time ───────────────────
 # Results are CACHE INTERNAL — subsequent calls are no-ops.
-check_c_compiler_flag(-mavx  _PHP_DRIVER_CC_SUPPORTS_AVX)
-check_c_compiler_flag(-mavx2 _PHP_DRIVER_CC_SUPPORTS_AVX2)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    check_c_compiler_flag(-mavx  _PHP_DRIVER_CC_SUPPORTS_AVX)
+    check_c_compiler_flag(-mavx2 _PHP_DRIVER_CC_SUPPORTS_AVX2)
+endif ()
 
 check_ipo_supported(RESULT _PHP_DRIVER_LTO_SUPPORTED OUTPUT _PHP_DRIVER_LTO_MSG)
 if (NOT _PHP_DRIVER_LTO_SUPPORTED)
@@ -48,8 +50,6 @@ function(scylladb_php_library target)
 
     # ── Symbol visibility — only get_module exported (PHP extension ABI) ────────
     # All internal symbols are hidden; PHP's ZEND_DLEXPORT handles get_module.
-    # This enables LTO and --gc-sections to work effectively and avoids
-    # accidental PLT/GOT indirection for internal calls.
     target_compile_options(${target} PRIVATE
             -fvisibility=hidden
             -fvisibility-inlines-hidden
@@ -65,19 +65,24 @@ function(scylladb_php_library target)
             -Wno-unused-result
             -Wno-variadic-macros
             -Wno-format
-            -pthread
+            # -pthread is a no-op on macOS (pthreads always linked); Linux needs it
+            $<$<NOT:$<PLATFORM_ID:Darwin>>:-pthread>
     )
 
     # ── Build-type flags via generator expressions (multi-config safe) ────────
     target_compile_options(${target} PRIVATE
-            $<$<CONFIG:Debug>:-O0;-g;-ggdb;-g3;-gdwarf-4;-Wpedantic>
-            $<$<CONFIG:RelWithDebInfo>:-O2;-g;-ggdb;-g3;-gdwarf-4;-Wpedantic>
+            # -ggdb and -gdwarf-4 are GNU/Linux extensions; macOS uses DWARF natively
+            $<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Darwin>>>:-O0;-g;-ggdb;-g3;-gdwarf-4;-Wpedantic>
+            $<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Darwin>>:-O0;-g;-Wpedantic>
+            $<$<AND:$<CONFIG:RelWithDebInfo>,$<NOT:$<PLATFORM_ID:Darwin>>>:-O2;-g;-ggdb;-g3;-gdwarf-4;-Wpedantic>
+            $<$<AND:$<CONFIG:RelWithDebInfo>,$<PLATFORM_ID:Darwin>>:-O2;-g;-Wpedantic>
             $<$<CONFIG:Release>:-O3>
     )
 
     target_compile_definitions(${target} PRIVATE
-            _TIME_BITS=64
-            _FILE_OFFSET_BITS=64
+            # _TIME_BITS/_FILE_OFFSET_BITS are glibc extensions; macOS uses 64-bit by default
+            $<$<NOT:$<PLATFORM_ID:Darwin>>:_TIME_BITS=64>
+            $<$<NOT:$<PLATFORM_ID:Darwin>>:_FILE_OFFSET_BITS=64>
             $<$<CONFIG:Debug>:DEBUG>
             $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:RELEASE>
     )
@@ -99,7 +104,7 @@ function(scylladb_php_library target)
         set_property(TARGET ${target} PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     endif ()
 
-    # ── x86_64 SIMD ───────────────────────────────────────────────────────────
+    # ── Architecture-specific SIMD ────────────────────────────────────────────
     if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
         target_compile_options(${target} PRIVATE -msse2 -msse3 -msse4.1 -msse4.2)
 
@@ -114,19 +119,26 @@ function(scylladb_php_library target)
         elseif (ENABLE_AVX2 AND NOT _PHP_DRIVER_CC_SUPPORTS_AVX2)
             message(WARNING "${target}: ENABLE_AVX2 requested but compiler lacks -mavx2")
         endif ()
+    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+        # Apple Silicon / AArch64 — NEON is mandatory in ARMv8+, no flags needed.
+        # ENABLE_AVX / ENABLE_AVX2 are meaningless here; silently ignore.
     endif ()
 
     # ── -march ────────────────────────────────────────────────────────────────
-    if (CPU_TYPE STREQUAL "native")
-        message(WARNING
-                "-march=native produces binaries that may not run on other CPUs")
-    endif ()
+    # Skip on ARM/Apple Silicon — CPU_TYPE is "native" there by default which
+    # is already the best choice; no -march x86 variants apply.
+    if (NOT CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+        if (CPU_TYPE STREQUAL "native")
+            message(WARNING
+                    "-march=native produces binaries that may not run on other CPUs")
+        endif ()
 
-    check_c_compiler_flag("-march=${CPU_TYPE}" _PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
-    if (_PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
-        target_compile_options(${target} PRIVATE "-march=${CPU_TYPE}")
-    else ()
-        message(WARNING "${target}: compiler does not support -march=${CPU_TYPE}")
+        check_c_compiler_flag("-march=${CPU_TYPE}" _PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
+        if (_PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
+            target_compile_options(${target} PRIVATE "-march=${CPU_TYPE}")
+        else ()
+            message(WARNING "${target}: compiler does not support -march=${CPU_TYPE}")
+        endif ()
     endif ()
 endfunction()
 

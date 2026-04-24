@@ -51,27 +51,35 @@ done
 [[ -n "$PHP_VERSION" ]] || die "PHP version is required (-v)"
 
 install_system_deps() {
-    if [[ "$(uname -s)" != "Linux" ]]; then return; fi
-    # shellcheck source=/dev/null
-    . /etc/os-release 2>/dev/null || return
-
-    case "${ID:-}" in
-        fedora)
-            echo "==> Installing build deps (Fedora)"
-            dnf install -y re2c cmake gcc ninja-build openssl-devel \
-                libubsan libasan sqlite-devel zlib-devel libcurl-devel \
-                readline-devel libffi-devel oniguruma-devel libxml2-devel \
-                libsodium-devel gmp-devel bison
+    case "$(uname -s)" in
+        Darwin)
+            echo "==> Installing build deps (macOS)"
+            command -v brew >/dev/null 2>&1 || die "Homebrew not found. Install from https://brew.sh"
+            brew install re2c bison openssl zlib curl readline libffi oniguruma \
+                libsodium gmp autoconf pkg-config
             ;;
-        ubuntu|debian)
-            echo "==> Installing build deps (Ubuntu/Debian)"
-            apt-get install -y pkg-config build-essential libssl-dev bison re2c \
-                libxml2-dev libicu-dev libsqlite3-dev zlib1g-dev libcurl4-openssl-dev \
-                libreadline-dev libffi-dev libonig-dev libsodium-dev libgmp-dev \
-                libubsan1 libzip-dev
-            ;;
-        *)
-            echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
+        Linux)
+            # shellcheck source=/dev/null
+            . /etc/os-release 2>/dev/null || return
+            case "${ID:-}" in
+                fedora)
+                    echo "==> Installing build deps (Fedora)"
+                    dnf install -y re2c cmake gcc ninja-build openssl-devel \
+                        libubsan libasan sqlite-devel zlib-devel libcurl-devel \
+                        readline-devel libffi-devel oniguruma-devel libxml2-devel \
+                        libsodium-devel gmp-devel bison
+                    ;;
+                ubuntu|debian)
+                    echo "==> Installing build deps (Ubuntu/Debian)"
+                    apt-get install -y pkg-config build-essential libssl-dev bison re2c \
+                        libxml2-dev libicu-dev libsqlite3-dev zlib1g-dev libcurl4-openssl-dev \
+                        libreadline-dev libffi-dev libonig-dev libsodium-dev libgmp-dev \
+                        libubsan1 libzip-dev
+                    ;;
+                *)
+                    echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
+                    ;;
+            esac
             ;;
     esac
 }
@@ -157,10 +165,18 @@ NPROC="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
 if [[ "$ENABLE_DEBUG" == "yes" ]]; then
     CONFIG_ARGS+=(--enable-debug)
     echo "==> Configuring (debug)"
-    ./configure \
-        CFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
-        CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
-        "${CONFIG_ARGS[@]}"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        # Apple clang: no -ggdb/-gdwarf-4; macOS uses DWARF natively
+        ./configure \
+            CFLAGS="-g -O0 -fno-omit-frame-pointer" \
+            CXXFLAGS="-g -O0 -fno-omit-frame-pointer" \
+            "${CONFIG_ARGS[@]}"
+    else
+        ./configure \
+            CFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
+            CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
+            "${CONFIG_ARGS[@]}"
+    fi
 else
     echo "==> Configuring (release)"
     ./configure CFLAGS="-O2" CXXFLAGS="-O2" "${CONFIG_ARGS[@]}"

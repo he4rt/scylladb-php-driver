@@ -41,26 +41,31 @@ while [[ $# -gt 0 ]]; do
 done
 
 install_system_deps() {
-    if [[ "$(uname -s)" != "Linux" ]]; then return; fi
-    # shellcheck source=/dev/null
-    . /etc/os-release 2>/dev/null || return
-
-    case "${ID:-}" in
-        fedora)
-            echo "==> Installing build deps (Fedora)"
-            dnf install -y cmake git ninja-build
+    case "$(uname -s)" in
+        Darwin)
+            echo "==> Installing build deps (macOS)"
+            command -v brew >/dev/null 2>&1 || die "Homebrew not found. Install from https://brew.sh"
+            brew install cmake ninja git
             ;;
-        ubuntu|debian)
-            echo "==> Installing build deps (Ubuntu/Debian)"
-            apt-get install -y cmake git ninja-build
-            ;;
-        *)
-            echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
+        Linux)
+            # shellcheck source=/dev/null
+            . /etc/os-release 2>/dev/null || return
+            case "${ID:-}" in
+                fedora)
+                    echo "==> Installing build deps (Fedora)"
+                    dnf install -y cmake git ninja-build
+                    ;;
+                ubuntu|debian)
+                    echo "==> Installing build deps (Ubuntu/Debian)"
+                    apt-get install -y cmake git ninja-build
+                    ;;
+                *)
+                    echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
+                    ;;
+            esac
             ;;
     esac
 }
-
-install_system_deps
 
 command -v cmake  >/dev/null 2>&1 || die "cmake not found in PATH"
 command -v git    >/dev/null 2>&1 || die "git not found in PATH"
@@ -82,6 +87,8 @@ cleanup() {
 trap cleanup EXIT
 
 SRC_DIR="$BUILD_DIR/src"
+
+install_system_deps
 
 echo "==> Cloning libuv $LIBUV_VERSION into $SRC_DIR"
 git clone --depth=1 --branch "$LIBUV_VERSION" "$LIBUV_REPO" "$SRC_DIR"

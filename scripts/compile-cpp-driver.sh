@@ -55,21 +55,28 @@ command -v ninja >/dev/null 2>&1 || die "ninja not found in PATH"
 GIT_REPO="https://github.com/${DRIVER}/cpp-driver.git"
 
 install_system_deps() {
-    if [[ "$(uname -s)" != "Linux" ]]; then return; fi
-    # shellcheck source=/dev/null
-    . /etc/os-release 2>/dev/null || return
-
-    case "${ID:-}" in
-        fedora)
-            echo "==> Installing build deps (Fedora)"
-            dnf install -y cmake pkg-config gcc ninja-build openssl-devel openssl-devel-engine
+    case "$(uname -s)" in
+        Darwin)
+            echo "==> Installing build deps (macOS)"
+            command -v brew >/dev/null 2>&1 || die "Homebrew not found. Install from https://brew.sh"
+            brew install cmake ninja pkg-config openssl
             ;;
-        ubuntu|debian)
-            echo "==> Installing build deps (Ubuntu/Debian)"
-            apt-get install -y pkg-config build-essential libssl-dev
-            ;;
-        *)
-            echo "WARN: Unknown distro '$ID', skipping automatic dep install" >&2
+        Linux)
+            # shellcheck source=/dev/null
+            . /etc/os-release 2>/dev/null || return
+            case "${ID:-}" in
+                fedora)
+                    echo "==> Installing build deps (Fedora)"
+                    dnf install -y cmake pkg-config gcc ninja-build openssl-devel openssl-devel-engine
+                    ;;
+                ubuntu|debian)
+                    echo "==> Installing build deps (Ubuntu/Debian)"
+                    apt-get install -y pkg-config build-essential libssl-dev
+                    ;;
+                *)
+                    echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
+                    ;;
+            esac
             ;;
     esac
 }
@@ -103,6 +110,10 @@ fi
 
 NPROC="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
 
+# timerfd is Linux-only — must be OFF on macOS
+TIMERFD="ON"
+[[ "$(uname -s)" == "Darwin" ]] && TIMERFD="OFF"
+
 echo "==> Configuring (prefix=$INSTALL_PREFIX, build=$BUILD_TYPE)"
 CFLAGS="-fPIC" \
 CXXFLAGS="-fPIC -Wno-error=redundant-move" \
@@ -114,7 +125,7 @@ cmake -G Ninja -B "$SRC_DIR/build" -S "$SRC_DIR" \
     -DCASS_BUILD_SHARED=ON \
     -DCASS_USE_STD_ATOMIC=ON \
     -DCASS_USE_STATIC_LIBS=ON \
-    -DCASS_USE_TIMERFD=ON \
+    -DCASS_USE_TIMERFD="$TIMERFD" \
     -DCASS_USE_LIBSSH2=ON \
     -DCASS_USE_ZLIB=ON \
     -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_DIR:+ccache}" \

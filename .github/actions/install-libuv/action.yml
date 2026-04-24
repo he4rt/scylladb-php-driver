@@ -46,7 +46,7 @@ runs:
           -DCMAKE_INSTALL_PREFIX=/opt/libuv \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache
-        cmake --build /opt/libuv-src/build --parallel "$(nproc)"
+        cmake --build /opt/libuv-src/build --parallel "$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
         sudo cmake --install /opt/libuv-src/build
         sudo rm -rf /opt/libuv-src
 

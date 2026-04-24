@@ -69,6 +69,10 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
+        # timerfd is a Linux-only kernel feature
+        TIMERFD=ON
+        [[ "$(uname -s)" == "Darwin" ]] && TIMERFD=OFF
+
         PKG_CONFIG_PATH="${{ inputs.libuv_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)" \
         cmake -G Ninja -B /tmp/cpp-driver-src/build -S /tmp/cpp-driver-src \
           -DCMAKE_INSTALL_PREFIX="${{ steps.meta.outputs.prefix }}" \
@@ -81,12 +85,12 @@ runs:
           -DCASS_BUILD_SHARED=ON \
           -DCASS_USE_STD_ATOMIC=ON \
           -DCASS_USE_STATIC_LIBS=ON \
-          -DCASS_USE_TIMERFD=ON \
+          -DCASS_USE_TIMERFD="${TIMERFD}" \
           -DCASS_USE_LIBSSH2=ON \
           -DCASS_USE_ZLIB=ON \
           -DCASS_BUILD_TESTS=OFF \
           -DCASS_BUILD_EXAMPLES=OFF
-        cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc)"
+        cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
         sudo cmake --install /tmp/cpp-driver-src/build
         rm -rf /tmp/cpp-driver-src
 

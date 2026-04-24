@@ -26,13 +26,43 @@ include(cmake/TargetOptimizations.cmake)
 
 set(PHP_SCYLLADB_DRIVER_VERSION "${PROJECT_VERSION}-dev")
 
+# ── macOS / Homebrew prefix detection ────────────────────────────────────────
+# Homebrew on Apple Silicon installs to /opt/homebrew; on Intel to /usr/local.
+# Adding the prefix to CMAKE_PREFIX_PATH lets find_package / pkg-config locate
+# libraries without requiring the user to set PKG_CONFIG_PATH manually.
+if (APPLE)
+    execute_process(
+            COMMAND brew --prefix
+            OUTPUT_VARIABLE _brew_prefix
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+            RESULT_VARIABLE _brew_rc
+    )
+    if (_brew_rc EQUAL 0 AND _brew_prefix)
+        list(PREPEND CMAKE_PREFIX_PATH "${_brew_prefix}")
+        set(ENV{PKG_CONFIG_PATH} "${_brew_prefix}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+        message(STATUS "Homebrew prefix: ${_brew_prefix}")
+    endif ()
+    unset(_brew_prefix)
+    unset(_brew_rc)
+endif ()
+
 # ── Library options ───────────────────────────────────────────────────────────
 option(ENABLE_SANITIZERS "Enable AddressSanitizer + UndefinedBehaviorSanitizer" OFF)
 option(ENABLE_AVX        "Enable -mavx on x86_64" OFF)
 option(ENABLE_AVX2       "Enable -mavx2 on x86_64" OFF)
 option(ENABLE_LTO        "Enable link-time optimisation" OFF)
-set(CPU_TYPE "x86-64-v2" CACHE STRING
+
+# ARM64 (Apple Silicon / AArch64) has no x86 micro-architecture levels;
+# use "native" so the compiler optimises for the host without invalid flags.
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+    set(_default_cpu_type "native")
+else ()
+    set(_default_cpu_type "x86-64-v2")
+endif ()
+set(CPU_TYPE "${_default_cpu_type}" CACHE STRING
         "x86-64 micro-architecture: x86-64 | x86-64-v2 | x86-64-v3 | x86-64-v4 | native")
+unset(_default_cpu_type)
 
 # ── PHP options ───────────────────────────────────────────────────────────────
 set(CUSTOM_PHP_CONFIG "" CACHE STRING

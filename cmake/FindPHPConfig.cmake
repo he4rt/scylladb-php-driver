@@ -22,7 +22,18 @@ else ()
 
     find_program(PHP_CONFIG_EXECUTABLE
             NAMES php-config
-            HINTS "${_php_hint}" "/usr" "/usr/local" "${PROJECT_SOURCE_DIR}/php"
+                  php-config${PHP_VERSION_FOR_PHP_CONFIG}
+            HINTS
+                "${_php_hint}"
+                # macOS Homebrew (ARM: /opt/homebrew, Intel: /usr/local)
+                "/opt/homebrew/opt/php@${PHP_VERSION_FOR_PHP_CONFIG}"
+                "/opt/homebrew/opt/php"
+                "/opt/homebrew"
+                "/usr/local/opt/php@${PHP_VERSION_FOR_PHP_CONFIG}"
+                "/usr/local/opt/php"
+                "/usr/local"
+                "/usr"
+                "${PROJECT_SOURCE_DIR}/php"
             PATH_SUFFIXES bin
             DOC "Path to php-config binary"
             REQUIRED

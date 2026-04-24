@@ -6,7 +6,16 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-PREFIX="/usr/local"
+# Default prefix: Homebrew root on macOS (auto-detected), /usr/local elsewhere
+_detect_prefix() {
+    if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+        brew --prefix
+    else
+        echo "/usr/local"
+    fi
+}
+PREFIX="$(_detect_prefix)"
+unset -f _detect_prefix
 PHP_VERSIONS=("8.3" "8.4" "8.5")
 DRIVERS=("scylladb")
 BUILD_PHP="yes"
