@@ -48,7 +48,7 @@ else ()
     endif ()
 endif ()
 
+set(Libuv_FOUND TRUE)
 find_package_handle_standard_args(Libuv
         REQUIRED_VARS Libuv_FOUND
 )
-set(Libuv_FOUND TRUE)
