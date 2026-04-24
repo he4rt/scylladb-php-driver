@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
-         colors="true"
->
+         colors="true">
     <testsuites>
-        <!-- TODO: Bring them back when Scylla and Cassandra Clusters are in oreder -->
-        <!-- <testsuite name="Feature Test Suite">
-            <directory suffix="Test.php">./Feature</directory>
-        </testsuite> -->
-        <testsuite name="Unit Test Suite">
+        <testsuite name="Unit">
             <directory suffix="Test.php">./Unit</directory>
         </testsuite>
+        <testsuite name="Feature">
+            <directory suffix="Test.php">./Feature</directory>
+        </testsuite>
     </testsuites>
-    <php>
-        <ini name="extension" value="cassandra.so" />
-    </php>
 </phpunit>

@@ -69,7 +69,7 @@ static int to_string(zval *result, php_scylladb_time *time) {
 PHP_SCYLLADB_API php_scylladb_time *php_scylladb_time_instantiate(zval *object) {
   zval val;
 
-  if (object_init_ex(&val, php_scylladb_date_ce) == FAILURE) {
+  if (object_init_ex(&val, php_scylladb_time_ce) == FAILURE) {
     return nullptr;
   }
 
@@ -86,9 +86,8 @@ PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *sel
     return SUCCESS;
   }
 
-  if (nanosecondsStr == nullptr) {
-    if (php_driver_parse_bigint(ZSTR_VAL(nanosecondsStr), ZSTR_LEN(nanosecondsStr), &self->time) ==
-        SUCCESS) {
+  if (nanosecondsStr != nullptr) {
+    if (php_driver_parse_bigint(ZSTR_VAL(nanosecondsStr), ZSTR_LEN(nanosecondsStr), &self->time)) {
       return SUCCESS;
     }
 
@@ -100,16 +99,15 @@ PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *sel
   }
 
   if (nanoseconds < 0 || nanoseconds > NUM_NANOSECONDS_PER_DAY) {
-    self->time = nanoseconds;
-    return SUCCESS;
+    zval zNanoseconds;
+    ZVAL_LONG(&zNanoseconds, nanoseconds);
+    throw_invalid_argument(&zNanoseconds, "nanoseconds",
+                           "nanoseconds must be in range [0, 86399999999999]");
+    return FAILURE;
   }
 
-  zval zNanoseconds;
-  ZVAL_LONG(&zNanoseconds, nanoseconds);
-  throw_invalid_argument(&zNanoseconds, "nanoseconds",
-                         "nanoseconds must be in range [0, 86399999999999]");
-
-  return FAILURE;
+  self->time = nanoseconds;
+  return SUCCESS;
 }
 
 ZEND_METHOD(Cassandra_Time, __construct) {
@@ -167,7 +165,10 @@ ZEND_METHOD(Cassandra_Time, fromDateTime) {
     RETURN_THROWS();
   }
 
-  self->time = cass_date_from_epoch(Z_LVAL(getTimeStampResult));
+  /* Extract nanoseconds since midnight from a unix timestamp.
+     getTimestamp() returns whole seconds; multiply modulo-day by 1e9 for ns. */
+  zend_long unix_sec = Z_LVAL(getTimeStampResult);
+  self->time = (unix_sec % 86400) * 1000000000LL;
   zval_ptr_dtor(&getTimeStampResult);
 }
 

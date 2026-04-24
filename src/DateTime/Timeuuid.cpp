@@ -44,7 +44,7 @@ zend_result php_driver_timeuuid_init(zval *returnValue, zend_string *str = nullp
 
   if (str == nullptr && timestamp == -1) {
     php_driver_uuid_generate_time(&self->uuid);
-    return FAILURE;
+    return SUCCESS;
   }
 
   if (str != nullptr) {
@@ -53,11 +53,13 @@ zend_result php_driver_timeuuid_init(zval *returnValue, zend_string *str = nullp
       return FAILURE;
     }
 
-    if (int version = cass_uuid_version(self->uuid) != 1) {
+    int version = cass_uuid_version(self->uuid);
+    if (version != 1) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
                               "UUID must be of type 1, type %d given", version);
+      return FAILURE;
     }
-    return FAILURE;
+    return SUCCESS;
   }
 
   if (timestamp < 0) {

@@ -1,55 +1,50 @@
 <?php
-declare(strict_types=1);
 
-namespace Cassandra\Tests\Feature\Duration;
+declare(strict_types=1);
 
 use Cassandra\Duration;
 
-$keyspace = 'duration';
-$table = 'durations';
+describe('Cassandra Duration type', function () {
+    $keyspace = 'duration_test';
+    $table    = 'durations';
 
-beforeAll(function () use ($keyspace, $table) {
-    migrateKeyspace(<<<CQL
-    CREATE KEYSPACE $keyspace WITH replication = {
-        'class': 'SimpleStrategy',
-        'replication_factor': 1
-      };
-      USE $keyspace;
-      CREATE TABLE $table (alias text PRIMARY KEY, duration_at duration);
-    CQL
-    );
-});
+    beforeAll(function () use ($keyspace, $table) {
+        migrateKeyspace(<<<CQL
+        CREATE KEYSPACE $keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+        USE $keyspace;
+        CREATE TABLE $table (alias text PRIMARY KEY, duration_at duration)
+        CQL);
+    });
 
-afterAll(function () use ($keyspace) {
-    dropKeyspace($keyspace);
-});
+    afterAll(fn () => dropKeyspace($keyspace));
 
-test('Use the duration type', function () use($keyspace, $table) {
-    $session = scyllaDbConnection($keyspace);
+    it('stores and retrieves duration values correctly', function () use ($keyspace, $table) {
+        $session = scyllaDbConnection($keyspace);
 
-    $durations = [
-        ['two_days', new Duration(2, 0, 0)],
-        ['twelve_hours', new Duration(0, 12, 0)],
-        ['three_seconds', new Duration(0, 0, 3 * (1000 ** 3))],
-        ['two_days_twelve_hours_and_three_seconds', new Duration(2, 12, 3 * (1000 ** 3))]
-    ];
+        $durations = [
+            'two_days'                              => new Duration(2, 0, 0),
+            'twelve_hours'                          => new Duration(0, 12, 0),
+            'three_seconds'                         => new Duration(0, 0, 3 * 1_000_000_000),
+            'two_days_twelve_hours_and_three_seconds' => new Duration(2, 12, 3 * 1_000_000_000),
+        ];
 
-    foreach ($durations as $duration) {
-        $options = ['arguments' => $duration];
-        $session->execute("INSERT INTO $table (alias, duration_at) VALUES (?, ?)", $options);
-    }
+        foreach ($durations as $alias => $duration) {
+            $session->execute(
+                "INSERT INTO $table (alias, duration_at) VALUES (?, ?)",
+                ['arguments' => [$alias, $duration]]
+            );
+        }
 
-    $rows = $session->execute("SELECT * FROM $table");
+        $expected = [
+            'twelve_hours'                          => '0mo12d0ns',
+            'three_seconds'                         => '0mo0d3000000000ns',
+            'two_days_twelve_hours_and_three_seconds' => '2mo12d3000000000ns',
+            'two_days'                              => '2mo0d0ns',
+        ];
 
-    $expectations = [
-        'twelve_hours: 0mo12d0ns',
-        'three_seconds: 0mo0d3000000000ns',
-        'two_days_twelve_hours_and_three_seconds: 2mo12d3000000000ns',
-        'two_days: 2mo0d0ns'
-    ];
-
-    foreach ($rows as $key => $row) {
-        $fullValue = sprintf("%s: %s", $row['alias'], $row['duration_at']);
-        expect($fullValue)->toBe($expectations[$key]);
-    }
+        $rows = $session->execute("SELECT * FROM $table");
+        foreach ($rows as $row) {
+            expect((string) $row['duration_at'])->toBe($expected[$row['alias']]);
+        }
+    });
 });

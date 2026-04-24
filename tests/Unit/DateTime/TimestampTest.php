@@ -2,89 +2,85 @@
 
 declare(strict_types=1);
 
-namespace Cassandra\Tests\Unit\DateTime;
-
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Cassandra\Timestamp;
 use Cassandra\Type;
-use DateTime;
-use DateTimeImmutable;
-use DateTimeInterface;
 
-it('creates new Cassandra\\Timestamp', function () {
-    $timestamp = new Timestamp();
+describe('Cassandra\Timestamp', function () {
 
-    expect($timestamp)->not->toBeNull();
-});
+    it('creates a timestamp for now when constructed with no arguments', function () {
+        expect(new Timestamp())->toBeInstanceOf(Timestamp::class);
+    });
 
-it('Cassandra\\Timestamp::type', function () {
-    $date = new Timestamp();
+    it('exposes the CQL timestamp type', function () {
+        expect((new Timestamp())->type())
+            ->toBeInstanceOf(Type::class)
+            ->and((new Timestamp())->type()->name())->toBe('timestamp');
+    });
 
-    expect($date->type())
-        ->toBeInstanceOf(Type::class)
-        ->not()
-        ->toBeNull()
-        ->and($date->type()->name())
-        ->toBe('timestamp');
-});
+    it('returns the current unix second via time()', function () {
+        $before    = time();
+        $timestamp = new Timestamp();
+        $after     = time();
 
-it('Cassandra\\Timestamp::microtime', function () {
-    $date = new Timestamp();
+        expect($timestamp->time())
+            ->toBeGreaterThanOrEqual($before)
+            ->toBeLessThanOrEqual($after);
+    });
 
-    [$firstPart, $seconds] = explode(' ', microtime(false));
+    it('returns a float from microtime(true)', function () {
+        $ts = new Timestamp();
 
-    $microtime = $date->microtime(true);
+        expect($ts->microtime(true))->toBeFloat();
+    });
 
-    expect($microtime)
-        ->toBeFloat()
-        ->and($date->microtime(false))
-        ->toBe(number_format((int)((float)$firstPart * 1000) / 1000.0, 8) . ' ' . $seconds);
-});
+    it('returns a microtime string from microtime(false)', function () {
+        $ts = new Timestamp();
 
-it('Cassandra\\Timestamp::time', function () {
-    $date = new Timestamp();
+        // Expected format: "<fractional> <seconds>"
+        expect($ts->microtime(false))->toMatch('/^[\d.]+ \d+$/');
+    });
 
-    expect($date->time())
-        ->toBe(time());
-});
+    it('converts to a DateTimeInterface via toDateTime()', function () {
+        expect((new Timestamp())->toDateTime())->toBeInstanceOf(DateTimeInterface::class);
+    });
 
+    it('formats the millisecond epoch value with __toString', function () {
+        $before = (int) (microtime(true) * 1000);
+        $ts     = new Timestamp();
+        $after  = (int) (microtime(true) * 1000);
 
-it('Create new Cassandra\\Timestamp from DateTime', function () {
-    $date = Timestamp::fromDateTime(new DateTime());
-    $date2 = Timestamp::fromDateTime(new DateTimeImmutable());
-    $date3 = Timestamp::fromDateTime(Carbon::now());
-    $date4 = Timestamp::fromDateTime(CarbonImmutable::now());
+        $value = (int) (string) $ts;
 
-    expect($date)
-        ->toBeInstanceOf(Timestamp::class)
-        ->not()
-        ->toBeNull()
-        ->and($date2)
-        ->toBeInstanceOf(Timestamp::class)
-        ->not()
-        ->toBeNull()
-        ->and($date3)
-        ->toBeInstanceOf(Timestamp::class)
-        ->not()
-        ->toBeNull()
-        ->and($date4)
-        ->toBeInstanceOf(Timestamp::class)
-        ->not()
-        ->toBeNull();
-});
+        expect($value)
+            ->toBeGreaterThanOrEqual($before)
+            ->toBeLessThanOrEqual($after);
+    });
 
-it('Cassandra\\Date::toDateTime', function () {
-    $date = new Timestamp();
+    describe('fromDateTime factory', function () {
+        it('accepts a native DateTime', function () {
+            $dt = new DateTime();
+            expect(Timestamp::fromDateTime($dt))->toBeInstanceOf(Timestamp::class);
+        });
 
-    expect($date->toDateTime())
-        ->toBeInstanceOf(DateTimeInterface::class)
-        ->not()
-        ->toBeNull();
-});
+        it('accepts a DateTimeImmutable', function () {
+            expect(Timestamp::fromDateTime(new DateTimeImmutable()))->toBeInstanceOf(Timestamp::class);
+        });
 
+        it('accepts a Carbon instance', function () {
+            expect(Timestamp::fromDateTime(Carbon::now()))->toBeInstanceOf(Timestamp::class);
+        });
 
-it('formats the string with __toString', function () {
-    $date = new Timestamp();
-    expect((string)$date)->toBe((string)(int)(microtime(true) * 1000));
+        it('accepts a CarbonImmutable instance', function () {
+            expect(Timestamp::fromDateTime(CarbonImmutable::now()))->toBeInstanceOf(Timestamp::class);
+        });
+
+        it('preserves the unix second from a known DateTime', function () {
+            $dt = new DateTime('@1700000000');
+            $ts = Timestamp::fromDateTime($dt);
+
+            expect($ts->time())->toBe(1700000000);
+        });
+    });
 });
