@@ -46,6 +46,15 @@ function(scylladb_php_library target)
             "${PROJECT_SOURCE_DIR}"
     )
 
+    # ── Symbol visibility — only get_module exported (PHP extension ABI) ────────
+    # All internal symbols are hidden; PHP's ZEND_DLEXPORT handles get_module.
+    # This enables LTO and --gc-sections to work effectively and avoids
+    # accidental PLT/GOT indirection for internal calls.
+    target_compile_options(${target} PRIVATE
+            -fvisibility=hidden
+            -fvisibility-inlines-hidden
+    )
+
     # ── Compiler warnings ─────────────────────────────────────────────────────
     target_compile_options(${target} PRIVATE
             -Wall
