@@ -1,5 +1,5 @@
 name: Install ScyllaDB/Cassandra C++ driver
-description: Build and cache the C++ driver from source, keyed on upstream HEAD SHA
+description: Build and cache the C++ driver from source
 
 inputs:
   driver:
@@ -32,23 +32,16 @@ runs:
           echo "repo=https://github.com/scylladb/cpp-driver.git"  >> "$GITHUB_OUTPUT"
           echo "prefix=/opt/scylladb-cpp"                          >> "$GITHUB_OUTPUT"
         fi
-
-    # Resolve upstream HEAD without a full clone — cache key is exact per commit
-    - name: Get upstream HEAD SHA
-      id: sha
-      shell: bash
-      run: |
-        SHA=$(git ls-remote "${{ steps.meta.outputs.repo }}" HEAD | awk '{print $1}')
-        echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+        # Monthly cache key — stable within the month, refreshes automatically
+        # to pick up upstream changes without any network call at cache-key time.
+        echo "month=$(date +%Y-%m)" >> "$GITHUB_OUTPUT"
 
     - name: Cache driver install prefix
       id: cache
       uses: actions/cache@v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: >-
-          cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.sha.outputs.sha }}
-        # Fall back to the most recent build if the SHA is new
+        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}
         restore-keys: |
           cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-
 
@@ -74,7 +67,6 @@ runs:
         [[ "$(uname -s)" == "Darwin" ]] && TIMERFD=OFF
 
         # The cpp-driver's own FindLibuv looks for LIBUV_ROOT_DIR, not pkg-config.
-        # Derive the install dir from the pkg-config path (strip /lib/pkgconfig).
         LIBUV_ROOT="${{ inputs.libuv_pkg_config_path }}"
         LIBUV_ROOT="${LIBUV_ROOT%/lib/pkgconfig}"
 
@@ -104,5 +96,5 @@ runs:
       id: values
       shell: bash
       run: |
-        echo "install_dir=${{ steps.meta.outputs.prefix }}"                       >> "$GITHUB_OUTPUT"
-        echo "pkg_config_path=${{ steps.meta.outputs.prefix }}/lib/pkgconfig"    >> "$GITHUB_OUTPUT"
+        echo "install_dir=${{ steps.meta.outputs.prefix }}"                    >> "$GITHUB_OUTPUT"
+        echo "pkg_config_path=${{ steps.meta.outputs.prefix }}/lib/pkgconfig" >> "$GITHUB_OUTPUT"

@@ -39,9 +39,13 @@ else ()
     endif ()
 
     # ── Wrap pkg-config target under unified name ─────────────────────────────
+    # PkgConfig::LIBUV carries -l:libuv.a (name-form for static libs) but
+    # INTERFACE_LINK_DIRECTORIES may not propagate through an INTERFACE wrapper.
+    # Explicitly add the directory so the linker can resolve -l:libuv.a.
     if (NOT TARGET Libuv::Libuv)
         add_library(Libuv::Libuv INTERFACE IMPORTED GLOBAL)
         target_link_libraries(Libuv::Libuv INTERFACE PkgConfig::LIBUV)
+        target_link_directories(Libuv::Libuv INTERFACE ${LIBUV_LIBRARY_DIRS})
         if (LINK_LIBUV_STATIC)
             target_compile_definitions(Libuv::Libuv INTERFACE UV_STATIC)
         endif ()
