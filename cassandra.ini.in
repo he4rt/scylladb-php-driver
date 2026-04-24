@@ -1,0 +1,10 @@
+; ScyllaDB PHP Driver v@PROJECT_VERSION@
+; https://github.com/he4rt/scylladb-php-driver
+extension=cassandra.so
+
+[cassandra]
+; Log level: CRITICAL | ERROR | WARN | INFO | DEBUG | TRACE
+cassandra.log_level = ERROR
+
+; Log file path (empty = stderr)
+cassandra.log = /var/log/php-cassandra.log

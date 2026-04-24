@@ -52,6 +52,9 @@ option(USE_LIBCASSANDRA   "Use DataStax libcassandra instead of libscylla-cpp-dr
 find_package(PHPConfig REQUIRED)
 find_package(PHP      REQUIRED)
 
+# Must come after find_package(PHP) — reads PHP_PREFIX, PHP_EXTENSION_DIR etc.
+include(cmake/PhpExtensionHelpers.cmake)
+
 if (ENABLE_SANITIZERS)
     find_package(Sanitizers REQUIRED)
 endif ()
@@ -110,6 +113,7 @@ set_target_properties(ext_scylladb PROPERTIES
 )
 
 # ── Install ───────────────────────────────────────────────────────────────────
-install(TARGETS ext_scylladb
-        LIBRARY DESTINATION "${PHP_EXTENSION_DIR}"
-)
+# php_extension_install() is defined in cmake/PhpExtensionHelpers.cmake.
+# It installs cassandra.so and cassandra.ini as separate components and
+# sets CMAKE_INSTALL_PREFIX to PHP_PREFIX so DESTDIR works correctly.
+php_extension_install(ext_scylladb)
