@@ -238,6 +238,7 @@ php ./vendor/bin/pest
 
 | Skill | When to use |
 |-------|------------|
+| `/dev-setup` | Setting up a new machine for development — installs all deps, builds PHP, compiles extension, starts ScyllaDB |
 | `/php-ext-review [path]` | After implementing or modifying any `src/` module — checks C23, Zend API, memory, handlers, arginfo |
 | `/scylladb-review [path]` | After touching any code with `cass_*` calls — checks error handling, lifecycle, type mapping, futures |
 | `/cmake-review [path]` | After modifying any CMakeLists.txt or cmake/ module — checks double-eval bugs, IMPORTED_TARGET usage, global state, find-module correctness |
