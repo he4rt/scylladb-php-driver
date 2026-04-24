@@ -1,6 +1,6 @@
 add_library(zend STATIC Zend.cpp)
 add_library(Zend ALIAS zend)
-scylladb_php_library(zend "${ENABLE_SANITIZERS}" "${CPU_TYPE}" "${ENABLE_LTO}")
+scylladb_php_library(zend)
 
 add_subdirectory(String)
 

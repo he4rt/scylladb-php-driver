@@ -1,34 +1,53 @@
+include_guard(GLOBAL)
+
 include(CheckIPOSupported)
-include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
 
-function(scylladb_php_library target enable_sanitizers cpu_type lto)
-    target_include_directories(
-            ${target}
-            PUBLIC
-            ${PHP_INCLUDES}
-            ${PROJECT_SOURCE_DIR}/include
-            ${PROJECT_BINARY_DIR}
-            ${PROJECT_SOURCE_DIR}
-            ${LIBGMP_INCLUDE_DIRS}
-            ${CASSANDRA_H}
-    )
+# ── Pre-check compiler capabilities once at configure time ───────────────────
+# Results are CACHE INTERNAL — subsequent calls are no-ops.
+check_c_compiler_flag(-mavx  _PHP_DRIVER_CC_SUPPORTS_AVX)
+check_c_compiler_flag(-mavx2 _PHP_DRIVER_CC_SUPPORTS_AVX2)
 
+check_ipo_supported(RESULT _PHP_DRIVER_LTO_SUPPORTED OUTPUT _PHP_DRIVER_LTO_MSG)
+if (NOT _PHP_DRIVER_LTO_SUPPORTED)
+    message(STATUS "LTO not available: ${_PHP_DRIVER_LTO_MSG}")
+endif ()
+
+# ── scylladb_php_library ──────────────────────────────────────────────────────
+# Apply standard compiler settings to a target. Reads ENABLE_SANITIZERS,
+# ENABLE_LTO, ENABLE_AVX, ENABLE_AVX2, CPU_TYPE from CMake cache.
+#
+# Usage: scylladb_php_library(<target>)
+function(scylladb_php_library target)
+    # ── Language standards ────────────────────────────────────────────────────
     target_compile_features(${target} PUBLIC cxx_std_20 c_std_23)
-
     set_target_properties(${target} PROPERTIES
-            CXX_STANDARD 20
+            CXX_STANDARD          20
             CXX_STANDARD_REQUIRED ON
-            CXX_EXTENSIONS OFF
-            C_STANDARD 23
-            C_STANDARD_REQUIRED ON
-            C_EXTENSIONS ON
+            CXX_EXTENSIONS        OFF
+            C_STANDARD            23
+            C_STANDARD_REQUIRED   ON
+            C_EXTENSIONS          ON
+            POSITION_INDEPENDENT_CODE ON
     )
 
-    target_compile_options(
-            ${target}
-            PRIVATE
-            -fPIC
+    # ── External dependency headers via INTERFACE targets ─────────────────────
+    target_link_libraries(${target} PUBLIC
+            PHP::PHP
+            CppDriver::Driver
+            LibGMP::LibGMP
+    )
+
+    # ── Project-internal include paths ────────────────────────────────────────
+    target_include_directories(${target} PUBLIC
+            "${PROJECT_SOURCE_DIR}/include"
+            "${PROJECT_BINARY_DIR}"
+            "${PROJECT_SOURCE_DIR}"
+    )
+
+    # ── Compiler warnings ─────────────────────────────────────────────────────
+    target_compile_options(${target} PRIVATE
             -Wall
             -Wextra
             -Wno-long-long
@@ -40,89 +59,76 @@ function(scylladb_php_library target enable_sanitizers cpu_type lto)
             -pthread
     )
 
+    # ── Build-type flags via generator expressions (multi-config safe) ────────
+    target_compile_options(${target} PRIVATE
+            $<$<CONFIG:Debug>:-O0;-g;-ggdb;-g3;-gdwarf-4;-Wpedantic>
+            $<$<CONFIG:RelWithDebInfo>:-O2;-g;-ggdb;-g3;-gdwarf-4;-Wpedantic>
+            $<$<CONFIG:Release>:-O3>
+    )
+
     target_compile_definitions(${target} PRIVATE
             _TIME_BITS=64
             _FILE_OFFSET_BITS=64
+            $<$<CONFIG:Debug>:DEBUG>
+            $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:RELEASE>
     )
 
-    if (enable_sanitizers)
+    # ── Platform-specific linker flags ────────────────────────────────────────
+    target_link_options(${target} PRIVATE
+            $<$<PLATFORM_ID:Darwin>:-undefined;dynamic_lookup>
+    )
+
+    # ── Sanitizers ────────────────────────────────────────────────────────────
+    if (ENABLE_SANITIZERS)
         target_compile_options(${target} PRIVATE -fno-inline -fno-omit-frame-pointer)
         add_sanitize_undefined(${target})
         add_sanitize_address(${target})
     endif ()
 
-    if (APPLE)
-        target_link_options(${target} PRIVATE -undefined dynamic_lookup)
+    # ── LTO ───────────────────────────────────────────────────────────────────
+    if (ENABLE_LTO AND _PHP_DRIVER_LTO_SUPPORTED)
+        set_property(TARGET ${target} PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     endif ()
 
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        target_compile_options(${target} PRIVATE -O0 -g -ggdb -g3 -gdwarf-4 -Wpedantic)
-        target_compile_definitions(${target} PRIVATE DEBUG)
-    endif ()
-
-    if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        target_compile_options(${target} PRIVATE -O2 -g -ggdb -g3 -gdwarf-4 -Wpedantic)
-        target_compile_definitions(${target} PRIVATE RELEASE)
-    endif ()
-
-    if (CMAKE_BUILD_TYPE STREQUAL "Release")
-        target_compile_options(${target} PRIVATE -O3)
-        target_compile_definitions(${target} PRIVATE RELEASE)
-    endif ()
-
-    if (lto)
-        check_ipo_supported(RESULT LTO_SUPPORTED)
-        if (LTO_SUPPORTED)
-            message(STATUS "LTO is supported and enabled")
-            set_property(TARGET ${target} PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
-        else ()
-            message(STATUS "LTO is not supported")
-        endif ()
-    endif ()
-
+    # ── x86_64 SIMD ───────────────────────────────────────────────────────────
     if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
         target_compile_options(${target} PRIVATE -msse2 -msse3 -msse4.1 -msse4.2)
-        if (ENABLE_AVX)
-            check_c_compiler_flag(-mavx SUPPORTS_AVX)
-            if (SUPPORTS_AVX)
-                target_compile_options(${target} PRIVATE -mavx)
-            else ()
-                message(WARNING "Compiler does not support AVX")
-            endif ()
+
+        if (ENABLE_AVX AND _PHP_DRIVER_CC_SUPPORTS_AVX)
+            target_compile_options(${target} PRIVATE -mavx)
+        elseif (ENABLE_AVX AND NOT _PHP_DRIVER_CC_SUPPORTS_AVX)
+            message(WARNING "${target}: ENABLE_AVX requested but compiler lacks -mavx")
         endif ()
 
-        if (ENABLE_AVX2)
-            check_c_compiler_flag(-mavx2 SUPPORTS_AVX2)
-            if (SUPPORTS_AVX2)
-                target_compile_options(${target} PRIVATE -mavx2)
-            else ()
-                message(WARNING "Compiler does not support AVX2")
-            endif ()
+        if (ENABLE_AVX2 AND _PHP_DRIVER_CC_SUPPORTS_AVX2)
+            target_compile_options(${target} PRIVATE -mavx2)
+        elseif (ENABLE_AVX2 AND NOT _PHP_DRIVER_CC_SUPPORTS_AVX2)
+            message(WARNING "${target}: ENABLE_AVX2 requested but compiler lacks -mavx2")
         endif ()
-    else ()
-        message(STATUS "Architecture is ${CMAKE_SYSTEM_PROCESSOR}")
     endif ()
 
-    if (cpu_type STREQUAL "native")
-        message(WARNING "Be careful when using -march=native, it may cause problems when running on different CPUs")
+    # ── -march ────────────────────────────────────────────────────────────────
+    if (CPU_TYPE STREQUAL "native")
+        message(WARNING
+                "-march=native produces binaries that may not run on other CPUs")
     endif ()
 
-    check_c_compiler_flag("-march=${cpu_type}" SUPPORT_MARCH)
-    if (SUPPORT_MARCH)
-        target_compile_options(${target} PRIVATE "-march=${cpu_type}")
+    check_c_compiler_flag("-march=${CPU_TYPE}" _PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
+    if (_PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
+        target_compile_options(${target} PRIVATE "-march=${CPU_TYPE}")
     else ()
-        message(WARNING "Compiler does not support -march=${cpu_type}")
+        message(WARNING "${target}: compiler does not support -march=${CPU_TYPE}")
     endif ()
 endfunction()
 
-# Convenience macro: declares a static sub-library, its namespace alias,
-# and applies standard compiler flags. Sources must still be added via
-# target_sources() after calling this macro.
+# ── php_driver_module ─────────────────────────────────────────────────────────
+# Declare a static sub-library with its namespace alias and apply standard
+# compiler settings. Add sources with target_sources() after this call.
 #
-# Usage: php_driver_module(<target> <alias>)
+# Usage: php_driver_module(<target> <namespace::alias>)
 # Example: php_driver_module(datetime ext_scylladb::datetime)
 macro(php_driver_module _target _alias)
     add_library(${_target} STATIC)
     add_library(${_alias} ALIAS ${_target})
-    scylladb_php_library(${_target} "${ENABLE_SANITIZERS}" "${CPU_TYPE}" "${ENABLE_LTO}")
+    scylladb_php_library(${_target})
 endmacro()
