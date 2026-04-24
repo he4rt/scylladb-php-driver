@@ -1,5 +1,5 @@
 name: Build ScyllaDB PHP extension
-description: Configure, build and install cassandra.so using CMake
+description: Configure, build, and install cassandra.so using CMake + Ninja
 
 inputs:
   driver:
@@ -24,7 +24,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Configure and build
+    - name: Configure
       shell: bash
       run: |
         USE_CASSANDRA="OFF"
@@ -32,15 +32,19 @@ runs:
 
         export PKG_CONFIG_PATH="${{ inputs.libuv_pkg_config_path }}:${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
 
-        cmake -B cmake-build \
+        cmake -G Ninja -B cmake-build \
           -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
           -DCMAKE_BUILD_TYPE="${{ inputs.build_type }}" \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DLINK_LIBUV_STATIC=ON \
           -DPHP_DRIVER_STATIC=OFF \
           -DUSE_LIBCASSANDRA="${USE_CASSANDRA}" \
           -DENABLE_LTO="${{ inputs.enable_lto }}"
 
-        cmake --build cmake-build --parallel "$(nproc)"
+    - name: Build
+      shell: bash
+      run: cmake --build cmake-build --parallel "$(nproc)"
 
     - name: Install extension
       shell: bash

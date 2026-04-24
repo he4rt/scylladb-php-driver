@@ -65,14 +65,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           submodules: recursive
 
       - name: Install system dependencies
         run: |
           sudo apt-get update -q
           sudo apt-get install -y --no-install-recommends \
-            pkg-config build-essential
+            pkg-config build-essential ninja-build
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -88,6 +88,19 @@ jobs:
         uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: "3.30"
+
+      # ccache must be set up before any cmake build step so all
+      # C/C++ compilation (libuv, cpp-driver, extension) benefits from it.
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}
+            ${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-
+            ${{ runner.os }}-${{ matrix.php }}-
+          max-size: 500M
+          append-timestamp: false
 
       - uses: ./.github/actions/install-libuv
         id: libuv

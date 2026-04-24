@@ -35,7 +35,7 @@ jobs:
         run: echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Build ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }} / ${{ matrix.os }}
+    name: ${{ matrix.os }} / PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
     runs-on: ubuntu-24.04
     needs: [tag]
     strategy:
@@ -58,13 +58,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           submodules: recursive
 
       - name: Install system dependencies
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y --no-install-recommends pkg-config build-essential
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -79,6 +80,17 @@ jobs:
         uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: release-${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}
+          restore-keys: |
+            release-${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}
+            release-${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-
+            release-${{ runner.os }}-${{ matrix.php }}-
+          max-size: 500M
+          append-timestamp: false
 
       - uses: ./.github/actions/install-libuv
         id: libuv
@@ -100,14 +112,14 @@ jobs:
       - name: Package artifact
         run: |
           EXT_DIR="$(php-config --extension-dir)"
-          ARTIFACT="${{ matrix.os }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}"
+          ARTIFACT="${{ matrix.os }}-php${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}"
           cp "${EXT_DIR}/cassandra.so" .
           tar czf "${ARTIFACT}.tar.gz" cassandra.so cassandra.ini
           echo "ARTIFACT=${ARTIFACT}" >> "$GITHUB_ENV"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ARTIFACT }}.tar.gz
+          name: ${{ env.ARTIFACT }}
           path: ${{ env.ARTIFACT }}.tar.gz
           if-no-files-found: error
           retention-days: 5
@@ -120,7 +132,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: /tmp/artifacts
-          merge-multiple: false
+          merge-multiple: true
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -132,8 +144,13 @@ jobs:
           generate_release_notes: true
           append_body: true
           prerelease: ${{ needs.tag.outputs.prerelease == 'true' }}
-          files: /tmp/artifacts/**
+          files: /tmp/artifacts/*.tar.gz
           fail_on_unmatched_files: true
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: v1.3.x
 
       - name: Generate changelog
         uses: heinrichreimer/action-github-changelog-generator@v2.4

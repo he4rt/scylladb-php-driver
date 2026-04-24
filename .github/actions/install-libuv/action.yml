@@ -30,7 +30,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update -q
-        sudo apt-get install -y --no-install-recommends cmake ninja-build
+        sudo apt-get install -y --no-install-recommends ninja-build
 
     - name: Download and build libuv
       if: steps.cache.outputs.cache-hit != 'true'
@@ -44,14 +44,15 @@ runs:
           -DBUILD_BENCHMARKS=OFF \
           -DLIBUV_BUILD_SHARED=OFF \
           -DCMAKE_INSTALL_PREFIX=/opt/libuv \
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache
         cmake --build /opt/libuv-src/build --parallel "$(nproc)"
         sudo cmake --install /opt/libuv-src/build
         sudo rm -rf /opt/libuv-src
 
-    - name: Set outputs
+    - name: Expose outputs
       id: values
       shell: bash
       run: |
-        echo "install_dir=/opt/libuv"          >> "$GITHUB_OUTPUT"
-        echo "pkg_config_path=/opt/libuv/lib/pkgconfig" >> "$GITHUB_OUTPUT"
+        echo "install_dir=/opt/libuv"                       >> "$GITHUB_OUTPUT"
+        echo "pkg_config_path=/opt/libuv/lib/pkgconfig"    >> "$GITHUB_OUTPUT"
