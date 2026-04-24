@@ -208,6 +208,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     ASSERT_SUCCESS(cass_cluster_set_protocol_version(cluster->cluster, self->protocol_version));
     ASSERT_SUCCESS(cass_cluster_set_num_threads_io(cluster->cluster, self->io_threads));
     ASSERT_SUCCESS(cass_cluster_set_core_connections_per_host(cluster->cluster, self->core_connections_per_host));
+    ASSERT_SUCCESS(cass_cluster_set_max_connections_per_host(cluster->cluster, self->max_connections_per_host));
     cass_cluster_set_constant_reconnect(cluster->cluster, self->reconnect_interval);
     cass_cluster_set_latency_aware_routing(cluster->cluster, self->enable_latency_aware_routing);
     cass_cluster_set_tcp_nodelay(cluster->cluster, self->enable_tcp_nodelay);

@@ -52,6 +52,12 @@ PHP_METHOD(FutureSession, get)
   session->persist = self->persist;
 
   if (php_driver_future_wait_timed(self->future, timeout ) == FAILURE) {
+    if (self->persist && self->hash_key) {
+      /* Remove timed-out pending session so the next request reconnects. */
+      if (PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), self->hash_key, self->hash_key_len + 1)) {
+        self->future = NULL;
+      }
+    }
     return;
   }
 

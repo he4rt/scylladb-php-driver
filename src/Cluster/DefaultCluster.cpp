@@ -114,6 +114,9 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     {
         if (session->persist)
         {
+            /* Remove the broken/timed-out session so the next request gets a
+               fresh connection attempt instead of reusing a stale future. */
+            (void)PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
             efree(hash_key);
         }
         else
