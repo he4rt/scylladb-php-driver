@@ -10,21 +10,20 @@ function(scylladb_php_library target enable_sanitizers cpu_type lto)
             ${PROJECT_SOURCE_DIR}/include
             ${PROJECT_BINARY_DIR}
             ${PROJECT_SOURCE_DIR}
-            ${PHP_INCLUDES}
-            ${libscylladb_SOURCE_DIR}/include
             ${LIBGMP_INCLUDE_DIRS}
             ${CASSANDRA_H}
     )
 
     target_compile_features(${target} PUBLIC cxx_std_20 c_std_23)
 
-    set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-    set(CMAKE_CXX_EXTENSIONS OFF)
-
-    set(CMAKE_C_STANDARD 23)
-    set(CMAKE_C_STANDARD_REQUIRED ON)
-    set(CMAKE_C_EXTENSIONS ON)
+    set_target_properties(${target} PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            CXX_EXTENSIONS OFF
+            C_STANDARD 23
+            C_STANDARD_REQUIRED ON
+            C_EXTENSIONS ON
+    )
 
     target_compile_options(
             ${target}
@@ -39,8 +38,11 @@ function(scylladb_php_library target enable_sanitizers cpu_type lto)
             -Wno-variadic-macros
             -Wno-format
             -pthread
-            -D_TIME_BITS=64
-            -D_FILE_OFFSET_BITS=64
+    )
+
+    target_compile_definitions(${target} PRIVATE
+            _TIME_BITS=64
+            _FILE_OFFSET_BITS=64
     )
 
     if (enable_sanitizers)
@@ -49,23 +51,26 @@ function(scylladb_php_library target enable_sanitizers cpu_type lto)
         add_sanitize_address(${target})
     endif ()
 
-    if (${APPLE})
+    if (APPLE)
         target_link_options(${target} PRIVATE -undefined dynamic_lookup)
     endif ()
 
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        target_compile_options(${target} PRIVATE -O0 -g -ggdb -g3 -gdwarf-4 -Wpedantic -DDEBUG)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(${target} PRIVATE -O0 -g -ggdb -g3 -gdwarf-4 -Wpedantic)
+        target_compile_definitions(${target} PRIVATE DEBUG)
     endif ()
 
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithInfo")
-        target_compile_options(${target} PRIVATE -O2 -g -ggdb -g3 -gdwarf-4 -Wpedantic -DRELEASE)
+    if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+        target_compile_options(${target} PRIVATE -O2 -g -ggdb -g3 -gdwarf-4 -Wpedantic)
+        target_compile_definitions(${target} PRIVATE RELEASE)
     endif ()
 
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        target_compile_options(${target} PRIVATE -O3 -DRELEASE)
+    if (CMAKE_BUILD_TYPE STREQUAL "Release")
+        target_compile_options(${target} PRIVATE -O3)
+        target_compile_definitions(${target} PRIVATE RELEASE)
     endif ()
 
-    if (${lto})
+    if (lto)
         check_ipo_supported(RESULT LTO_SUPPORTED)
         if (LTO_SUPPORTED)
             message(STATUS "LTO is supported and enabled")
@@ -98,14 +103,14 @@ function(scylladb_php_library target enable_sanitizers cpu_type lto)
         message(STATUS "Architecture is ${CMAKE_SYSTEM_PROCESSOR}")
     endif ()
 
-    if ("${cpu_type}" STREQUAL "native")
-        message(WARNING "Be careful when using `-march=native`, it may cause problems when running on different CPUs")
+    if (cpu_type STREQUAL "native")
+        message(WARNING "Be careful when using -march=native, it may cause problems when running on different CPUs")
     endif ()
 
-    check_c_compiler_flag(-march=${cpu_type} SUPPORT_MARCH)
+    check_c_compiler_flag("-march=${cpu_type}" SUPPORT_MARCH)
     if (SUPPORT_MARCH)
         target_compile_options(${target} PRIVATE "-march=${cpu_type}")
     else ()
-        message(WARNING "Compiler does not support `-march=${cpu_type}`")
+        message(WARNING "Compiler does not support -march=${cpu_type}")
     endif ()
 endfunction()

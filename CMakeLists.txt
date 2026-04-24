@@ -1,36 +1,16 @@
 cmake_minimum_required(VERSION 3.30)
 
-if (POLICY CMP0074)
-    cmake_policy(SET CMP0074 NEW)
-endif ()
-
-if (POLICY CMP0054)
-    cmake_policy(SET CMP0054 NEW)
-endif ()
-
-if (POLICY CMP0079)
-    cmake_policy(SET CMP0079 NEW)
-endif ()
-
-if (POLICY CMP0108)
-    cmake_policy(SET CMP0108 NEW)
-endif ()
-
-if (POLICY CMP0109)
-    cmake_policy(SET CMP0109 NEW)
-endif ()
-
-if (POLICY CMP0128)
-    cmake_policy(SET CMP0128 NEW)
-endif ()
-
 project(php-ext-scylladb LANGUAGES C CXX)
 add_library(ext_scylladb SHARED)
 
-# if build type is not set, default to debug
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
 endif ()
+
+set(CMAKE_MODULE_PATH
+        "${PROJECT_SOURCE_DIR}/cmake"
+        "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake"
+)
 
 include(CheckSymbolExists)
 include(CheckIncludeFile)
@@ -40,33 +20,31 @@ include(cmake/TargetOptimizations.cmake)
 
 set(PHP_SCYLLADB_DRIVER_VERSION "1.4.0-dev")
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake")
-
 # Library Options
 option(ENABLE_SANITIZERS "Enable sanitizers" OFF)
 option(ENABLE_AVX "Enable AVX" OFF)
 option(ENABLE_AVX2 "Enable AVX2" OFF)
 option(ENABLE_LTO "Enable LTO" OFF)
-set(CPU_TYPE "x86-64-v2" CACHE STRING "For x86_64 = x86-64|x86-64-v2|x86-64-v3|x86-64-v4|native")
+set(CPU_TYPE "x86-64-v2" CACHE STRING "x86-64 micro-architecture level: x86-64|x86-64-v2|x86-64-v3|x86-64-v4|native")
 
 # PHP Options
-set(CUSTOM_PHP_CONFIG "" CACHE STRING "Custom PHP config path")
-set(PHP_VERSION_FOR_PHP_CONFIG "8.4" CACHE STRING "PHP version")
-option(PHP_DEBUG "Debug or Release" ON)
-option(PHP_THREAD_SAFE "ZTS(zts) or NTS(nts)" OFF)
+set(CUSTOM_PHP_CONFIG "" CACHE STRING "Absolute path to a specific php-config binary")
+set(PHP_VERSION_FOR_PHP_CONFIG "8.4" CACHE STRING "PHP minor version (e.g. 8.4) used to locate php-config")
+option(PHP_DEBUG "Use a debug PHP build" ON)
+option(PHP_THREAD_SAFE "Use a ZTS (thread-safe) PHP build" OFF)
 
-option(LINK_LIBUV_STATIC "Statically link libuv" OFF)
-option(BUILD_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
+option(LINK_LIBUV_STATIC "Link libuv statically" OFF)
+option(BUILD_LIBUV_FROM_SRC "Fetch and build libuv via CPM" OFF)
 
-option(PHP_DRIVER_STATIC "Statically link PHP Driver" OFF)
-option(USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
+option(PHP_DRIVER_STATIC "Link the ScyllaDB/Cassandra C driver statically" OFF)
+option(USE_LIBCASSANDRA "Use DataStax libcassandra instead of libscylla-cpp-driver" OFF)
 
 find_package(PHPConfig REQUIRED)
 find_package(PHP REQUIRED)
 
 if (ENABLE_SANITIZERS)
     find_package(Sanitizers REQUIRED)
-endif()
+endif ()
 
 find_package(Libuv REQUIRED)
 find_package(LibGMP REQUIRED)
@@ -85,18 +63,14 @@ add_subdirectory(src/SSLOptions)
 add_subdirectory(src/TimestampGenerator)
 add_subdirectory(src/Type)
 
-file(GLOB_RECURSE HEADERS_LIST FOLLOW_SYMLINKS include/*.h)
+file(GLOB_RECURSE HEADERS_LIST CONFIGURE_DEPENDS include/*.h)
 
 scylladb_php_library(ext_scylladb "${ENABLE_SANITIZERS}" "${CPU_TYPE}" "${ENABLE_LTO}")
 
 target_sources(ext_scylladb PUBLIC FILE_SET headers TYPE HEADERS FILES "${HEADERS_LIST}")
-target_sources(
-        ext_scylladb
-        PRIVATE
-        src/php_driver.cpp
-)
-target_link_libraries(
-        ext_scylladb PRIVATE
+target_sources(ext_scylladb PRIVATE src/php_driver.cpp)
+
+target_link_libraries(ext_scylladb PRIVATE
         Zend
         ext_scylladb::src
         ext_scylladb::utils
@@ -111,14 +85,12 @@ target_link_libraries(
         ext_scylladb::timestamp_generator
 )
 
-configure_file(
-        version.h.in
-        version.h
-        USE_SOURCE_PERMISSIONS
-        NEWLINE_STYLE UNIX
-)
+configure_file(version.h.in version.h USE_SOURCE_PERMISSIONS NEWLINE_STYLE UNIX)
 
-target_compile_definitions(ext_scylladb PRIVATE -DCOMPILE_DL_CASSANDRA)
-set_target_properties(ext_scylladb PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(ext_scylladb PROPERTIES PREFIX "")
-set_target_properties(ext_scylladb PROPERTIES OUTPUT_NAME "cassandra")
+target_compile_definitions(ext_scylladb PRIVATE COMPILE_DL_CASSANDRA)
+
+set_target_properties(ext_scylladb PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        PREFIX ""
+        OUTPUT_NAME "cassandra"
+)

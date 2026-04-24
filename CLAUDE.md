@@ -240,6 +240,7 @@ php ./vendor/bin/pest
 |-------|------------|
 | `/php-ext-review [path]` | After implementing or modifying any `src/` module — checks C23, Zend API, memory, handlers, arginfo |
 | `/scylladb-review [path]` | After touching any code with `cass_*` calls — checks error handling, lifecycle, type mapping, futures |
+| `/cmake-review [path]` | After modifying any CMakeLists.txt or cmake/ module — checks double-eval bugs, IMPORTED_TARGET usage, global state, find-module correctness |
 | `/new-module <Module> <Class> [final\|abstract]` | Scaffolds a complete new module: stub, handlers, implementation, CMakeLists, wires into build |
 
 ### Typical workflow
