@@ -38,13 +38,13 @@ jobs:
 
     services:
       scylladb:
-        image: scylladb/scylla:6.2
+        image: scylladb/scylla:2026.1
         options: >-
-          --health-cmd "nodetool status 2>/dev/null | grep -q UN"
-          --health-interval 15s
-          --health-timeout 10s
-          --health-retries 20
-          --health-start-period 30s
+          --health-cmd "cqlsh -e 'SELECT cluster_name FROM system.local' 2>/dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 60s
         ports:
           - 9042:9042
 
