@@ -1,68 +1,130 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-SCYLLA_OR_CASSANDRA=${1:-"scylladb"}
-CURRENT_DIR="$(pwd)"
+DRIVER="scylladb"
+INSTALL_PREFIX="/usr/local"
+BUILD_DIR=""
+KEEP_SRC=0
+BUILD_TYPE="RelWithDebInfo"
+GIT_REF="HEAD"
 
-GIT_REPO="https://github.com/$SCYLLA_OR_CASSANDRA/cpp-driver.git"
-GIT_OUTPUT="/opt/$SCYLLA_OR_CASSANDRA-driver"
+print_usage() {
+    cat <<EOF
 
-is_linux() {
-  local value
+Usage: $(basename "$0") [OPTIONS]
 
-  value="$(uname -s)"
+Options:
+  --driver NAME     Driver to build: scylladb (default) or cassandra
+  --prefix PATH     Install prefix (default: /usr/local)
+  --ref GIT_REF     Git branch/tag/commit to check out (default: HEAD of default branch)
+  --build-type TYPE CMake build type: Debug|Release|RelWithDebInfo (default: RelWithDebInfo)
+  --build-dir PATH  Temporary build directory (default: auto in /tmp)
+  --keep-src        Keep source directory after install
+  -h, --help        Show this help
 
-  if [ "$value" = "Linux" ]; then
-    return 0
-  fi
+Examples:
+  $(basename "$0")                                  # scylladb driver to /usr/local
+  $(basename "$0") --driver cassandra --prefix \$HOME/.local
+  $(basename "$0") --prefix /opt/scylladb --build-type Release
 
-  return 1
+EOF
 }
 
-if ! is_linux; then
-  echo "This script is for Linux only"
-  exit 1
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --driver)     DRIVER="${2:?--driver requires a value}"; shift 2 ;;
+        --prefix)     INSTALL_PREFIX="${2:?--prefix requires a value}"; shift 2 ;;
+        --ref)        GIT_REF="${2:?--ref requires a value}"; shift 2 ;;
+        --build-type) BUILD_TYPE="${2:?--build-type requires a value}"; shift 2 ;;
+        --build-dir)  BUILD_DIR="${2:?--build-dir requires a value}"; shift 2 ;;
+        --keep-src)   KEEP_SRC=1; shift ;;
+        -h|--help)    print_usage; exit 0 ;;
+        *) die "Unknown option: $1. Use --help for usage." ;;
+    esac
+done
+
+[[ "$DRIVER" == "scylladb" || "$DRIVER" == "cassandra" ]] \
+    || die "Invalid --driver '$DRIVER'. Must be 'scylladb' or 'cassandra'."
+
+command -v cmake >/dev/null 2>&1 || die "cmake not found in PATH"
+command -v git   >/dev/null 2>&1 || die "git not found in PATH"
+command -v ninja >/dev/null 2>&1 || die "ninja not found in PATH"
+
+GIT_REPO="https://github.com/${DRIVER}/cpp-driver.git"
+
+install_system_deps() {
+    if [[ "$(uname -s)" != "Linux" ]]; then return; fi
+    # shellcheck source=/dev/null
+    . /etc/os-release 2>/dev/null || return
+
+    case "${ID:-}" in
+        fedora)
+            echo "==> Installing build deps (Fedora)"
+            dnf install -y cmake pkg-config gcc ninja-build openssl-devel openssl-devel-engine
+            ;;
+        ubuntu|debian)
+            echo "==> Installing build deps (Ubuntu/Debian)"
+            apt-get install -y pkg-config build-essential libssl-dev
+            ;;
+        *)
+            echo "WARN: Unknown distro '$ID', skipping automatic dep install" >&2
+            ;;
+    esac
+}
+
+if [[ -z "$BUILD_DIR" ]]; then
+    BUILD_DIR="$(mktemp -d /tmp/cpp-driver-build-XXXXXX)"
+    CLEAN_BUILD_DIR=1
+else
+    mkdir -p "$BUILD_DIR"
+    CLEAN_BUILD_DIR=0
 fi
 
-. /etc/os-release
+cleanup() {
+    if [[ "${CLEAN_BUILD_DIR:-0}" -eq 1 && -d "$BUILD_DIR" && "$KEEP_SRC" -eq 0 ]]; then
+        rm -rf "$BUILD_DIR"
+    fi
+}
+trap cleanup EXIT
 
-if [[ "$NAME" == "Fedora Linux" ]]; then
-  dnf install \
-    cmake \
-    pkg-config \
-    gcc \
-    ninja-build \
-    openssl-devel \
-    openssl-devel-engine || exit 1
+SRC_DIR="$BUILD_DIR/src"
+
+install_system_deps
+
+echo "==> Cloning $DRIVER/cpp-driver into $SRC_DIR"
+git clone --depth 1 "$GIT_REPO" "$SRC_DIR"
+
+if [[ "$GIT_REF" != "HEAD" ]]; then
+    git -C "$SRC_DIR" fetch --depth 1 origin "$GIT_REF"
+    git -C "$SRC_DIR" checkout FETCH_HEAD
 fi
 
-if [[ "$NAME" == "Ubuntu" ]]; then
-  apt-get install \
-    pkg-config \
-    build-essential \
-    libssl-dev || exit 1
-fi
+NPROC="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
 
-git clone --depth 1 "$GIT_REPO" "$GIT_OUTPUT"
+echo "==> Configuring (prefix=$INSTALL_PREFIX, build=$BUILD_TYPE)"
+CFLAGS="-fPIC" \
+CXXFLAGS="-fPIC -Wno-error=redundant-move" \
+LDFLAGS="-flto" \
+cmake -G Ninja -B "$SRC_DIR/build" -S "$SRC_DIR" \
+    -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
+    -DCASS_CPP_STANDARD=17 \
+    -DCASS_BUILD_STATIC=ON \
+    -DCASS_BUILD_SHARED=ON \
+    -DCASS_USE_STD_ATOMIC=ON \
+    -DCASS_USE_STATIC_LIBS=ON \
+    -DCASS_USE_TIMERFD=ON \
+    -DCASS_USE_LIBSSH2=ON \
+    -DCASS_USE_ZLIB=ON \
+    -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_DIR:+ccache}" \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF \
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 
-cd "$GIT_OUTPUT" || exit 1
+echo "==> Building (jobs=$NPROC)"
+cmake --build "$SRC_DIR/build" --parallel "$NPROC"
 
-CFLAGS="-fPIC" CXXFLAGS="-fPIC -Wno-error=redundant-move" LDFLAGS="-flto" cmake -G Ninja -B build \
-  -DCASS_CPP_STANDARD=17 \
-  -DCASS_BUILD_STATIC=ON \
-  -DCASS_BUILD_SHARED=ON \
-  -DCASS_USE_STD_ATOMIC=ON \
-  -DCASS_USE_STATIC_LIBS=ON \
-  -DCASS_USE_TIMERFD=ON \
-  -DCASS_USE_LIBSSH2=ON \
-  -DCASS_USE_ZLIB=ON \
-  -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-  -DCMAKE_EXPORT_COMPILE_COMMANDS="OFF" \
-  -DCMAKE_BUILD_TYPE="RelWithInfo"
+echo "==> Installing to $INSTALL_PREFIX"
+cmake --install "$SRC_DIR/build"
 
-CFLAGS="-fPIC" CXXFLAGS="-fPIC -Wno-error=redundant-move" LDFLAGS="-flto" cmake --build build
-
-cd .. || exit
-
-rm -rf build
-
-cd "$CURRENT_DIR" || exit 1
+echo "==> $DRIVER cpp-driver installed to $INSTALL_PREFIX"

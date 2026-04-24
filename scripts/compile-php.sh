@@ -1,121 +1,141 @@
 #!/usr/bin/env bash
-# -*- coding: utf-8 -*-
-
-. /etc/os-release
-
-print_usage() {
-  echo ""
-  echo "Usage: compile-php.sh [OPTION] [ARG]"
-  echo "-v ARG php version"
-  echo "-o ARG output path, default: $(pwd)"
-  echo "-z Use ZTS"
-  echo "-d Compile in debug mode"
-  echo "-k keep PHP source code"
-  echo "-a compile PHP without version suffix"
-  echo "-s Use Memory and Undefined Sanitizers"
-  echo "----------"
-  echo "Example: compiling PHP 8.2 in debug mode with Thread Safety"
-  echo "./compile-php.sh -v 8.2 -s yes -d yes -z yes"
-  echo ""
-}
+set -euo pipefail
 
 PHP_VERSION="8.4"
-WITH_VERSION="yes"
+OUTPUT="$(pwd)/php"
 PHP_THREAD_MODEL="nts"
 ENABLE_DEBUG="no"
-OUTPUT="$(pwd)/php"
 ENABLE_SANITIZERS="no"
+WITH_VERSION="yes"
+KEEP_SRC="no"
 
-while getopts "v:o:z:s:d:a" option; do
-  case "$option" in
-  "v") PHP_VERSION="$OPTARG" ;;
-  "z") PHP_THREAD_MODEL="$OPTARG" ;;
-  "o") OUTPUT="$OPTARG" ;;
-  "d") ENABLE_DEBUG="$OPTARG" ;;
-  "s") ENABLE_SANITIZERS="$OPTARG" ;;
-  "a") WITH_VERSION="no" ;;
-  *) print_usage ;;
-  esac
+print_usage() {
+    cat <<EOF
+
+Usage: $(basename "$0") [OPTIONS]
+
+Options:
+  -v VERSION   PHP minor version to build (default: 8.4)
+  -o PATH      Output directory (default: \$(pwd)/php)
+  -z           Enable ZTS (thread-safe build)
+  -d           Compile in debug mode
+  -s           Enable AddressSanitizer + UndefinedSanitizer
+  -k           Keep PHP source after install
+  -a           Install without version suffix in output path
+  -h           Show this help
+
+Examples:
+  $(basename "$0") -v 8.4
+  $(basename "$0") -v 8.3 -d -z -o /opt/php
+  $(basename "$0") -v 8.5 -s -d
+
+EOF
+}
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+while getopts "v:o:zsdkah" opt; do
+    case "$opt" in
+        v) PHP_VERSION="$OPTARG" ;;
+        o) OUTPUT="$OPTARG" ;;
+        z) PHP_THREAD_MODEL="zts" ;;
+        d) ENABLE_DEBUG="yes" ;;
+        s) ENABLE_SANITIZERS="yes" ;;
+        k) KEEP_SRC="yes" ;;
+        a) WITH_VERSION="no" ;;
+        h) print_usage; exit 0 ;;
+        *) print_usage; exit 1 ;;
+    esac
 done
 
-if [[ -z "$PHP_VERSION" ]]; then
-  print_usage
-  exit 1
-fi
+[[ -n "$PHP_VERSION" ]] || die "PHP version is required (-v)"
 
-fetch_versions() {
-  local page=$1
+install_system_deps() {
+    if [[ "$(uname -s)" != "Linux" ]]; then return; fi
+    # shellcheck source=/dev/null
+    . /etc/os-release 2>/dev/null || return
 
-  curl -s "https://api.github.com/repos/php/php-src/tags?page=$page&per_page=100" | jq -r '.[].name'
+    case "${ID:-}" in
+        fedora)
+            echo "==> Installing build deps (Fedora)"
+            dnf install -y re2c cmake gcc ninja-build openssl-devel \
+                libubsan libasan sqlite-devel zlib-devel libcurl-devel \
+                readline-devel libffi-devel oniguruma-devel libxml2-devel \
+                libsodium-devel gmp-devel bison
+            ;;
+        ubuntu|debian)
+            echo "==> Installing build deps (Ubuntu/Debian)"
+            apt-get install -y pkg-config build-essential libssl-dev bison re2c \
+                libxml2-dev libicu-dev libsqlite3-dev zlib1g-dev libcurl4-openssl-dev \
+                libreadline-dev libffi-dev libonig-dev libsodium-dev libgmp-dev \
+                libubsan1 libzip-dev
+            ;;
+        *)
+            echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
+            ;;
+    esac
 }
 
 fetch_latest_php_version() {
-  (fetch_versions "1" && fetch_versions "2" && fetch_versions "3") |
-    /bin/grep -E "^php-$PHP_VERSION\.[0-9]+$" |
-    sed 's/^php-//' |
-    sort -V |
-    tail -n 1
+    local page
+    for page in 1 2 3; do
+        curl -sf "https://api.github.com/repos/php/php-src/tags?page=${page}&per_page=100" \
+            | jq -r '.[].name'
+    done \
+        | grep -E "^php-${PHP_VERSION}\.[0-9]+$" \
+        | sed 's/^php-//' \
+        | sort -V \
+        | tail -n 1
 }
 
-is_linux() {
-  local value
-
-  value="$(uname -s)"
-
-  if [ "$value" = "Linux" ]; then
-    return 0
-  fi
-
-  return 1
-}
-
-install_deps() {
-  if is_linux; then
-    if [[ "$NAME" == "Fedora Linux" ]]; then
-      dnf install \
-        re2c \
-        cmake \
-        gcc \
-        ninja-build \
-        openssl-devel \
-        libubsan \
-        libasan \
-        sqlite-devel \
-        zlib-devel \
-        libcurl-devel \
-        readline-devel \
-        libffi-devel \
-        oniguruma-devel \
-        libxml2-devel \
-        libsodium-devel \
-        gmp-devel -y || exit 1
+build_output_path() {
+    local path="$OUTPUT"
+    if [[ "$WITH_VERSION" == "yes" ]]; then
+        path="${path}/${PHP_VERSION}"
+        [[ "$ENABLE_DEBUG" == "yes" ]] && path="${path}-debug" || path="${path}-release"
+        [[ "$PHP_THREAD_MODEL" == "zts" ]] && path="${path}-zts" || path="${path}-nts"
     fi
-
-    if [[ "$NAME" == "Ubuntu" ]]; then
-      apt-get install \
-        pkg-config \
-        build-essential \
-        libssl-dev \
-        bison \
-        re2c \
-        libxml2-dev \
-        libicu-dev \
-        libsqlite3-dev \
-        zlib1g-dev \
-        libcurl4-openssl-dev \
-        libreadline-dev \
-        libffi-dev \
-        libonig-dev \
-        libsodium-dev \
-        libgmp-dev \
-        libubsan1 \
-        libzip-dev -y || exit 1
-    fi
-  fi
+    echo "$path"
 }
 
-compile_php() {
-  local config=(
+install_system_deps
+
+command -v curl  >/dev/null 2>&1 || die "curl not found in PATH"
+command -v jq    >/dev/null 2>&1 || die "jq not found in PATH"
+command -v make  >/dev/null 2>&1 || die "make not found in PATH"
+command -v bison >/dev/null 2>&1 || die "bison not found in PATH"
+command -v re2c  >/dev/null 2>&1 || die "re2c not found in PATH"
+
+FULL_PHP_VERSION="$(fetch_latest_php_version)"
+[[ -n "$FULL_PHP_VERSION" ]] || die "Could not resolve PHP $PHP_VERSION version from GitHub API"
+
+OUTPUT_PATH="$(build_output_path)"
+echo "==> Building PHP $FULL_PHP_VERSION → $OUTPUT_PATH"
+
+TARBALL_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/php-src"
+mkdir -p "$TARBALL_DIR"
+TARBALL="$TARBALL_DIR/php-${FULL_PHP_VERSION}.tar.gz"
+TARBALL_URL="https://github.com/php/php-src/archive/refs/tags/php-${FULL_PHP_VERSION}.tar.gz"
+
+mkdir -p "$OUTPUT_PATH"
+
+if [[ ! -f "$TARBALL" ]]; then
+    echo "==> Downloading $TARBALL_URL"
+    curl -fL -o "${TARBALL}.tmp" "$TARBALL_URL" && mv "${TARBALL}.tmp" "$TARBALL"
+fi
+
+echo "==> Extracting sources"
+tar -C "$OUTPUT_PATH" -xzf "$TARBALL"
+mv "$OUTPUT_PATH/php-src-php-${FULL_PHP_VERSION}" "$OUTPUT_PATH/src"
+
+[[ "$KEEP_SRC" == "no" ]] && rm -f "$TARBALL"
+
+pushd "$OUTPUT_PATH/src"
+
+./buildconf --force
+
+CONFIG_ARGS=(
+    --prefix="$OUTPUT_PATH"
     --enable-opcache
     --enable-rtld-now
     --with-openssl
@@ -127,62 +147,36 @@ compile_php() {
     --enable-mbstring
     --disable-short-tags
     --with-pic
-  )
+)
 
-  local FULL_PHP_VERSION
-  FULL_PHP_VERSION="$(fetch_latest_php_version)"
+[[ "$PHP_THREAD_MODEL" == "zts" ]] && CONFIG_ARGS+=(--enable-zts)
+[[ "$ENABLE_SANITIZERS" == "yes" ]] && CONFIG_ARGS+=(--enable-address-sanitizer --enable-undefined-sanitizer)
 
-  local OUTPUT_PATH="$OUTPUT"
+NPROC="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
 
-  if [[ "$WITH_VERSION" == "yes" ]]; then
-    OUTPUT_PATH="$OUTPUT_PATH/$PHP_VERSION"
-    if [[ "$ENABLE_DEBUG" == "yes" ]]; then
-      OUTPUT_PATH="$OUTPUT_PATH-debug"
-      config+=("--enable-debug")
-    else
-      OUTPUT_PATH="$OUTPUT_PATH-release"
-    fi
-
-    if [[ "$PHP_THREAD_MODEL" == "zts" ]]; then
-      OUTPUT_PATH="$OUTPUT_PATH-zts"
-      config+=("--enable-zts")
-    else
-      OUTPUT_PATH="$OUTPUT_PATH-nts"
-    fi
-  fi
-
-  if [[ "$ENABLE_SANITIZERS" == "yes" ]]; then
-    config+=("--enable-address-sanitizer" "--enable-undefined-sanitizer")
-  fi
-
-  rm -rf "$OUTPUT_PATH" || exit 1
-  mkdir -p "$OUTPUT_PATH" || exit 1
-
-  if [ ! -f "php-$FULL_PHP_VERSION.tar.gz" ]; then
-    wget -O "php-$FULL_PHP_VERSION.tar.gz" "https://github.com/php/php-src/archive/refs/tags/php-$FULL_PHP_VERSION.tar.gz" || exit 1
-  fi
-
-  tar -C "$OUTPUT_PATH" -xzf "php-$FULL_PHP_VERSION.tar.gz" || exit 1
-  mv "$OUTPUT_PATH/php-src-php-$FULL_PHP_VERSION" "$OUTPUT_PATH/src" || exit 1
-
-  rm -f "php-$FULL_PHP_VERSION.tar.gz" || exit 1
-
-  pushd "$OUTPUT_PATH/src" || exit 1
-
-  ./buildconf --force
-  if [ "$ENABLE_DEBUG" = "yes" ]; then
+if [[ "$ENABLE_DEBUG" == "yes" ]]; then
+    CONFIG_ARGS+=(--enable-debug)
+    echo "==> Configuring (debug)"
     ./configure \
-      CFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
-      CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
-      --prefix="$OUTPUT_PATH" \
-      "${config[@]}" || exit 1
-  else
-    ./configure CFLAGS="-O2" CXXFLAGS="-O2" --prefix="$OUTPUT_PATH" "${config[@]}" || exit 1
-  fi
-  make "-j$(nproc)" || exit 1
-  make install || exit 1
+        CFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
+        CXXFLAGS="-g -ggdb -g3 -gdwarf-4 -fno-omit-frame-pointer" \
+        "${CONFIG_ARGS[@]}"
+else
+    echo "==> Configuring (release)"
+    ./configure CFLAGS="-O2" CXXFLAGS="-O2" "${CONFIG_ARGS[@]}"
+fi
 
-  popd || exit 1
-}
+echo "==> Building (jobs=$NPROC)"
+make -j"$NPROC"
 
-compile_php
+echo "==> Installing to $OUTPUT_PATH"
+make install
+
+popd
+
+if [[ "$KEEP_SRC" == "no" ]]; then
+    rm -rf "$OUTPUT_PATH/src"
+fi
+
+echo "==> PHP $FULL_PHP_VERSION installed to $OUTPUT_PATH"
+echo "    Binary: $OUTPUT_PATH/bin/php"

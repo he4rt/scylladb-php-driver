@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmake --preset *)",
+      "Bash(cmake --build *)",
+      "Bash(cmake --install *)",
+      "Bash(ninja *)",
+      "Bash(chmod +x scripts/*)"
+    ]
+  }
+}

@@ -2,82 +2,6 @@
     "version": 2,
     "configurePresets": [
         {
-            "name": "DebugPHP8.1ZTSCassandra",
-            "displayName": "DebugPHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.1NTSCassandra",
-            "displayName": "DebugPHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.2ZTSCassandra",
-            "displayName": "DebugPHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.2NTSCassandra",
-            "displayName": "DebugPHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
             "name": "DebugPHP8.3ZTSCassandra",
             "displayName": "DebugPHP8.3ZTSCassandra",
             "description": "",
@@ -85,7 +9,7 @@
             "binaryDir": "./out/DebugPHP8.3ZTSCassandra",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3ZTSCassandra",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.3ZTSCassandra/install",
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
@@ -104,430 +28,12 @@
             "binaryDir": "./out/DebugPHP8.3NTSCassandra",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3NTSCassandra",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.3NTSCassandra/install",
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
                 "USE_LIBCASSANDRA": "ON",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.4ZTSCassandra",
-            "displayName": "DebugPHP8.4ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.4NTSCassandra",
-            "displayName": "DebugPHP8.4NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.1ZTSCassandra",
-            "displayName": "DebugPHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.1NTSCassandra",
-            "displayName": "DebugPHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.2ZTSCassandra",
-            "displayName": "DebugPHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.2NTSCassandra",
-            "displayName": "DebugPHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.3ZTSCassandra",
-            "displayName": "DebugPHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.3NTSCassandra",
-            "displayName": "DebugPHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.4ZTSCassandra",
-            "displayName": "DebugPHP8.4ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.4NTSCassandra",
-            "displayName": "DebugPHP8.4NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.1ZTSCassandra",
-            "displayName": "DebugPHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.1NTSCassandra",
-            "displayName": "DebugPHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.2ZTSCassandra",
-            "displayName": "DebugPHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.2NTSCassandra",
-            "displayName": "DebugPHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.3ZTSCassandra",
-            "displayName": "DebugPHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.3NTSCassandra",
-            "displayName": "DebugPHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.4ZTSCassandra",
-            "displayName": "DebugPHP8.4ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.4NTSCassandra",
-            "displayName": "DebugPHP8.4NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.1ZTS",
-            "displayName": "DebugPHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.1NTS",
-            "displayName": "DebugPHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.2ZTS",
-            "displayName": "DebugPHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.2NTS",
-            "displayName": "DebugPHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
@@ -541,7 +47,7 @@
             "binaryDir": "./out/DebugPHP8.3ZTS",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3ZTS",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.3ZTS/install",
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
@@ -560,12 +66,202 @@
             "binaryDir": "./out/DebugPHP8.3NTS",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3NTS",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.3NTS/install",
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
                 "USE_LIBCASSANDRA": "OFF",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "ReleasePHP8.3ZTSCassandra",
+            "displayName": "ReleasePHP8.3ZTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.3ZTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.3ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "ReleasePHP8.3NTSCassandra",
+            "displayName": "ReleasePHP8.3NTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.3NTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.3NTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "ReleasePHP8.3ZTS",
+            "displayName": "ReleasePHP8.3ZTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.3ZTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.3ZTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "OFF",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "ReleasePHP8.3NTS",
+            "displayName": "ReleasePHP8.3NTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.3NTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.3NTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "OFF",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.3ZTSCassandra",
+            "displayName": "RelWithDebugInfoPHP8.3ZTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.3NTSCassandra",
+            "displayName": "RelWithDebugInfoPHP8.3NTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3NTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.3ZTS",
+            "displayName": "RelWithDebugInfoPHP8.3ZTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3ZTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "OFF",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.3NTS",
+            "displayName": "RelWithDebugInfoPHP8.3NTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3NTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "OFF",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "DebugPHP8.4ZTSCassandra",
+            "displayName": "DebugPHP8.4ZTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.4ZTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.4ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "DebugPHP8.4NTSCassandra",
+            "displayName": "DebugPHP8.4NTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.4NTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.4NTSCassandra/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
@@ -579,7 +275,7 @@
             "binaryDir": "./out/DebugPHP8.4ZTS",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4ZTS",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.4ZTS/install",
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
@@ -598,430 +294,12 @@
             "binaryDir": "./out/DebugPHP8.4NTS",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4NTS",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.4NTS/install",
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
                 "USE_LIBCASSANDRA": "OFF",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.1ZTS",
-            "displayName": "DebugPHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.1NTS",
-            "displayName": "DebugPHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.2ZTS",
-            "displayName": "DebugPHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.2NTS",
-            "displayName": "DebugPHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.3ZTS",
-            "displayName": "DebugPHP8.3ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.3NTS",
-            "displayName": "DebugPHP8.3NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.4ZTS",
-            "displayName": "DebugPHP8.4ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.4NTS",
-            "displayName": "DebugPHP8.4NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.1ZTS",
-            "displayName": "DebugPHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.1NTS",
-            "displayName": "DebugPHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.1NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.2ZTS",
-            "displayName": "DebugPHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.2NTS",
-            "displayName": "DebugPHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.2NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.3ZTS",
-            "displayName": "DebugPHP8.3ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.3NTS",
-            "displayName": "DebugPHP8.3NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.3NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.3NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "DebugPHP8.4ZTS",
-            "displayName": "DebugPHP8.4ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "DebugPHP8.4NTS",
-            "displayName": "DebugPHP8.4NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/DebugPHP8.4NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/DebugPHP8.4NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1ZTSCassandra",
-            "displayName": "ReleasePHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1NTSCassandra",
-            "displayName": "ReleasePHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2ZTSCassandra",
-            "displayName": "ReleasePHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2NTSCassandra",
-            "displayName": "ReleasePHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3ZTSCassandra",
-            "displayName": "ReleasePHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3NTSCassandra",
-            "displayName": "ReleasePHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
@@ -1034,160 +312,8 @@
             "generator": "Ninja",
             "binaryDir": "./out/ReleasePHP8.4ZTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4NTSCassandra",
-            "displayName": "ReleasePHP8.4NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1ZTSCassandra",
-            "displayName": "ReleasePHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1NTSCassandra",
-            "displayName": "ReleasePHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2ZTSCassandra",
-            "displayName": "ReleasePHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2NTSCassandra",
-            "displayName": "ReleasePHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3ZTSCassandra",
-            "displayName": "ReleasePHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3NTSCassandra",
-            "displayName": "ReleasePHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4ZTSCassandra",
-            "displayName": "ReleasePHP8.4ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4ZTSCassandra",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.4ZTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -1205,279 +331,13 @@
             "generator": "Ninja",
             "binaryDir": "./out/ReleasePHP8.4NTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4NTSCassandra",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.4NTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
                 "USE_LIBCASSANDRA": "ON",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1ZTSCassandra",
-            "displayName": "ReleasePHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1NTSCassandra",
-            "displayName": "ReleasePHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2ZTSCassandra",
-            "displayName": "ReleasePHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2NTSCassandra",
-            "displayName": "ReleasePHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3ZTSCassandra",
-            "displayName": "ReleasePHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3NTSCassandra",
-            "displayName": "ReleasePHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4ZTSCassandra",
-            "displayName": "ReleasePHP8.4ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4NTSCassandra",
-            "displayName": "ReleasePHP8.4NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1ZTS",
-            "displayName": "ReleasePHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1NTS",
-            "displayName": "ReleasePHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2ZTS",
-            "displayName": "ReleasePHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2NTS",
-            "displayName": "ReleasePHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3ZTS",
-            "displayName": "ReleasePHP8.3ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3NTS",
-            "displayName": "ReleasePHP8.3NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
@@ -1490,160 +350,8 @@
             "generator": "Ninja",
             "binaryDir": "./out/ReleasePHP8.4ZTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4NTS",
-            "displayName": "ReleasePHP8.4NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1ZTS",
-            "displayName": "ReleasePHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1NTS",
-            "displayName": "ReleasePHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2ZTS",
-            "displayName": "ReleasePHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2NTS",
-            "displayName": "ReleasePHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3ZTS",
-            "displayName": "ReleasePHP8.3ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3NTS",
-            "displayName": "ReleasePHP8.3NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4ZTS",
-            "displayName": "ReleasePHP8.4ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4ZTS",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.4ZTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -1661,279 +369,13 @@
             "generator": "Ninja",
             "binaryDir": "./out/ReleasePHP8.4NTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4NTS",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.4NTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
                 "USE_LIBCASSANDRA": "OFF",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1ZTS",
-            "displayName": "ReleasePHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.1NTS",
-            "displayName": "ReleasePHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.1NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2ZTS",
-            "displayName": "ReleasePHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.2NTS",
-            "displayName": "ReleasePHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.2NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3ZTS",
-            "displayName": "ReleasePHP8.3ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.3NTS",
-            "displayName": "ReleasePHP8.3NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.3NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.3NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4ZTS",
-            "displayName": "ReleasePHP8.4ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "ReleasePHP8.4NTS",
-            "displayName": "ReleasePHP8.4NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/ReleasePHP8.4NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/ReleasePHP8.4NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
@@ -1946,160 +388,8 @@
             "generator": "Ninja",
             "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4ZTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.4NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.4NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4NTSCassandra",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.4ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.4ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4ZTSCassandra",
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4ZTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -2117,279 +407,13 @@
             "generator": "Ninja",
             "binaryDir": "./out/RelWithDebugInfoPHP8.4NTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4NTSCassandra",
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4NTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
                 "USE_LIBCASSANDRA": "ON",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.1ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.1NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.2ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.2NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.4ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.4ZTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4ZTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.4NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.4NTSCassandra",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4NTSCassandra",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4NTSCassandra",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "ON",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1ZTS",
-            "displayName": "RelWithDebugInfoPHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1NTS",
-            "displayName": "RelWithDebugInfoPHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2ZTS",
-            "displayName": "RelWithDebugInfoPHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2NTS",
-            "displayName": "RelWithDebugInfoPHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3ZTS",
-            "displayName": "RelWithDebugInfoPHP8.3ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3NTS",
-            "displayName": "RelWithDebugInfoPHP8.3NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
@@ -2402,160 +426,8 @@
             "generator": "Ninja",
             "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4ZTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.4NTS",
-            "displayName": "RelWithDebugInfoPHP8.4NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4NTS",
-                "ENABLE_SANITIZERS": "ON",
-                "SANITIZE_UNDEFINED": "ON",
-                "SANITIZE_ADDRESS": "ON",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1ZTS",
-            "displayName": "RelWithDebugInfoPHP8.1ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.1NTS",
-            "displayName": "RelWithDebugInfoPHP8.1NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2ZTS",
-            "displayName": "RelWithDebugInfoPHP8.2ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.2NTS",
-            "displayName": "RelWithDebugInfoPHP8.2NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3ZTS",
-            "displayName": "RelWithDebugInfoPHP8.3ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "ON"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.3NTS",
-            "displayName": "RelWithDebugInfoPHP8.3NTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
-                "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
-                "PHP_THREAD_SAFE": "OFF"
-            }
-        },
-        {
-            "name": "RelWithDebugInfoPHP8.4ZTS",
-            "displayName": "RelWithDebugInfoPHP8.4ZTS",
-            "description": "",
-            "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTS",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4ZTS",
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4ZTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -2573,8 +445,8 @@
             "generator": "Ninja",
             "binaryDir": "./out/RelWithDebugInfoPHP8.4NTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4NTS",
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4NTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -2586,152 +458,228 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.1ZTS",
-            "displayName": "RelWithDebugInfoPHP8.1ZTS",
+            "name": "DebugPHP8.5ZTSCassandra",
+            "displayName": "DebugPHP8.5ZTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1ZTS",
+            "binaryDir": "./out/DebugPHP8.5ZTSCassandra",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.5ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.1NTS",
-            "displayName": "RelWithDebugInfoPHP8.1NTS",
+            "name": "DebugPHP8.5NTSCassandra",
+            "displayName": "DebugPHP8.5NTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.1NTS",
+            "binaryDir": "./out/DebugPHP8.5NTSCassandra",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.1NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.1",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.5NTSCassandra/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.2ZTS",
-            "displayName": "RelWithDebugInfoPHP8.2ZTS",
+            "name": "DebugPHP8.5ZTS",
+            "displayName": "DebugPHP8.5ZTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2ZTS",
+            "binaryDir": "./out/DebugPHP8.5ZTS",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2ZTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.5ZTS/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
                 "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.2NTS",
-            "displayName": "RelWithDebugInfoPHP8.2NTS",
+            "name": "DebugPHP8.5NTS",
+            "displayName": "DebugPHP8.5NTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.2NTS",
+            "binaryDir": "./out/DebugPHP8.5NTS",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.2NTS",
-                "ENABLE_SANITIZERS": "OFF",
-                "SANITIZE_UNDEFINED": "OFF",
-                "SANITIZE_ADDRESS": "OFF",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.5NTS/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
                 "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.2",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3ZTS",
-            "displayName": "RelWithDebugInfoPHP8.3ZTS",
+            "name": "ReleasePHP8.5ZTSCassandra",
+            "displayName": "ReleasePHP8.5ZTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTS",
+            "binaryDir": "./out/ReleasePHP8.5ZTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3ZTS",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.5ZTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3NTS",
-            "displayName": "RelWithDebugInfoPHP8.3NTS",
+            "name": "ReleasePHP8.5NTSCassandra",
+            "displayName": "ReleasePHP8.5NTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTS",
+            "binaryDir": "./out/ReleasePHP8.5NTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.3NTS",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.5NTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4ZTS",
-            "displayName": "RelWithDebugInfoPHP8.4ZTS",
+            "name": "ReleasePHP8.5ZTS",
+            "displayName": "ReleasePHP8.5ZTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTS",
+            "binaryDir": "./out/ReleasePHP8.5ZTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4ZTS",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.5ZTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
                 "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4NTS",
-            "displayName": "RelWithDebugInfoPHP8.4NTS",
+            "name": "ReleasePHP8.5NTS",
+            "displayName": "ReleasePHP8.5NTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4NTS",
+            "binaryDir": "./out/ReleasePHP8.5NTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "./out/install/RelWithDebugInfoPHP8.4NTS",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.5NTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
                 "USE_LIBCASSANDRA": "OFF",
-                "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.5ZTSCassandra",
+            "displayName": "RelWithDebugInfoPHP8.5ZTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.5ZTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.5NTSCassandra",
+            "displayName": "RelWithDebugInfoPHP8.5NTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.5NTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5NTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "ON",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.5ZTS",
+            "displayName": "RelWithDebugInfoPHP8.5ZTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.5ZTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5ZTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "OFF",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_DRIVER_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebugInfoPHP8.5NTS",
+            "displayName": "RelWithDebugInfoPHP8.5NTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebugInfoPHP8.5NTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5NTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "USE_LIBCASSANDRA": "OFF",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
                 "PHP_DRIVER_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"

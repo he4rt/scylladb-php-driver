@@ -1,16 +1,90 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -xe
+# Bootstrap script — installs all native dependencies needed to build the extension locally.
+# Supports local (no root) and system-wide installs.
 
-declare -a PHP_VERSIONS=("8.4" "8.3" "8.2")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-mkdir -p php
+PREFIX="/usr/local"
+PHP_VERSIONS=("8.3" "8.4" "8.5")
+DRIVERS=("scylladb")
+BUILD_PHP="yes"
+BUILD_LIBUV="yes"
+BUILD_CPP_DRIVER="yes"
 
-./scripts/compile-libuv.sh
-./scripts/compile-cpp-driver.sh "scylladb"
-./scripts/compile-cpp-driver.sh "datastax"
+print_usage() {
+    cat <<EOF
 
-for version in "${PHP_VERSIONS[@]}"
-do
-    ./scripts/compile-php.sh -o "$(pwd)/php" -v "$version" -s -d
+Usage: $(basename "$0") [OPTIONS]
+
+Sets up all native dependencies for the ScyllaDB PHP driver.
+
+Options:
+  --prefix PATH         Install prefix for native libs (default: /usr/local)
+  --php-versions LIST   Space-separated PHP versions to build (default: 8.3 8.4 8.5)
+  --drivers LIST        Drivers to build: scylladb cassandra (default: scylladb)
+  --skip-php            Skip PHP compilation
+  --skip-libuv          Skip libuv build
+  --skip-cpp-driver     Skip C++ driver build
+  -h, --help            Show this help
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") --prefix \$HOME/.local --php-versions "8.4 8.5"
+  $(basename "$0") --skip-php --prefix /opt/scylladb
+
+EOF
+}
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --prefix)          PREFIX="${2:?--prefix requires a value}"; shift 2 ;;
+        --php-versions)    IFS=' ' read -ra PHP_VERSIONS <<< "${2:?}"; shift 2 ;;
+        --drivers)         IFS=' ' read -ra DRIVERS <<< "${2:?}"; shift 2 ;;
+        --skip-php)        BUILD_PHP="no"; shift ;;
+        --skip-libuv)      BUILD_LIBUV="no"; shift ;;
+        --skip-cpp-driver) BUILD_CPP_DRIVER="no"; shift ;;
+        -h|--help)         print_usage; exit 0 ;;
+        *) die "Unknown option: $1" ;;
+    esac
 done
+
+echo "=== ScyllaDB PHP Driver Setup ==="
+echo "    Prefix:      $PREFIX"
+echo "    PHP versions: ${PHP_VERSIONS[*]}"
+echo "    Drivers:     ${DRIVERS[*]}"
+echo ""
+
+if [[ "$BUILD_LIBUV" == "yes" ]]; then
+    echo "--- Building libuv ---"
+    "$SCRIPT_DIR/compile-libuv.sh" --prefix "$PREFIX"
+fi
+
+if [[ "$BUILD_CPP_DRIVER" == "yes" ]]; then
+    for driver in "${DRIVERS[@]}"; do
+        echo "--- Building $driver cpp-driver ---"
+        "$SCRIPT_DIR/compile-cpp-driver.sh" --driver "$driver" --prefix "$PREFIX"
+    done
+fi
+
+if [[ "$BUILD_PHP" == "yes" ]]; then
+    PHP_OUTPUT="$(pwd)/php"
+    mkdir -p "$PHP_OUTPUT"
+    for version in "${PHP_VERSIONS[@]}"; do
+        echo "--- Compiling PHP $version (debug, NTS) ---"
+        "$SCRIPT_DIR/compile-php.sh" -v "$version" -o "$PHP_OUTPUT" -d
+
+        echo "--- Compiling PHP $version (release, NTS) ---"
+        "$SCRIPT_DIR/compile-php.sh" -v "$version" -o "$PHP_OUTPUT"
+    done
+fi
+
+echo ""
+echo "=== Setup complete ==="
+echo "    Native libs: $PREFIX"
+[[ "$BUILD_PHP" == "yes" ]] && echo "    PHP builds:  $(pwd)/php"
+echo ""
+echo "Next: php generate-presets.php && cmake --preset DebugPHP8.4NTS"

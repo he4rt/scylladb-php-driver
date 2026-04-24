@@ -11,10 +11,9 @@ enum BuildType: string
 
 enum PHPVersion: string
 {
-    case PHP81 = '8.1';
-    case PHP82 = '8.2';
     case PHP83 = '8.3';
     case PHP84 = '8.4';
+    case PHP85 = '8.5';
 }
 
 enum PHPTS: string
@@ -27,7 +26,7 @@ function preset(
     string $name,
     bool $useCassandra = true,
     BuildType $buildType = BuildType::Debug,
-    PHPVersion $phpVersion = PHPVersion::PHP84,
+    PHPVersion $phpVersion = PHPVersion::PHP85,
     PHPTS $phpTS = PHPTS::NTS,
 ): array {
     $fullName = $name  . 'PHP' . $phpVersion->value . strtoupper($phpTS->value) . ($useCassandra ? 'Cassandra' : '');
@@ -39,7 +38,7 @@ function preset(
         "generator" => "Ninja",
         "binaryDir" => './out/' . $fullName,
         "cacheVariables" => [
-            "CMAKE_BUILD_TYPE" => "Debug",
+            "CMAKE_BUILD_TYPE" => $buildType->value,
             "CMAKE_INSTALL_PREFIX" => './out/' . $fullName . '/install',
             "ENABLE_SANITIZERS" => $buildType === BuildType::Debug ? 'ON' : 'OFF',
             'SANITIZE_UNDEFINED' => $buildType === BuildType::Debug ? 'ON' : 'OFF',
@@ -55,21 +54,18 @@ function preset(
 
 function main()
 {
-    $presetNames = ['Debug', 'Release', 'RelWithDebugInfo'];
     $useCassandra = [true, false];
-    $buildTypes = BuildType::cases();
     $phpVersions = PHPVersion::cases();
     $phpTS = PHPTS::cases();
 
     $presets = [];
 
-    foreach ($presetNames as $presetName) {
-        foreach ($useCassandra as $useCassandraValue) {
-            foreach ($buildTypes as $buildType) {
-                foreach ($phpVersions as $phpVersion) {
-                    foreach ($phpTS as $ts) {
-                        $presets[] = preset($presetName, $useCassandraValue, $buildType, $phpVersion, $ts);
-                    }
+    foreach ($phpVersions as $phpVersion) {
+        foreach (BuildType::cases() as $buildType) {
+            foreach ($useCassandra as $useCassandraValue) {
+                foreach ($phpTS as $ts) {
+                    $preset = preset($buildType->value, $useCassandraValue, $buildType, $phpVersion, $ts);
+                    $presets[$preset['name']] = $preset;
                 }
             }
         }
@@ -78,7 +74,7 @@ function main()
 
     $cmakePresets = [
         'version' => 2,
-        "configurePresets" => $presets,
+        "configurePresets" => array_values($presets),
     ];
 
     $result = @file_put_contents(
