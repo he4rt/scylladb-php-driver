@@ -1,12 +1,6 @@
-add_library(numbers STATIC)
-add_library(ext_scylladb::numbers ALIAS numbers)
-scylladb_php_library(numbers OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+php_driver_module(numbers ext_scylladb::numbers)
 
-
-target_sources(
-        numbers
-        PRIVATE
-
+target_sources(numbers PRIVATE
         Bigint.cpp
         Decimal.cpp
         Float.cpp
@@ -15,4 +9,3 @@ target_sources(
         Tinyint.cpp
         Varint.cpp
 )
-

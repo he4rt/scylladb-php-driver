@@ -114,3 +114,15 @@ function(scylladb_php_library target enable_sanitizers cpu_type lto)
         message(WARNING "Compiler does not support -march=${cpu_type}")
     endif ()
 endfunction()
+
+# Convenience macro: declares a static sub-library, its namespace alias,
+# and applies standard compiler flags. Sources must still be added via
+# target_sources() after calling this macro.
+#
+# Usage: php_driver_module(<target> <alias>)
+# Example: php_driver_module(datetime ext_scylladb::datetime)
+macro(php_driver_module _target _alias)
+    add_library(${_target} STATIC)
+    add_library(${_alias} ALIAS ${_target})
+    scylladb_php_library(${_target} "${ENABLE_SANITIZERS}" "${CPU_TYPE}" "${ENABLE_LTO}")
+endmacro()

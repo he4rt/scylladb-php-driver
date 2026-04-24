@@ -1,11 +1,6 @@
-add_library(type STATIC)
-add_library(ext_scylladb::type ALIAS type)
-scylladb_php_library(type OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+php_driver_module(type ext_scylladb::type)
 
-
-target_sources(
-        type
-        PRIVATE
+target_sources(type PRIVATE
         Collection.cpp
         Custom.cpp
         Map.cpp
@@ -14,4 +9,3 @@ target_sources(
         Tuple.cpp
         UserType.cpp
 )
-

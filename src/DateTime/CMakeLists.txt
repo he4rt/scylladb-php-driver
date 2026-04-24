@@ -1,11 +1,6 @@
-add_library(datetime STATIC)
-add_library(ext_scylladb::datetime ALIAS datetime)
-scylladb_php_library(datetime OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+php_driver_module(datetime ext_scylladb::datetime)
 
-
-target_sources(
-        datetime
-        PRIVATE
+target_sources(datetime PRIVATE
         Date.cpp
         Time.cpp
         Timestamp.cpp
@@ -13,4 +8,3 @@ target_sources(
         DateTimeInternal.cpp
         Duration.cpp
 )
-

@@ -1,11 +1,6 @@
-add_library(src STATIC)
-add_library(ext_scylladb::src ALIAS src)
-scylladb_php_library(src OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+php_driver_module(src ext_scylladb::src)
 
-
-target_sources(
-        src
-        PRIVATE
+target_sources(src PRIVATE
         BatchStatement.cpp
         Blob.cpp
         Collection.cpp

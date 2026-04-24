@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 
-project(php-ext-scylladb LANGUAGES C CXX)
+project(php-ext-scylladb VERSION 1.4.0 LANGUAGES C CXX)
 add_library(ext_scylladb SHARED)
 
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
@@ -12,13 +12,10 @@ set(CMAKE_MODULE_PATH
         "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake"
 )
 
-include(CheckSymbolExists)
-include(CheckIncludeFile)
-include(CMakePackageConfigHelpers)
 include(cmake/CPM.cmake)
 include(cmake/TargetOptimizations.cmake)
 
-set(PHP_SCYLLADB_DRIVER_VERSION "1.4.0-dev")
+set(PHP_SCYLLADB_DRIVER_VERSION "${PROJECT_VERSION}-dev")
 
 # Library Options
 option(ENABLE_SANITIZERS "Enable sanitizers" OFF)
@@ -93,4 +90,8 @@ set_target_properties(ext_scylladb PROPERTIES
         POSITION_INDEPENDENT_CODE ON
         PREFIX ""
         OUTPUT_NAME "cassandra"
+)
+
+install(TARGETS ext_scylladb
+        LIBRARY DESTINATION "${PHP_EXTENSION_DIR}"
 )

@@ -1,12 +1,6 @@
-add_library(database STATIC)
-add_library(ext_scylladb::database ALIAS database)
+php_driver_module(database ext_scylladb::database)
 
-scylladb_php_library(database OFF "${CPU_TYPE}" "${ENABLE_LTO}")
-
-
-target_sources(
-        database
-        PRIVATE
+target_sources(database PRIVATE
         Aggregate.cpp
         Column.cpp
         Function.cpp
@@ -16,7 +10,6 @@ target_sources(
         Rows.cpp
         Schema.cpp
         Table.cpp
-
         DefaultAggregate.cpp
         DefaultColumn.cpp
         DefaultFunction.cpp
@@ -26,4 +19,3 @@ target_sources(
         DefaultSchema.cpp
         DefaultTable.cpp
 )
-

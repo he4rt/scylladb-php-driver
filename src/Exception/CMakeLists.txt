@@ -1,11 +1,6 @@
-add_library(exceptions STATIC)
-add_library(ext_scylladb::exceptions ALIAS exceptions)
-scylladb_php_library(exceptions OFF "${CPU_TYPE}" "${ENABLE_LTO}")
+php_driver_module(exceptions ext_scylladb::exceptions)
 
-
-target_sources(
-        exceptions
-        PRIVATE
+target_sources(exceptions PRIVATE
         Exception.cpp
         AlreadyExistsException.cpp
         AuthenticationException.cpp
