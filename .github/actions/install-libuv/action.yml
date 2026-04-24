@@ -23,7 +23,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: /opt/libuv
-        key: libuv-${{ inputs.version }}-${{ runner.arch }}-${{ runner.os }}
+        key: libuv-${{ inputs.version }}-${{ runner.arch }}-${{ runner.os }}-pic
 
     - name: Install build dependencies
       if: steps.cache.outputs.cache-hit != 'true'
@@ -45,6 +45,7 @@ runs:
           -DLIBUV_BUILD_SHARED=OFF \
           -DCMAKE_INSTALL_PREFIX=/opt/libuv \
           -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache
         cmake --build /opt/libuv-src/build --parallel "$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
         sudo cmake --install /opt/libuv-src/build
