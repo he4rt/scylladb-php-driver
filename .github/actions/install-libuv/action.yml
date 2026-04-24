@@ -18,9 +18,9 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Cache libuv
+    - name: Restore libuv cache
       id: cache
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: /opt/libuv
         key: libuv-${{ inputs.version }}-${{ runner.arch }}-${{ runner.os }}-pic
@@ -30,7 +30,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update -q
-        sudo apt-get install -y --no-install-recommends ninja-build
+        sudo apt-get install -y --no-install-recommends cmake ninja-build
 
     - name: Download and build libuv
       if: steps.cache.outputs.cache-hit != 'true'
@@ -51,7 +51,16 @@ runs:
         sudo cmake --install /opt/libuv-src/build
         sudo rm -rf /opt/libuv-src
 
-    - name: Expose outputs
+    # Only save the cache when the build succeeded (steps.cache indicates miss,
+    # and success() ensures no preceding step failed).
+    - name: Save libuv cache
+      if: steps.cache.outputs.cache-hit != 'true' && success()
+      uses: actions/cache/save@v4
+      with:
+        path: /opt/libuv
+        key: libuv-${{ inputs.version }}-${{ runner.arch }}-${{ runner.os }}-pic
+
+    - name: Set outputs
       id: values
       shell: bash
       run: |

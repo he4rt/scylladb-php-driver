@@ -32,11 +32,19 @@ runs:
 
         export PKG_CONFIG_PATH="${{ inputs.libuv_pkg_config_path }}:${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
 
+        # Derive driver lib dir from pkg-config path (strip /pkgconfig suffix)
+        # and embed it as RPATH so the extension finds libcassandra.so at runtime
+        # without needing LD_LIBRARY_PATH.
+        DRIVER_LIB="${{ inputs.cpp_driver_pkg_config_path }}"
+        DRIVER_LIB="${DRIVER_LIB%/pkgconfig}"
+
         cmake -G Ninja -B cmake-build \
           -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
           -DCMAKE_BUILD_TYPE="${{ inputs.build_type }}" \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_INSTALL_RPATH="${DRIVER_LIB}" \
+          -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
           -DLINK_LIBUV_STATIC=ON \
           -DPHP_DRIVER_STATIC=OFF \
           -DUSE_LIBCASSANDRA="${USE_CASSANDRA}" \
