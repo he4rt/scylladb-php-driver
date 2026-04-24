@@ -85,7 +85,7 @@ php_driver_collection_populate(php_driver_collection *collection, zval *array)
 }
 
 /* {{{ Collection::__construct(type) */
-PHP_METHOD(Collection, __construct)
+PHP_METHOD(Cassandra_Collection, __construct)
 {
   php_driver_collection *self;
   zval *type;
@@ -114,14 +114,14 @@ PHP_METHOD(Collection, __construct)
 /* }}} */
 
 /* {{{ Collection::type() */
-PHP_METHOD(Collection, type)
+PHP_METHOD(Cassandra_Collection, type)
 {
   php_driver_collection *self = PHP_DRIVER_GET_COLLECTION(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 
 /* {{{ Collection::values() */
-PHP_METHOD(Collection, values)
+PHP_METHOD(Cassandra_Collection, values)
 {
   php_driver_collection *collection = NULL;
   array_init(return_value);
@@ -131,7 +131,7 @@ PHP_METHOD(Collection, values)
 /* }}} */
 
 /* {{{ Collection::add(mixed) */
-PHP_METHOD(Collection, add)
+PHP_METHOD(Cassandra_Collection, add)
 {
   php_driver_collection *self = NULL;
   zval* args = NULL;
@@ -169,7 +169,7 @@ PHP_METHOD(Collection, add)
 /* }}} */
 
 /* {{{ Collection::get(int) */
-PHP_METHOD(Collection, get)
+PHP_METHOD(Cassandra_Collection, get)
 {
   long key;
   php_driver_collection *self = NULL;
@@ -186,7 +186,7 @@ PHP_METHOD(Collection, get)
 /* }}} */
 
 /* {{{ Collection::find(mixed) */
-PHP_METHOD(Collection, find)
+PHP_METHOD(Cassandra_Collection, find)
 {
   zval *object;
   php_driver_collection *collection = NULL;
@@ -203,7 +203,7 @@ PHP_METHOD(Collection, find)
 /* }}} */
 
 /* {{{ Collection::count() */
-PHP_METHOD(Collection, count)
+PHP_METHOD(Cassandra_Collection, count)
 {
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
   RETURN_LONG(zend_hash_num_elements(&collection->values));
@@ -211,7 +211,7 @@ PHP_METHOD(Collection, count)
 /* }}} */
 
 /* {{{ Collection::current() */
-PHP_METHOD(Collection, current)
+PHP_METHOD(Cassandra_Collection, current)
 {
   zval *current;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
@@ -223,7 +223,7 @@ PHP_METHOD(Collection, current)
 /* }}} */
 
 /* {{{ Collection::key() */
-PHP_METHOD(Collection, key)
+PHP_METHOD(Cassandra_Collection, key)
 {
   zend_ulong num_key;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
@@ -234,7 +234,7 @@ PHP_METHOD(Collection, key)
 /* }}} */
 
 /* {{{ Collection::next() */
-PHP_METHOD(Collection, next)
+PHP_METHOD(Cassandra_Collection, next)
 {
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
   zend_hash_move_forward(&collection->values);
@@ -242,7 +242,7 @@ PHP_METHOD(Collection, next)
 /* }}} */
 
 /* {{{ Collection::valid() */
-PHP_METHOD(Collection, valid)
+PHP_METHOD(Cassandra_Collection, valid)
 {
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
   RETURN_BOOL(zend_hash_has_more_elements(&collection->values) == SUCCESS);
@@ -250,7 +250,7 @@ PHP_METHOD(Collection, valid)
 /* }}} */
 
 /* {{{ Collection::rewind() */
-PHP_METHOD(Collection, rewind)
+PHP_METHOD(Cassandra_Collection, rewind)
 {
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
   zend_hash_internal_pointer_reset(&collection->values);
@@ -258,7 +258,7 @@ PHP_METHOD(Collection, rewind)
 /* }}} */
 
 /* {{{ Collection::remove(key) */
-PHP_METHOD(Collection, remove)
+PHP_METHOD(Cassandra_Collection, remove)
 {
   long index;
   php_driver_collection *collection = NULL;
@@ -317,25 +317,25 @@ ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_count, 0, 0, IS_LONG, 
 ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_collection_methods[] = {
-  PHP_ME(Collection, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, type, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, values, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, type, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, values, arginfo_none, ZEND_ACC_PUBLIC)
 #if PHP_MAJOR_VERSION >= 8
-  PHP_ME(Collection, add, arginfo_values, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, add, arginfo_values, ZEND_ACC_PUBLIC)
 #else
-  PHP_ME(Collection, add, arginfo_value, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, add, arginfo_value, ZEND_ACC_PUBLIC)
 #endif
-  PHP_ME(Collection, get, arginfo_index, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, find, arginfo_value, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, get, arginfo_index, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, find, arginfo_value, ZEND_ACC_PUBLIC)
   /* Countable */
-  PHP_ME(Collection, count, arginfo_count, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, count, arginfo_count, ZEND_ACC_PUBLIC)
   /* Iterator */
-  PHP_ME(Collection, current, arginfo_current, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, key, arginfo_key, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, next, arginfo_next, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
-  PHP_ME(Collection, remove, arginfo_index, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, current, arginfo_current, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, key, arginfo_key, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, next, arginfo_next, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, valid, arginfo_valid, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Collection, remove, arginfo_index, ZEND_ACC_PUBLIC)
   PHP_FE_END
 };
 

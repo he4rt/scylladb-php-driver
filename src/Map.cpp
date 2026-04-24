@@ -165,7 +165,7 @@ php_driver_map_populate_values(const php_driver_map *map, zval *array )
 }
 
 /* {{{ Map::__construct(type, type) */
-PHP_METHOD(Map, __construct)
+PHP_METHOD(Cassandra_Map, __construct)
 {
   php_driver_map *self;
   zval *key_type;
@@ -225,14 +225,14 @@ PHP_METHOD(Map, __construct)
 /* }}} */
 
 /* {{{ Map::type() */
-PHP_METHOD(Map, type)
+PHP_METHOD(Cassandra_Map, type)
 {
   php_driver_map *self = PHP_DRIVER_GET_MAP(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 /* }}} */
 
-PHP_METHOD(Map, keys)
+PHP_METHOD(Cassandra_Map, keys)
 {
   php_driver_map *self = NULL;
   array_init(return_value);
@@ -240,7 +240,7 @@ PHP_METHOD(Map, keys)
   php_driver_map_populate_keys(self, return_value );
 }
 
-PHP_METHOD(Map, values)
+PHP_METHOD(Cassandra_Map, values)
 {
   php_driver_map *self = NULL;
   array_init(return_value);
@@ -248,7 +248,7 @@ PHP_METHOD(Map, values)
   php_driver_map_populate_values(self, return_value );
 }
 
-PHP_METHOD(Map, set)
+PHP_METHOD(Cassandra_Map, set)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -265,7 +265,7 @@ PHP_METHOD(Map, set)
   RETURN_FALSE;
 }
 
-PHP_METHOD(Map, get)
+PHP_METHOD(Cassandra_Map, get)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -280,7 +280,7 @@ PHP_METHOD(Map, get)
     RETURN_ZVAL(&value, 1, 0);
 }
 
-PHP_METHOD(Map, remove)
+PHP_METHOD(Cassandra_Map, remove)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -296,7 +296,7 @@ PHP_METHOD(Map, remove)
   RETURN_FALSE;
 }
 
-PHP_METHOD(Map, has)
+PHP_METHOD(Cassandra_Map, has)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -312,47 +312,47 @@ PHP_METHOD(Map, has)
   RETURN_FALSE;
 }
 
-PHP_METHOD(Map, count)
+PHP_METHOD(Cassandra_Map, count)
 {
   php_driver_map *self = PHP_DRIVER_GET_MAP(getThis());
   RETURN_LONG((long)HASH_COUNT(self->entries));
 }
 
-PHP_METHOD(Map, current)
+PHP_METHOD(Cassandra_Map, current)
 {
   php_driver_map *self = PHP_DRIVER_GET_MAP(getThis());
   if (self->iter_curr != NULL)
     RETURN_ZVAL(&self->iter_curr->value, 1, 0);
 }
 
-PHP_METHOD(Map, key)
+PHP_METHOD(Cassandra_Map, key)
 {
   php_driver_map *self = PHP_DRIVER_GET_MAP(getThis());
   if (self->iter_curr != NULL)
     RETURN_ZVAL(&self->iter_curr->key, 1, 0);
 }
 
-PHP_METHOD(Map, next)
+PHP_METHOD(Cassandra_Map, next)
 {
   php_driver_map *self = PHP_DRIVER_GET_MAP(getThis());
   self->iter_curr = self->iter_temp;
   self->iter_temp = self->iter_temp != NULL ? (php_driver_map_entry *)self->iter_temp->hh.next : NULL;
 }
 
-PHP_METHOD(Map, valid)
+PHP_METHOD(Cassandra_Map, valid)
 {
   php_driver_map *self = PHP_DRIVER_GET_MAP(getThis());
   RETURN_BOOL(self->iter_curr != NULL);
 }
 
-PHP_METHOD(Map, rewind)
+PHP_METHOD(Cassandra_Map, rewind)
 {
   php_driver_map *self = PHP_DRIVER_GET_MAP(getThis());
   self->iter_curr = self->entries;
   self->iter_temp = self->entries != NULL ? (php_driver_map_entry *)self->entries->hh.next : NULL;
 }
 
-PHP_METHOD(Map, offsetSet)
+PHP_METHOD(Cassandra_Map, offsetSet)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -366,7 +366,7 @@ PHP_METHOD(Map, offsetSet)
   php_driver_map_set(self, key, value );
 }
 
-PHP_METHOD(Map, offsetGet)
+PHP_METHOD(Cassandra_Map, offsetGet)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -381,7 +381,7 @@ PHP_METHOD(Map, offsetGet)
     RETURN_ZVAL(&value, 1, 0);
 }
 
-PHP_METHOD(Map, offsetUnset)
+PHP_METHOD(Cassandra_Map, offsetUnset)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -394,7 +394,7 @@ PHP_METHOD(Map, offsetUnset)
   php_driver_map_del(self, key );
 }
 
-PHP_METHOD(Map, offsetExists)
+PHP_METHOD(Cassandra_Map, offsetExists)
 {
   zval *key;
   php_driver_map *self = NULL;
@@ -463,27 +463,27 @@ ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetUnset, 0, 1, IS_
 ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_map_methods[] = {
-  PHP_ME(Map, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Map, type, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, keys, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, values, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, set, arginfo_two, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, get, arginfo_one, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, remove, arginfo_one, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, has, arginfo_one, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, type, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, keys, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, values, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, set, arginfo_two, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, get, arginfo_one, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, remove, arginfo_one, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, has, arginfo_one, ZEND_ACC_PUBLIC)
   /* Countable */
-  PHP_ME(Map, count, arginfo_count, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, count, arginfo_count, ZEND_ACC_PUBLIC)
   /* Iterator */
-  PHP_ME(Map, current, arginfo_current, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, key, arginfo_key, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, next, arginfo_next, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, current, arginfo_current, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, key, arginfo_key, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, next, arginfo_next, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, valid, arginfo_valid, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
   /* ArrayAccess */
-  PHP_ME(Map, offsetSet, arginfo_offsetSet, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, offsetGet, arginfo_offsetGet, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, offsetUnset, arginfo_offsetUnset, ZEND_ACC_PUBLIC)
-  PHP_ME(Map, offsetExists, arginfo_offsetExists, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, offsetSet, arginfo_offsetSet, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, offsetGet, arginfo_offsetGet, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, offsetUnset, arginfo_offsetUnset, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, offsetExists, arginfo_offsetExists, ZEND_ACC_PUBLIC)
   PHP_FE_END
 };
 

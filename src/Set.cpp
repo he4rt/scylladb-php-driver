@@ -117,7 +117,7 @@ php_driver_set_populate(php_driver_set* set, zval* array )
 }
 
 /* {{{ Set::__construct(type) */
-PHP_METHOD(Set, __construct)
+PHP_METHOD(Cassandra_Set, __construct)
 {
   php_driver_set* self;
   zval* type;
@@ -145,7 +145,7 @@ PHP_METHOD(Set, __construct)
 /* }}} */
 
 /* {{{ Set::type() */
-PHP_METHOD(Set, type)
+PHP_METHOD(Cassandra_Set, type)
 {
   php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
@@ -153,7 +153,7 @@ PHP_METHOD(Set, type)
 /* }}} */
 
 /* {{{ Set::values() */
-PHP_METHOD(Set, values)
+PHP_METHOD(Cassandra_Set, values)
 {
   php_driver_set* set = NULL;
   array_init(return_value);
@@ -163,7 +163,7 @@ PHP_METHOD(Set, values)
 /* }}} */
 
 /* {{{ Set::add(value) */
-PHP_METHOD(Set, add)
+PHP_METHOD(Cassandra_Set, add)
 {
   php_driver_set* self = NULL;
 
@@ -181,7 +181,7 @@ PHP_METHOD(Set, add)
 /* }}} */
 
 /* {{{ Set::remove(value) */
-PHP_METHOD(Set, remove)
+PHP_METHOD(Cassandra_Set, remove)
 {
   php_driver_set* self = NULL;
 
@@ -199,7 +199,7 @@ PHP_METHOD(Set, remove)
 /* }}} */
 
 /* {{{ Set::has(value) */
-PHP_METHOD(Set, has)
+PHP_METHOD(Cassandra_Set, has)
 {
   php_driver_set* self = NULL;
 
@@ -217,7 +217,7 @@ PHP_METHOD(Set, has)
 /* }}} */
 
 /* {{{ Set::count() */
-PHP_METHOD(Set, count)
+PHP_METHOD(Cassandra_Set, count)
 {
   php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
   RETURN_LONG((long) HASH_COUNT(self->entries));
@@ -225,7 +225,7 @@ PHP_METHOD(Set, count)
 /* }}} */
 
 /* {{{ Set::current() */
-PHP_METHOD(Set, current)
+PHP_METHOD(Cassandra_Set, current)
 {
   php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
   if (self->iter_curr != NULL)
@@ -234,7 +234,7 @@ PHP_METHOD(Set, current)
 /* }}} */
 
 /* {{{ Set::key() */
-PHP_METHOD(Set, key)
+PHP_METHOD(Cassandra_Set, key)
 {
   php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
   RETURN_LONG(self->iter_index);
@@ -242,7 +242,7 @@ PHP_METHOD(Set, key)
 /* }}} */
 
 /* {{{ Set::next() */
-PHP_METHOD(Set, next)
+PHP_METHOD(Cassandra_Set, next)
 {
   php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
   self->iter_curr      = self->iter_temp;
@@ -252,7 +252,7 @@ PHP_METHOD(Set, next)
 /* }}} */
 
 /* {{{ Set::valid() */
-PHP_METHOD(Set, valid)
+PHP_METHOD(Cassandra_Set, valid)
 {
   php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
   RETURN_BOOL(self->iter_curr != NULL);
@@ -260,7 +260,7 @@ PHP_METHOD(Set, valid)
 /* }}} */
 
 /* {{{ Set::rewind() */
-PHP_METHOD(Set, rewind)
+PHP_METHOD(Cassandra_Set, rewind)
 {
   php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
   self->iter_curr      = self->entries;
@@ -299,20 +299,20 @@ ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_count, 0, 0, IS_LONG, 
 ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_set_methods[] = {
-  PHP_ME(Set, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC)
-    PHP_ME(Set, type, arginfo_none, ZEND_ACC_PUBLIC)
-      PHP_ME(Set, values, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(Set, add, arginfo_one, ZEND_ACC_PUBLIC)
-          PHP_ME(Set, has, arginfo_one, ZEND_ACC_PUBLIC)
-            PHP_ME(Set, remove, arginfo_one, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Set, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC)
+    PHP_ME(Cassandra_Set, type, arginfo_none, ZEND_ACC_PUBLIC)
+      PHP_ME(Cassandra_Set, values, arginfo_none, ZEND_ACC_PUBLIC)
+        PHP_ME(Cassandra_Set, add, arginfo_one, ZEND_ACC_PUBLIC)
+          PHP_ME(Cassandra_Set, has, arginfo_one, ZEND_ACC_PUBLIC)
+            PHP_ME(Cassandra_Set, remove, arginfo_one, ZEND_ACC_PUBLIC)
   /* Countable */
-  PHP_ME(Set, count, arginfo_count, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Set, count, arginfo_count, ZEND_ACC_PUBLIC)
   /* Iterator */
-  PHP_ME(Set, current, arginfo_current, ZEND_ACC_PUBLIC)
-    PHP_ME(Set, key, arginfo_key, ZEND_ACC_PUBLIC)
-      PHP_ME(Set, next, arginfo_next, ZEND_ACC_PUBLIC)
-        PHP_ME(Set, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-          PHP_ME(Set, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Set, current, arginfo_current, ZEND_ACC_PUBLIC)
+    PHP_ME(Cassandra_Set, key, arginfo_key, ZEND_ACC_PUBLIC)
+      PHP_ME(Cassandra_Set, next, arginfo_next, ZEND_ACC_PUBLIC)
+        PHP_ME(Cassandra_Set, valid, arginfo_valid, ZEND_ACC_PUBLIC)
+          PHP_ME(Cassandra_Set, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
             PHP_FE_END
 };
 
