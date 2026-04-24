@@ -1,7 +1,6 @@
 name: "Test PHP Extension"
 
 on:
-  workflow_call:
   push:
     branches:
       - v1.3.x
@@ -9,9 +8,12 @@ on:
       - 'cmake/**'
       - 'src/**'
       - 'include/**'
-      - 'utils/**'
+      - 'util/**'
+      - 'ZendCPP/**'
       - 'tests/**'
+      - 'CMakeLists.txt'
       - '.github/workflows/test.yml'
+      - '.github/actions/**'
   pull_request:
     branches:
       - v1.3.x
@@ -19,56 +21,109 @@ on:
       - 'cmake/**'
       - 'src/**'
       - 'include/**'
-      - 'utils/**'
+      - 'util/**'
+      - 'ZendCPP/**'
       - 'tests/**'
+      - 'CMakeLists.txt'
       - '.github/workflows/test.yml'
+      - '.github/actions/**'
+
+permissions:
+  contents: read
+
 jobs:
   test:
-    strategy:
-      matrix:
-        php: ['8.3', '8.4', '8.5']
-        threading: ['zts', 'nts']
-        os: ['ubuntu-22.04', 'ubuntu-24.04']
-        driver: ['scylladb', 'cassandra']
-      fail-fast: false
+    name: PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
     runs-on: ubuntu-24.04
-    container:
-      image: malusevd99/scylladb-php-driver:${{ matrix.os }}-${{ matrix.php }}-${{ matrix.threading }}-debug
-      credentials:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    services:
+      scylladb:
+        image: scylladb/scylla:6.2
+        options: >-
+          --health-cmd "nodetool status 2>/dev/null | grep -q UN"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 20
+          --health-start-period 30s
+        ports:
+          - 9042:9042
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - "8.3"
+          - "8.4"
+          - "8.5"
+        phpts:
+          - "nts"
+          - "ts"
+        driver:
+          - "scylladb"
+          - "cassandra"
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
-      - name: Cache Vendor
-        uses: actions/cache@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          ini-file: development
+          coverage: none
+          tools: none
+        env:
+          phpts: ${{ matrix.phpts }}
+          debug: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.30"
+
+      - uses: ./.github/actions/install-libuv
+        id: libuv
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: ${{ matrix.driver }}
+          libuv_pkg_config_path: ${{ steps.libuv.outputs.pkg_config_path }}
+
+      - uses: ./.github/actions/build-extension
+        with:
+          driver: ${{ matrix.driver }}
+          libuv_pkg_config_path: ${{ steps.libuv.outputs.pkg_config_path }}
+          cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
         with:
           path: tests/vendor
-          key: ${{ runner.os }}-${{ matrix.php }}-vendor-${{ hashFiles('**/composer.lock') }}
+          key: composer-${{ matrix.php }}-${{ hashFiles('tests/composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
 
-      - name: Build
-        run: ./scripts/build.sh ${{ matrix.driver }}
-
-      - name: Install PHP Dependencies
+      - name: Install Composer dependencies
         working-directory: tests
-        shell: bash
         run: |
-          php -d extension=cassandra /php/bin/composer \
-            --ignore-platform-reqs \
-            --no-ansi \
-            --prefer-dist \
-            --no-interaction \
-            --no-progress \
-            install
+          php -d extension=cassandra "$(command -v composer)" \
+            install --no-ansi --no-interaction --no-progress --prefer-dist
 
       - name: Run tests
         working-directory: tests
-        shell: bash
         run: |
           php -d extension=cassandra ./vendor/bin/pest \
-          	--colors=always \
-          	--fail-on-risky \
-          	--fail-on-warning \
-          	--fail-on-deprecation
+            --colors=always \
+            --fail-on-risky \
+            --fail-on-warning \
+            --fail-on-deprecation
+        env:
+          SCYLLADB_HOSTS: "127.0.0.1"

@@ -1,0 +1,47 @@
+name: Build ScyllaDB PHP extension
+description: Configure, build and install cassandra.so using CMake
+
+inputs:
+  driver:
+    required: false
+    default: 'scylladb'
+    description: 'Which driver: scylladb or cassandra'
+  libuv_pkg_config_path:
+    required: true
+    description: 'PKG_CONFIG_PATH entry for libuv'
+  cpp_driver_pkg_config_path:
+    required: true
+    description: 'PKG_CONFIG_PATH entry for the C++ driver'
+  build_type:
+    required: false
+    default: 'RelWithDebInfo'
+    description: 'CMake build type: Debug | RelWithDebInfo | Release'
+  enable_lto:
+    required: false
+    default: 'OFF'
+    description: 'Enable link-time optimisation'
+
+runs:
+  using: composite
+  steps:
+    - name: Configure and build
+      shell: bash
+      run: |
+        USE_CASSANDRA="OFF"
+        [[ "${{ inputs.driver }}" == "cassandra" ]] && USE_CASSANDRA="ON"
+
+        export PKG_CONFIG_PATH="${{ inputs.libuv_pkg_config_path }}:${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
+
+        cmake -B cmake-build \
+          -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
+          -DCMAKE_BUILD_TYPE="${{ inputs.build_type }}" \
+          -DLINK_LIBUV_STATIC=ON \
+          -DPHP_DRIVER_STATIC=OFF \
+          -DUSE_LIBCASSANDRA="${USE_CASSANDRA}" \
+          -DENABLE_LTO="${{ inputs.enable_lto }}"
+
+        cmake --build cmake-build --parallel "$(nproc)"
+
+    - name: Install extension
+      shell: bash
+      run: sudo cmake --install cmake-build --component extension

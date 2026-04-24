@@ -1,30 +1,31 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-DRIVER=${1:-"scylladb"}
-VERSION=${2:-"master"}
+DRIVER="${1:-scylladb}"
+BUILD_DIR="cmake-build"
 
-rm -rf out
+die() { echo "ERROR: $*" >&2; exit 1; }
 
-phpize --clean
-phpize
+command -v cmake      >/dev/null 2>&1 || die "cmake not found in PATH"
+command -v php-config >/dev/null 2>&1 || die "php-config not found in PATH"
 
-if [[ "$DRIVER" == "cassandra" ]]; then
-    ./configure \
-        --enable-lto \
-        --enable-avx \
-        --enable-libuv-static \
-        --enable-driver-static \
-        --enable-libcassandra \
-        --with-version="$VERSION"
-else
-    ./configure \
-        --enable-lto \
-        --enable-avx \
-        --enable-libuv-static \
-        --enable-driver-static \
-        --with-version="$VERSION"
-fi
+[[ "$DRIVER" == "scylladb" || "$DRIVER" == "cassandra" ]] \
+    || die "Unknown driver '$DRIVER'. Must be 'scylladb' or 'cassandra'."
 
-make "-j$(nproc)" || exit 1
-make install
+USE_LIBCASSANDRA="OFF"
+[[ "$DRIVER" == "cassandra" ]] && USE_LIBCASSANDRA="ON"
+
+rm -rf "$BUILD_DIR"
+
+cmake -B "$BUILD_DIR" \
+    -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DENABLE_LTO=ON \
+    -DLINK_LIBUV_STATIC=ON \
+    -DPHP_DRIVER_STATIC=ON \
+    -DUSE_LIBCASSANDRA="$USE_LIBCASSANDRA"
+
+cmake --build "$BUILD_DIR" --parallel "$(nproc)"
+cmake --install "$BUILD_DIR" --component extension
+
 cp "$(php-config --extension-dir)/cassandra.so" .

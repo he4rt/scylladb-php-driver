@@ -1,0 +1,57 @@
+name: Install libuv
+description: Build and cache libuv from source
+
+inputs:
+  version:
+    required: false
+    default: '1.50.0'
+    description: 'libuv release tag (without leading v)'
+
+outputs:
+  install_dir:
+    value: ${{ steps.values.outputs.install_dir }}
+    description: 'libuv install prefix'
+  pkg_config_path:
+    value: ${{ steps.values.outputs.pkg_config_path }}
+    description: 'Directory containing libuv.pc for PKG_CONFIG_PATH'
+
+runs:
+  using: composite
+  steps:
+    - name: Cache libuv
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: /opt/libuv
+        key: libuv-${{ inputs.version }}-${{ runner.arch }}-${{ runner.os }}
+
+    - name: Install build dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        sudo apt-get update -q
+        sudo apt-get install -y --no-install-recommends cmake ninja-build
+
+    - name: Download and build libuv
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        curl -fsSL "https://github.com/libuv/libuv/archive/v${{ inputs.version }}.tar.gz" \
+          | sudo tar -xzf - -C /opt
+        sudo mv "/opt/libuv-${{ inputs.version }}" /opt/libuv-src
+        cmake -G Ninja -B /opt/libuv-src/build -S /opt/libuv-src \
+          -DBUILD_TESTING=OFF \
+          -DBUILD_BENCHMARKS=OFF \
+          -DLIBUV_BUILD_SHARED=OFF \
+          -DCMAKE_INSTALL_PREFIX=/opt/libuv \
+          -DCMAKE_BUILD_TYPE=Release
+        cmake --build /opt/libuv-src/build --parallel "$(nproc)"
+        sudo cmake --install /opt/libuv-src/build
+        sudo rm -rf /opt/libuv-src
+
+    - name: Set outputs
+      id: values
+      shell: bash
+      run: |
+        echo "install_dir=/opt/libuv"          >> "$GITHUB_OUTPUT"
+        echo "pkg_config_path=/opt/libuv/lib/pkgconfig" >> "$GITHUB_OUTPUT"

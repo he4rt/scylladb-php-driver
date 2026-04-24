@@ -1,0 +1,94 @@
+name: Install ScyllaDB/Cassandra C++ driver
+description: Build and cache the ScyllaDB or DataStax Cassandra C++ driver from source
+
+inputs:
+  driver:
+    required: false
+    default: 'scylladb'
+    description: 'Which driver to build: scylladb or cassandra'
+  libuv_pkg_config_path:
+    required: true
+    description: 'PKG_CONFIG_PATH entry for libuv'
+
+outputs:
+  install_dir:
+    value: ${{ steps.values.outputs.install_dir }}
+    description: 'Driver install prefix'
+  pkg_config_path:
+    value: ${{ steps.values.outputs.pkg_config_path }}
+    description: 'Directory containing the driver .pc file for PKG_CONFIG_PATH'
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve driver metadata
+      id: meta
+      shell: bash
+      run: |
+        if [[ "${{ inputs.driver }}" == "cassandra" ]]; then
+          echo "repo=https://github.com/datastax/cpp-driver.git"       >> "$GITHUB_OUTPUT"
+          echo "install_prefix=/opt/cassandra-cpp"                      >> "$GITHUB_OUTPUT"
+          echo "pc_name=cassandra"                                       >> "$GITHUB_OUTPUT"
+        else
+          echo "repo=https://github.com/scylladb/cpp-driver.git"       >> "$GITHUB_OUTPUT"
+          echo "install_prefix=/opt/scylladb-cpp"                       >> "$GITHUB_OUTPUT"
+          echo "pc_name=scylla-cpp-driver"                              >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Weekly cache key
+      id: date
+      shell: bash
+      run: echo "week=$(date +%Y-W%V)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache driver
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.meta.outputs.install_prefix }}
+        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.date.outputs.week }}
+
+    - name: Install build dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        sudo apt-get update -q
+        sudo apt-get install -y --no-install-recommends \
+          cmake ninja-build pkg-config \
+          libssl-dev zlib1g-dev libssh2-1-dev
+
+    - name: Clone driver source
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        git clone --depth 1 "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src
+
+    - name: Build and install driver
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        PKG_CONFIG_PATH="${{ inputs.libuv_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)" \
+        cmake -G Ninja -B /tmp/cpp-driver-src/build -S /tmp/cpp-driver-src \
+          -DCMAKE_INSTALL_PREFIX="${{ steps.meta.outputs.install_prefix }}" \
+          -DCASS_CPP_STANDARD=17 \
+          -DCASS_BUILD_STATIC=ON \
+          -DCASS_BUILD_SHARED=ON \
+          -DCASS_USE_STD_ATOMIC=ON \
+          -DCASS_USE_STATIC_LIBS=ON \
+          -DCASS_USE_TIMERFD=ON \
+          -DCASS_USE_LIBSSH2=ON \
+          -DCASS_USE_ZLIB=ON \
+          -DCASS_BUILD_TESTS=OFF \
+          -DCASS_BUILD_EXAMPLES=OFF \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc)"
+        sudo cmake --install /tmp/cpp-driver-src/build
+        rm -rf /tmp/cpp-driver-src
+
+    - name: Set outputs
+      id: values
+      shell: bash
+      run: |
+        INSTALL="${{ steps.meta.outputs.install_prefix }}"
+        echo "install_dir=${INSTALL}"                    >> "$GITHUB_OUTPUT"
+        echo "pkg_config_path=${INSTALL}/lib/pkgconfig"  >> "$GITHUB_OUTPUT"
