@@ -11,9 +11,5 @@ declare(strict_types=1);
  * extensions / shared dataset definitions.
  */
 
-uses()->group('unit')->in('Unit');
-uses()->group('feature')->in('Feature');
-
-expect()->extend('map', function (Closure $fn) {
-    return expect($fn($this->value));
-});
+uses()->group('unit')->in('tests/Unit');
+uses()->group('feature')->in('tests/Feature');

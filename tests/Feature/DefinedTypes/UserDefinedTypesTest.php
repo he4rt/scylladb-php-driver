@@ -75,7 +75,7 @@ it('Using Cassandra user defined types from schema metadata', function () use($k
     $row = $result->first();
     expect($row['id'])
         ->toBeInstanceOf(Uuid::class)
-        ->map(fn(Uuid $value) => (string)$value)
+        ->and((string) $row['id'])
         ->toBe('56357d2b-4586-433c-ad24-afa9918bc415')
         ->and($row['name'])
         ->toBe('Arthur Canhassi');
@@ -103,7 +103,7 @@ it('Using Cassandra user defined types from schema metadata', function () use($k
     $row = $result->offsetGet(1);
     expect($row['id'])
         ->toBeInstanceOf(Uuid::class)
-        ->map(fn(Uuid $value) => (string)$value)
+        ->and((string) $row['id'])
         ->toBe('ce359590-8528-4682-a9f3-add53fc9aa09')
         ->and($row['name'])
         ->toBe('Kevin Malone');

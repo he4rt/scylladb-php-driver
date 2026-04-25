@@ -120,18 +120,16 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
-          path: tests/vendor
-          key: composer-${{ matrix.php }}-${{ hashFiles('tests/composer.lock') }}
+          path: vendor
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.json', 'composer.lock') }}
           restore-keys: composer-${{ matrix.php }}-
 
       - name: Install Composer dependencies
-        working-directory: tests
         run: |
           php -d extension=cassandra "$(command -v composer)" \
             install --no-ansi --no-interaction --no-progress --prefer-dist
 
       - name: Run tests
-        working-directory: tests
         run: |
           php -d extension=cassandra ./vendor/bin/pest --colors=always
         env:

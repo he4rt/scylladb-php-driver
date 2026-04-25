@@ -71,28 +71,31 @@ test('Using Cassandra collections', function () use ($collections) {
 
     /** @var Collection $logins */
     $logins = $row['logins'];
+    $login0 = $logins->get(0);
+    $login1 = $logins->get(1);
     expect($logins)
         ->toBeInstanceOf(Collection::class)
         ->toHaveCount(2)
-        ->and($logins->get(0))
+        ->and($login0)
         ->toBeInstanceOf(Timestamp::class)
-        ->map(fn(Timestamp $value) => $value->time())
+        ->and($login0->time())
         ->toBe(DateTime::createFromFormat(DateTimeInterface::ISO8601, '2014-09-11T10:09:08+0000')->getTimestamp())
-        ->and($logins->get(1))
+        ->and($login1)
         ->toBeInstanceOf(Timestamp::class)
-        ->map(fn(Timestamp $value) => $value->time())
+        ->and($login1->time())
         ->toBe(DateTime::createFromFormat(DateTimeInterface::ISO8601, '2014-09-12T10:09:00+0000')->getTimestamp());
 
     /** @var Map */
     $locations = $row['locations'];
+    $locationKey0 = $locations->keys()[0];
     expect($locations)
         ->toBeInstanceOf(Map::class)
         ->toHaveCount(1)
         ->and($locations->keys())
         ->toHaveCount(1)
-        ->and($locations->keys()[0])
+        ->and($locationKey0)
         ->toBeInstanceOf(Timestamp::class)
-        ->map(fn(Timestamp $value) => $value->time())
+        ->and($locationKey0->time())
         ->toBe(DateTime::createFromFormat(DateTimeInterface::ISO8601, '2014-09-11T10:09:08+0000')->getTimestamp())
         ->and($locations->values()[0])
         ->toBe(37.397357);
@@ -158,7 +161,7 @@ it('Using Cassandra nested collections', function () use ($nestedCollections) {
 
     expect($row['id'])
         ->toBeInstanceOf(Uuid::class)
-        ->map(fn(Uuid $value) => (string)$value)
+        ->and((string) $row['id'])
         ->toBe('56357d2b-4586-433c-ad24-afa9918bc415')
         ->and($row['name'])
         ->toBe('Charles Wallace');

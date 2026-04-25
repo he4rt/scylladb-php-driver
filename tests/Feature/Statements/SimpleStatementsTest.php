@@ -63,7 +63,9 @@ it('supports named arguments', function () use ($keyspace, $table) {
         'album'   => 'Bye Bye Blackbird',
     ]]);
 
-    $row = $session->execute("SELECT * FROM $keyspace.$table")->first();
+    $row = $session->execute(
+        "SELECT * FROM $keyspace.$table WHERE id = 62c36092-82a1-3a00-93d1-46196ee77204"
+    )->first();
     expect($row['artist'])->toBe('Joséphine Baker');
 })->group('feature');
 
