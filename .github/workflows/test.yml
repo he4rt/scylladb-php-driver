@@ -12,6 +12,7 @@ on:
       - 'ZendCPP/**'
       - 'tests/**'
       - 'CMakeLists.txt'
+      - 'composer.json'
       - '.github/workflows/test.yml'
       - '.github/actions/**'
   pull_request:
@@ -25,6 +26,7 @@ on:
       - 'ZendCPP/**'
       - 'tests/**'
       - 'CMakeLists.txt'
+      - 'composer.json'
       - '.github/workflows/test.yml'
       - '.github/actions/**'
 
@@ -136,3 +138,82 @@ jobs:
           php -d extension=cassandra ./vendor/bin/pest --colors=always
         env:
           SCYLLADB_HOSTS: "127.0.0.1"
+
+  pie-build:
+    name: PIE / PHP ${{ matrix.php }}-nts / ${{ matrix.driver }}
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - "8.3"
+          - "8.4"
+          - "8.5"
+        driver:
+          - "scylladb"
+          - "cassandra"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential libssl-dev
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          ini-file: development
+          coverage: none
+          tools: pie, php-config, phpize
+          extensions: mbstring, curl, intl
+        env:
+          debug: true
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: pie-${{ runner.os }}-${{ matrix.php }}-${{ matrix.driver }}
+          restore-keys: |
+            pie-${{ runner.os }}-${{ matrix.php }}-${{ matrix.driver }}
+            pie-${{ runner.os }}-${{ matrix.php }}-
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-libuv
+        id: libuv
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: ${{ matrix.driver }}
+          libuv_pkg_config_path: ${{ steps.libuv.outputs.pkg_config_path }}
+
+      - name: Build with PIE
+        run: |
+          DRIVER_OPT=""
+          [[ "${{ matrix.driver }}" == "cassandra" ]] && DRIVER_OPT="--enable-libcassandra"
+
+          export PKG_CONFIG_PATH="${{ steps.libuv.outputs.pkg_config_path }}:${{ steps.driver.outputs.pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
+
+          pie build codelieutenant/scylla-driver \
+            ${DRIVER_OPT} \
+            --with-php-config="$(command -v php-config)" \
+            --no-interaction \
+            --no-ansi
+        env:
+          CC: ccache gcc
+          CXX: ccache g++
+
+      - name: Verify extension loads
+        run: |
+          EXT_SO=$(find ~/.config/pie -name "cassandra.so" | head -1)
+          echo "Built: ${EXT_SO}"
+          test -f "${EXT_SO}"
+          php -d extension="${EXT_SO}" -m | grep -i cassandra
