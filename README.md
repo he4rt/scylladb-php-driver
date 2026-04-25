@@ -6,6 +6,7 @@
 
 [![Tests](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml/badge.svg?branch=v1.3.x)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml)
 [![Build Docker Image](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml/badge.svg)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml)
+[![Packagist Version](https://img.shields.io/packagist/v/codelieutenant/scylla-driver)](https://packagist.org/packages/codelieutenant/scylla-driver)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-8892BF)](https://www.php.net)
 [![ScyllaDB](https://img.shields.io/badge/ScyllaDB-Developers-4C388C)](https://discord.gg/B6rutCXvgp)
@@ -60,6 +61,49 @@ foreach ($result as $row) {
 ---
 
 ## Installation
+
+### Via PIE (recommended)
+
+[PIE](https://github.com/php/pie) is the official PHP extension installer. It handles downloading, building, and installing the extension in a single command.
+
+**Package:** [`codelieutenant/scylla-driver`](https://packagist.org/packages/codelieutenant/scylla-driver)
+
+#### 1. Install native dependencies
+
+PIE builds the extension from source, so libuv and the C/C++ driver must be present first.
+
+```bash
+# libuv
+./scripts/compile-libuv.sh --prefix ~/.local
+
+# ScyllaDB driver (default)
+./scripts/compile-cpp-driver.sh --driver scylladb --prefix ~/.local
+
+# — or — DataStax Cassandra driver
+./scripts/compile-cpp-driver.sh --driver cassandra --prefix ~/.local
+```
+
+Export the pkg-config path so CMake can find both libraries:
+
+```bash
+export PKG_CONFIG_PATH="$HOME/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
+```
+
+#### 2. Install with PIE
+
+```bash
+# ScyllaDB driver (default)
+pie install codelieutenant/scylla-driver
+
+# DataStax Cassandra driver
+pie install codelieutenant/scylla-driver --enable-libcassandra
+```
+
+PIE places the compiled `cassandra.so` in your PHP extension directory and enables it automatically.
+
+---
+
+### Manual build from source
 
 ### Prerequisites
 
