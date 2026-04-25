@@ -75,3 +75,46 @@ describe('Cassandra\Time', function () {
         });
     });
 });
+
+describe('Cassandra\Time (migrated)', function () {
+
+    it('constructs from int and string nanoseconds and stringifies', function () {
+        $time = new Time(0);
+        expect((string) $time)->toEqual('0');
+
+        $time = new Time(42);
+        expect((string) $time)->toEqual('42');
+
+        $time = new Time('86399999999999');
+        expect((string) $time)->toEqual('86399999999999');
+    });
+
+    it('constructs "now" within a second of time of day', function () {
+        $time = new Time();
+        expect($time->seconds())->toEqualWithDelta(time() % (24 * 60 * 60), 1);
+    });
+
+    it('rejects negative nanoseconds', function () {
+        new Time(-1);
+    })->throws(\InvalidArgumentException::class, 'nanoseconds must be nanoseconds since midnight, -1 given');
+
+    it('rejects nanoseconds at or above 24 hours', function () {
+        new Time('86400000000000');
+    })->throws(\InvalidArgumentException::class, "nanoseconds must be nanoseconds since midnight, '86400000000000' given");
+
+    it('converts DateTime to nanoseconds since midnight', function () {
+        $datetime = new \DateTime('1970-01-01T00:00:00+0000');
+        expect((string) Time::fromDateTime($datetime))->toEqual('0');
+
+        $datetime = new \DateTime('1970-01-01T00:00:01+0000');
+        expect((string) Time::fromDateTime($datetime))->toEqual('1000000000');
+
+        $datetime = new \DateTime('1970-01-01T23:59:59+0000');
+        expect((string) Time::fromDateTime($datetime))->toEqual('86399000000000');
+    });
+
+    it('exposes the CQL Type::time()', function () {
+        $time = new Time(0);
+        expect($time->type())->toEqual(Type::time());
+    });
+});

@@ -57,4 +57,64 @@ describe('Cassandra\Uuid', function () {
 
         expect((string) $uuid)->toBe($raw);
     });
+
+    it('generates unique uuids over 10000 iterations', function () {
+        for ($i = 0; $i < 10000; $i++) {
+            expect((string) new Uuid())->not->toEqual((string) new Uuid());
+        }
+    });
+
+    it('compares two equal Uuids', function (Uuid $value1, Uuid $value2) {
+        expect($value2)->toEqual($value1)
+            ->and($value1 == $value2)->toBeTrue();
+    })->with([
+        [new Uuid('2a5072fa-7da4-4ccd-a9b4-f017a3872304'), new Uuid('2a5072fa-7da4-4ccd-a9b4-f017a3872304')],
+    ]);
+
+    it('compares two non-equal Uuids', function (Uuid $value1, Uuid $value2) {
+        expect($value2)->not->toEqual($value1)
+            ->and($value1 == $value2)->toBeFalse();
+    })->with([
+        [new Uuid('2a5072fa-7da4-4ccd-a9b4-f017a3872304'), new Uuid('3b5072fa-7da4-4ccd-a9b4-f017a3872304')],
+    ]);
+
+    it('produces unique UUIDs across forked child processes', function () {
+        if (!function_exists('pcntl_fork')) {
+            $this->markTestSkipped('pcntl_fork() does not exist');
+        }
+
+        $script = <<<'EOF'
+<?php
+$uuidsFilename = $_SERVER['argv'][1];
+$numberOfForks = $_SERVER['argv'][2];
+
+$children = [];
+foreach (range(1, $numberOfForks) as $i) {
+    $pid = pcntl_fork();
+    if ($pid < 0) {
+        die("Unable to Create Fork: Unique UUID test cannot complete");
+    } elseif ($pid === 0) {
+        $uuid = new \Cassandra\Uuid();
+        file_put_contents($uuidsFilename, $uuid->uuid() . PHP_EOL, FILE_APPEND);
+        exit(0);
+    } else {
+        $children[] = $pid;
+    }
+}
+foreach ($children as $pid) {
+    pcntl_waitpid($pid, $status);
+}
+EOF;
+        $numProcesses   = 64;
+        $uuidsFilename  = tempnam(sys_get_temp_dir(), 'uuid');
+        $scriptFilename = tempnam(sys_get_temp_dir(), 'uuid');
+        file_put_contents($scriptFilename, $script, FILE_APPEND);
+        exec(PHP_BINARY . " {$scriptFilename} {$uuidsFilename} $numProcesses");
+        unlink($scriptFilename);
+
+        $uuids = file($uuidsFilename);
+        unlink($uuidsFilename);
+
+        expect(count(array_unique($uuids)))->toEqual($numProcesses);
+    });
 });
