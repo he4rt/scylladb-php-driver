@@ -54,7 +54,7 @@ PHP_METHOD(FutureSession, get)
   if (php_driver_future_wait_timed(self->future, timeout ) == FAILURE) {
     if (self->persist && self->hash_key) {
       /* Remove timed-out pending session so the next request reconnects. */
-      if (PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), self->hash_key, self->hash_key_len + 1)) {
+      if (((zend_hash_str_del((&EG(persistent_list)), (self->hash_key), (size_t)((self->hash_key_len + 1) - 1))) == SUCCESS)) {
         self->future = NULL;
       }
     }
@@ -72,7 +72,7 @@ PHP_METHOD(FutureSession, get)
       self->exception_message = estrndup(message, message_len);
       self->exception_code    = rc;
 
-      if (PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), self->hash_key, self->hash_key_len + 1)) {
+      if (((zend_hash_str_del((&EG(persistent_list)), (self->hash_key), (size_t)((self->hash_key_len + 1) - 1))) == SUCCESS)) {
         self->future  = NULL;
       }
 
@@ -123,7 +123,7 @@ php_driver_future_session_compare(zval *obj1, zval *obj2 )
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void
@@ -146,7 +146,7 @@ php_driver_future_session_free(zend_object *object )
     efree(self->exception_message);
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_session);
+  do { if (!Z_ISUNDEF(self->default_session)) { zval_ptr_dtor(&(self->default_session)); ZVAL_UNDEF(&(self->default_session)); } } while (0);
 
   zend_object_std_dtor(&self->zendObject);
 

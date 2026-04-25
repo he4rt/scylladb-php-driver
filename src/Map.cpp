@@ -524,22 +524,20 @@ php_driver_map_properties(
   HashTable     *props = zend_std_get_properties(object );
 
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                          "type", sizeof("type"),
-                           &self->type, sizeof(zval));
+  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&self->type)));
   Z_ADDREF_P(&self->type);
 
 
   array_init(&keys);
   php_driver_map_populate_keys(self, &keys );
   zend_hash_sort(Z_ARRVAL_P(&keys), php_driver_data_compare, 1);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "keys", sizeof("keys"), &keys, sizeof(zval *));
+  ((void)zend_hash_str_update((props), ("keys"), (size_t)((sizeof("keys")) - 1), (&keys)));
 
 
   array_init(&values);
   php_driver_map_populate_values(self, &values );
   zend_hash_sort(Z_ARRVAL_P(&values), php_driver_data_compare, 1);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval *));
+  ((void)zend_hash_str_update((props), ("values"), (size_t)((sizeof("values")) - 1), (&values)));
 
   return props;
 }
@@ -622,7 +620,7 @@ php_driver_map_free(zend_object *object )
     efree(curr);
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  do { if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); } } while (0);
 
   zend_object_std_dtor(&self->zendObject);
 

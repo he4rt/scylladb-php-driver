@@ -63,7 +63,7 @@ PHP_METHOD(TypeCollection, __toString) {
   php_driver_type_string(self, &string);
   smart_str_0(&string);
 
-  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(ZSTR_VAL((string).s));
   smart_str_free(&string);
 }
 
@@ -154,9 +154,7 @@ static HashTable* php_driver_type_collection_properties(
 #endif
   HashTable* props = zend_std_get_properties(object);
 
-  PHP5TO7_ZEND_HASH_UPDATE(
-      props, "valueType", sizeof("valueType"),
-      &self->data.collection.value_type, sizeof(zval));
+  ((void)zend_hash_str_update((props), ("valueType"), (size_t)((sizeof("valueType")) - 1), (&self->data.collection.value_type)));
   Z_ADDREF_P(&self->data.collection.value_type);
 
   return props;
@@ -176,7 +174,7 @@ static void php_driver_type_collection_free(zend_object* object) {
   php_driver_type* self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.collection.value_type);
+  do { if (!Z_ISUNDEF(self->data.collection.value_type)) { zval_ptr_dtor(&(self->data.collection.value_type)); ZVAL_UNDEF(&(self->data.collection.value_type)); } } while (0);
 
   zend_object_std_dtor(&self->zendObject);
 

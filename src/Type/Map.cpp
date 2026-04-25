@@ -82,7 +82,7 @@ PHP_METHOD(TypeMap, __toString)
   php_driver_type_string(self, &string );
   smart_str_0(&string);
 
-  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(ZSTR_VAL((string).s));
   smart_str_free(&string);
 }
 
@@ -186,14 +186,10 @@ php_driver_type_map_properties(
 #endif
   HashTable      *props = zend_std_get_properties(object );
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "keyType", sizeof("keyType"),
-                           &self->data.map.key_type, sizeof(zval));
+  ((void)zend_hash_str_update((props), ("keyType"), (size_t)((sizeof("keyType")) - 1), (&self->data.map.key_type)));
   Z_ADDREF_P(&self->data.map.key_type);
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "valueType", sizeof("valueType"),
-                           &self->data.map.value_type, sizeof(zval));
+  ((void)zend_hash_str_update((props), ("valueType"), (size_t)((sizeof("valueType")) - 1), (&self->data.map.value_type)));
   Z_ADDREF_P(&self->data.map.value_type);
 
   return props;
@@ -217,8 +213,8 @@ php_driver_type_map_free(zend_object *object )
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.map.key_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->data.map.value_type);
+  do { if (!Z_ISUNDEF(self->data.map.key_type)) { zval_ptr_dtor(&(self->data.map.key_type)); ZVAL_UNDEF(&(self->data.map.key_type)); } } while (0);
+  do { if (!Z_ISUNDEF(self->data.map.value_type)) { zval_ptr_dtor(&(self->data.map.value_type)); ZVAL_UNDEF(&(self->data.map.value_type)); } } while (0);
 
   zend_object_std_dtor(&self->zendObject);
 

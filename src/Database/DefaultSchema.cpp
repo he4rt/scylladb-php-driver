@@ -77,9 +77,7 @@ PHP_METHOD(DefaultSchema, keyspaces)
     keyspace = PHP_DRIVER_GET_KEYSPACE(&zkeyspace);
     keyspace->schema = php_driver_add_ref(self->schema);
     keyspace->meta   = meta;
-    PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value,
-                              keyspace_name, keyspace_name_len + 1,
-                              &zkeyspace);
+    add_assoc_zval_ex((return_value), (keyspace_name), (size_t)((keyspace_name_len + 1) - 1), (&zkeyspace));
   }
 
   cass_iterator_free(iterator);
@@ -135,7 +133,7 @@ php_driver_default_schema_compare(zval *obj1, zval *obj2 )
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void

@@ -413,11 +413,11 @@ php_driver_float_properties(
   HashTable         *props = zend_std_get_properties(object );
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_FLOAT );
-  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
+  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&type)));
 
 
   to_string(&value, self );
-  PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), &value, sizeof(zval));
+  ((void)zend_hash_str_update((props), ("value"), (size_t)((sizeof("value")) - 1), (&value)));
 
   return props;
 }

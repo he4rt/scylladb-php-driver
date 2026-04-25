@@ -258,7 +258,7 @@ php_driver_default_column_compare(zval *obj1, zval *obj2 )
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void
@@ -266,8 +266,8 @@ php_driver_default_column_free(zend_object *object )
 {
   php_driver_column *self = PHP5TO7_ZEND_OBJECT_GET(column, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  do { if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); } } while (0);
+  do { if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); } } while (0);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

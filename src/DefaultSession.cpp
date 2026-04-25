@@ -51,10 +51,10 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
 
-  if (PHP_SCYLLADB_Z_IS_TRUE_P(value))
+  if ((Z_TYPE_P(value) == IS_TRUE))
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
 
-  if (PHP_SCYLLADB_Z_IS_FALSE_P(value))
+  if ((Z_TYPE_P(value) == IS_FALSE))
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
@@ -206,10 +206,10 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, Z_LVAL_P(value)));
 
-  if (PHP_SCYLLADB_Z_IS_TRUE_P(value))
+  if ((Z_TYPE_P(value) == IS_TRUE))
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_true));
 
-  if (PHP_SCYLLADB_Z_IS_FALSE_P(value))
+  if ((Z_TYPE_P(value) == IS_FALSE))
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
@@ -372,7 +372,7 @@ static int bind_arguments(CassStatement* statement, HashTable* arguments) {
     }
     if (rc == FAILURE) break;
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(arguments);
+  ZEND_HASH_FOREACH_END();
 
   return rc;
 }
@@ -411,7 +411,7 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
   CassError rc = CASS_OK;
 
   zval* current;
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
+  ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
     php_driver_statement* statement;
     php_driver_statement simple_statement;
     HashTable* arguments;
@@ -445,7 +445,7 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
     cass_batch_add_statement(cass_batch, stmt);
     cass_statement_free(stmt);
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&batch->data.batch.statements);
+  ZEND_HASH_FOREACH_END();
 
   rc = cass_batch_set_consistency(cass_batch, consistency);
   ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
@@ -789,11 +789,10 @@ PHP_METHOD(DefaultSession, prepare) {
   if (self->persist) {
     zval* le;
 
-    spprintf(&hash_key, 0, "%s%s", self->hash_key, Z_STRVAL_P(cql));
-    hash_key_len =
-        spprintf(&hash_key, 0, "%s:prepared_statement:%s", hash_key, SAFE_STR(self->keyspace));
+    hash_key_len = spprintf(&hash_key, 0, "%s%s:prepared_statement:%s",
+                            self->hash_key, Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
 
-    if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
+    if (((le = zend_hash_str_find((&EG(persistent_list)), (hash_key), (size_t)((hash_key_len + 1) - 1))) != NULL) &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
       object_init_ex(return_value, php_driver_prepared_statement_ce);
@@ -820,22 +819,19 @@ PHP_METHOD(DefaultSession, prepare) {
       if (self->persist) {
         pprepared_statement =
             (php_driver_pprepared_statement*)pecalloc(1, sizeof(php_driver_pprepared_statement), 1);
-        pprepared_statement->ref = php_driver_new_peref(future, free_prepared_statement, 1);
-        pprepared_statement->ref = php_driver_add_ref(self->session);
+        pprepared_statement->ref    = php_driver_add_ref(self->session);
         pprepared_statement->future = future;
 
 #if PHP_MAJOR_VERSION >= 7
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
                                 php_le_php_driver_prepared_statement());
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource,
-                                 sizeof(zval));
+        ((void)zend_hash_str_update((&EG(persistent_list)), (hash_key), (size_t)((hash_key_len + 1) - 1), (&resource)));
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #else
         resource.type = php_le_php_driver_prepared_statement();
         resource.ptr = pprepared_statement;
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, resource,
-                                 sizeof(zendObject));
+        ((void)zend_hash_str_update((&EG(persistent_list)), (hash_key), (size_t)((hash_key_len + 1) - 1), (resource)));
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #endif
@@ -845,7 +841,7 @@ PHP_METHOD(DefaultSession, prepare) {
 
   if (self->persist) {
     if (php_driver_future_is_error(future) == FAILURE) {
-      (void)PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
+      (void)((zend_hash_str_del((&EG(persistent_list)), (hash_key), (size_t)((hash_key_len + 1) - 1))) == SUCCESS);
     }
     efree(hash_key);
   } else {
@@ -1024,14 +1020,14 @@ static int php_driver_default_session_compare(zval* obj1, zval* obj2) {
 #endif
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void php_driver_default_session_free(zend_object* object) {
   php_driver_session* self = PHP5TO7_ZEND_OBJECT_GET(session, object);
 
   php_driver_del_peref(&self->session, 1);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+  do { if (!Z_ISUNDEF(self->default_timeout)) { zval_ptr_dtor(&(self->default_timeout)); ZVAL_UNDEF(&(self->default_timeout)); } } while (0);
 
   zend_object_std_dtor(&self->zendObject);
 }

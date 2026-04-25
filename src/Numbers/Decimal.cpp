@@ -576,17 +576,17 @@ static HashTable *php_driver_decimal_properties(
     HashTable *props = zend_std_get_properties(object);
 
     type = php_driver_type_scalar(CASS_VALUE_TYPE_DECIMAL);
-    PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
+    ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&type)));
 
     php_driver_format_integer(self->data.decimal.value, &string, &string_len);
 
     ZVAL_STRINGL(&value, string, string_len);
     efree(string);
-    PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), &value, sizeof(zval));
+    ((void)zend_hash_str_update((props), ("value"), (size_t)((sizeof("value")) - 1), (&value)));
 
 
     ZVAL_LONG(&scale, self->data.decimal.scale);
-    PHP5TO7_ZEND_HASH_UPDATE(props, "scale", sizeof("scale"), &scale, sizeof(zval));
+    ((void)zend_hash_str_update((props), ("scale"), (size_t)((sizeof("scale")) - 1), (&scale)));
 
     return props;
 }

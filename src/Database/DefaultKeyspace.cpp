@@ -127,9 +127,7 @@ PHP_METHOD(DefaultKeyspace, tables) {
       table = PHP_DRIVER_GET_TABLE(&ztable);
 
       if (Z_TYPE(table->name) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value, Z_STRVAL(table->name),
-                                  Z_STRLEN(table->name) + 1,
-                                  &ztable);
+        add_assoc_zval_ex((return_value), (Z_STRVAL(table->name)), (size_t)((Z_STRLEN(table->name) + 1) - 1), (&ztable));
       } else {
         add_next_index_zval(return_value, &ztable);
       }
@@ -181,8 +179,7 @@ PHP_METHOD(DefaultKeyspace, userTypes) {
     ztype = php_driver_type_from_data_type(user_type);
 
     cass_data_type_type_name(user_type, &type_name, &type_name_len);
-    PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value, type_name, type_name_len + 1,
-                              &ztype);
+    add_assoc_zval_ex((return_value), (type_name), (size_t)((type_name_len + 1) - 1), (&ztype));
   }
 
   cass_iterator_free(iterator);
@@ -239,9 +236,7 @@ PHP_METHOD(DefaultKeyspace, materializedViews) {
       view = PHP_DRIVER_GET_MATERIALIZED_VIEW(&zview);
 
       if (Z_TYPE(view->name) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value, Z_STRVAL(view->name),
-                                  Z_STRLEN(view->name) + 1,
-                                  &zview);
+        add_assoc_zval_ex((return_value), (Z_STRVAL(view->name)), (size_t)((Z_STRLEN(view->name) + 1) - 1), (&zview));
       } else {
         add_next_index_zval(return_value, &zview);
       }
@@ -304,8 +299,8 @@ PHP_METHOD(DefaultKeyspace, function) {
   }
 
   meta = cass_keyspace_meta_function_by_name_n(self->meta, name, name_len,
-                                               PHP5TO7_SMART_STR_VAL(arguments),
-                                               PHP5TO7_SMART_STR_LEN(arguments));
+                                               ZSTR_VAL((arguments).s),
+                                               ZSTR_LEN((arguments).s));
   if (meta) {
     zval zfunction = php_driver_create_function(self->schema, meta);
     RETVAL_ZVAL(&zfunction, 1, 1);
@@ -335,9 +330,7 @@ PHP_METHOD(DefaultKeyspace, functions) {
       php_driver_function *function = PHP_DRIVER_GET_FUNCTION(&zfunction);
 
       if (Z_TYPE(function->signature) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value, Z_STRVAL(function->signature),
-                                  Z_STRLEN(function->signature) + 1,
-                                  &zfunction);
+        add_assoc_zval_ex((return_value), (Z_STRVAL(function->signature)), (size_t)((Z_STRLEN(function->signature) + 1) - 1), (&zfunction));
       } else {
         add_next_index_zval(return_value, &zfunction);
       }
@@ -394,8 +387,8 @@ PHP_METHOD(DefaultKeyspace, aggregate) {
   }
 
   meta = cass_keyspace_meta_aggregate_by_name_n(self->meta, name, name_len,
-                                                PHP5TO7_SMART_STR_VAL(arguments),
-                                                PHP5TO7_SMART_STR_LEN(arguments));
+                                                ZSTR_VAL((arguments).s),
+                                                ZSTR_LEN((arguments).s));
   if (meta) {
     zval zaggregate = php_driver_create_aggregate(self->schema, meta);
     RETVAL_ZVAL(&zaggregate, 1, 1);
@@ -425,9 +418,7 @@ PHP_METHOD(DefaultKeyspace, aggregates) {
       php_driver_aggregate *aggregate = PHP_DRIVER_GET_AGGREGATE(&zaggregate);
 
       if (Z_TYPE(aggregate->signature) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value, Z_STRVAL(aggregate->signature),
-                                  Z_STRLEN(aggregate->signature) + 1,
-                                  &zaggregate);
+        add_assoc_zval_ex((return_value), (Z_STRVAL(aggregate->signature)), (size_t)((Z_STRLEN(aggregate->signature) + 1) - 1), (&zaggregate));
       } else {
         add_next_index_zval(return_value, &zaggregate);
       }
@@ -498,7 +489,7 @@ static int php_driver_default_keyspace_compare(zval *obj1, zval *obj2) {
 #endif
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void php_driver_default_keyspace_free(zend_object *object) {

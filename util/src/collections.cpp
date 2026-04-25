@@ -64,7 +64,7 @@ int php_driver_validate_object(zval* object, zval* ztype) {
 
       return 1;
     case CASS_VALUE_TYPE_BOOLEAN:
-      if (!PHP_SCYLLADB_Z_IS_BOOL_P(object)) {
+      if (!(Z_TYPE_P(object) == IS_TRUE || Z_TYPE_P(object) == IS_FALSE)) {
         EXPECTING_VALUE("a boolean");
       }
 
@@ -727,13 +727,13 @@ int php_driver_collection_from_collection(php_driver_collection* coll,
   collection =
       cass_collection_new_from_data_type(type->data_type, zend_hash_num_elements(&coll->values));
 
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&coll->values, current) {
+  ZEND_HASH_FOREACH_VAL(&coll->values, current) {
     if (!php_driver_collection_append(collection, current, value_type->type)) {
       result = 0;
       break;
     }
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&coll->values);
+  ZEND_HASH_FOREACH_END();
 
   if (result)
     *collection_ptr = collection;
@@ -784,10 +784,10 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
   type = PHP_DRIVER_GET_TYPE(&(tuple->type));
   tup = cass_tuple_new_from_data_type(type->data_type);
 
-  PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
+  ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
     php_driver_type* sub_type;
-    if (!PHP5TO7_ZEND_HASH_INDEX_FIND(&type->data.tuple.types, num_key, zsub_type) ||
+    if (!((zsub_type = zend_hash_index_find((&type->data.tuple.types), (num_key))) != NULL) ||
         !php_driver_validate_object((current), (zsub_type))) {
       result = 0;
       break;
@@ -798,7 +798,7 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
       break;
     }
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&tuple->values);
+  ZEND_HASH_FOREACH_END();
 
   if (result)
     *output = tup;
@@ -812,6 +812,7 @@ int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_t
                                               CassUserType** output) {
   int result = 1;
   char* name;
+  zend_string* zname;
   zval* current;
   php_driver_type* type;
   CassUserType* ut;
@@ -819,10 +820,11 @@ int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_t
   type = PHP_DRIVER_GET_TYPE(&user_type_value->type);
   ut = cass_user_type_new_from_data_type(type->data_type);
 
-  PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
+  ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, zname, current) {
     zval* zsub_type;
     php_driver_type* sub_type;
-    if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types, name, strlen(name) + 1, zsub_type) ||
+    name = zname ? ZSTR_VAL(zname) : NULL;
+    if (!((zsub_type = zend_hash_str_find((&type->data.udt.types), (name), (size_t)((strlen(name) + 1) - 1))) != NULL) ||
         !php_driver_validate_object((current), (zsub_type))) {
       result = 0;
       break;
@@ -833,7 +835,7 @@ int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_t
       break;
     }
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&user_type_value->values);
+  ZEND_HASH_FOREACH_END();
 
   if (result) {
     *output = ut;

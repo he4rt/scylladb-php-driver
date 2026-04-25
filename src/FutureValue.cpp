@@ -68,7 +68,7 @@ php_driver_future_value_compare(zval *obj1, zval *obj2 )
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void
@@ -77,7 +77,7 @@ php_driver_future_value_free(zend_object *object )
   php_driver_future_value *self =
       PHP5TO7_ZEND_OBJECT_GET(future_value, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->value);
+  do { if (!Z_ISUNDEF(self->value)) { zval_ptr_dtor(&(self->value)); ZVAL_UNDEF(&(self->value)); } } while (0);
 
   zend_object_std_dtor(&self->zendObject);
 

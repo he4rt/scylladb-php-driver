@@ -251,7 +251,7 @@ php_driver_default_aggregate_compare(zval *obj1, zval *obj2 )
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void
@@ -259,14 +259,14 @@ php_driver_default_aggregate_free(zend_object *object )
 {
   php_driver_aggregate *self = PHP5TO7_ZEND_OBJECT_GET(aggregate, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->simple_name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->argument_types);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->final_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->initial_condition);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->return_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->signature);
+  do { if (!Z_ISUNDEF(self->simple_name)) { zval_ptr_dtor(&(self->simple_name)); ZVAL_UNDEF(&(self->simple_name)); } } while (0);
+  do { if (!Z_ISUNDEF(self->argument_types)) { zval_ptr_dtor(&(self->argument_types)); ZVAL_UNDEF(&(self->argument_types)); } } while (0);
+  do { if (!Z_ISUNDEF(self->state_function)) { zval_ptr_dtor(&(self->state_function)); ZVAL_UNDEF(&(self->state_function)); } } while (0);
+  do { if (!Z_ISUNDEF(self->final_function)) { zval_ptr_dtor(&(self->final_function)); ZVAL_UNDEF(&(self->final_function)); } } while (0);
+  do { if (!Z_ISUNDEF(self->initial_condition)) { zval_ptr_dtor(&(self->initial_condition)); ZVAL_UNDEF(&(self->initial_condition)); } } while (0);
+  do { if (!Z_ISUNDEF(self->state_type)) { zval_ptr_dtor(&(self->state_type)); ZVAL_UNDEF(&(self->state_type)); } } while (0);
+  do { if (!Z_ISUNDEF(self->return_type)) { zval_ptr_dtor(&(self->return_type)); ZVAL_UNDEF(&(self->return_type)); } } while (0);
+  do { if (!Z_ISUNDEF(self->signature)) { zval_ptr_dtor(&(self->signature)); ZVAL_UNDEF(&(self->signature)); } } while (0);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

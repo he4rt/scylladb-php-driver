@@ -141,13 +141,12 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
         zval *le;
 
-        if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len + 1, le))
+        if (((le = zend_hash_str_find((&EG(persistent_list)), (cluster->hash_key), (size_t)((cluster->hash_key_len + 1) - 1))) != NULL) &&
+            Z_TYPE_P(le) == IS_RESOURCE &&
+            Z_RES_P(le)->type == php_le_php_driver_cluster())
         {
-            if (Z_TYPE_P(le) == php_le_php_driver_cluster())
-            {
-                cluster->cluster = (CassCluster *)Z_RES_P(le)->ptr;
-                return; /* Return cached version */
-            }
+            cluster->cluster = (CassCluster *)Z_RES_P(le)->ptr;
+            return; /* Return cached version */
         }
     }
 
@@ -246,8 +245,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_driver_cluster());
 
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len + 1, &resource,
-                                 sizeof(zval));
+        ((void)zend_hash_str_update((&EG(persistent_list)), (cluster->hash_key), (size_t)((cluster->hash_key_len + 1) - 1), (&resource)));
         PHP_DRIVER_G(persistent_clusters)++;
     }
 }
