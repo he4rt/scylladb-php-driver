@@ -1,19 +1,27 @@
 # Changelog
 
-## [Unreleased](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15)
+## [v1.3.17](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2026-04-25)
 
-[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.15...HEAD)
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.16...v1.3.17)
+
+## [v1.3.16](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2026-04-25)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.15...v1.3.16)
 
 **Implemented enhancements:**
 
 - Builds using a Dockerfile [\#116](https://github.com/he4rt/scylladb-php-driver/issues/116)
 - PECL Support [\#90](https://github.com/he4rt/scylladb-php-driver/issues/90)
 
-## [v1.3.15](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2026-04-25)
+**Closed issues:**
+
+- 1.3.11 release doesn't have a changelog [\#109](https://github.com/he4rt/scylladb-php-driver/issues/109)
+
+## [v1.3.15](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2026-04-25)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.14...v1.3.15)
 
-## [v1.3.14](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2026-04-25)
+## [v1.3.14](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2026-04-25)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.13...v1.3.14)
 
@@ -27,7 +35,7 @@
 
 - refactor: extension modernization wave 1 \(test consolidation + macro purge + correctness fixes\) [\#122](https://github.com/he4rt/scylladb-php-driver/pull/122) ([CodeLieutenant](https://github.com/CodeLieutenant))
 
-## [v1.3.13](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2025-01-27)
+## [v1.3.13](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2025-01-27)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.12...v1.3.13)
 
@@ -35,7 +43,7 @@
 
 - Building, Packaging and Dristribution of Extension [\#13](https://github.com/he4rt/scylladb-php-driver/issues/13)
 
-## [v1.3.12](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2025-01-26)
+## [v1.3.12](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2025-01-26)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.11...v1.3.12)
 
@@ -55,11 +63,11 @@
 
 - Add bounds checking to prevent overflow warnings during build. [\#105](https://github.com/he4rt/scylladb-php-driver/pull/105) ([ciaran-moore](https://github.com/ciaran-moore))
 
-## [v1.3.11](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2024-06-09)
+## [v1.3.11](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2024-06-09)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.10...v1.3.11)
 
-## [v1.3.10](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2024-04-12)
+## [v1.3.10](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2024-04-12)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.9...v1.3.10)
 
@@ -77,7 +85,7 @@
 
 - Fix missing symbols from math.cpp [\#97](https://github.com/he4rt/scylladb-php-driver/pull/97) ([ecsv](https://github.com/ecsv))
 
-## [v1.3.9](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2023-11-23)
+## [v1.3.9](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2023-11-23)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.8...v1.3.9)
 
@@ -144,7 +152,7 @@
 - Remove php build system in favour of CMake [\#42](https://github.com/he4rt/scylladb-php-driver/pull/42) ([CodeLieutenant](https://github.com/CodeLieutenant))
 - chore\(docs\): improving project base readme [\#41](https://github.com/he4rt/scylladb-php-driver/pull/41) ([danielhe4rt](https://github.com/danielhe4rt))
 
-## [v1.3.8](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-09-17)
+## [v1.3.8](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2022-09-17)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.7...v1.3.8)
 
@@ -162,7 +170,7 @@
 - PHP 8.2 compatibility [\#36](https://github.com/he4rt/scylladb-php-driver/pull/36) ([remicollet](https://github.com/remicollet))
 - use pkg-config and allow build when cpp-driver use CASS\_INSTALL\_HEADE… [\#28](https://github.com/he4rt/scylladb-php-driver/pull/28) ([remicollet](https://github.com/remicollet))
 
-## [v1.3.7](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-06-16)
+## [v1.3.7](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2022-06-16)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.6...v1.3.7)
 
@@ -178,15 +186,15 @@
 
 - fix proto for PHP 8.1 [\#29](https://github.com/he4rt/scylladb-php-driver/pull/29) ([remicollet](https://github.com/remicollet))
 
-## [v1.3.6](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-03-29)
+## [v1.3.6](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2022-03-29)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.5...v1.3.6)
 
-## [v1.3.5](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-03-29)
+## [v1.3.5](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2022-03-29)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.4...v1.3.5)
 
-## [v1.3.4](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-03-29)
+## [v1.3.4](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2022-03-29)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.3...v1.3.4)
 
@@ -196,55 +204,55 @@
 - Update readme/manuals [\#5](https://github.com/he4rt/scylladb-php-driver/issues/5)
 - Build status [\#2](https://github.com/he4rt/scylladb-php-driver/issues/2)
 
-## [v1.3.3](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2021-06-10)
+## [v1.3.3](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2021-06-10)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.2...v1.3.3)
 
-## [v1.3.2](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2017-08-11)
+## [v1.3.2](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2017-08-11)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.1...v1.3.2)
 
-## [v1.3.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2017-05-16)
+## [v1.3.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2017-05-16)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.0...v1.3.1)
 
-## [v1.3.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2017-03-13)
+## [v1.3.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2017-03-13)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.2.2...v1.3.0)
 
-## [v1.2.2](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-08-08)
+## [v1.2.2](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2016-08-08)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.2.1...v1.2.2)
 
-## [v1.2.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-07-28)
+## [v1.2.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2016-07-28)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.2.0...v1.2.1)
 
-## [v1.2.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-07-18)
+## [v1.2.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2016-07-18)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.1.0...v1.2.0)
 
-## [v1.1.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-02-11)
+## [v1.1.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2016-02-11)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.1...v1.1.0)
 
-## [v1.0.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-11-20)
+## [v1.0.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2015-11-20)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0...v1.0.1)
 
-## [v1.0.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-09-14)
+## [v1.0.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2015-09-14)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0-rc...v1.0.0)
 
-## [v1.0.0-rc](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-07-28)
+## [v1.0.0-rc](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2015-07-28)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0-beta...v1.0.0-rc)
 
-## [v1.0.0-beta](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-05-26)
+## [v1.0.0-beta](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2015-05-26)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0-alpha...v1.0.0-beta)
 
-## [v1.0.0-alpha](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-04-02)
+## [v1.0.0-alpha](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2015-04-02)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/b8465f84360cd92e4e259a3f986cc4e35afa90de...v1.0.0-alpha)
 
