@@ -1,201 +1,253 @@
+# Changelog
 
-# 1.3.10
+## [Unreleased](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15)
 
-* fix:  math.cpp and math.h from utils added to CMakeLists.txt
-* feat: MacOS support for scripts/compile-php.sh
-* feat: Ext-ScyllaDB/CassandraDB support MacOS
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.15...HEAD)
 
-# 1.3.9
+**Implemented enhancements:**
 
-* CMake used instead of autoconf and makefiles
-* Removed support for PHP 5.x
-* Version of the extension gets updated from CMakeLists.txt
-* Setup Pest Testing
-* Support for PHP 8.3
-* Default Dynamic Linking for LibUV and LibScyllaDB
-* Support for Cassandra 4.0 using LibCassandra from DataStax
+- Builds using a Dockerfile [\#116](https://github.com/he4rt/scylladb-php-driver/issues/116)
+- PECL Support [\#90](https://github.com/he4rt/scylladb-php-driver/issues/90)
 
-# 1.3.8
+## [v1.3.15](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2026-04-25)
 
-*  Support for PHP 8.2
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.14...v1.3.15)
 
-# 1.3.7
+## [v1.3.14](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2026-04-25)
 
-*  Support for PHP 8.1
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.13...v1.3.14)
 
-# 1.3.3
+**Closed issues:**
 
-Features:
+- Unnecessary symbols marked as PHP\_SCYLLADB\_API [\#119](https://github.com/he4rt/scylladb-php-driver/issues/119)
+- Conflicts with php8.4-ds [\#118](https://github.com/he4rt/scylladb-php-driver/issues/118)
+- Persistent Sessions aren't cleaned up or reused properly [\#110](https://github.com/he4rt/scylladb-php-driver/issues/110)
 
-*  Support for PHP 8.0
+**Merged pull requests:**
 
-# 1.3.2
+- refactor: extension modernization wave 1 \(test consolidation + macro purge + correctness fixes\) [\#122](https://github.com/he4rt/scylladb-php-driver/pull/122) ([CodeLieutenant](https://github.com/CodeLieutenant))
 
-Features:
+## [v1.3.13](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2025-01-27)
 
-* [PHP-155] Support for PHP 7.1
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.12...v1.3.13)
 
-Bug Fixes:
+**Implemented enhancements:**
 
-* [PHP-189] Set of map : bad hash calculation
-* [PHP-172] php_driver_value_hash hashes IS_TRUE and IS_FALSE to 1 in PHP7
-* [PHP-163] Disable hostname resolution if compiling against libuv 0.10
-* [PHP-159] Driver version Number (composer)
-* [PHP-142] Memory Leak in Cassandra\Timestamp::toDateTime() and Cassandra\UserTypeValue::values()
-* [PHP-118] Unable to bind list values using global type constants
+- Building, Packaging and Dristribution of Extension [\#13](https://github.com/he4rt/scylladb-php-driver/issues/13)
 
-Documentation:
+## [v1.3.12](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2025-01-26)
 
-* [PHP-196] Update building and testing documentation
-* [PHP-191] Updates to README files
-* [PHP-117] Broken links in documentor-generated docs
-* [PHP-102] Documentation improvements
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.11...v1.3.12)
 
-# 1.3.1
+**Implemented enhancements:**
 
-Bug Fixes:
+- When compiled version of extension [\#98](https://github.com/he4rt/scylladb-php-driver/issues/98)
+- feature\(scripts\): compilation scripts for libuv and cpp drivers [\#104](https://github.com/he4rt/scylladb-php-driver/pull/104) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- feature\(ci\): add release github actions [\#103](https://github.com/he4rt/scylladb-php-driver/pull/103) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- feature\(dockerimage\): better docker image [\#102](https://github.com/he4rt/scylladb-php-driver/pull/102) ([CodeLieutenant](https://github.com/CodeLieutenant))
 
-* [PHP-170] Duration nanos should support a signed 64-bit range
+**Fixed bugs:**
 
-Documentation:
+- \[bug\] undefined symbol in latest [\#100](https://github.com/he4rt/scylladb-php-driver/issues/100)
+- Fixing issue with undefined symbol 'php\_stat' -\> External C Linking E… [\#101](https://github.com/he4rt/scylladb-php-driver/pull/101) ([CodeLieutenant](https://github.com/CodeLieutenant))
 
-* [PHP-184] Remove {@inheritDoc} from method parameters
-* [PHP-183] Remove references to SimpleStatement and ExecutionOptions from docs,
-  features, and most tests
+**Merged pull requests:**
 
-# 1.3.0
+- Add bounds checking to prevent overflow warnings during build. [\#105](https://github.com/he4rt/scylladb-php-driver/pull/105) ([ciaran-moore](https://github.com/ciaran-moore))
 
-Features:
+## [v1.3.11](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2024-06-09)
 
-* Added support for the `duration` type
-* Added support to pass a query string  directly to `Session::execute()` and
-  `Session::executeAsync()`
-* `ExecutionOptions` has been deprecated in favor of using an array
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.10...v1.3.11)
 
-Bug Fixes:
+## [v1.3.10](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2024-04-12)
 
-* [PHP-86] Decimal __toString method
-* [PHP-109] Cassandra solr_query not working after upgrading to DSE 5
-* [PHP-114] pecl install compiler output is dominated by C90 warnings
-* [PHP-119] Driver crashes upon getting type of column
-* [PHP-143] Memory leak in `FutureSession`
-* [PHP-144] Fix persistent sessions reference counting issue
-* [PHP-147] Unable to create Bigint with PHP_INT_MIN
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.9...v1.3.10)
 
-# 1.2.2
+**Implemented enhancements:**
 
-Bug Fixes:
+- Prepare extension for 8.3 Release [\#65](https://github.com/he4rt/scylladb-php-driver/issues/65)
+- parser\_state and token\_type One Definition C++ Rule warnings [\#94](https://github.com/he4rt/scylladb-php-driver/pull/94) ([ciaran-moore](https://github.com/ciaran-moore))
 
-* [PHP-88] \Cassandra\Timestamp::toDateTime segfault with PHP7
-* [PHP-112] Freeing a null future as result of a failure in \Cassandra\DefaultSession::executeAsync()
-* [PHP-115] \Cassandra\UUID returning duplicate UUIDs
+**Fixed bugs:**
 
-# 1.2.1
+- cmake Release build fails on Debian 11 [\#93](https://github.com/he4rt/scylladb-php-driver/issues/93)
+- Php 8.2 issue [\#88](https://github.com/he4rt/scylladb-php-driver/issues/88)
 
-Bug Fixes:
+**Merged pull requests:**
 
-* [PHP-113] pecl install of 1.2.0 fails because sourcecode is missing FutureRows.h
+- Fix missing symbols from math.cpp [\#97](https://github.com/he4rt/scylladb-php-driver/pull/97) ([ecsv](https://github.com/ecsv))
 
-# 1.2.0
+## [v1.3.9](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2023-11-23)
 
-Features:
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.8...v1.3.9)
 
-* Added support for `tinyint` and `smallint` types
-* Added support for `date` and `time` types
-* Added support for secondary index metadata
-* Added support for UDF/UDA metadata
-* Added support for materialized view metadata
-* Added blacklist and whitelist datacenter and host policies
+**Implemented enhancements:**
 
-Bug Fixes:
+- \[ERROR\] Could not retrieve sharding info from connection [\#73](https://github.com/he4rt/scylladb-php-driver/issues/73)
+- Upgrade Pest to V2 [\#71](https://github.com/he4rt/scylladb-php-driver/issues/71)
+- Dynamic linking of external libraries [\#70](https://github.com/he4rt/scylladb-php-driver/issues/70)
+- Improvements: Create a Enum Class for CL  [\#61](https://github.com/he4rt/scylladb-php-driver/issues/61)
+- Remove PHPIZE from CMake [\#20](https://github.com/he4rt/scylladb-php-driver/issues/20)
+- Staticly link LibCassandra and LibUV [\#19](https://github.com/he4rt/scylladb-php-driver/issues/19)
+- Use PHP Stubs [\#15](https://github.com/he4rt/scylladb-php-driver/issues/15)
+- Better IDE support [\#14](https://github.com/he4rt/scylladb-php-driver/issues/14)
+- Document Driver [\#12](https://github.com/he4rt/scylladb-php-driver/issues/12)
+- Add ScyllaDB support [\#11](https://github.com/he4rt/scylladb-php-driver/issues/11)
+- feat\(stubs\): Retry Policy [\#85](https://github.com/he4rt/scylladb-php-driver/pull/85) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Ready for 8.3 [\#83](https://github.com/he4rt/scylladb-php-driver/pull/83) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Feat/libcassandra support [\#81](https://github.com/he4rt/scylladb-php-driver/pull/81) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Feat/cmake opts [\#74](https://github.com/he4rt/scylladb-php-driver/pull/74) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- test: cassandra tuples test [\#58](https://github.com/he4rt/scylladb-php-driver/pull/58) ([Canhassi12](https://github.com/Canhassi12))
+- Migration Result Paging test [\#53](https://github.com/he4rt/scylladb-php-driver/pull/53) ([danielhe4rt](https://github.com/danielhe4rt))
+- Move every file to C++ [\#51](https://github.com/he4rt/scylladb-php-driver/pull/51) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Optimizing cluster builder [\#50](https://github.com/he4rt/scylladb-php-driver/pull/50) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- feat: migrating tests to PestPHP [\#49](https://github.com/he4rt/scylladb-php-driver/pull/49) ([danielhe4rt](https://github.com/danielhe4rt))
+- Setup Github Actions as CI server [\#48](https://github.com/he4rt/scylladb-php-driver/pull/48) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Feat/pest testing [\#45](https://github.com/he4rt/scylladb-php-driver/pull/45) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Optimize builder [\#44](https://github.com/he4rt/scylladb-php-driver/pull/44) ([maxm86545](https://github.com/maxm86545))
 
-* [PHP-100] Whitelist/Blacklist LB setting should update the cluster builder hash key
-* [PHP-101] Memory leak when paging results
+**Fixed bugs:**
 
-# 1.1.0
+- \[ERROR\] Undefined symbol: \_Z8php\_statP12\_zend\_stringiP12\_zval\_struct [\#80](https://github.com/he4rt/scylladb-php-driver/issues/80)
+- \[ERROR\] CMAKE not find PHP\_CONFIG\_EXECUTABLE [\#79](https://github.com/he4rt/scylladb-php-driver/issues/79)
+- \[ERROR\] Fatal: The remote end hung up unexpectedly [\#77](https://github.com/he4rt/scylladb-php-driver/issues/77)
+- Timestamp "toDateTime\(\)" function is not working [\#75](https://github.com/he4rt/scylladb-php-driver/issues/75)
+- Missing information on build steps [\#69](https://github.com/he4rt/scylladb-php-driver/issues/69)
+- withConnectionsPerHost\(\) has "core" and "max" arguments mixed up [\#64](https://github.com/he4rt/scylladb-php-driver/issues/64)
+- \Cassandra\Timeuuid::toDateTime\(\) does not work [\#63](https://github.com/he4rt/scylladb-php-driver/issues/63)
+- Problems with getting a custom index metadata [\#59](https://github.com/he4rt/scylladb-php-driver/issues/59)
+- Fix deprication issues for Countable implementation [\#10](https://github.com/he4rt/scylladb-php-driver/issues/10)
+- Fix core and max parameter comparison [\#67](https://github.com/he4rt/scylladb-php-driver/pull/67) ([evll](https://github.com/evll))
+- Fixing issue with DateTime conversion from Cassandra Date, Time, Time… [\#66](https://github.com/he4rt/scylladb-php-driver/pull/66) ([CodeLieutenant](https://github.com/CodeLieutenant))
 
-Features:
+**Closed issues:**
 
-* Added support for PHP 7
-* Added support for UDTs and tuples
-* Added support for nested collections
-* Added access to raw paging token (via `Cassandra\Rows::pagingStateToken()`)
-* Added support for client-side timestamps and timestamp generators
-* Added support for retry policys (includes logging, downgrading and fallthrough)
-* Added the ability to disable schema metadata updates (via `Cassandra\Cluster\withSchemaMetdata()`)
-* Added support for using named arguments with `Cassandra\SimpleStatement`
-* Changed the default consistency to `LOCAL_ONE` (from `ONE`)
+- clone error - "Please make sure you have the correct access rights and the repository exists." [\#76](https://github.com/he4rt/scylladb-php-driver/issues/76)
+- Can i install it on windows  [\#62](https://github.com/he4rt/scylladb-php-driver/issues/62)
+- Extension Testing [\#43](https://github.com/he4rt/scylladb-php-driver/issues/43)
+- Improvements to Installation and project docs [\#40](https://github.com/he4rt/scylladb-php-driver/issues/40)
+- PHP 8.2 support [\#39](https://github.com/he4rt/scylladb-php-driver/issues/39)
+- Contributing? [\#37](https://github.com/he4rt/scylladb-php-driver/issues/37)
+- Drop Support for PHP 7 [\#18](https://github.com/he4rt/scylladb-php-driver/issues/18)
 
-Bug Fixes:
+**Merged pull requests:**
 
-* [PHP-70] Fixed invalid encoding of decimals and varints
+- Feat/cassandra 4.0 support [\#84](https://github.com/he4rt/scylladb-php-driver/pull/84) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Update FindPHP and FindPHPConfig [\#82](https://github.com/he4rt/scylladb-php-driver/pull/82) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- Fix: Git module url sanitizers-cmake [\#78](https://github.com/he4rt/scylladb-php-driver/pull/78) ([iamrafaelmelo](https://github.com/iamrafaelmelo))
+- removing warnings and adding tests to uuids [\#72](https://github.com/he4rt/scylladb-php-driver/pull/72) ([danielhe4rt](https://github.com/danielhe4rt))
+- Adding new build Type with address and ub sanitizer [\#60](https://github.com/he4rt/scylladb-php-driver/pull/60) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- test: migrating ClientSideTimestampsTest to pest [\#57](https://github.com/he4rt/scylladb-php-driver/pull/57) ([PedroPMS](https://github.com/PedroPMS))
+- chore: installation docs \(WIP\) [\#56](https://github.com/he4rt/scylladb-php-driver/pull/56) ([danielhe4rt](https://github.com/danielhe4rt))
+- feat: Using Cassandra user defined types from schema metadata test [\#55](https://github.com/he4rt/scylladb-php-driver/pull/55) ([Canhassi12](https://github.com/Canhassi12))
+- docs: readme improvements with installation instructions [\#52](https://github.com/he4rt/scylladb-php-driver/pull/52) ([danielhe4rt](https://github.com/danielhe4rt))
+- Remove php build system in favour of CMake [\#42](https://github.com/he4rt/scylladb-php-driver/pull/42) ([CodeLieutenant](https://github.com/CodeLieutenant))
+- chore\(docs\): improving project base readme [\#41](https://github.com/he4rt/scylladb-php-driver/pull/41) ([danielhe4rt](https://github.com/danielhe4rt))
 
-# 1.0.1
+## [v1.3.8](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-09-17)
 
-Features:
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.7...v1.3.8)
 
-* Added support for the 2.2.x release of the C/C++ driver
+**Implemented enhancements:**
 
-Bug Fixes:
+- Using a parameterised value for TTL throws an exception [\#4](https://github.com/he4rt/scylladb-php-driver/issues/4)
 
-* [PHP-53] Error when inserting a "0" Decimal
+**Closed issues:**
 
-# 1.0.0
+- PECL ownership \[discussion\] [\#30](https://github.com/he4rt/scylladb-php-driver/issues/30)
+- Error when compiling extension [\#26](https://github.com/he4rt/scylladb-php-driver/issues/26)
 
-Features:
+**Merged pull requests:**
 
-* Added schema metadata support (via `Cassandra\Session::schema()`).
-* Added types API (via `Cassandra\Type` static methods).
+- PHP 8.2 compatibility [\#36](https://github.com/he4rt/scylladb-php-driver/pull/36) ([remicollet](https://github.com/remicollet))
+- use pkg-config and allow build when cpp-driver use CASS\_INSTALL\_HEADE… [\#28](https://github.com/he4rt/scylladb-php-driver/pull/28) ([remicollet](https://github.com/remicollet))
 
-Bug Fixes:
+## [v1.3.7](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-06-16)
 
-* [PHP-40] Fixed invalid pointer being free'd
-* [PHP-43] Fixed timeout handling in `Cassandra\ExecutionOptions`
-* [PHP-44] Fixed memory leak
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.6...v1.3.7)
 
-# 1.0.0-rc
+**Implemented enhancements:**
 
-Features:
+- PHP 8.1 support [\#8](https://github.com/he4rt/scylladb-php-driver/issues/8)
 
-* Added `Cassandra\Collection::remove()`.
-* Added `Cassandra\Blob::toBinaryString()`.
-* Added ability to configure io threads and connections per host.
-* Enabled latency aware routing by default and added a way of disabling it.
-* Enabled TCP nodelay, added a way of disabling it.
-* Added configuration for TCP keepalive.
+**Closed issues:**
 
-Bug Fixes:
+- Docker Images [\#16](https://github.com/he4rt/scylladb-php-driver/issues/16)
 
-* [PHP-30] Segfault when using FutureRows
-* [PHP-31] Segfault during deserialization of NULL values
-* [PHP-33] Fixed timestamps generation on 32bit systems
-* [PHP-37] Removed extra null byte when `Cassandra\Blob` created from string
-* [PHP-41] Fix memory leak when using batch statements
+**Merged pull requests:**
 
-# 1.0.0-beta
+- fix proto for PHP 8.1 [\#29](https://github.com/he4rt/scylladb-php-driver/pull/29) ([remicollet](https://github.com/remicollet))
 
-Features:
+## [v1.3.6](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-03-29)
 
-* Persistent sessions (can be disabled via `Cassandra\Cluster\Builder::withPersistentSessions()`).
-* Windows support.
-* Configurable log location (via `cassandra.log` ini setting).
-* Configurable log level (via `cassandra.log_level` ini setting).
-* Upgraded to C/C++ driver v2.0.
-* Added math functions to numeric types and `Cassandra\Numeric` interface.
-* All classes moved into the extension.
-* Added stub files for IDEs.
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.5...v1.3.6)
 
-Bug Fixes:
+## [v1.3.5](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-03-29)
 
-* [PHP-18] Decimal parsing failure
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.4...v1.3.5)
 
-# 1.0.0-alpha
+## [v1.3.4](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2022-03-29)
 
-Features:
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.3...v1.3.4)
 
-* All pre 2.1 Cassandra datatypes, including sets, lists and maps.
-* Simple, prepared and batch statements.
-* Results paging.
-* Asynchronous IO.
-* SSL encryption.
-* Credentials authentication.
+**Closed issues:**
+
+- Extension compiling error [\#7](https://github.com/he4rt/scylladb-php-driver/issues/7)
+- Update readme/manuals [\#5](https://github.com/he4rt/scylladb-php-driver/issues/5)
+- Build status [\#2](https://github.com/he4rt/scylladb-php-driver/issues/2)
+
+## [v1.3.3](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2021-06-10)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.2...v1.3.3)
+
+## [v1.3.2](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2017-08-11)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.1...v1.3.2)
+
+## [v1.3.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2017-05-16)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.0...v1.3.1)
+
+## [v1.3.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2017-03-13)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.2.2...v1.3.0)
+
+## [v1.2.2](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-08-08)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.2.1...v1.2.2)
+
+## [v1.2.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-07-28)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.2.0...v1.2.1)
+
+## [v1.2.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-07-18)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.1.0...v1.2.0)
+
+## [v1.1.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2016-02-11)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.1...v1.1.0)
+
+## [v1.0.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-11-20)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0...v1.0.1)
+
+## [v1.0.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-09-14)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0-rc...v1.0.0)
+
+## [v1.0.0-rc](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-07-28)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0-beta...v1.0.0-rc)
+
+## [v1.0.0-beta](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-05-26)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.0.0-alpha...v1.0.0-beta)
+
+## [v1.0.0-alpha](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.15) (2015-04-02)
+
+[Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/b8465f84360cd92e4e259a3f986cc4e35afa90de...v1.0.0-alpha)
+
+
+
+\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
