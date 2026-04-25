@@ -5,7 +5,20 @@
       "Bash(cmake --build *)",
       "Bash(cmake --install *)",
       "Bash(ninja *)",
-      "Bash(chmod +x scripts/*)"
+      "Bash(chmod +x scripts/*)",
+      "Bash(gh run *)",
+      "Bash(./php/8.5-debug-nts/bin/php -d extension=./out/DebugPHP8.5NTS/cassandra.so ./vendor/bin/pest)",
+      "Bash(gdb -batch -ex run -ex bt -ex \"thread apply all bt\" --args ./php/8.5-debug-nts/bin/php -d extension=./out/DebugPHP8.5NTS/cassandra.so ./vendor/bin/pest)",
+      "Bash(gdb -batch -ex run -ex bt --args ./php/8.5-debug-nts/bin/php -d extension=./out/DebugPHP8.5NTS/cassandra.so ./vendor/bin/pest)",
+      "WebFetch(domain:www.phpinternalsbook.com)",
+      "Skill(php-ext-internals)",
+      "Skill(php-ext-review)",
+      "Skill(dev-setup)",
+      "Skill(pest-testing)",
+      "Skill(php-development)",
+      "Skill(php-expert)",
+      "Skill(cmake-review)",
+      "Bash(pie build *)"
     ]
   }
 }
