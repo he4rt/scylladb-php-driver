@@ -99,7 +99,7 @@ php_driver_future_prepared_statement_free(zend_object *object )
     self->future = NULL;
   }
 
-  if (!Z_ISUNDEF(self->prepared_statement)) { zval_ptr_dtor(&(self->prepared_statement)); ZVAL_UNDEF(&(self->prepared_statement)); }
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->prepared_statement);
 
   zend_object_std_dtor(&self->zendObject);
 

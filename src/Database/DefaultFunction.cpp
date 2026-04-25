@@ -99,7 +99,9 @@ PHP_METHOD(DefaultFunction, arguments)
       if (cass_function_meta_argument(self->meta, i, &name, &name_length, &data_type) == CASS_OK) {
         zval type = php_driver_type_from_data_type(data_type );
         if (!Z_ISUNDEF(type)) {
-          add_assoc_zval_ex((&self->arguments), (name), (size_t)((name_length + 1) - 1), (&type));
+          PHP5TO7_ADD_ASSOC_ZVAL_EX(&self->arguments,
+                                    name, name_length + 1,
+                                    &type);
         }
       }
     }
@@ -250,12 +252,12 @@ php_driver_default_function_free(zend_object *object )
 {
   php_driver_function *self = PHP5TO7_ZEND_OBJECT_GET(function, object);
 
-  if (!Z_ISUNDEF(self->simple_name)) { zval_ptr_dtor(&(self->simple_name)); ZVAL_UNDEF(&(self->simple_name)); }
-  if (!Z_ISUNDEF(self->arguments)) { zval_ptr_dtor(&(self->arguments)); ZVAL_UNDEF(&(self->arguments)); }
-  if (!Z_ISUNDEF(self->return_type)) { zval_ptr_dtor(&(self->return_type)); ZVAL_UNDEF(&(self->return_type)); }
-  if (!Z_ISUNDEF(self->signature)) { zval_ptr_dtor(&(self->signature)); ZVAL_UNDEF(&(self->signature)); }
-  if (!Z_ISUNDEF(self->language)) { zval_ptr_dtor(&(self->language)); ZVAL_UNDEF(&(self->language)); }
-  if (!Z_ISUNDEF(self->body)) { zval_ptr_dtor(&(self->body)); ZVAL_UNDEF(&(self->body)); }
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->simple_name);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->arguments);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->return_type);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->signature);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->language);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->body);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

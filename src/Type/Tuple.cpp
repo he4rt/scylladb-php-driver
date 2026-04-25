@@ -34,7 +34,8 @@ php_driver_type_tuple_add(php_driver_type* type,
       != CASS_OK) {
     return 0;
   }
-  ((void)zend_hash_next_index_insert((&type->data.tuple.types), (zsub_type)));
+  PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(&type->data.tuple.types,
+                                      zsub_type, sizeof(zval*));
   return 1;
 }
 
@@ -65,7 +66,7 @@ PHP_METHOD(TypeTuple, types)
   self = PHP_DRIVER_GET_TYPE(getThis());
 
   array_init(return_value);
-  zend_hash_copy((Z_ARRVAL_P(return_value)), (&self->data.tuple.types), (copy_ctor_func_t)zval_add_ref);
+  PHP5TO7_ZEND_HASH_ZVAL_COPY(Z_ARRVAL_P(return_value), &self->data.tuple.types);
 }
 
 PHP_METHOD(TypeTuple, __toString)
@@ -82,7 +83,7 @@ PHP_METHOD(TypeTuple, __toString)
   php_driver_type_string(self, &string );
   smart_str_0(&string);
 
-  RETVAL_STRING(ZSTR_VAL((string).s));
+  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -121,7 +122,7 @@ PHP_METHOD(TypeTuple, create)
     for (i = 0; i < argc; i++) {
       zval* sub_type;
 
-      if (!((sub_type = zend_hash_index_find((&self->data.tuple.types), (i))) != NULL) || !php_driver_validate_object(&args[i], sub_type )) {
+      if (!PHP5TO7_ZEND_HASH_INDEX_FIND(&self->data.tuple.types, i, sub_type) || !php_driver_validate_object(&args[i], sub_type )) {
 
         return;
       }
@@ -196,8 +197,10 @@ php_driver_type_tuple_properties(
 
 
   array_init(&types);
-  zend_hash_copy((Z_ARRVAL(types)), (&self->data.tuple.types), (copy_ctor_func_t)zval_add_ref);
-  ((void)zend_hash_str_update((props), ("types"), (size_t)((sizeof("types")) - 1), (&types)));
+  PHP5TO7_ZEND_HASH_ZVAL_COPY(Z_ARRVAL(types), &self->data.tuple.types);
+  PHP5TO7_ZEND_HASH_UPDATE(props,
+                           "types", sizeof("types"),
+                           &types, sizeof(zval));
 
   return props;
 }

@@ -165,15 +165,15 @@ php_driver_uuid_properties(
   cass_uuid_string(self->uuid, string);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_UUID );
-  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&type)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
 
 
   ZVAL_STRING(&uuid, string);
-  ((void)zend_hash_str_update((props), ("uuid"), (size_t)((sizeof("uuid")) - 1), (&uuid)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "uuid", sizeof("uuid"), &uuid, sizeof(zval));
 
 
   ZVAL_LONG(&version, (long) cass_uuid_version(self->uuid));
-  ((void)zend_hash_str_update((props), ("version"), (size_t)((sizeof("version")) - 1), (&version)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "version", sizeof("version"), &version, sizeof(zval));
 
   return props;
 }

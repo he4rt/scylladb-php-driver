@@ -197,18 +197,18 @@ static HashTable *php_driver_timeuuid_properties(zend_object *object) {
   HashTable *props = zend_std_get_properties(object);
 
   zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
-  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&type)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
 
   char string[CASS_UUID_STRING_LENGTH];
   cass_uuid_string(self->uuid, string);
 
   zval uuid;
   ZVAL_STRING(&uuid, string);
-  ((void)zend_hash_str_update((props), ("uuid"), (size_t)((sizeof("uuid")) - 1), (&uuid)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "uuid", sizeof("uuid"), &uuid, sizeof(zval));
 
   zval version;
   ZVAL_LONG(&version, (long)cass_uuid_version(self->uuid));
-  ((void)zend_hash_str_update((props), ("version"), (size_t)((sizeof("version")) - 1), (&version)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "version", sizeof("version"), &version, sizeof(zval));
 
   return props;
 }

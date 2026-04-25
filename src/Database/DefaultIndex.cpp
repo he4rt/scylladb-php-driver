@@ -127,7 +127,9 @@ void php_driver_index_build_option(php_driver_index *index)
 
       cass_value_get_string(key, &key_str, &key_str_length);
       cass_value_get_string(value, &value_str, &value_str_length);
-      add_assoc_stringl_ex((&index->options), (key_str), (size_t)((key_str_length + 1) - 1), (value_str), (value_str_length));
+      PHP5TO7_ADD_ASSOC_STRINGL_EX(&index->options,
+                                   key_str, key_str_length + 1,
+                                   value_str, value_str_length);
     }
   }
 }
@@ -149,7 +151,9 @@ PHP_METHOD(DefaultIndex, option)
     php_driver_index_build_option(self);
   }
 
-  if (((result = zend_hash_str_find((Z_ARRVAL(self->options)), (name), (size_t)((name_len + 1) - 1))) != NULL)) {
+  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(self->options),
+                         name, name_len + 1,
+                         result)) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -183,7 +187,9 @@ PHP_METHOD(DefaultIndex, className)
     php_driver_index_build_option(self);
   }
 
-  if (((result = zend_hash_str_find((Z_ARRVAL(self->options)), ("class_name"), (size_t)((sizeof("class_name")) - 1))) != NULL)) {
+  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(self->options),
+                         "class_name", sizeof("class_name"),
+                         result)) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -203,7 +209,8 @@ PHP_METHOD(DefaultIndex, isCustom)
   }
 
   is_custom =
-      zend_hash_str_exists((Z_ARRVAL(self->options)), ("class_name"), (size_t)((sizeof("class_name")) - 1));
+      PHP5TO7_ZEND_HASH_EXISTS(Z_ARRVAL(self->options),
+                               "class_name", sizeof("class_name"));
   RETURN_BOOL(is_custom);
 }
 
@@ -273,10 +280,10 @@ php_driver_default_index_free(zend_object *object )
 {
   php_driver_index *self = PHP5TO7_ZEND_OBJECT_GET(index, object);
 
-  if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); }
-  if (!Z_ISUNDEF(self->kind)) { zval_ptr_dtor(&(self->kind)); ZVAL_UNDEF(&(self->kind)); }
-  if (!Z_ISUNDEF(self->target)) { zval_ptr_dtor(&(self->target)); ZVAL_UNDEF(&(self->target)); }
-  if (!Z_ISUNDEF(self->options)) { zval_ptr_dtor(&(self->options)); ZVAL_UNDEF(&(self->options)); }
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->kind);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->target);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

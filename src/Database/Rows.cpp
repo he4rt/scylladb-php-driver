@@ -37,7 +37,7 @@ static void php_driver_rows_create(php_driver_rows *current, zval *result )
         if (php_driver_get_result((const CassResult *)current->next_result->data, &current->next_rows ) ==
             FAILURE)
         {
-            if (!Z_ISUNDEF(current->next_rows)) { zval_ptr_dtor(&(current->next_rows)); ZVAL_UNDEF(&(current->next_rows)); }
+            PHP5TO7_ZVAL_MAYBE_DESTROY(current->next_rows);
             return;
         }
     }
@@ -117,7 +117,7 @@ PHP_METHOD(Rows, key)
 
     self = PHP_DRIVER_GET_ROWS(getThis());
 
-    if (zend_hash_get_current_key((Z_ARRVAL(self->rows)), (&str_index), (&num_index)) ==
+    if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(Z_ARRVAL(self->rows), &str_index, &num_index) ==
         HASH_KEY_IS_LONG)
         RETURN_LONG(num_index);
 }
@@ -181,7 +181,7 @@ PHP_METHOD(Rows, offsetGet)
     }
 
     self = PHP_DRIVER_GET_ROWS(getThis());
-    if (((value = zend_hash_index_find((Z_ARRVAL(self->rows)), (Z_LVAL_P(offset)))) != NULL))
+    if (PHP5TO7_ZEND_HASH_INDEX_FIND(Z_ARRVAL(self->rows), Z_LVAL_P(offset), value))
     {
         RETURN_ZVAL(value, 1, 0);
     }
@@ -384,7 +384,7 @@ PHP_METHOD(Rows, first)
     self = PHP_DRIVER_GET_ROWS(getThis());
 
     zend_hash_internal_pointer_reset_ex(Z_ARRVAL(self->rows), &pos);
-    if (((entry = zend_hash_get_current_data((Z_ARRVAL(self->rows)))) != NULL))
+    if (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA(Z_ARRVAL(self->rows), entry))
     {
         RETVAL_ZVAL(entry, 1, 0);
     }
@@ -497,9 +497,9 @@ static void php_driver_rows_free(zend_object *object )
     php_driver_del_peref(&self->session, 1);
     php_driver_del_ref(&self->next_result);
 
-    if (!Z_ISUNDEF(self->rows)) { zval_ptr_dtor(&(self->rows)); ZVAL_UNDEF(&(self->rows)); }
-    if (!Z_ISUNDEF(self->next_rows)) { zval_ptr_dtor(&(self->next_rows)); ZVAL_UNDEF(&(self->next_rows)); }
-    if (!Z_ISUNDEF(self->future_next_page)) { zval_ptr_dtor(&(self->future_next_page)); ZVAL_UNDEF(&(self->future_next_page)); }
+    PHP5TO7_ZVAL_MAYBE_DESTROY(self->rows);
+    PHP5TO7_ZVAL_MAYBE_DESTROY(self->next_rows);
+    PHP5TO7_ZVAL_MAYBE_DESTROY(self->future_next_page);
 
     zend_object_std_dtor(&self->zendObject);
 

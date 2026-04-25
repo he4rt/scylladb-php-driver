@@ -102,7 +102,9 @@ php_driver_materialized_view_get_option(php_driver_materialized_view *view,
     php_driver_default_materialized_view_build_options(view );
   }
 
-  if (!((zvalue = zend_hash_str_find((Z_ARRVAL(view->options)), (name), (size_t)((strlen(name) + 1) - 1))) != NULL)) {
+  if (!PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(view->options),
+                         name, strlen(name) + 1,
+                         zvalue)) {
     ZVAL_FALSE(result);
     return;
   }
@@ -138,7 +140,9 @@ PHP_METHOD(DefaultMaterializedView, option)
     php_driver_default_materialized_view_build_options(self );
   }
 
-  if (((result = zend_hash_str_find((Z_ARRVAL(self->options)), (name), (size_t)((name_len + 1) - 1))) != NULL)) {
+  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(self->options),
+                         name, name_len + 1,
+                         result)) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -414,7 +418,10 @@ PHP_METHOD(DefaultMaterializedView, columns)
       column = PHP_DRIVER_GET_COLUMN(&zcolumn);
 
       if (Z_TYPE(column->name) == IS_STRING) {
-        add_assoc_zval_ex((return_value), (Z_STRVAL(column->name)), (size_t)((Z_STRLEN(column->name) + 1) - 1), (&zcolumn));
+        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value,
+                                  Z_STRVAL(column->name),
+                                  Z_STRLEN(column->name) + 1,
+                                  &zcolumn);
       } else {
         add_next_index_zval(return_value, &zcolumn);
       }
@@ -493,13 +500,13 @@ PHP_METHOD(DefaultMaterializedView, clusteringOrder)
           cass_materialized_view_meta_clustering_key_order(self->meta, i);
       switch (order) {
         case CASS_CLUSTERING_ORDER_ASC:
-          add_next_index_string((&self->clustering_order), (char *)("asc"));
+          PHP5TO7_ADD_NEXT_INDEX_STRING(&self->clustering_order, "asc");
           break;
         case CASS_CLUSTERING_ORDER_DESC:
-          add_next_index_string((&self->clustering_order), (char *)("desc"));
+          PHP5TO7_ADD_NEXT_INDEX_STRING(&self->clustering_order, "desc");
           break;
         case CASS_CLUSTERING_ORDER_NONE:
-          add_next_index_string((&self->clustering_order), (char *)("none"));
+          PHP5TO7_ADD_NEXT_INDEX_STRING(&self->clustering_order, "none");
           break;
       }
     }
@@ -616,13 +623,13 @@ php_driver_default_materialized_view_free(zend_object *object )
 {
   php_driver_materialized_view *self = PHP5TO7_ZEND_OBJECT_GET(materialized_view, object);
 
-  if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); }
-  if (!Z_ISUNDEF(self->options)) { zval_ptr_dtor(&(self->options)); ZVAL_UNDEF(&(self->options)); }
-  if (!Z_ISUNDEF(self->partition_key)) { zval_ptr_dtor(&(self->partition_key)); ZVAL_UNDEF(&(self->partition_key)); }
-  if (!Z_ISUNDEF(self->primary_key)) { zval_ptr_dtor(&(self->primary_key)); ZVAL_UNDEF(&(self->primary_key)); }
-  if (!Z_ISUNDEF(self->clustering_key)) { zval_ptr_dtor(&(self->clustering_key)); ZVAL_UNDEF(&(self->clustering_key)); }
-  if (!Z_ISUNDEF(self->clustering_order)) { zval_ptr_dtor(&(self->clustering_order)); ZVAL_UNDEF(&(self->clustering_order)); }
-  if (!Z_ISUNDEF(self->base_table)) { zval_ptr_dtor(&(self->base_table)); ZVAL_UNDEF(&(self->base_table)); }
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->partition_key);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->primary_key);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_key);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_order);
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->base_table);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

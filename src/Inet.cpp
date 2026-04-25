@@ -143,13 +143,13 @@ php_driver_inet_properties(
   HashTable      *props = zend_std_get_properties(object );
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_INET );
-  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&type)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
 
   php_driver_format_address(self->inet, &string);
 
   ZVAL_STRING(&address, string);
   efree(string);
-  ((void)zend_hash_str_update((props), ("address"), (size_t)((sizeof("address")) - 1), (&address)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "address", sizeof("address"), &address, sizeof(zval));
 
   return props;
 }

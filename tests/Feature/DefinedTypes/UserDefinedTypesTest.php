@@ -137,4 +137,4 @@ it('Using Cassandra user defined types from schema metadata', function () use($k
         ->toBe('New York')
         ->and($workAddress['zip'])
         ->toBe(10024);
-})->skip('UDT round-trip regression in this branch; tracked in docs/plans/REFACTORING_PLAN.md (Stage 3 — UDT handlers + stubs).');
+});

@@ -29,7 +29,7 @@ zend_class_entry *php_driver_tuple_ce = NULL;
 void
 php_driver_tuple_set(php_driver_tuple *tuple, ulong index, zval *object )
 {
-  ((void)zend_hash_index_update((&tuple->values), (index), (object)));
+  PHP5TO7_ZEND_HASH_INDEX_UPDATE(&tuple->values, index, object, sizeof(zval *));
   Z_TRY_ADDREF_P(object);
   tuple->dirty = 1;
 }
@@ -47,10 +47,10 @@ php_driver_tuple_populate(php_driver_tuple *tuple, zval *array )
 
   type = PHP_DRIVER_GET_TYPE(&tuple->type);
 
-  ZEND_HASH_FOREACH_NUM_KEY_VAL(&type->data.tuple.types, index, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&type->data.tuple.types, index, current) {
     zval *value = NULL;
     (void) current;
-    if (((value = zend_hash_index_find((&tuple->values), (index))) != NULL)) {
+    if (PHP5TO7_ZEND_HASH_INDEX_FIND(&tuple->values, index, value)) {
       if (add_next_index_zval(array, value) == SUCCESS)
         Z_TRY_ADDREF_P(value);
       else
@@ -61,7 +61,7 @@ php_driver_tuple_populate(php_driver_tuple *tuple, zval *array )
       else
         break;
     }
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(&type->data.tuple.types);
 
 #if PHP_MAJOR_VERSION < 7
   zval_ptr_dtor(&null);
@@ -84,7 +84,7 @@ PHP_METHOD(Tuple, __construct)
   self->type = php_driver_type_tuple();
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  ZEND_HASH_FOREACH_VAL(types, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_VAL(types, current) {
     zval *sub_type = current;
     zval scalar_type;
 
@@ -113,7 +113,7 @@ PHP_METHOD(Tuple, __construct)
       INVALID_ARGUMENT(sub_type, "a string or an instance of " PHP_DRIVER_NAMESPACE "\\Type");
     }
 
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(types);
 }
 /* }}} */
 
@@ -155,7 +155,7 @@ PHP_METHOD(Tuple, set)
     return;
   }
 
-  if (!((sub_type = zend_hash_index_find((&type->data.tuple.types), (index))) != NULL) ||
+  if (!PHP5TO7_ZEND_HASH_INDEX_FIND(&type->data.tuple.types, index, sub_type) ||
       !php_driver_validate_object(value,
                                   sub_type )) {
     return;
@@ -185,7 +185,7 @@ PHP_METHOD(Tuple, get)
     return;
   }
 
-  if (((value = zend_hash_index_find((&self->values), (index))) != NULL)) {
+  if (PHP5TO7_ZEND_HASH_INDEX_FIND(&self->values, index, value)) {
     RETURN_ZVAL(value, 1, 0);
   }
 }
@@ -207,9 +207,9 @@ PHP_METHOD(Tuple, current)
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if (zend_hash_get_current_key_ex((&type->data.tuple.types), (NULL), (&index), (&self->pos)) == HASH_KEY_IS_LONG) {
+  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.tuple.types, NULL, &index, &self->pos) == HASH_KEY_IS_LONG) {
     zval *value;
-    if (((value = zend_hash_index_find((&self->values), (index))) != NULL)) {
+    if (PHP5TO7_ZEND_HASH_INDEX_FIND(&self->values, index, value)) {
       RETURN_ZVAL(value, 1, 0);
     }
   }
@@ -222,7 +222,7 @@ PHP_METHOD(Tuple, key)
   zend_ulong index;
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
-  if (zend_hash_get_current_key_ex((&type->data.tuple.types), (NULL), (&index), (&self->pos)) == HASH_KEY_IS_LONG) {
+  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.tuple.types, NULL, &index, &self->pos) == HASH_KEY_IS_LONG) {
     RETURN_LONG(index);
   }
 }
@@ -351,13 +351,15 @@ php_driver_tuple_properties(
 #endif
   HashTable             *props = zend_std_get_properties(object );
 
-  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&self->type)));
+  PHP5TO7_ZEND_HASH_UPDATE(props,
+                           "type", sizeof("type"),
+                           &self->type, sizeof(zval));
   Z_ADDREF_P(&self->type);
 
 
   array_init(&values);
   php_driver_tuple_populate(self, &values );
-  ((void)zend_hash_str_update((props), ("values"), (size_t)((sizeof("values")) - 1), (&values)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval));
 
   return props;
 }
@@ -397,8 +399,8 @@ php_driver_tuple_compare(zval *obj1, zval *obj2 )
   zend_hash_internal_pointer_reset_ex(&tuple1->values, &pos1);
   zend_hash_internal_pointer_reset_ex(&tuple2->values, &pos2);
 
-  while (((current1 = zend_hash_get_current_data_ex((&tuple1->values), (&pos1))) != NULL) &&
-         ((current2 = zend_hash_get_current_data_ex((&tuple2->values), (&pos2))) != NULL)) {
+  while (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&tuple1->values, current1, &pos1) &&
+         PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&tuple2->values, current2, &pos2)) {
     result = php_driver_value_compare(current1,
                                          current2 );
     if (result != 0) return result;
@@ -418,10 +420,10 @@ php_driver_tuple_hash_value(zval *obj )
 
   if (!self->dirty) return self->hashv;
 
-  ZEND_HASH_FOREACH_VAL(&self->values, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_VAL(&self->values, current) {
     hashv = php_driver_combine_hash(hashv,
                                        php_driver_value_hash(current ));
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(&self->values);
 
   self->hashv = hashv;
   self->dirty = 0;
@@ -436,7 +438,7 @@ php_driver_tuple_free(zend_object *object )
       PHP5TO7_ZEND_OBJECT_GET(tuple, object);
 
   zend_hash_destroy(&self->values);
-  if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); }
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zendObject);
 

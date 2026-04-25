@@ -38,7 +38,9 @@ int php_driver_type_user_type_add(php_driver_type *type,
                                             sub_type->data_type) != CASS_OK) {
     return 0;
   }
-  ((void)zend_hash_str_add((&type->data.udt.types), (name), (size_t)((name_length + 1) - 1), (zsub_type)));
+  PHP5TO7_ZEND_HASH_ADD(&type->data.udt.types,
+                        name, name_length + 1,
+                        zsub_type, sizeof(zval *));
   return 1;
 }
 
@@ -73,7 +75,7 @@ PHP_METHOD(TypeUserType, withName)
     user_type->data.udt.keyspace = estrdup(self->data.udt.keyspace);
   }
 
-  zend_hash_copy((&user_type->data.udt.types), (&self->data.udt.types), (copy_ctor_func_t)zval_add_ref);
+  PHP5TO7_ZEND_HASH_ZVAL_COPY(&user_type->data.udt.types, &self->data.udt.types);
 }
 
 PHP_METHOD(TypeUserType, name)
@@ -115,7 +117,7 @@ PHP_METHOD(TypeUserType, withKeyspace)
 
   user_type->data.udt.keyspace = estrndup(keyspace, keyspace_len);
 
-  zend_hash_copy((&user_type->data.udt.types), (&self->data.udt.types), (copy_ctor_func_t)zval_add_ref);
+  PHP5TO7_ZEND_HASH_ZVAL_COPY(&user_type->data.udt.types, &self->data.udt.types);
 }
 
 PHP_METHOD(TypeUserType, keyspace)
@@ -145,7 +147,7 @@ PHP_METHOD(TypeUserType, types)
   self = PHP_DRIVER_GET_TYPE(getThis());
 
   array_init(return_value);
-  zend_hash_copy((Z_ARRVAL_P(return_value)), (&self->data.udt.types), (copy_ctor_func_t)zval_add_ref);
+  PHP5TO7_ZEND_HASH_ZVAL_COPY(Z_ARRVAL_P(return_value), &self->data.udt.types);
 }
 
 PHP_METHOD(TypeUserType, __toString)
@@ -162,7 +164,7 @@ PHP_METHOD(TypeUserType, __toString)
   php_driver_type_string(self, &string );
   smart_str_0(&string);
 
-  RETVAL_STRING(ZSTR_VAL((string).s));
+  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
   smart_str_free(&string);
 }
 
@@ -206,7 +208,9 @@ PHP_METHOD(TypeUserType, create)
 
         return;
       }
-      if (!((sub_type = zend_hash_str_find((&self->data.udt.types), (Z_STRVAL_P(name)), (size_t)((Z_STRLEN_P(name) + 1) - 1))) != NULL)) {
+      if (!PHP5TO7_ZEND_HASH_FIND(&self->data.udt.types,
+                                  Z_STRVAL_P(name), Z_STRLEN_P(name) + 1,
+                                  sub_type)) {
         zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
                                 0 ,
                                 "Invalid name '%s'", Z_STRVAL_P(name));
@@ -302,8 +306,10 @@ php_driver_type_user_type_properties(
 
 
   array_init(&types);
-  zend_hash_copy((Z_ARRVAL(types)), (&self->data.udt.types), (copy_ctor_func_t)zval_add_ref);
-  ((void)zend_hash_str_update((props), ("types"), (size_t)((sizeof("types")) - 1), (&types)));
+  PHP5TO7_ZEND_HASH_ZVAL_COPY(Z_ARRVAL(types), &self->data.udt.types);
+  PHP5TO7_ZEND_HASH_UPDATE(props,
+                           "types", sizeof("types"),
+                           &types, sizeof(zval));
 
   return props;
 }

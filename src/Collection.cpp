@@ -28,7 +28,7 @@ zend_class_entry *php_driver_collection_ce = NULL;
 void
 php_driver_collection_add(php_driver_collection *collection, zval *object)
 {
-  ((void)zend_hash_next_index_insert((&collection->values), (object)));
+  PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(&collection->values, object, sizeof(zval *));
   Z_TRY_ADDREF_P(object);
   collection->dirty = 1;
 }
@@ -48,7 +48,7 @@ static int
 php_driver_collection_get(php_driver_collection *collection, ulong index, zval *zvalue)
 {
   zval *value;
-  if (((value = zend_hash_index_find((&collection->values), (index))) != NULL)) {
+  if (PHP5TO7_ZEND_HASH_INDEX_FIND(&collection->values, index, value)) {
     *zvalue = *value;
     return 1;
   }
@@ -60,14 +60,14 @@ php_driver_collection_find(php_driver_collection *collection, zval *object, long
 {
   zend_ulong num_key;
   zval *current;
-  ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
     zval compare;
     is_equal_function(&compare, object, current);
-    if ((Z_TYPE_P(&compare) == IS_TRUE)) {
+    if (PHP_SCYLLADB_Z_IS_TRUE_P(&compare)) {
       *index = (long) num_key;
       return 1;
     }
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(&collection->values);
 
   return 0;
 }
@@ -76,12 +76,12 @@ static void
 php_driver_collection_populate(php_driver_collection *collection, zval *array)
 {
   zval *current;
-  ZEND_HASH_FOREACH_VAL(&collection->values, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_VAL(&collection->values, current) {
     if (add_next_index_zval(array, current) == SUCCESS)
       Z_TRY_ADDREF_P(current);
     else
       break;
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(&collection->values);
 }
 
 /* {{{ Collection::__construct(type) */
@@ -216,7 +216,7 @@ PHP_METHOD(Cassandra_Collection, current)
   zval *current;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
 
-  if (((current = zend_hash_get_current_data((&collection->values))) != NULL)) {
+  if (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA(&collection->values, current)) {
     RETURN_ZVAL(current, 1, 0);
   }
 }
@@ -227,7 +227,7 @@ PHP_METHOD(Cassandra_Collection, key)
 {
   zend_ulong num_key;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
-  if (zend_hash_get_current_key((&collection->values), (NULL), (&num_key)) == HASH_KEY_IS_LONG) {
+  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
     RETURN_LONG(num_key);
   }
 }
@@ -373,13 +373,15 @@ php_driver_collection_properties(
 #endif
   HashTable             *props = zend_std_get_properties(object);
 
-  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&self->type)));
+  PHP5TO7_ZEND_HASH_UPDATE(props,
+                           "type", sizeof("type"),
+                           &self->type, sizeof(zval));
   Z_ADDREF_P(&self->type);
 
 
   array_init(&values);
   php_driver_collection_populate(self, &values);
-  ((void)zend_hash_str_update((props), ("values"), (size_t)((sizeof("values")) - 1), (&values)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval));
 
   return props;
 }
@@ -419,8 +421,8 @@ php_driver_collection_compare(zval *obj1, zval *obj2)
   zend_hash_internal_pointer_reset_ex(&collection1->values, &pos1);
   zend_hash_internal_pointer_reset_ex(&collection2->values, &pos2);
 
-  while (((current1 = zend_hash_get_current_data_ex((&collection1->values), (&pos1))) != NULL) &&
-         ((current2 = zend_hash_get_current_data_ex((&collection2->values), (&pos2))) != NULL)) {
+  while (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&collection1->values, current1, &pos1) &&
+         PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&collection2->values, current2, &pos2)) {
     result = php_driver_value_compare(current1,
                                          current2);
     if (result != 0) return result;
@@ -440,10 +442,10 @@ php_driver_collection_hash_value(zval *obj)
 
   if (!self->dirty) return self->hashv;
 
-  ZEND_HASH_FOREACH_VAL(&self->values, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_VAL(&self->values, current) {
     hashv = php_driver_combine_hash(hashv,
                                        php_driver_value_hash(current));
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(&self->values);
 
   self->hashv = hashv;
   self->dirty = 0;
@@ -458,7 +460,7 @@ php_driver_collection_free(zend_object *object)
       PHP5TO7_ZEND_OBJECT_GET(collection, object);
 
   zend_hash_destroy(&self->values);
-  if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); }
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zendObject);
 

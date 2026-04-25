@@ -30,7 +30,9 @@ php_driver_user_type_value_set(php_driver_user_type_value *user_type_value,
                                   const char *name, size_t name_length,
                                   zval *object )
 {
-  ((void)zend_hash_str_update((&user_type_value->values), (name), (size_t)((name_length + 1) - 1), (object)));
+  PHP5TO7_ZEND_HASH_UPDATE(&user_type_value->values,
+                           name, name_length + 1,
+                           object, sizeof(zval *));
   Z_TRY_ADDREF_P(object);
   user_type_value->dirty = 1;
 }
@@ -39,7 +41,6 @@ static void
 php_driver_user_type_value_populate(php_driver_user_type_value *user_type_value, zval *array )
 {
   char *name;
-  zend_string *zname;
   php_driver_type *type;
   zval *current;
   zval null;
@@ -49,19 +50,18 @@ php_driver_user_type_value_populate(php_driver_user_type_value *user_type_value,
 
   type = PHP_DRIVER_GET_TYPE(&user_type_value->type);
 
-  ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, zname, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
     zval *value = NULL;
-    name = zname ? ZSTR_VAL(zname) : NULL;
-    size_t name_len = zname ? ZSTR_LEN(zname) : 0;
+    size_t name_len = strlen(name);
     (void) current;
-    if (((value = zend_hash_str_find((&user_type_value->values), (name), (size_t)((name_len + 1) - 1))) != NULL)) {
-      add_assoc_zval_ex((array), (name), (size_t)((name_len + 1) - 1), (value));
+    if (PHP5TO7_ZEND_HASH_FIND(&user_type_value->values, name, name_len + 1, value)) {
+      PHP5TO7_ADD_ASSOC_ZVAL_EX(array, name, name_len + 1, value);
       Z_TRY_ADDREF_P(value);
     } else {
-      add_assoc_zval_ex((array), (name), (size_t)((name_len + 1) - 1), (&null));
+      PHP5TO7_ADD_ASSOC_ZVAL_EX(array, name, name_len + 1, &null);
       Z_TRY_ADDREF_P(&null);
     }
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(&type->data.udt.types);
 }
 
 /* {{{ UserTypeValue::__construct(types) */
@@ -71,7 +71,6 @@ PHP_METHOD(UserTypeValue, __construct)
   php_driver_type *type;
   HashTable *types;
   char *name;
-  zend_string *zname;
   int index = 0;
   zval *current;
 
@@ -83,10 +82,9 @@ PHP_METHOD(UserTypeValue, __construct)
   self->type = php_driver_type_user_type();
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  ZEND_HASH_FOREACH_STR_KEY_VAL(types, zname, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(types, name, current) {
     zval *sub_type = current;
     zval scalar_type;
-    name = zname ? ZSTR_VAL(zname) : NULL;
 
     if (!name) {
       zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
@@ -121,7 +119,7 @@ PHP_METHOD(UserTypeValue, __construct)
     } else {
       INVALID_ARGUMENT(sub_type, "a string or an instance of " PHP_DRIVER_NAMESPACE "\\Type");
     }
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(types);
 }
 /* }}} */
 
@@ -161,7 +159,9 @@ PHP_METHOD(UserTypeValue, set)
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if (!((sub_type = zend_hash_str_find((&type->data.udt.types), (name), (size_t)((name_length + 1) - 1))) != NULL)) {
+  if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types,
+                              name, name_length + 1,
+                              sub_type)) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
@@ -193,13 +193,17 @@ PHP_METHOD(UserTypeValue, get)
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if (!((sub_type = zend_hash_str_find((&type->data.udt.types), (name), (size_t)((name_length + 1) - 1))) != NULL)) {
+  if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types,
+                              name, name_length + 1,
+                              sub_type)) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
   }
 
-  if (((value = zend_hash_str_find((&self->values), (name), (size_t)((name_length + 1) - 1))) != NULL)) {
+  if (PHP5TO7_ZEND_HASH_FIND(&self->values,
+                              name, name_length + 1,
+                              value)) {
     RETURN_ZVAL(value, 1, 0);
   }
 }
@@ -224,12 +228,12 @@ PHP_METHOD(UserTypeValue, current)
       PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   php_driver_type *type =
       PHP_DRIVER_GET_TYPE(&self->type);
-  if (zend_hash_get_current_key_ex((&type->data.udt.types), (&key), (NULL), (&self->pos)) == HASH_KEY_IS_STRING) {
+  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.udt.types, &key, NULL, &self->pos) == HASH_KEY_IS_STRING) {
     zval *value;
 #if PHP_MAJOR_VERSION >= 7
-    if (((value = zend_hash_str_find((&self->values), (key->val), (size_t)((key->len + 1) - 1))) != NULL)) {
+    if (PHP5TO7_ZEND_HASH_FIND(&self->values, key->val, key->len + 1, value)) {
 #else
-    if (((value = zend_hash_str_find((&self->values), (key), (size_t)((strlen(key) + 1) - 1))) != NULL)) {
+    if (PHP5TO7_ZEND_HASH_FIND(&self->values, key, strlen(key) + 1, value)) {
 #endif
       RETURN_ZVAL(value, 1, 0);
     }
@@ -245,7 +249,7 @@ PHP_METHOD(UserTypeValue, key)
       PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   php_driver_type *type =
       PHP_DRIVER_GET_TYPE(&self->type);
-  if (zend_hash_get_current_key_ex((&type->data.udt.types), (&key), (NULL), (&self->pos)) == HASH_KEY_IS_STRING) {
+  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.udt.types, &key, NULL, &self->pos) == HASH_KEY_IS_STRING) {
 #if PHP_MAJOR_VERSION >= 7
     RETURN_STR(key);
 #else
@@ -384,13 +388,15 @@ php_driver_user_type_value_properties(
 #endif
   HashTable                 *props = zend_std_get_properties(object );
 
-  ((void)zend_hash_str_update((props), ("type"), (size_t)((sizeof("type")) - 1), (&self->type)));
+  PHP5TO7_ZEND_HASH_UPDATE(props,
+                           "type", sizeof("type"),
+                           &self->type, sizeof(zval));
   Z_ADDREF_P(&self->type);
 
 
   array_init(&values);
   php_driver_user_type_value_populate(self, &values );
-  ((void)zend_hash_str_update((props), ("values"), (size_t)((sizeof("values")) - 1), (&values)));
+  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval));
 
   return props;
 }
@@ -430,8 +436,8 @@ php_driver_user_type_value_compare(zval *obj1, zval *obj2 )
   zend_hash_internal_pointer_reset_ex(&user_type_value1->values, &pos1);
   zend_hash_internal_pointer_reset_ex(&user_type_value2->values, &pos2);
 
-  while (((current1 = zend_hash_get_current_data_ex((&user_type_value1->values), (&pos1))) != NULL) &&
-         ((current2 = zend_hash_get_current_data_ex((&user_type_value2->values), (&pos2))) != NULL)) {
+  while (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&user_type_value1->values, current1, &pos1) &&
+         PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&user_type_value2->values, current2, &pos2)) {
     result = php_driver_value_compare(current1,
                                          current2 );
     if (result != 0) return result;
@@ -451,10 +457,10 @@ php_driver_user_type_value_hash_value(zval *obj )
 
   if (!self->dirty) return self->hashv;
 
-  ZEND_HASH_FOREACH_VAL(&self->values, current) {
+  PHP5TO7_ZEND_HASH_FOREACH_VAL(&self->values, current) {
     hashv = php_driver_combine_hash(hashv,
                                        php_driver_value_hash(current ));
-  } ZEND_HASH_FOREACH_END();
+  } PHP5TO7_ZEND_HASH_FOREACH_END(&self->values);
 
   self->hashv = hashv;
   self->dirty = 0;
@@ -469,7 +475,7 @@ php_driver_user_type_value_free(zend_object *object )
       PHP5TO7_ZEND_OBJECT_GET(user_type_value, object);
 
   zend_hash_destroy(&self->values);
-  if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); }
+  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
 
   zend_object_std_dtor(&self->zendObject);
 

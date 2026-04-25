@@ -24,7 +24,7 @@ void php_driver_batch_statement_entry_dtor(zval* dest)
     auto *batch_statement_entry = static_cast<php_driver_batch_statement_entry *>(Z_PTR_P(dest));
 
     zval_ptr_dtor(&batch_statement_entry->statement);
-    if (!Z_ISUNDEF(batch_statement_entry->arguments)) { zval_ptr_dtor(&(batch_statement_entry->arguments)); ZVAL_UNDEF(&(batch_statement_entry->arguments)); }
+    PHP5TO7_ZVAL_MAYBE_DESTROY(batch_statement_entry->arguments);
 
     efree(batch_statement_entry);
 }
