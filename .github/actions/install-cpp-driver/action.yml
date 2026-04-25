@@ -38,9 +38,9 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv
+        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
         restore-keys: |
-          cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-system-libuv
+          cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-system-libuv-shared-deps
 
     - name: Install build dependencies
       if: steps.cache.outputs.cache-hit != 'true'
@@ -73,7 +73,6 @@ runs:
           -DCASS_BUILD_STATIC=ON \
           -DCASS_BUILD_SHARED=ON \
           -DCASS_USE_STD_ATOMIC=ON \
-          -DCASS_USE_STATIC_LIBS=ON \
           -DCASS_USE_TIMERFD="${TIMERFD}" \
           -DCASS_USE_LIBSSH2=ON \
           -DCASS_USE_ZLIB=ON \
@@ -89,7 +88,7 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv
+        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
 
     - name: Expose outputs
       id: values
