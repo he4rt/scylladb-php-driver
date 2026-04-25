@@ -51,9 +51,12 @@ it('supports positional ? arguments', function () use ($keyspace, $table) {
 })->group('feature');
 
 it('supports named arguments', function () use ($keyspace, $table) {
-    $session   = scyllaDbConnection($keyspace);
+    $session = scyllaDbConnection($keyspace);
+    // Unique id keeps this test isolated from the row id="62c36092-…"
+    // written by "supports positional ? arguments" above.
+    $rowId = 'a1b2c3d4-0000-0000-0000-000000000001';
     $statement = new SimpleStatement(
-        "INSERT INTO $table (id, song_id, artist, title, album) VALUES (62c36092-82a1-3a00-93d1-46196ee77204, ?, ?, ?, ?)"
+        "INSERT INTO $table (id, song_id, artist, title, album) VALUES ($rowId, ?, ?, ?, ?)"
     );
 
     $session->execute($statement, ['arguments' => [
@@ -64,7 +67,7 @@ it('supports named arguments', function () use ($keyspace, $table) {
     ]]);
 
     $row = $session->execute(
-        "SELECT * FROM $keyspace.$table WHERE id = 62c36092-82a1-3a00-93d1-46196ee77204"
+        "SELECT * FROM $keyspace.$table WHERE id = $rowId"
     )->first();
     expect($row['artist'])->toBe('Joséphine Baker');
 })->group('feature');
