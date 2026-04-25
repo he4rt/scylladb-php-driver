@@ -176,11 +176,15 @@ static php_driver_value_handlers php_scylladb_date_handlers;
 static HashTable *php_scylladb_date_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 
 static HashTable *php_scylladb_date_properties(zend_object *object) {
-  HashTable *props = zend_std_get_properties(object);
+  if (object->properties) {
+    zend_array_release(object->properties);
+  }
+  object->properties = zend_new_array(2);
+  HashTable *props = object->properties;
 
   auto type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);
   zend_hash_str_update(props, ZEND_STRL("type"), &type);

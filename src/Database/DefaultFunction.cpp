@@ -218,7 +218,7 @@ php_driver_type_default_function_gc(
 {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object );
+  return NULL;
 }
 
 static HashTable *

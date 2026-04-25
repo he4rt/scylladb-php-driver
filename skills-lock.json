@@ -5,6 +5,21 @@
       "source": "affaan-m/everything-claude-code",
       "sourceType": "github",
       "computedHash": "46787c93ed565e48ab670ddbf8204fd144437e66ee9246fa0c651aa7a1f5bf45"
+    },
+    "pest-testing": {
+      "source": "spatie/freek.dev",
+      "sourceType": "github",
+      "computedHash": "16b9ee01b7eb3f527cd0c1cb3ec4ea22099211f6529534ba7b8b646cfec38d5b"
+    },
+    "php-development": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "computedHash": "62e69469722669051b68ec3b9e0da18b7b2b77edd27ac293d173a748e319b3a0"
+    },
+    "php-expert": {
+      "source": "personamanagmentlayer/pcl",
+      "sourceType": "github",
+      "computedHash": "1754cfd41337e7b8983d60efa6c8781d8971d353c9c9eb571d5166640a004708"
     }
   }
 }

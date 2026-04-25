@@ -91,13 +91,17 @@ static HashTable *php_driver_type_scalar_gc(zend_object *object, zval **table,
                                             int *n) {
   *table = nullptr;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 
 static HashTable *php_driver_type_scalar_properties(zend_object *object) {
   zval name;
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
-  HashTable *props = zend_std_get_properties(object);
+  if (object->properties) {
+    zend_array_release(object->properties);
+  }
+  object->properties = zend_new_array(1);
+  HashTable *props = object->properties;
 
   /* Used for comparison and 'text' is just an alias for 'varchar' */
   CassValueType type =

@@ -140,10 +140,11 @@ Goal: get `pest` green again and fix audit-discovered correctness bugs. Without 
 ### 0.2 Critical correctness bugs found in audit [TODO]
 
 1. [src/Database/DefaultTable.cpp:726](../../src/Database/DefaultTable.cpp) — compare handler compares `Z_OBJ_HANDLE_P(obj1)` against itself; equality is broken. Fix and add a Pest unit test.
-2. [src/DefaultSession.cpp:104,116,263,273](../../src/DefaultSession.cpp) — raw `free()` on `export_twos_complement()` output. Switch to `efree()` (or pin allocator contract on the producer side).
-3. `FutureRows`, `FuturePreparedStatement`, `FutureSession` — add `cass_future_error_code()` checks before reading results. Today async failures produce silent garbage.
-4. [src/DefaultSession.cpp:445–459](../../src/DefaultSession.cpp) — batch/statement lifecycle: inconsistent `cass_batch_free` paths; statement freed immediately after `cass_batch_add_statement`. Audit ownership.
-5. `Map::get_properties` / `Tuple::get_properties` — double-refcount via `add_next_index_zval` plus manual addref. Pick one path.
+2. [src/Tuple.cpp:484](../../src/Tuple.cpp) and [src/Collection.cpp:501](../../src/Collection.cpp) — both assign `.std.compare_objects` which was removed from `zend_object_handlers` in PHP 8. The assignment writes past the end of the handlers struct into adjacent memory. Remove both lines; only `.std.compare` is valid.
+3. [src/DefaultSession.cpp:104,116,263,273](../../src/DefaultSession.cpp) — raw `free()` on `export_twos_complement()` output. Switch to `efree()` (or pin allocator contract on the producer side).
+4. `FutureRows`, `FuturePreparedStatement`, `FutureSession` — add `cass_future_error_code()` checks before reading results. Today async failures produce silent garbage.
+5. [src/DefaultSession.cpp:445–459](../../src/DefaultSession.cpp) — batch/statement lifecycle: inconsistent `cass_batch_free` paths; statement freed immediately after `cass_batch_add_statement`. Audit ownership.
+6. `Map::get_properties` / `Tuple::get_properties` — double-refcount via `add_next_index_zval` plus manual addref. Pick one path.
 
 ### 0.3 Pest helper hardening [TODO]
 
@@ -372,6 +373,8 @@ The recent test infra change bumped tests to PHP 8.3+ but root [composer.json](.
     - Implement `get_gc` correctly on every object that holds zvals — audit found several numeric-type modules with stub `get_gc` returning empty arrays even when they hold sub-objects.
     - Use `zend_std_get_properties_for(ZEND_PROP_PURPOSE_DEBUG)` to differentiate debug-only vs serialized properties — prevents leaking internal state via `var_dump`.
     - **`zend_call_method`-style → `zend_call_known_function`** where the function is known at compile time (faster, skips name resolution).
+    - **Remove `.std.` handler prefix** — `Tuple.cpp:477–484`, `Collection.cpp:494–501`, `Set.cpp:477–479` set handlers via `.std.get_gc`, `.std.get_properties`, `.std.compare`. This is the old union-layout style; the canonical pattern sets them directly on the `zend_object_handlers` struct (no `.std.` prefix). Fix during each module's C23 port.
+    - **Drop `compare_objects` assignments** — `Tuple.cpp:484` and `Collection.cpp:501` assign both `.std.compare` and `.std.compare_objects`. The `compare_objects` field was removed from `zend_object_handlers` in PHP 8; assigning it writes into unrelated memory. Only `compare` is valid. Remove both `.std.compare_objects` lines.
 
 11. **Exception construction** [TODO]
     - Switch `zend_throw_exception(ce, "msg %s", arg)` callsites to `zend_throw_exception_ex(ce, code, "msg %s", arg)` for consistency with the rest of the codebase, and include error codes in the `code` field — currently always 0.
@@ -424,12 +427,15 @@ Goal: every PHP-visible class in the extension has a `*.stub.php` and matching a
 
 ### Inventory — classes still needing stubs
 
-**Already done (14):** `Cluster\Builder`, `Cluster\ClusterInterface`, `Cluster\DefaultCluster`, `DateTime\Date`, `DateTime\Time`, `DateTime\Timestamp`, `DateTime\Timeuuid`, `RetryPolicy\{DefaultPolicy, DowngradingConsistency, Fallthrough, Logging, RetryPolicy}`, `SSLOptions\{Builder, SSLOptions}`.
+**Already done (13):** `Cluster\Builder`, `Cluster\ClusterInterface`, `Cluster\DefaultCluster`, `DateTime\Date`, `DateTime\Time`, `DateTime\Timestamp`, `RetryPolicy\{DefaultPolicy, DowngradingConsistency, Fallthrough, Logging, RetryPolicy}`, `SSLOptions\{Builder, SSLOptions}`.
+
+> ⚠️ **`DateTime\Timeuuid` is listed here but is NOT fully migrated.** The stub (`Timeuuid.stub.php`) and generated `Timeuuid_arginfo.h` exist, but `src/DateTime/Timeuuid.cpp` still contains 16 legacy patterns (`ZEND_BEGIN_ARG_INFO_EX`, `PHP_ME`, `PHP_FE_END`) and does not include the generated arginfo header. It must be wired before it counts as done. Treat it as the first item in Round A below.
 
 **TODO — group by domain. Tackle in this order:**
 
 #### Round A — Top-level interfaces and value types (~12 classes) [TODO]
 Foundational; every other module depends on them.
+- `DateTime\Timeuuid` ← **wire first**: stub + arginfo already exist; delete the 16 legacy patterns in `Timeuuid.cpp` and include `Timeuuid_arginfo.h`
 - `Cassandra` (the static facade with `cluster()`, `ssl()`, etc. — top-level entry)
 - `Value` (interface)
 - `Numeric` (abstract)
@@ -567,6 +573,14 @@ Notes:
 - The `(min, max)` pair in `ZEND_PARSE_PARAMETERS_START` must match the stub signature; mismatches are now diagnosable.
 - On parse failure the macros `RETURN_THROWS()` automatically — no manual `return;` after the END macro.
 - For tight loops where the args are already parsed in a parent frame, prefer `Z_PARAM_*_EX` variants that don't re-throw.
+
+### `getThis()` → `ZEND_THIS` (412 occurrences)
+
+Every module not yet ported calls `getThis()` instead of the modern `ZEND_THIS` macro. Migrate in the same PR as each module's `Z_PARAM_*` conversion — they always appear together in the same method bodies.
+
+- **412 callsites** across all legacy `.cpp` files.
+- `ZEND_THIS` expands to `&EX(This)` — no null check needed inside a method body (always valid). `getThis()` adds an unnecessary `hasThis()` guard.
+- CI guard: extend the `zend_parse_parameters` grep check to also reject new `getThis()` callsites.
 
 ### Order of work
 

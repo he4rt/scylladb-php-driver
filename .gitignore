@@ -53,7 +53,7 @@ ex*.php
 debug.ini
 cassandra.log
 /**/PHP-Parser*
-/**/vendor/
+/vendor/
 /**/.idea/
 php-old/
 target/

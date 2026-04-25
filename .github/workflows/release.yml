@@ -152,6 +152,11 @@ jobs:
           fetch-depth: 1
           ref: v1.3.x
 
+      - name: Update composer.json version
+        run: |
+          jq --arg version "${{ needs.tag.outputs.version }}" '.version = $version' composer.json > composer.json.tmp
+          mv composer.json.tmp composer.json
+
       - name: Generate changelog
         uses: heinrichreimer/action-github-changelog-generator@v2.4
         with:
@@ -163,7 +168,7 @@ jobs:
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update CHANGELOG.md"
+          commit_message: "chore: bump composer.json to ${{ needs.tag.outputs.version }} and update CHANGELOG.md"
           branch: v1.3.x
           commit_options: "--no-verify --signoff"
-          file_pattern: CHANGELOG.md
+          file_pattern: composer.json CHANGELOG.md

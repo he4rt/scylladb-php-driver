@@ -477,7 +477,7 @@ static HashTable *php_driver_type_default_keyspace_gc(
     zval** table, int *n) {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 
 static HashTable *php_driver_default_keyspace_properties(

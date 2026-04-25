@@ -80,6 +80,7 @@ jobs:
           ini-file: development
           coverage: none
           tools: none
+          extensions: pcntl
         env:
           phpts: ${{ matrix.phpts }}
           debug: true

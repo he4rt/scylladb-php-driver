@@ -1,263 +1,205 @@
 <div align="center">
 
+# ScyllaDB PHP Driver
+
+**A modern PHP extension for ScyllaDB and Apache Cassandra**
+
+[![Tests](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml/badge.svg?branch=v1.3.x)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml)
 [![Build Docker Image](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml/badge.svg)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/docker-image.yml)
-[![ScyllaDB Unnoficial Discord Server](https://img.shields.io/badge/ScyllaDB_Developers-Discord_Server-4C388C)](https://discord.gg/B6rutCXvgp)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-8892BF)](https://www.php.net)
+[![ScyllaDB](https://img.shields.io/badge/ScyllaDB-Developers-4C388C)](https://discord.gg/B6rutCXvgp)
 
 </div>
 
+A high-performance PHP extension for [ScyllaDB](https://www.scylladb.com) and [Apache Cassandra](https://cassandra.apache.org) 3.0+, built on top of the [ScyllaDB C/C++ Driver](https://github.com/scylladb/cpp-driver). Communicates exclusively over the native CQL binary protocol.
 
-# ScyllaDB/CassandraDB Driver for PHP
+The extension is actively being **migrated from C++ to C23** for improved performance, safety, and maintainability.
 
-[![Build Status](https://github.com/he4rt/scylladb-php-driver/actions/workflows/tests.yml/badge.svg?branch=v1.3.x)](https://github.com/he4rt/scylladb-php-driver/actions/workflows/test.yml)
-
-A modern, [feature-rich][Features] and highly tunable PHP client library
-for [ScyllaDB](https://github.com/scylladb/scylladb) and
-[Apache Cassandra] 3.0+ using exclusively Cassandra's binary protocol.
-
-This is a wrapper around the [ScyllaDB C/C++ Driver].
-
-## Getting the Driver
-
-Binary versions of the driver, available for Linux systems and officialy supported versions of PHP (8.1 and 8.2), can be
-obtained from GitHub Releases (soon).
-
-You're also can compile the driver by yourself or use Dockerfile with a pre-set environment to run your tests.
-
-## What's new in v1.2.0/v1.3.8
-
-* ScyllaDB C/C++ Shard Aware driver implemented
-* Support for [`duration`]
-* `Session::execute()` and `Session::executeAsync()` now support a
-  [simple string] for the query CQL and a simple array for the query execution option
-* Full support for Apache Cassandra 3.0+
-* Support for [`tinyint` and `smallint`]
-* Support for [`date`] and [`time`]
-* Support for [user-defined function and aggregate] metadata
-* Support for [secondary index] and [materialized view] metadata
-
-## Last Development Status
-
-### v1.3.8
-
-- Migration from C to C++
-- Removing PHP Build system in favor of CMake
-- Upgraded `Cassandra\Cluster\Builder` class to new PHP argument parsing API
-- Reduce memory usage from `Cassandra\Cluster\Builder`
-- Migrate from Behat to PestPHP
-- Migrated from TravisCI to Github Actions.
+---
 
 ## Compatibility
 
-This driver works exclusively with the Cassandra Query Language v3 (CQL3) and
-Cassandra's native protocol. The current version works with:
+| Component | Supported versions |
+|---|---|
+| **PHP** | 8.2, 8.3, 8.4, 8.5 |
+| **ScyllaDB** | 4.4.x, 5.x, 6.x |
+| **Apache Cassandra** | 3.0+ (via DataStax libcassandra) |
+| **Architecture** | x86-64 (64-bit only) |
+| **Thread safety** | NTS and ZTS |
+| **Compilers** | GCC 13+, Clang 16+ |
+| **OS** | Linux, macOS |
 
-* ScyllaDB 4.4.x and 5.x +
-* Apache Cassandra versions 3.0+
-* PHP 8.1 and 8.2
-* 64-bit (x64)
-* Thread safe (TS) and non-thread safe (NTS)
-* Compilers: GCC 13.0+, Clang 16+ and c++23
-
-<!-- ## Documentation
-
-* [Home]
-* [API]
-* [Features] -->
-
-## Getting Help
-
-* If you're able to fix a bug yourself, you can [fork the repository](https://help.github.com/articles/fork-a-repo/)
-  and [submit a pull request](https://help.github.com/articles/using-pull-requests/) with the fix.
-* If you're not able to fix a bug yourself,
-  please [open an issue](https://github.com/he4rt/scylladb-php-driver/issues) , describe it with the most details
-  possible and wait until one of our maintainers join the conversation.
+---
 
 ## Quick Start
 
 ```php
 <?php
-$cluster   = Cassandra::cluster()                 // connects to localhost by default
-                 ->build();
-$keyspace  = 'system';
-$session   = $cluster->connect($keyspace);        // create session, optionally scoped to a keyspace
-$statement = new Cassandra\SimpleStatement(       // also supports prepared and batch statements
-    'SELECT keyspace_name, columnfamily_name FROM schema_columnfamilies'
-);
-$querySent = $session->execute($statement);
-$result    = $querySent->get();                      // wait for the result, with an optional timeout
 
-foreach ($result as $row) {                       // results and rows implement Iterator, Countable and ArrayAccess
-    printf("The keyspace %s has a table called %s\n", $row['keyspace_name'], $row['columnfamily_name']);
+$session = Cassandra::cluster()
+    ->withContactPoints('127.0.0.1')
+    ->withPort(9042)
+    ->withCredentials('cassandra', 'cassandra')
+    ->withTokenAwareRouting(true)
+    ->build()
+    ->connect('my_keyspace');
+
+// Simple string query
+$session->execute("INSERT INTO users (id, name) VALUES (uuid(), 'Alice')");
+
+// Prepared statement with bound values
+$prepared = $session->prepare('SELECT * FROM users WHERE id = ?');
+$result = $session->execute($prepared, ['arguments' => [$id]]);
+
+foreach ($result as $row) {
+    printf("User: %s\n", $row['name']);
 }
 ```
 
+---
+
 ## Installation
 
-Before you compile your driver, first check if your `php` and `php-config` matches the supported versions. If not,
-please checkout to the available versions.
+### Prerequisites
 
-```sh
-sudo update-alternatives --config php
-sudo update-alternatives --config php-config
+The driver requires **libuv** and the **ScyllaDB C/C++ driver** (or DataStax libcassandra). Use the provided scripts to build them from source:
+
+```bash
+# Install libuv (latest stable)
+./scripts/compile-libuv.sh --prefix ~/.local
+
+# Install the ScyllaDB C/C++ driver
+./scripts/compile-cpp-driver.sh --driver scylladb --prefix ~/.local
+
+# Build PHP with debug symbols (optional, for development)
+./scripts/compile-php.sh -v 8.4 -d -o ./php
 ```
 
-> Supported Versions: 8.1 and 8.2.
+> **System packages (Debian/Ubuntu)**
+> ```bash
+> apt install -y build-essential ninja-build cmake \
+>     libssl-dev libgmp-dev zlib1g-dev libpcre3-dev
+> ```
 
-Next you will learn how to build the driver to:
+---
 
-* Release/Production
-* Debug/Development
-* Optimized for Production (CAREFUL!!)
+## Building the Extension
 
-## BEFORE YOU START
+The project uses **CMake** with presets for common configurations. Preset names follow the pattern `<BuildType>PHP<Version><ThreadModel>`, e.g. `DebugPHP8.4NTS`.
 
-**!Make sure first you cloned the repository with --recursive flag!**
+### Configure and compile
 
-**!Make sure you first install LibUV and LibCassandra/LibScyllaDB!**
+```bash
+# List all available presets
+cmake --list-presets
 
-#### Installing LibUV
+# Configure (e.g. debug build, PHP 8.4, non-thread-safe)
+cmake --preset DebugPHP8.4NTS
 
-> Install LibUV from your package manager. -> Preferred Way
-
-> Installing From Source
-
-```sh
-git clone --depth 1 -b v1.46.0 https://github.com/libuv/libuv.git \
-    && cd libuv \
-    && mkdir build \
-    && cd build \
-    && cmake -DBUILD_TESTING=OFF -DBUILD_BENCHMARKS=OFF -DLIBUV_BUILD_SHARED=ON CMAKE_C_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE="RelWithInfo" -G Ninja .. \
-    && ninja install
+# Compile
+cmake --build out/DebugPHP8.4NTS
 ```
 
-#### Installing LibCassandra/LibScyllaDB
+### Available build types
 
-> Installing From Source (Only Way to get the latest version)
+| Preset prefix | Description |
+|---|---|
+| `Debug` | Debug symbols, no optimisations |
+| `Release` | Fully optimised |
+| `RelWithDebugInfo` | Optimised with debug info |
 
-```sh
+### CMake options
 
-# The only difference between libscylladb and libcassandra is the name of the git repository.
+```cmake
+option(ENABLE_SANITIZERS   "Enable AddressSanitizer + UndefinedSanitizer" OFF)
+option(ENABLE_AVX          "Enable AVX instruction set"                   OFF)
+option(ENABLE_AVX2         "Enable AVX2 instruction set"                  OFF)
+option(ENABLE_LTO          "Enable Link-Time Optimisation"                OFF)
 
-git clone --depth 1 https://github.com/scylladb/cpp-driver.git scyladb-driver \
-  && cd scyladb-driver \
-  && mkdir build \
-  && cd build \
-  && cmake -DCASS_CPP_STANDARD=17 -DCASS_BUILD_STATIC=ON -DCASS_BUILD_SHARED=ON -DCASS_USE_STD_ATOMIC=ON -DCASS_USE_TIMERFD=ON -DCASS_USE_LIBSSH2=ON -DCASS_USE_ZLIB=ON CMAKE_C_FLAGS="-fPIC" -DCMAKE_CXX_FLAGS="-fPIC -Wno-error=redundant-move" -DCMAKE_BUILD_TYPE="RelWithInfo" -G Ninja .. \
-  && ninja install
+set(CPU_TYPE "x86-64-v3" CACHE STRING
+    "x86-64 micro-arch: x86-64 | x86-64-v2 | x86-64-v3 | x86-64-v4 | native")
+
+# PHP
+set(PHP_VERSION_FOR_PHP_CONFIG "8.4" CACHE STRING "PHP version")
+option(PHP_DEBUG       "Debug build of PHP"    ON)
+option(PHP_THREAD_SAFE "ZTS (thread-safe) PHP" OFF)
+
+# Linking
+option(LINK_LIBUV_STATIC    "Statically link libuv"             OFF)
+option(PHP_DRIVER_STATIC    "Statically link the PHP driver"    OFF)
+option(USE_LIBCASSANDRA     "Use DataStax libcassandra instead" OFF)
 ```
 
-#### CMAKE Options and Presets
+### Regenerating CMake presets
 
-We provide common setups using CMake Presets. You can use them by passing the preset name to CMake:
+After adding a new PHP version, regenerate `CMakePresets.json`:
 
-* Release
-* RelWithInfo
-* CI (Used by GitHub Actions)
-* Debug
-* ReleaseLibCassandra (Release with LibCassandra)
+```bash
+php generate-presets.php
+```
 
-````
-option(ENABLE_SANITIZERS "Enable sanitizers" OFF)
-option(ENABLE_AVX "Enable AVX" OFF)
-option(ENABLE_AVX2 "Enable AVX2" OFF)
-option(ENABLE_LTO "Enable LTO" OFF)
-set(CPU_TYPE "x86-64-v3" CACHE STRING "For x86_64 = x86-64|x86-64-v2|x86-64-v3|x86-64-v4|native")
+---
 
-# PHP Options
-set(CUSTOM_PHP_CONFIG "" CACHE STRING "Custom PHP config path")
-set(PHP_VERSION_FOR_PHP_CONFIG "8.3" CACHE STRING "PHP version")
-option(PHP_DEBUG "Debug or Release" ON)
-option(PHP_THREAD_SAFE "ZTS(zts) or NTS(nts)" OFF)
+## Running Tests
 
-option(LINK_LIBUV_STATIC "Statically link libuv" OFF)
-option(BUILD_LIBUV_FROM_SRC "Build LibUV from Source" OFF)
+Start a local ScyllaDB node, then run the Pest test suite:
 
-option(PHP_DRIVER_STATIC "Statically link PHP Driver" OFF)
-option(USE_LIBCASSANDRA "Use DataStax LibCassandra instead of LibScyllaDB" OFF)
+```bash
+# 1. Start ScyllaDB via Docker Compose
+./scripts/run-scylladb.sh
 
-````
+# 2. Build the extension
+cmake --preset DebugPHP8.4NTS
+cmake --build out/DebugPHP8.4NTS
 
-### Compiling Release Build
+# 3. Install Composer dependencies
+composer install
 
-This build you can use it for Production purposes.
+# 4. Run tests
+php ./vendor/bin/pest
+```
 
-To build your Driver, you should first download a few dependencies:
+Environment variables for the test suite:
 
-#### Debian/Ubuntu
+| Variable | Default | Description |
+|---|---|---|
+| `SCYLLADB_HOSTS` | `127.0.0.1` | Comma-separated list of nodes |
+| `SCYLLADB_PORT` | `9042` | CQL native port |
+| `SCYLLADB_USERNAME` | `cassandra` | Username |
+| `SCYLLADB_PASSWORD` | `cassandra` | Password |
+| `SCYLLADB_KEYSPACE` | _(empty)_ | Default keyspace |
 
-````sh
-apt install -y pipx build-essential ninja-build libssl-dev libgmp-dev zlib1g-dev openssl libpcre3-dev php-dev && pipx install cmake
-````
+---
 
-After that, you can run the build command inside the repository root folder:
+## Development Status
 
-````sh
-phpize
-./configure
-make -j$(nproc)
-sudo make install
-````
+The extension is undergoing an incremental **C++ → C23 migration**. The `src/Cluster/` module is the canonical reference implementation.
+
+| Module | Status |
+|---|---|
+| `Cluster` | Refactored (C23 reference) |
+| `RetryPolicy` | Partial — stubs done, handlers need C port |
+| `DateTime` | Partial — stubs done |
+| `SSLOptions` | Partial — stubs done |
+| `Database` | Legacy |
+| `Type` | Legacy |
+| `Numbers` | Legacy |
+| `TimestampGenerator` | Legacy |
+| `Exception` | Legacy (thin wrappers) |
+
+---
 
 ## Contributing
 
-[Read our contribution policy][contribution-policy] for a detailed description
-of the process.
+- **Bug reports** — please include driver version, PHP version, ScyllaDB version, dependency versions, a full stack trace, and steps to reproduce.
+- **Pull requests** — fork the repository and open a PR. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution guide.
+- **Questions / discussions** — join the [ScyllaDB Developers Discord](https://discord.gg/B6rutCXvgp).
 
-## Running tests
+---
 
-Soon.
+## License
 
-## Copyright
+Copyright &copy; DataStax, Inc. and contributors.
 
-&copy; DataStax, Inc.
-
-Licensed under the Apache License, Version 2.0 (the “License”); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software distributed
-under the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-
-[Apache Cassandra]: http://cassandra.apache.org
-
-[DSE PHP driver]: http://docs.datastax.com/en/developer/php-driver-dse/latest
-
-[DataStax Enterprise]: http://www.datastax.com/products/datastax-enterprise
-
-[DataStax C/C++ Driver for Apache Cassandra]: http://docs.datastax.com/en/developer/cpp-driver/latest
-
-[DataStax download server]: http://downloads.datastax.com/php-driver
-
-[GitHub]: https://github.com/datastax/php-driver
-
-[Home]: http://docs.datastax.com/en/developer/php-driver/latest
-
-[API]: http://docs.datastax.com/en/developer/php-driver/latest/api
-
-[installing-details]: https://github.com/datastax/php-driver/blob/master/ext/README.md
-
-[contribution-policy]: https://github.com/datastax/php-driver/blob/master/CONTRIBUTING.md
-
-[Behat Framework]: http://docs.behat.org
-
-[Features]: /tests/features
-
-[`duration`]: /tests/features/duration.feature
-
-[simple string]: /tests/features/simple_string_queries.feature
-
-[`tinyint` and `smallint`]: /tests/features/datatypes.feature#L92
-
-[`date`]: /tests/features/datatypes.feature#L135
-
-[`time`]: /tests/features/datatypes.feature#L170
-
-[user-defined function and aggregate]: /tests/features/function_and_aggregate_metadata.feature
-
-[secondary index]: /tests/features/secondary_index_metadata.feature
-
-[materialized view]: /tests/features/materialized_view_metadata.feature
+Licensed under the [Apache License, Version 2.0](LICENSE).

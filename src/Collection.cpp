@@ -352,7 +352,7 @@ php_driver_collection_gc(
 {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 
 static HashTable *
@@ -371,7 +371,11 @@ php_driver_collection_properties(
 #else
   php_driver_collection  *self = PHP_DRIVER_GET_COLLECTION(object);
 #endif
-  HashTable             *props = zend_std_get_properties(object);
+  if (object->properties) {
+    zend_array_release(object->properties);
+  }
+  object->properties = zend_new_array(2);
+  HashTable *props = object->properties;
 
   PHP5TO7_ZEND_HASH_UPDATE(props,
                            "type", sizeof("type"),

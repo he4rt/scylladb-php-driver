@@ -124,7 +124,7 @@ static HashTable *php_driver_blob_gc(
     zval** table, int *n) {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 
 static HashTable *php_driver_blob_properties(
@@ -144,7 +144,11 @@ static HashTable *php_driver_blob_properties(
 #else
   php_driver_blob *self = PHP_DRIVER_GET_BLOB(object);
 #endif
-  HashTable *props = zend_std_get_properties(object);
+  if (object->properties) {
+    zend_array_release(object->properties);
+  }
+  object->properties = zend_new_array(2);
+  HashTable *props = object->properties;
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_BLOB);
   PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"),

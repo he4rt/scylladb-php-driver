@@ -89,14 +89,18 @@ static HashTable *php_driver_type_custom_gc(
     zval **table, int *n) {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 
 static HashTable *php_driver_type_custom_properties(zend_object *object) {
   zval name;
 
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
-  HashTable *props = zend_std_get_properties(object);
+  if (object->properties) {
+    zend_array_release(object->properties);
+  }
+  object->properties = zend_new_array(1);
+  HashTable *props = object->properties;
 
   ZVAL_STRING(&name, self->data.custom.class_name);
 

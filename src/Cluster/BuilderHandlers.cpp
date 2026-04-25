@@ -12,7 +12,7 @@ static HashTable *php_driver_cluster_builder_gc(zend_object *object, zval **tabl
 {
     *table = nullptr;
     *n = 0;
-    return zend_std_get_properties(object);
+    return NULL;
 }
 static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 {
@@ -51,15 +51,19 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
     zval connectionHeartbeatInterval;
 
     php_driver_cluster_builder *self = php_driver_cluster_builder_object_fetch(object);
-    HashTable *props = zend_std_get_properties(object);
+    if (object->properties) {
+        zend_array_release(object->properties);
+    }
+    object->properties = zend_new_array(32);
+    HashTable *props = object->properties;
 
-    ZVAL_STR(&contactPoints, self->contact_points);
+    ZVAL_STR_COPY(&contactPoints, self->contact_points);
 
     ZVAL_LONG(&loadBalancingPolicy, self->load_balancing_policy);
 
     if (self->load_balancing_policy == LOAD_BALANCING_DC_AWARE_ROUND_ROBIN)
     {
-        ZVAL_STR(&localDatacenter, self->local_dc);
+        ZVAL_STR_COPY(&localDatacenter, self->local_dc);
         ZVAL_LONG(&hostPerRemoteDatacenter, self->used_hosts_per_remote_dc);
         ZVAL_BOOL(&useRemoteDatacenterForLocalConsistencies, self->allow_remote_dcs_for_local_cl);
     }
@@ -74,8 +78,8 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 
     if (self->username)
     {
-        ZVAL_STR(&username, self->username);
-        ZVAL_STR(&password, self->password);
+        ZVAL_STR_COPY(&username, self->username);
+        ZVAL_STR_COPY(&password, self->password);
     }
     else
     {
@@ -134,7 +138,7 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 
     if (self->blacklist_hosts != nullptr)
     {
-        ZVAL_STR(&blacklistHosts, self->blacklist_hosts);
+        ZVAL_STR_COPY(&blacklistHosts, self->blacklist_hosts);
     }
     else
     {
@@ -143,7 +147,7 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 
     if (self->whitelist_hosts)
     {
-        ZVAL_STR(&whitelistHosts, self->whitelist_hosts);
+        ZVAL_STR_COPY(&whitelistHosts, self->whitelist_hosts);
     }
     else
     {
@@ -152,7 +156,7 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 
     if (self->blacklist_dcs)
     {
-        ZVAL_STR(&blacklistDCs, self->blacklist_dcs);
+        ZVAL_STR_COPY(&blacklistDCs, self->blacklist_dcs);
     }
     else
     {
@@ -161,7 +165,7 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 
     if (self->whitelist_dcs)
     {
-        ZVAL_STR(&whitelistDCs, self->whitelist_dcs);
+        ZVAL_STR_COPY(&whitelistDCs, self->whitelist_dcs);
     }
     else
     {
@@ -313,6 +317,8 @@ static void php_driver_cluster_builder_free(zend_object *object)
         zend_object_release(&self->timestamp_gen->zendObject);
         self->timestamp_gen = nullptr;
     }
+
+    zend_object_std_dtor(object);
 }
 zend_object* php_driver_cluster_builder_new(zend_class_entry *ce)
 {

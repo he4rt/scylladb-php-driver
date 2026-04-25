@@ -216,11 +216,15 @@ static php_driver_value_handlers php_driver_timestamp_handlers;
 static HashTable *php_driver_timestamp_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 static HashTable *php_driver_timestamp_properties(zend_object *object) {
   auto self = ZendCPP::ObjectFetch<php_scylladb_timestamp>(object);
-  HashTable *props = zend_std_get_properties(object);
+  if (object->properties) {
+    zend_array_release(object->properties);
+  }
+  object->properties = zend_new_array(3);
+  HashTable *props = object->properties;
 
   long sec = (long)(self->timestamp / 1000);
   long usec = (long)((self->timestamp - (sec * 1000)) * 1000);

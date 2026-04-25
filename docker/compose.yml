@@ -1,0 +1,21 @@
+networks:
+  scylladbtest:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.5.0/24
+          gateway: 10.10.5.1
+services:
+  scylla1:
+    image: scylladb/scylla:2026.1
+    container_name: php-driver-scylla
+    restart: unless-stopped
+    command: --smp=1 --developer-mode=1 --memory 1024M --api-address 0.0.0.0
+    networks:
+      scylladbtest:
+        ipv4_address: 10.10.5.3
+    ports:
+      - '9042:9042'
+      - '19042:19042'
+    volumes:
+      - ./scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties

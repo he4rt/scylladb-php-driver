@@ -137,7 +137,7 @@ static HashTable* php_driver_type_collection_gc(
     zval** table, int* n) {
   *table = NULL;
   *n = 0;
-  return zend_std_get_properties(object);
+  return NULL;
 }
 
 static HashTable* php_driver_type_collection_properties(
@@ -152,7 +152,11 @@ static HashTable* php_driver_type_collection_properties(
 #else
   php_driver_type* self = PHP_DRIVER_GET_TYPE(object);
 #endif
-  HashTable* props = zend_std_get_properties(object);
+  if (object->properties) {
+    zend_array_release(object->properties);
+  }
+  object->properties = zend_new_array(1);
+  HashTable *props = object->properties;
 
   PHP5TO7_ZEND_HASH_UPDATE(
       props, "valueType", sizeof("valueType"),
