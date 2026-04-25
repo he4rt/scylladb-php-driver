@@ -4,6 +4,122 @@ Authoritative roadmap for finishing the C++ → C23 migration, consolidating tes
 
 Status legend: `TODO` / `IN PROGRESS` / `DONE` / `BLOCKED`.
 
+> **Current state (after PR #122 merges as v1.3.14):** Stage 0 (test infra + critical bug fixes) and Stage 1.2 (unit-test migration) are **DONE**. Pick up from the resume sheet immediately below; full stage detail follows further down.
+
+---
+
+## 🚧 Resume from here — Wave 2 backlog (post-v1.3.14)
+
+This is the prioritised TODO for the next development wave. Each item links to its full stage detail later in the document. Treat it as the working checklist; tick boxes as the work lands.
+
+### Round A — High-confidence, low-risk first (target: v1.4.0)
+
+- [ ] **Re-migrate integration tests + Behat features carefully** (Stage 1.3 + 1.4). The first attempt produced duplicates and behavioural drift; redo each file end-to-end against a live ScyllaDB fixture, with random-suffix keyspaces and per-test isolation. Source: `tests-old/integration/Cassandra/*` (16 files) and `tests-old/features/*.feature` (13 files).
+- [ ] **Add `tests/Support/CCM.php` lifecycle helper** so the multi-node tests skipped today (`SessionIntegrationTest` cluster-down case, `ConsistencyLevelFeatureTest`, `RetryPolicy*` under-replication) can actually run in CI.
+- [ ] **Bring up SSL-configured ScyllaDB fixture in docker-compose**, enabling the SSL feature tests currently `->skip()`'d.
+- [ ] **Cassandra-flavour-only runner** for the 2 UDF/UDA scenarios (Scylla doesn't support them).
+- [ ] **Fix the unit-test exception-class skips** (Stage 0.2 follow-ups). The skipped `Time`, `Timeuuid`, `UserTypeValue` tests assert `\InvalidArgumentException` but the extension throws `Cassandra\Exception\InvalidArgumentException`. Either accept both or change the test assertions. Affected: `tests/Unit/DateTime/TimeTest.php`, `tests/Unit/Uuid/TimeUuidTest.php`, `tests/Unit/Collections/UserTypeValueTest.php`.
+- [ ] **Delete `tests-old/`** once everything above lands.
+
+### Round B — Persistent-list redesign (target: v1.4.0 or v1.5.0)
+
+Stage 4.5 in the full plan. Three line-level fixes shipped in v1.3.14; the structural redesign is what's left.
+
+- [ ] Switch the three resource types (cluster, session, prepared statement) to the standard `zend_register_persistent_resource[_ex]` API instead of hand-crafted `pecalloc` + `ZVAL_NEW_PERSISTENT_RES` + manual `EG(persistent_list)` writes.
+- [ ] Replace hash-key `char *` + `size_t` with `zend_string *` (interned where possible).
+- [ ] Audit `session->hash_key` aliasing of `cluster->hash_key` for lifetime correctness when crossing the persistent allocator boundary.
+- [ ] Drop `php_driver_ref` indirection — resources have native refcounting.
+- [ ] Pest test for: cache hit, cache miss, broken-future invalidation, keyspace-switch reuse, prepared-statement cache hit/miss, persistent counts (`PHP_DRIVER_G(persistent_*)`) consistent across requests.
+- [ ] Valgrind/ASan run: zero leaks across N=1000 prepare+execute cycles in persistent mode.
+
+### Round C — Pattern foundation + PHP 8.3 modernisation (target: v1.5.0)
+
+Stage 3 in the full plan. Bigger commitment; gates Stage 4.
+
+- [ ] Bump composer.json `require.php` floor to `>= 8.3`. Drop conditional `#if PHP_VERSION_ID < …` for 8.1/8.2.
+- [ ] Complete `src/Cluster` as the C23 reference: zero C++ headers, `.cpp → .c` rename once `ZendCPP::` is excised.
+- [ ] Build the shared "type module" macro header for the 6 numeric modules' boilerplate (Stage 3.2).
+- [ ] Document the canonical pattern in `docs/MODULE_PATTERN.md`; verify the `/new-module` skill produces matching output.
+- [ ] CI quality gates: clang-tidy + cppcheck against the migrated modules; ASan in CI (currently only local Debug presets).
+- [ ] Decide on enums (`Cassandra\Consistency`, `BatchType`, etc.) and `final readonly` value classes; ship the stub changes once the module is converted (Stage 3.7).
+- [ ] Switch `\DateTime` returns to `\DateTimeImmutable` in `Date`, `Timestamp` stubs.
+- [ ] `#[\SensitiveParameter]` on `Builder::withCredentials($username, #[\SensitiveParameter] string $password)`.
+- [ ] Add `declare(strict_types=1);` to all 14 existing stubs (some already have it; audit).
+
+### Round D — Universal stub coverage (target: v1.5.0 or v1.6.0)
+
+Stage 3.5 in the full plan. **86 classes total, 14 done, 72 to go.** Order:
+
+- [ ] Round A foundational (12 classes): `Cassandra` facade, `Value`, `Numeric`, `UuidInterface`, `Uuid`, `Inet`, `Blob`, `Duration`, `Bigint`, `Smallint`, `Tinyint`, `Float`, `Decimal`, `Varint`, `Custom`.
+- [ ] Round B Type system (8 classes): `Type`, `Type\{Scalar,Collection,Set,Map,Tuple,UserType,Custom}`.
+- [ ] Round C Collections (5 classes): `Collection`, `Set`, `Map`, `Tuple`, `UserTypeValue`.
+- [ ] Round D Database (14 classes): `Session`, `DefaultSession`, `Statement`, `SimpleStatement`, `PreparedStatement`, `BatchStatement`, `ExecutionOptions`, `Future`, `FutureClose`, `FuturePreparedStatement`, `FutureRows`, `FutureSession`, `FutureValue`, `Rows`.
+- [ ] Round E Schema metadata (14 classes): `Schema`, `DefaultSchema`, `Keyspace`, `DefaultKeyspace`, `Table`, `DefaultTable`, `Column`, `DefaultColumn`, `Index`, `DefaultIndex`, `MaterializedView`, `DefaultMaterializedView`, `Function`, `DefaultFunction`, `Aggregate`, `DefaultAggregate`.
+- [ ] Round F TimestampGenerator (3 classes).
+- [ ] Round G Exceptions (23 classes) — last; mostly mechanical.
+- [ ] `make stubs` regeneration target + CI guard against hand-edited `_arginfo.h` drift.
+- [ ] Reflection-vs-stub Pest test asserting every Cassandra class's method/property/constant set matches its stub.
+
+### Round E — Modern argument parsing (target: v1.5.0, parallel with Round D)
+
+Stage 3.6 in the full plan. **107 `zend_parse_parameters` callsites across 37 files**; 7 files already on `Z_PARAM_*` (Cluster, DateTime/*, RetryPolicy/Logging, SSLOptions/Builder).
+
+- [ ] Convert per-module alongside its stub PR. Format-string → macro cheat sheet in [Stage 3.6 below](#stage-36--modern-argument-parsing-z_param_).
+- [ ] CI guard: grep-based check rejecting any new `zend_parse_parameters(` callsite.
+- [ ] Pest tests verifying modern `TypeError`/`ArgumentCountError` messages (different from the legacy `Warning: …`).
+
+### Round F — Macro purge + util/ removal (target: v1.6.0)
+
+Stage 2 in the full plan. Previously attempted as a flat sweep (PR #122 wave-1) and reverted because it caused collection/UDT round-trip regressions and a buffer overflow. Redo *module-by-module alongside Round D's stub work*.
+
+- [ ] Round 1 — pure renames (6 macros, 22 callsites): `PHP5TO7_SMART_STR_VAL/LEN`, `PHP_SCYLLADB_Z_IS_*`, `PHP5TO7_ADD_NEXT_INDEX_STRING`. Lowest risk; can ship standalone.
+- [ ] Round 2 — hashtable iteration (8 macros, ~188 callsites): `PHP5TO7_ZEND_HASH_FOREACH_*`, `GET_CURRENT_*`. Medium risk — the `STR_KEY_VAL` `char*` ↔ `zend_string*` adaptation is the historical landmine. Must include round-trip tests for Collection/Map/Set/UDT in CI before merging.
+- [ ] Round 3 — hashtable mutation (11 macros, ~161 callsites): `PHP5TO7_ZEND_HASH_FIND/EXISTS/UPDATE/ADD/DEL/INDEX_*`, `ADD_ASSOC_*`, `ZVAL_COPY`.
+- [ ] Round 4 — zval lifecycle (1 macro, 58 callsites): `PHP5TO7_ZVAL_MAYBE_DESTROY`. Drop the `do { … } while (0)` wrapper since callsites are inlined code, not macro expansions.
+- [ ] Round 5 — load-bearing (4 macros, ~168 callsites): `PHP5TO7_ZEND_OBJECT_GET/ECALLOC/INIT/INIT_EX`. Coupled to handler refactor; do per-module after the module's stub + Z_PARAM port.
+- [ ] **Stage 2.3 — delete `util/`** (12 headers + 10 cpp files): inline thin wrappers into owning modules; replace `uthash.h` with `zend_hash`; replace `php_driver_ref` with native resource refcounting (depends on Round B).
+
+### Round G — Module ports to C23 (target: v1.6.0–v2.0.0)
+
+Stage 4 in the full plan. Each module is its own PR, gated on its stub + Z_PARAM port from Rounds D + E.
+
+- [ ] 4c (warm-up): `RetryPolicy`, `DateTime`, `SSLOptions` — already partial; finish handler split, `.cpp → .c` rename.
+- [ ] 4a: `src/Database` (largest legacy module — `DefaultSession.cpp` is ~1000 lines).
+- [ ] 4b: `src/Type` + `src/Numbers` (use Round C's shared macro for the 6 numeric types).
+- [ ] 4d: `src/Exception` (23 thin wrappers — last; mostly mechanical).
+
+### Round H — Async + build/CI hardening (target: parallel throughout)
+
+- [ ] Stage 5: unified `php_driver_await_future(future, timeout)` helper consolidating ~20 ad-hoc await sites with consistent error checking.
+- [ ] Stage 5: document the synchronous-await constraint under PHP-FPM, or introduce optional `cass_future_set_callback` path. Decision needed before Stage 7.
+- [ ] Stage 6: macOS ARM64 release artifacts (add `macos-14` runner to `release.yml`).
+- [ ] Stage 6: commit (or simplify) `generate-presets.php`.
+- [ ] Stage 6: pin cpp-driver version in `compile-cpp-driver.sh` (currently clones HEAD `--depth 1`).
+- [ ] Stage 6: feature tests in CI gated on the docker-compose ScyllaDB fixture.
+
+### Round I — Final cleanup (target: v2.0.0)
+
+Stage 7 in the full plan. Only after all the above lands.
+
+- [ ] Drop C++ from `cmake/TargetOptimizations.cmake`.
+- [ ] Remove all `extern "C"` / `BEGIN_EXTERN_C` macros.
+- [ ] Remove `ZendCPP` dependency.
+- [ ] `/simplify` and `/security-review` end-to-end.
+- [ ] Tag clean **v2.0.0** — extension is C-only.
+
+---
+
+## ✅ What landed in v1.3.14 (PR #122)
+
+Cross-reference of which Stage items are already shipped, so future PRs don't redo them.
+
+- **Stage 0.1 Pest fix** — `Pest.php` and helpers correctly placed; auto-discovery works.
+- **Stage 0.2 critical correctness bugs** — compare-handler typo (×22 files), persistent CassCluster cache predicate, two persistent prepared-statement leaks. The 5th audit bug (`DefaultTable.cpp:726`) was within the ×22 sweep.
+- **Stage 0.3 Pest helper hardening** — partial: helpers split into `tests/Support/helpers.php`, loaded eagerly via composer's `autoload-dev.files`. Error-throwing on `cqlsh` failure not yet re-enabled (see Round A).
+- **Stage 1.2 unit-test migration** — all 23 PHPUnit unit tests → Pest 3.
+
+For the full release notes and squash-merge guidance, see [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
+
 ---
 
 ## Stage 0 — Test Infrastructure & Critical Bug Fixes (PRIORITY)
