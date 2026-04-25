@@ -16,5 +16,5 @@ ninja install || exit 1
 
 popd || exit 1
 cp cassandra.ini /usr/local/etc/php/conf.d/cassandra.ini
-composer install
-php ./vendor/bin/pest
+( cd tests && composer install )
+php ./tests/vendor/bin/pest

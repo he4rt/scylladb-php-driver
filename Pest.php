@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Cassandra\Session;
 
 // ── Group assignments ─────────────────────────────────────────────────────────
-uses()->group('unit')->in('Unit');
-uses()->group('feature')->in('Feature');
+uses()->group('unit')->in('tests/Unit');
+uses()->group('feature')->in('tests/Feature');
 
 // ── Environment helpers ───────────────────────────────────────────────────────
 
