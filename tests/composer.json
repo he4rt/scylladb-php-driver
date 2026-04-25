@@ -11,7 +11,10 @@
   "autoload-dev": {
     "psr-4": {
       "Cassandra\\Tests\\": "./"
-    }
+    },
+    "files": [
+      "Support/helpers.php"
+    ]
   },
   "require": {
     "php": "^8.3|^8.4|^8.5",

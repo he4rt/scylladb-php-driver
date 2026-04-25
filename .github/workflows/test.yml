@@ -131,8 +131,9 @@ jobs:
             install --no-ansi --no-interaction --no-progress --prefer-dist
 
       - name: Run tests
+        working-directory: tests
         run: |
-          php -d extension=cassandra ./tests/vendor/bin/pest \
+          php -d extension=cassandra ./vendor/bin/pest \
             --colors=always \
             --fail-on-risky \
             --fail-on-warning \
