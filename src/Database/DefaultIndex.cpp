@@ -273,10 +273,10 @@ php_driver_default_index_free(zend_object *object )
 {
   php_driver_index *self = PHP5TO7_ZEND_OBJECT_GET(index, object);
 
-  do { if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); } } while (0);
-  do { if (!Z_ISUNDEF(self->kind)) { zval_ptr_dtor(&(self->kind)); ZVAL_UNDEF(&(self->kind)); } } while (0);
-  do { if (!Z_ISUNDEF(self->target)) { zval_ptr_dtor(&(self->target)); ZVAL_UNDEF(&(self->target)); } } while (0);
-  do { if (!Z_ISUNDEF(self->options)) { zval_ptr_dtor(&(self->options)); ZVAL_UNDEF(&(self->options)); } } while (0);
+  if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); }
+  if (!Z_ISUNDEF(self->kind)) { zval_ptr_dtor(&(self->kind)); ZVAL_UNDEF(&(self->kind)); }
+  if (!Z_ISUNDEF(self->target)) { zval_ptr_dtor(&(self->target)); ZVAL_UNDEF(&(self->target)); }
+  if (!Z_ISUNDEF(self->options)) { zval_ptr_dtor(&(self->options)); ZVAL_UNDEF(&(self->options)); }
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

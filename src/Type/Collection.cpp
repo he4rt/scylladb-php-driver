@@ -174,7 +174,7 @@ static void php_driver_type_collection_free(zend_object* object) {
   php_driver_type* self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
-  do { if (!Z_ISUNDEF(self->data.collection.value_type)) { zval_ptr_dtor(&(self->data.collection.value_type)); ZVAL_UNDEF(&(self->data.collection.value_type)); } } while (0);
+  if (!Z_ISUNDEF(self->data.collection.value_type)) { zval_ptr_dtor(&(self->data.collection.value_type)); ZVAL_UNDEF(&(self->data.collection.value_type)); }
 
   zend_object_std_dtor(&self->zendObject);
 

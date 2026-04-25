@@ -213,8 +213,8 @@ php_driver_type_map_free(zend_object *object )
   php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
-  do { if (!Z_ISUNDEF(self->data.map.key_type)) { zval_ptr_dtor(&(self->data.map.key_type)); ZVAL_UNDEF(&(self->data.map.key_type)); } } while (0);
-  do { if (!Z_ISUNDEF(self->data.map.value_type)) { zval_ptr_dtor(&(self->data.map.value_type)); ZVAL_UNDEF(&(self->data.map.value_type)); } } while (0);
+  if (!Z_ISUNDEF(self->data.map.key_type)) { zval_ptr_dtor(&(self->data.map.key_type)); ZVAL_UNDEF(&(self->data.map.key_type)); }
+  if (!Z_ISUNDEF(self->data.map.value_type)) { zval_ptr_dtor(&(self->data.map.value_type)); ZVAL_UNDEF(&(self->data.map.value_type)); }
 
   zend_object_std_dtor(&self->zendObject);
 

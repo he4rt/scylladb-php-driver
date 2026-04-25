@@ -616,13 +616,13 @@ php_driver_default_materialized_view_free(zend_object *object )
 {
   php_driver_materialized_view *self = PHP5TO7_ZEND_OBJECT_GET(materialized_view, object);
 
-  do { if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); } } while (0);
-  do { if (!Z_ISUNDEF(self->options)) { zval_ptr_dtor(&(self->options)); ZVAL_UNDEF(&(self->options)); } } while (0);
-  do { if (!Z_ISUNDEF(self->partition_key)) { zval_ptr_dtor(&(self->partition_key)); ZVAL_UNDEF(&(self->partition_key)); } } while (0);
-  do { if (!Z_ISUNDEF(self->primary_key)) { zval_ptr_dtor(&(self->primary_key)); ZVAL_UNDEF(&(self->primary_key)); } } while (0);
-  do { if (!Z_ISUNDEF(self->clustering_key)) { zval_ptr_dtor(&(self->clustering_key)); ZVAL_UNDEF(&(self->clustering_key)); } } while (0);
-  do { if (!Z_ISUNDEF(self->clustering_order)) { zval_ptr_dtor(&(self->clustering_order)); ZVAL_UNDEF(&(self->clustering_order)); } } while (0);
-  do { if (!Z_ISUNDEF(self->base_table)) { zval_ptr_dtor(&(self->base_table)); ZVAL_UNDEF(&(self->base_table)); } } while (0);
+  if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); }
+  if (!Z_ISUNDEF(self->options)) { zval_ptr_dtor(&(self->options)); ZVAL_UNDEF(&(self->options)); }
+  if (!Z_ISUNDEF(self->partition_key)) { zval_ptr_dtor(&(self->partition_key)); ZVAL_UNDEF(&(self->partition_key)); }
+  if (!Z_ISUNDEF(self->primary_key)) { zval_ptr_dtor(&(self->primary_key)); ZVAL_UNDEF(&(self->primary_key)); }
+  if (!Z_ISUNDEF(self->clustering_key)) { zval_ptr_dtor(&(self->clustering_key)); ZVAL_UNDEF(&(self->clustering_key)); }
+  if (!Z_ISUNDEF(self->clustering_order)) { zval_ptr_dtor(&(self->clustering_order)); ZVAL_UNDEF(&(self->clustering_order)); }
+  if (!Z_ISUNDEF(self->base_table)) { zval_ptr_dtor(&(self->base_table)); ZVAL_UNDEF(&(self->base_table)); }
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

@@ -350,9 +350,9 @@ static void php_driver_execution_options_free(zend_object *object)
     {
         efree(self->paging_state_token);
     }
-    do { if (!Z_ISUNDEF(self->arguments)) { zval_ptr_dtor(&(self->arguments)); ZVAL_UNDEF(&(self->arguments)); } } while (0);
-    do { if (!Z_ISUNDEF(self->timeout)) { zval_ptr_dtor(&(self->timeout)); ZVAL_UNDEF(&(self->timeout)); } } while (0);
-    do { if (!Z_ISUNDEF(self->retry_policy)) { zval_ptr_dtor(&(self->retry_policy)); ZVAL_UNDEF(&(self->retry_policy)); } } while (0);
+    if (!Z_ISUNDEF(self->arguments)) { zval_ptr_dtor(&(self->arguments)); ZVAL_UNDEF(&(self->arguments)); }
+    if (!Z_ISUNDEF(self->timeout)) { zval_ptr_dtor(&(self->timeout)); ZVAL_UNDEF(&(self->timeout)); }
+    if (!Z_ISUNDEF(self->retry_policy)) { zval_ptr_dtor(&(self->retry_policy)); ZVAL_UNDEF(&(self->retry_policy)); }
 
     zend_object_std_dtor(&self->zendObject);
 

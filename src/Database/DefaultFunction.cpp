@@ -250,12 +250,12 @@ php_driver_default_function_free(zend_object *object )
 {
   php_driver_function *self = PHP5TO7_ZEND_OBJECT_GET(function, object);
 
-  do { if (!Z_ISUNDEF(self->simple_name)) { zval_ptr_dtor(&(self->simple_name)); ZVAL_UNDEF(&(self->simple_name)); } } while (0);
-  do { if (!Z_ISUNDEF(self->arguments)) { zval_ptr_dtor(&(self->arguments)); ZVAL_UNDEF(&(self->arguments)); } } while (0);
-  do { if (!Z_ISUNDEF(self->return_type)) { zval_ptr_dtor(&(self->return_type)); ZVAL_UNDEF(&(self->return_type)); } } while (0);
-  do { if (!Z_ISUNDEF(self->signature)) { zval_ptr_dtor(&(self->signature)); ZVAL_UNDEF(&(self->signature)); } } while (0);
-  do { if (!Z_ISUNDEF(self->language)) { zval_ptr_dtor(&(self->language)); ZVAL_UNDEF(&(self->language)); } } while (0);
-  do { if (!Z_ISUNDEF(self->body)) { zval_ptr_dtor(&(self->body)); ZVAL_UNDEF(&(self->body)); } } while (0);
+  if (!Z_ISUNDEF(self->simple_name)) { zval_ptr_dtor(&(self->simple_name)); ZVAL_UNDEF(&(self->simple_name)); }
+  if (!Z_ISUNDEF(self->arguments)) { zval_ptr_dtor(&(self->arguments)); ZVAL_UNDEF(&(self->arguments)); }
+  if (!Z_ISUNDEF(self->return_type)) { zval_ptr_dtor(&(self->return_type)); ZVAL_UNDEF(&(self->return_type)); }
+  if (!Z_ISUNDEF(self->signature)) { zval_ptr_dtor(&(self->signature)); ZVAL_UNDEF(&(self->signature)); }
+  if (!Z_ISUNDEF(self->language)) { zval_ptr_dtor(&(self->language)); ZVAL_UNDEF(&(self->language)); }
+  if (!Z_ISUNDEF(self->body)) { zval_ptr_dtor(&(self->body)); ZVAL_UNDEF(&(self->body)); }
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

@@ -1027,7 +1027,7 @@ static void php_driver_default_session_free(zend_object* object) {
   php_driver_session* self = PHP5TO7_ZEND_OBJECT_GET(session, object);
 
   php_driver_del_peref(&self->session, 1);
-  do { if (!Z_ISUNDEF(self->default_timeout)) { zval_ptr_dtor(&(self->default_timeout)); ZVAL_UNDEF(&(self->default_timeout)); } } while (0);
+  if (!Z_ISUNDEF(self->default_timeout)) { zval_ptr_dtor(&(self->default_timeout)); ZVAL_UNDEF(&(self->default_timeout)); }
 
   zend_object_std_dtor(&self->zendObject);
 }

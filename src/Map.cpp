@@ -620,7 +620,7 @@ php_driver_map_free(zend_object *object )
     efree(curr);
   }
 
-  do { if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); } } while (0);
+  if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); }
 
   zend_object_std_dtor(&self->zendObject);
 

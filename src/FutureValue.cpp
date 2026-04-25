@@ -77,7 +77,7 @@ php_driver_future_value_free(zend_object *object )
   php_driver_future_value *self =
       PHP5TO7_ZEND_OBJECT_GET(future_value, object);
 
-  do { if (!Z_ISUNDEF(self->value)) { zval_ptr_dtor(&(self->value)); ZVAL_UNDEF(&(self->value)); } } while (0);
+  if (!Z_ISUNDEF(self->value)) { zval_ptr_dtor(&(self->value)); ZVAL_UNDEF(&(self->value)); }
 
   zend_object_std_dtor(&self->zendObject);
 

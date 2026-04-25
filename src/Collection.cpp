@@ -458,7 +458,7 @@ php_driver_collection_free(zend_object *object)
       PHP5TO7_ZEND_OBJECT_GET(collection, object);
 
   zend_hash_destroy(&self->values);
-  do { if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); } } while (0);
+  if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); }
 
   zend_object_std_dtor(&self->zendObject);
 

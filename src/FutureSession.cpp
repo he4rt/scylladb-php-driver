@@ -146,7 +146,7 @@ php_driver_future_session_free(zend_object *object )
     efree(self->exception_message);
   }
 
-  do { if (!Z_ISUNDEF(self->default_session)) { zval_ptr_dtor(&(self->default_session)); ZVAL_UNDEF(&(self->default_session)); } } while (0);
+  if (!Z_ISUNDEF(self->default_session)) { zval_ptr_dtor(&(self->default_session)); ZVAL_UNDEF(&(self->default_session)); }
 
   zend_object_std_dtor(&self->zendObject);
 

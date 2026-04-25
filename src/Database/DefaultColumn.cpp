@@ -266,8 +266,8 @@ php_driver_default_column_free(zend_object *object )
 {
   php_driver_column *self = PHP5TO7_ZEND_OBJECT_GET(column, object);
 
-  do { if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); } } while (0);
-  do { if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); } } while (0);
+  if (!Z_ISUNDEF(self->name)) { zval_ptr_dtor(&(self->name)); ZVAL_UNDEF(&(self->name)); }
+  if (!Z_ISUNDEF(self->type)) { zval_ptr_dtor(&(self->type)); ZVAL_UNDEF(&(self->type)); }
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
