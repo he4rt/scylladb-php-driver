@@ -79,7 +79,7 @@ jobs:
           php-version: ${{ matrix.php }}
           ini-file: development
           coverage: none
-          tools: none
+          tools: pie, composer, php-config, phpize, pecl
           extensions: pcntl
         env:
           phpts: ${{ matrix.phpts }}
