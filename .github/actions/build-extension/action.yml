@@ -6,9 +6,6 @@ inputs:
     required: false
     default: 'scylladb'
     description: 'Which driver: scylladb or cassandra'
-  libuv_pkg_config_path:
-    required: true
-    description: 'PKG_CONFIG_PATH entry for libuv'
   cpp_driver_pkg_config_path:
     required: true
     description: 'PKG_CONFIG_PATH entry for the C++ driver'
@@ -20,6 +17,10 @@ inputs:
     required: false
     default: 'OFF'
     description: 'Enable link-time optimisation'
+  static_driver:
+    required: false
+    default: 'ON'
+    description: 'Link the C++ driver statically (ON bundles it into the .so)'
 
 runs:
   using: composite
@@ -30,23 +31,14 @@ runs:
         USE_CASSANDRA="OFF"
         [[ "${{ inputs.driver }}" == "cassandra" ]] && USE_CASSANDRA="ON"
 
-        export PKG_CONFIG_PATH="${{ inputs.libuv_pkg_config_path }}:${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
-
-        # Derive driver lib dir from pkg-config path (strip /pkgconfig suffix)
-        # and embed it as RPATH so the extension finds libcassandra.so at runtime
-        # without needing LD_LIBRARY_PATH.
-        DRIVER_LIB="${{ inputs.cpp_driver_pkg_config_path }}"
-        DRIVER_LIB="${DRIVER_LIB%/pkgconfig}"
+        export PKG_CONFIG_PATH="${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
 
         cmake -G Ninja -B cmake-build \
           -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
           -DCMAKE_BUILD_TYPE="${{ inputs.build_type }}" \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-          -DCMAKE_INSTALL_RPATH="${DRIVER_LIB}" \
-          -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-          -DLINK_LIBUV_STATIC=ON \
-          -DPHP_DRIVER_STATIC=OFF \
+          -DPHP_DRIVER_STATIC="${{ inputs.static_driver }}" \
           -DUSE_LIBCASSANDRA="${USE_CASSANDRA}" \
           -DENABLE_LTO="${{ inputs.enable_lto }}"
 

@@ -6,9 +6,6 @@ inputs:
     required: false
     default: 'scylladb'
     description: 'Which driver to build: scylladb or cassandra'
-  libuv_pkg_config_path:
-    required: true
-    description: 'PKG_CONFIG_PATH entry for libuv'
 
 outputs:
   install_dir:
@@ -41,9 +38,9 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}
+        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv
         restore-keys: |
-          cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-
+          cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-system-libuv
 
     - name: Install build dependencies
       if: steps.cache.outputs.cache-hit != 'true'
@@ -51,7 +48,7 @@ runs:
       run: |
         sudo apt-get update -q
         sudo apt-get install -y --no-install-recommends \
-          ninja-build pkg-config libssl-dev zlib1g-dev libssh2-1-dev
+          ninja-build pkg-config libuv1-dev libssl-dev zlib1g-dev libssh2-1-dev
 
     - name: Clone driver source
       if: steps.cache.outputs.cache-hit != 'true'
@@ -66,18 +63,12 @@ runs:
         TIMERFD=ON
         [[ "$(uname -s)" == "Darwin" ]] && TIMERFD=OFF
 
-        # The cpp-driver's own FindLibuv looks for LIBUV_ROOT_DIR, not pkg-config.
-        LIBUV_ROOT="${{ inputs.libuv_pkg_config_path }}"
-        LIBUV_ROOT="${LIBUV_ROOT%/lib/pkgconfig}"
-
-        PKG_CONFIG_PATH="${{ inputs.libuv_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)" \
         cmake -G Ninja -B /tmp/cpp-driver-src/build -S /tmp/cpp-driver-src \
           -DCMAKE_INSTALL_PREFIX="${{ steps.meta.outputs.prefix }}" \
           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-          -DLIBUV_ROOT_DIR="${LIBUV_ROOT}" \
           -DCASS_CPP_STANDARD=17 \
           -DCASS_BUILD_STATIC=ON \
           -DCASS_BUILD_SHARED=ON \
@@ -98,7 +89,7 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}
+        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv
 
     - name: Expose outputs
       id: values

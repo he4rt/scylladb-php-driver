@@ -65,7 +65,7 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y --no-install-recommends \
-            pkg-config build-essential ninja-build
+            pkg-config build-essential ninja-build libuv1-dev
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -92,19 +92,14 @@ jobs:
           max-size: 500M
           append-timestamp: false
 
-      - uses: ./.github/actions/install-libuv
-        id: libuv
-
       - uses: ./.github/actions/install-cpp-driver
         id: driver
         with:
           driver: ${{ matrix.driver }}
-          libuv_pkg_config_path: ${{ steps.libuv.outputs.pkg_config_path }}
 
       - uses: ./.github/actions/build-extension
         with:
           driver: ${{ matrix.driver }}
-          libuv_pkg_config_path: ${{ steps.libuv.outputs.pkg_config_path }}
           cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
           build_type: Release
           enable_lto: ON
