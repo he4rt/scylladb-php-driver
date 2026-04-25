@@ -157,6 +157,15 @@ CONFIG_ARGS=(
     --with-pic
 )
 
+if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+    BREW_PREFIX="$(brew --prefix)"
+    [[ -d "$BREW_PREFIX/opt/libiconv" ]] && CONFIG_ARGS+=(--with-iconv="$BREW_PREFIX/opt/libiconv")
+    [[ -d "$BREW_PREFIX/opt/bison/bin" ]] && export PATH="$BREW_PREFIX/opt/bison/bin:$PATH"
+    if [[ -d "$BREW_PREFIX/opt/openssl@3" ]]; then
+        export PKG_CONFIG_PATH="$BREW_PREFIX/opt/openssl@3/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+    fi
+fi
+
 [[ "$PHP_THREAD_MODEL" == "zts" ]] && CONFIG_ARGS+=(--enable-zts)
 [[ "$ENABLE_SANITIZERS" == "yes" ]] && CONFIG_ARGS+=(--enable-address-sanitizer --enable-undefined-sanitizer)
 

@@ -89,3 +89,53 @@ describe('Cassandra\Date', function () {
         });
     });
 });
+
+describe('Cassandra\Date (migrated)', function () {
+    $secondsPerDay = 86400;
+
+    it('constructs from seconds, truncating to whole days', function () use ($secondsPerDay) {
+        $date = new Date(0);
+        expect($date->seconds())->toEqual(0);
+
+        $date = new Date(1);
+        expect($date->seconds())->toEqual(0); // truncated
+
+        $date = new Date($secondsPerDay);
+        expect($date->seconds())->toEqual($secondsPerDay);
+    });
+
+    it('constructs "now" rounded to start of day', function () use ($secondsPerDay) {
+        $date     = new Date();
+        $expected = (int) (time() / $secondsPerDay) * $secondsPerDay;
+        expect($date->seconds())->toEqualWithDelta($expected, 1);
+    });
+
+    it('round-trips DateTime via fromDateTime', function () use ($secondsPerDay) {
+        $datetime = new \DateTime('1970-01-01T00:00:00+0000');
+        $date     = Date::fromDateTime($datetime);
+        expect($date->seconds())->toEqual(0)
+            ->and($date->toDateTime())->toEqual($datetime);
+
+        $datetime = new \DateTime('1970-01-02T00:00:00+0000');
+        $date     = Date::fromDateTime($datetime);
+        expect($date->seconds())->toEqual($secondsPerDay)
+            ->and($date->toDateTime())->toEqual($datetime);
+
+        if (version_compare(\Cassandra::CPP_DRIVER_VERSION, '2.4.2') >= 0) {
+            $date = Date::fromDateTime(new \DateTime('1969-12-31T00:00:00'));
+            expect($date->seconds())->toEqual(-1 * $secondsPerDay);
+        }
+    });
+
+    it('converts to DateTime with an explicit Time component', function () {
+        $datetime = new \DateTime('1970-01-01T00:00:01+0000');
+        $date     = Date::fromDateTime($datetime);
+        expect($date->seconds())->toEqual(0)
+            ->and($date->toDateTime(new Time(1000 * 1000 * 1000)))->toEqual($datetime);
+    });
+
+    it('exposes the CQL Type::date()', function () {
+        $date = new Date(0);
+        expect($date->type())->toEqual(Type::date());
+    });
+});

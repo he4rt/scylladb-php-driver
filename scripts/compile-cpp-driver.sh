@@ -118,7 +118,14 @@ echo "==> Configuring (prefix=$INSTALL_PREFIX, build=$BUILD_TYPE)"
 CFLAGS="-fPIC" \
 CXXFLAGS="-fPIC -Wno-error=redundant-move" \
 LDFLAGS="-flto" \
+LIBUV_ROOT_DIR_DETECTED=""
+if command -v brew >/dev/null 2>&1; then
+    LIBUV_ROOT_DIR_DETECTED="$(brew --prefix libuv 2>/dev/null || true)"
+fi
+
 cmake -G Ninja -B "$SRC_DIR/build" -S "$SRC_DIR" \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    ${LIBUV_ROOT_DIR_DETECTED:+-DLIBUV_ROOT_DIR="$LIBUV_ROOT_DIR_DETECTED"} \
     -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
     -DCASS_CPP_STANDARD=17 \
     -DCASS_BUILD_STATIC=ON \

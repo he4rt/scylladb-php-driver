@@ -498,7 +498,7 @@ static int php_driver_default_keyspace_compare(zval *obj1, zval *obj2) {
 #endif
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void php_driver_default_keyspace_free(zend_object *object) {

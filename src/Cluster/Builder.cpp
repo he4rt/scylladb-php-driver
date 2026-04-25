@@ -141,13 +141,12 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
         zval *le;
 
-        if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len + 1, le))
+        if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len + 1, le) &&
+            Z_TYPE_P(le) == IS_RESOURCE &&
+            Z_RES_P(le)->type == php_le_php_driver_cluster())
         {
-            if (Z_TYPE_P(le) == php_le_php_driver_cluster())
-            {
-                cluster->cluster = (CassCluster *)Z_RES_P(le)->ptr;
-                return; /* Return cached version */
-            }
+            cluster->cluster = (CassCluster *)Z_RES_P(le)->ptr;
+            return; /* Return cached version */
         }
     }
 

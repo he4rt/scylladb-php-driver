@@ -63,7 +63,7 @@ test('Using Cassandra tuples', function () use($keyspace, $table) {
 
     expect($row['id'])
         ->toBeInstanceOf(Uuid::class)
-        ->map(fn(Uuid $value) => (string)$value)
+        ->and((string) $row['id'])
         ->toBe('56357d2b-4586-433c-ad24-afa9918bc415');
 
     $address = $row['address'];
@@ -81,7 +81,7 @@ test('Using Cassandra tuples', function () use($keyspace, $table) {
     $row = $result->offsetGet(1);
     expect($row['id'])
         ->toBeInstanceOf(Uuid::class)
-        ->map(fn(Uuid $value) => (string)$value)
+        ->and((string) $row['id'])
         ->toBe('ce359590-8528-4682-a9f3-add53fc9aa09');
 
     $address = $row['address'];
@@ -99,7 +99,7 @@ test('Using Cassandra tuples', function () use($keyspace, $table) {
     $row = $result->offsetGet(2);
     expect($row['id'])
         ->toBeInstanceOf(Uuid::class)
-        ->map(fn(Uuid $value) => (string)$value)
+        ->and((string) $row['id'])
         ->toBe('7d64dca1-dd4d-4f3c-bec4-6a88fa082a13');
 
     $address = $row['address'];

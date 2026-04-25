@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker compose -f ./docker/docker-compose.yml up -d
+(cd "$(dirname "$0")/../docker" && docker compose up -d)

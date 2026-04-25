@@ -746,8 +746,6 @@ PHP_METHOD(DefaultSession, executeAsync) {
   }
 }
 
-static void free_prepared_statement(void* future) { cass_future_free((CassFuture*)future); }
-
 PHP_METHOD(DefaultSession, prepare) {
   zval* cql = NULL;
   zval* options = NULL;
@@ -789,9 +787,8 @@ PHP_METHOD(DefaultSession, prepare) {
   if (self->persist) {
     zval* le;
 
-    spprintf(&hash_key, 0, "%s%s", self->hash_key, Z_STRVAL_P(cql));
-    hash_key_len =
-        spprintf(&hash_key, 0, "%s:prepared_statement:%s", hash_key, SAFE_STR(self->keyspace));
+    hash_key_len = spprintf(&hash_key, 0, "%s%s:prepared_statement:%s",
+                            self->hash_key, Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
 
     if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
@@ -820,8 +817,7 @@ PHP_METHOD(DefaultSession, prepare) {
       if (self->persist) {
         pprepared_statement =
             (php_driver_pprepared_statement*)pecalloc(1, sizeof(php_driver_pprepared_statement), 1);
-        pprepared_statement->ref = php_driver_new_peref(future, free_prepared_statement, 1);
-        pprepared_statement->ref = php_driver_add_ref(self->session);
+        pprepared_statement->ref    = php_driver_add_ref(self->session);
         pprepared_statement->future = future;
 
 #if PHP_MAJOR_VERSION >= 7
@@ -1024,7 +1020,7 @@ static int php_driver_default_session_compare(zval* obj1, zval* obj2) {
 #endif
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj1);
+  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
 static void php_driver_default_session_free(zend_object* object) {
