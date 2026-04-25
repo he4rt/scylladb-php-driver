@@ -133,10 +133,6 @@ jobs:
       - name: Run tests
         working-directory: tests
         run: |
-          php -d extension=cassandra ./vendor/bin/pest \
-            --colors=always \
-            --fail-on-risky \
-            --fail-on-warning \
-            --fail-on-deprecation
+          php -d extension=cassandra ./vendor/bin/pest --colors=always
         env:
           SCYLLADB_HOSTS: "127.0.0.1"

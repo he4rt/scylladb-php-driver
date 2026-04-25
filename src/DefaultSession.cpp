@@ -746,8 +746,6 @@ PHP_METHOD(DefaultSession, executeAsync) {
   }
 }
 
-static void free_prepared_statement(void* future) { cass_future_free((CassFuture*)future); }
-
 PHP_METHOD(DefaultSession, prepare) {
   zval* cql = NULL;
   zval* options = NULL;
