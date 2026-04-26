@@ -19,40 +19,54 @@
 #include "util/bytes.h"
 #include "util/types.h"
 BEGIN_EXTERN_C()
+
+#include "Blob_arginfo.h"
+
 zend_class_entry *php_driver_blob_ce = NULL;
 
+/* Legacy init helper used by util/src/types.cpp php_driver_scalar_init() */
 void php_driver_blob_init(INTERNAL_FUNCTION_PARAMETERS) {
-  php_driver_blob *self;
   char *string;
   size_t string_len;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &string, &string_len) ==
-      FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &string, &string_len) == FAILURE) {
     return;
   }
 
-  if (getThis() &&
-      instanceof_function(Z_OBJCE_P(getThis()), php_driver_blob_ce)) {
-    self = PHP_DRIVER_GET_BLOB(getThis());
+  if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_blob_ce)) {
+    php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
+    self->data = static_cast<cass_byte_t *>(emalloc(string_len * sizeof(cass_byte_t)));
+    self->size = string_len;
+    memcpy(self->data, string, string_len);
   } else {
     object_init_ex(return_value, php_driver_blob_ce);
-    self = PHP_DRIVER_GET_BLOB(return_value);
+    php_driver_blob *self = PHP_DRIVER_GET_BLOB(return_value);
+    self->data = static_cast<cass_byte_t *>(emalloc(string_len * sizeof(cass_byte_t)));
+    self->size = string_len;
+    memcpy(self->data, string, string_len);
   }
-
-  self->data =
-      static_cast<cass_byte_t *>(emalloc(string_len * sizeof(cass_byte_t)));
-  self->size = string_len;
-  memcpy(self->data, string, string_len);
 }
 
 /* {{{ Blob::__construct(string) */
-PHP_METHOD(Blob, __construct) {
-  php_driver_blob_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+ZEND_METHOD(Cassandra_Blob, __construct) {
+  zend_string *bytes = nullptr;
+
+  // clang-format off
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STR(bytes)
+  ZEND_PARSE_PARAMETERS_END();
+  // clang-format on
+
+  php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
+
+  self->data = static_cast<cass_byte_t *>(emalloc(ZSTR_LEN(bytes) * sizeof(cass_byte_t)));
+  self->size = ZSTR_LEN(bytes);
+  memcpy(self->data, ZSTR_VAL(bytes), ZSTR_LEN(bytes));
 }
 /* }}} */
 
 /* {{{ Blob::__toString() */
-PHP_METHOD(Blob, __toString) {
+ZEND_METHOD(Cassandra_Blob, __toString) {
   php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
   char *hex;
   size_t hex_len;
@@ -64,14 +78,14 @@ PHP_METHOD(Blob, __toString) {
 /* }}} */
 
 /* {{{ Blob::type() */
-PHP_METHOD(Blob, type) {
+ZEND_METHOD(Cassandra_Blob, type) {
   zval type = php_driver_type_scalar(CASS_VALUE_TYPE_BLOB);
   RETURN_ZVAL(&type, 1, 1);
 }
 /* }}} */
 
 /* {{{ Blob::bytes() */
-PHP_METHOD(Blob, bytes) {
+ZEND_METHOD(Cassandra_Blob, bytes) {
   php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
   char *hex;
   size_t hex_len;
@@ -83,67 +97,28 @@ PHP_METHOD(Blob, bytes) {
 /* }}} */
 
 /* {{{ Blob::toBinaryString() */
-PHP_METHOD(Blob, toBinaryString) {
+ZEND_METHOD(Cassandra_Blob, toBinaryString) {
   php_driver_blob *blob = PHP_DRIVER_GET_BLOB(getThis());
 
   RETVAL_STRINGL((const char *)blob->data, blob->size);
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, bytes)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-static zend_function_entry php_driver_blob_methods[] = {
-    PHP_ME(Blob, __construct, arginfo__construct,
-           ZEND_ACC_CTOR | ZEND_ACC_PUBLIC)
-        PHP_ME(Blob, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-            PHP_ME(Blob, type, arginfo_none, ZEND_ACC_PUBLIC)
-                PHP_ME(Blob, bytes, arginfo_none, ZEND_ACC_PUBLIC)
-                    PHP_ME(Blob, toBinaryString, arginfo_none, ZEND_ACC_PUBLIC)
-                        PHP_FE_END};
-
 static php_driver_value_handlers php_driver_blob_handlers;
 
-static HashTable *php_driver_blob_gc(
-#if PHP_MAJOR_VERSION >= 8
-    zend_object *object,
-#else
-    zendObject *object,
-#endif
-    zval** table, int *n) {
+static HashTable *php_driver_blob_gc(zend_object *object, zval** table, int *n) {
   *table = NULL;
   *n = 0;
   return NULL;
 }
 
-static HashTable *php_driver_blob_properties(
-#if PHP_MAJOR_VERSION >= 8
-    zend_object *object
-#else
-    zendObject *object
-#endif
-) {
+static HashTable *php_driver_blob_properties(zend_object *object) {
   char *hex;
   size_t hex_len;
   zval type;
   zval bytes;
 
-#if PHP_MAJOR_VERSION >= 8
   php_driver_blob *self = PHP5TO7_ZEND_OBJECT_GET(blob, object);
-#else
-  php_driver_blob *self = PHP_DRIVER_GET_BLOB(object);
-#endif
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -163,9 +138,7 @@ static HashTable *php_driver_blob_properties(
 }
 
 static int php_driver_blob_compare(zval *obj1, zval *obj2) {
-#if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
   php_driver_blob *blob1 = NULL;
   php_driver_blob *blob2 = NULL;
 
@@ -197,7 +170,6 @@ static void php_driver_blob_free(zend_object *object) {
   }
 
   zend_object_std_dtor(&self->zendObject);
-
 }
 
 static zend_object* php_driver_blob_new(zend_class_entry *ce) {
@@ -207,29 +179,14 @@ static zend_object* php_driver_blob_new(zend_class_entry *ce) {
 }
 
 void php_driver_define_Blob() {
-  zend_class_entry ce;
+  php_driver_blob_ce = register_class_Cassandra_Blob(php_driver_value_ce);
+  php_driver_blob_ce->create_object = php_driver_blob_new;
 
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Blob", php_driver_blob_methods);
-  php_driver_blob_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_blob_ce, 1, php_driver_value_ce);
   memcpy(&php_driver_blob_handlers, zend_get_std_object_handlers(),
          sizeof(zend_object_handlers));
   php_driver_blob_handlers.std.get_properties = php_driver_blob_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_blob_handlers.std.get_gc = php_driver_blob_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_blob_handlers.std.compare = php_driver_blob_compare;
-#else
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_blob_handlers.std.compare = php_driver_blob_compare;
-#else
-  php_driver_blob_handlers.std.compare_objects = php_driver_blob_compare;
-#endif
-#endif
-  php_driver_blob_ce->ce_flags |= ZEND_ACC_FINAL;
-  php_driver_blob_ce->create_object = php_driver_blob_new;
-
   php_driver_blob_handlers.hash_value = php_driver_blob_hash_value;
   php_driver_blob_handlers.std.clone_obj = NULL;
 }
