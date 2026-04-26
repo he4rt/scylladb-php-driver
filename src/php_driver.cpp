@@ -433,31 +433,7 @@ PHP_MINIT_FUNCTION(php_driver) {
       zend_register_list_destructors_ex(nullptr, php_driver_prepared_statement_dtor,
                                         PHP_DRIVER_PREPARED_STATEMENT_RES_NAME, module_number);
 
-  php_driver_define_Exception();
-  php_driver_define_InvalidArgumentException();
-  php_driver_define_DomainException();
-  php_driver_define_RuntimeException();
-  php_driver_define_TimeoutException();
-  php_driver_define_LogicException();
-  php_driver_define_ExecutionException();
-  php_driver_define_ReadTimeoutException();
-  php_driver_define_WriteTimeoutException();
-  php_driver_define_UnavailableException();
-  php_driver_define_TruncateException();
-  php_driver_define_ValidationException();
-  php_driver_define_InvalidQueryException();
-  php_driver_define_InvalidSyntaxException();
-  php_driver_define_UnauthorizedException();
-  php_driver_define_UnpreparedException();
-  php_driver_define_ConfigurationException();
-  php_driver_define_AlreadyExistsException();
-  php_driver_define_AuthenticationException();
-  php_driver_define_ProtocolException();
-  php_driver_define_ServerException();
-  php_driver_define_IsBootstrappingException();
-  php_driver_define_OverloadedException();
-  php_driver_define_RangeException();
-  php_driver_define_DivideByZeroException();
+  php_driver_define_Exceptions();
 
   php_driver_define_Value();
   php_driver_define_Numeric();
