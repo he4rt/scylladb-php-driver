@@ -8,7 +8,7 @@ namespace Cassandra {
      */
     final class Set implements Value, \Countable, \Iterator
     {
-        public function __construct(mixed $type) {}
+        public function __construct(\Cassandra\Type|string $type) {}
 
         public function type(): Type {}
         public function values(): array {}
@@ -21,7 +21,7 @@ namespace Cassandra {
 
         /* Iterator */
         public function current(): mixed {}
-        public function key(): mixed {}
+        public function key(): int {}
         public function next(): void {}
         public function valid(): bool {}
         public function rewind(): void {}

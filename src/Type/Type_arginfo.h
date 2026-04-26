@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: e6af29923e9cb517cb461a1068a186dfbfe7e4de */
+ * Stub hash: 1e5a1f7c1ce4aac266f6d7a970dff87fe58ed196 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Type_name, 0, 0, IS_STRING, 1)
 ZEND_END_ARG_INFO()
@@ -64,7 +64,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Type_map, 0, 2, C
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Type_tuple, 0, 0, Cassandra\\Type\\Tuple, 0)
-	ZEND_ARG_VARIADIC_TYPE_INFO(0, types, IS_MIXED, 0)
+	ZEND_ARG_VARIADIC_OBJ_INFO(0, types, Cassandra\\Type, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Type_userType, 0, 0, Cassandra\\Type\\\125serType, 0)

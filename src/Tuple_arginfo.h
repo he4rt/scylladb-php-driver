@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 53fd2708517234e72e13c94621686050df13231c */
+ * Stub hash: 52316df3ddc64b19fc102a36c39a1d6b85843014 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Tuple___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, types, IS_ARRAY, 0)
@@ -26,7 +26,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Tuple_current, 0, 0, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_Cassandra_Tuple_key arginfo_class_Cassandra_Tuple_current
+#define arginfo_class_Cassandra_Tuple_key arginfo_class_Cassandra_Tuple_count
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Tuple_next, 0, 0, IS_VOID, 0)
 ZEND_END_ARG_INFO()

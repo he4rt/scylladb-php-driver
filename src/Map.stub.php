@@ -8,7 +8,7 @@ namespace Cassandra {
      */
     final class Map implements Value, \Countable, \Iterator, \ArrayAccess
     {
-        public function __construct(mixed $keyType, mixed $valueType) {}
+        public function __construct(\Cassandra\Type|string $keyType, \Cassandra\Type|string $valueType) {}
 
         public function type(): Type {}
         public function keys(): array {}

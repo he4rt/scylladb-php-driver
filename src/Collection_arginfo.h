@@ -1,8 +1,8 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 335341eee6a3369eb260b9e0df7877f7429db19b */
+ * Stub hash: 042ee0e09a1a77cfec1751f52e4a2c5b4a4ca3fa */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Collection___construct, 0, 0, 1)
-	ZEND_ARG_TYPE_INFO(0, type, IS_MIXED, 0)
+	ZEND_ARG_OBJ_TYPE_MASK(0, type, Cassandra\\Type, MAY_BE_STRING, NULL)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Collection_type, 0, 0, Cassandra\\Type, 0)
@@ -33,7 +33,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Collection_current, 0, 0, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_Cassandra_Collection_key arginfo_class_Cassandra_Collection_current
+#define arginfo_class_Cassandra_Collection_key arginfo_class_Cassandra_Collection_count
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Collection_next, 0, 0, IS_VOID, 0)
 ZEND_END_ARG_INFO()

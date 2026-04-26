@@ -1,9 +1,9 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 9030dc774613d347072bbe680a8aadfd0100e72b */
+ * Stub hash: 66fdce00bb4bf1d1853653d558629797b3e1b561 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Map___construct, 0, 0, 2)
-	ZEND_ARG_TYPE_INFO(0, keyType, IS_MIXED, 0)
-	ZEND_ARG_TYPE_INFO(0, valueType, IS_MIXED, 0)
+	ZEND_ARG_OBJ_TYPE_MASK(0, keyType, Cassandra\\Type, MAY_BE_STRING, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, valueType, Cassandra\\Type, MAY_BE_STRING, NULL)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Map_type, 0, 0, Cassandra\\Type, 0)

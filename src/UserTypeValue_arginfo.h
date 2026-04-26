@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 48b4200d804b0ef566d3d7067d5916768ce2c605 */
+ * Stub hash: 4d0b235dd32686f192626e4ef598a8b347835afe */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_UserTypeValue___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, types, IS_ARRAY, 0)
@@ -26,7 +26,8 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_UserTypeValue_current, 0, 0, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_Cassandra_UserTypeValue_key arginfo_class_Cassandra_UserTypeValue_current
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_UserTypeValue_key, 0, 0, IS_STRING, 0)
+ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_UserTypeValue_next, 0, 0, IS_VOID, 0)
 ZEND_END_ARG_INFO()

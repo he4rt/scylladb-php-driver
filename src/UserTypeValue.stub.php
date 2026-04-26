@@ -20,7 +20,7 @@ namespace Cassandra {
 
         /* Iterator */
         public function current(): mixed {}
-        public function key(): mixed {}
+        public function key(): string {}
         public function next(): void {}
         public function valid(): bool {}
         public function rewind(): void {}
