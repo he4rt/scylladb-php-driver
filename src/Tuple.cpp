@@ -442,7 +442,7 @@ php_driver_tuple_free(zend_object *object )
       PHP5TO7_ZEND_OBJECT_GET(tuple, object);
 
   zend_hash_destroy(&self->values);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  zval_ptr_dtor(&self->type);
 
   zend_object_std_dtor(&self->zendObject);
 

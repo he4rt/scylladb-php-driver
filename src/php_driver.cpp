@@ -555,7 +555,7 @@ PHP_RINIT_FUNCTION(php_driver) {
 }
 
 PHP_RSHUTDOWN_FUNCTION(php_driver) {
-#define XX_SCALAR(name, value) PHP5TO7_ZVAL_MAYBE_DESTROY(PHP_DRIVER_G(type_## name));
+#define XX_SCALAR(name, value) zval_ptr_dtor(&PHP_DRIVER_G(type_## name));
   PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
 

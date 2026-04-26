@@ -731,12 +731,12 @@ php_driver_default_table_free(zend_object *object )
 {
   php_driver_table *self = PHP5TO7_ZEND_OBJECT_GET(table, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->partition_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->primary_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_order);
+  zval_ptr_dtor(&self->name);
+  zval_ptr_dtor(&self->options);
+  zval_ptr_dtor(&self->partition_key);
+  zval_ptr_dtor(&self->primary_key);
+  zval_ptr_dtor(&self->clustering_key);
+  zval_ptr_dtor(&self->clustering_order);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

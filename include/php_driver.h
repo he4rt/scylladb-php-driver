@@ -156,16 +156,6 @@ typedef unsigned long ulong;
 #define PHP_SCYLLADB_Z_IS_FALSE_P(zv) (Z_TYPE_P(zv) == IS_FALSE)
 #define PHP_SCYLLADB_Z_IS_TRUE_P(zv) (Z_TYPE_P(zv) == IS_TRUE)
 
-#define PHP5TO7_ZVAL_MAYBE_DESTROY(zv)                                                                                 \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        if (!Z_ISUNDEF(zv))                                                                                            \
-        {                                                                                                              \
-            zval_ptr_dtor(&(zv));                                                                                      \
-            ZVAL_UNDEF(&(zv));                                                                                         \
-        }                                                                                                              \
-    } while (0)
-
     extern zend_module_entry php_driver_module_entry;
 #define phpext_cassandra_ptr &php_driver_module_entry
 

@@ -259,14 +259,14 @@ php_driver_default_aggregate_free(zend_object *object )
 {
   php_driver_aggregate *self = PHP5TO7_ZEND_OBJECT_GET(aggregate, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->simple_name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->argument_types);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->final_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->initial_condition);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->return_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->signature);
+  zval_ptr_dtor(&self->simple_name);
+  zval_ptr_dtor(&self->argument_types);
+  zval_ptr_dtor(&self->state_function);
+  zval_ptr_dtor(&self->final_function);
+  zval_ptr_dtor(&self->initial_condition);
+  zval_ptr_dtor(&self->state_type);
+  zval_ptr_dtor(&self->return_type);
+  zval_ptr_dtor(&self->signature);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

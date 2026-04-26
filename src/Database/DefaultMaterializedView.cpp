@@ -623,13 +623,13 @@ php_driver_default_materialized_view_free(zend_object *object )
 {
   php_driver_materialized_view *self = PHP5TO7_ZEND_OBJECT_GET(materialized_view, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->partition_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->primary_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_key);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->clustering_order);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->base_table);
+  zval_ptr_dtor(&self->name);
+  zval_ptr_dtor(&self->options);
+  zval_ptr_dtor(&self->partition_key);
+  zval_ptr_dtor(&self->primary_key);
+  zval_ptr_dtor(&self->clustering_key);
+  zval_ptr_dtor(&self->clustering_order);
+  zval_ptr_dtor(&self->base_table);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

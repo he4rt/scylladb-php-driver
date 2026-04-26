@@ -252,12 +252,12 @@ php_driver_default_function_free(zend_object *object )
 {
   php_driver_function *self = PHP5TO7_ZEND_OBJECT_GET(function, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->simple_name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->arguments);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->return_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->signature);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->language);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->body);
+  zval_ptr_dtor(&self->simple_name);
+  zval_ptr_dtor(&self->arguments);
+  zval_ptr_dtor(&self->return_type);
+  zval_ptr_dtor(&self->signature);
+  zval_ptr_dtor(&self->language);
+  zval_ptr_dtor(&self->body);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

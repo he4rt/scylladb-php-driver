@@ -352,9 +352,9 @@ static void php_driver_execution_options_free(zend_object *object)
     {
         efree(self->paging_state_token);
     }
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->arguments);
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->timeout);
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->retry_policy);
+    zval_ptr_dtor(&self->arguments);
+    zval_ptr_dtor(&self->timeout);
+    zval_ptr_dtor(&self->retry_policy);
 
     zend_object_std_dtor(&self->zendObject);
 

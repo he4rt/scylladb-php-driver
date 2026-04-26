@@ -37,7 +37,7 @@ static void php_driver_rows_create(php_driver_rows *current, zval *result )
         if (php_driver_get_result((const CassResult *)current->next_result->data, &current->next_rows ) ==
             FAILURE)
         {
-            PHP5TO7_ZVAL_MAYBE_DESTROY(current->next_rows);
+            zval_ptr_dtor(&current->next_rows);
             return;
         }
     }
@@ -497,9 +497,9 @@ static void php_driver_rows_free(zend_object *object )
     php_driver_del_peref(&self->session, 1);
     php_driver_del_ref(&self->next_result);
 
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->rows);
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->next_rows);
-    PHP5TO7_ZVAL_MAYBE_DESTROY(self->future_next_page);
+    zval_ptr_dtor(&self->rows);
+    zval_ptr_dtor(&self->next_rows);
+    zval_ptr_dtor(&self->future_next_page);
 
     zend_object_std_dtor(&self->zendObject);
 

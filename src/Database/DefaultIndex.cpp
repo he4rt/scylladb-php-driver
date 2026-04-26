@@ -280,10 +280,10 @@ php_driver_default_index_free(zend_object *object )
 {
   php_driver_index *self = PHP5TO7_ZEND_OBJECT_GET(index, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->kind);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->target);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->options);
+  zval_ptr_dtor(&self->name);
+  zval_ptr_dtor(&self->kind);
+  zval_ptr_dtor(&self->target);
+  zval_ptr_dtor(&self->options);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);

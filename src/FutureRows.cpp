@@ -73,7 +73,7 @@ PHP_METHOD(FutureRows, get)
   if (Z_ISUNDEF(self->rows)) {
     if (php_driver_get_result((const CassResult *) self->result->data,
                                  &self->rows ) == FAILURE) {
-      PHP5TO7_ZVAL_MAYBE_DESTROY(self->rows);
+      zval_ptr_dtor(&self->rows);
       return;
     }
   }
@@ -133,7 +133,7 @@ php_driver_future_rows_free(zend_object *object )
 {
   php_driver_future_rows *self = PHP5TO7_ZEND_OBJECT_GET(future_rows, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->rows);
+  zval_ptr_dtor(&self->rows);
 
   php_driver_del_ref(&self->statement);
   php_driver_del_peref(&self->session, 1);
