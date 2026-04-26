@@ -219,7 +219,7 @@ php_driver_duration_properties(zend_object *object)
   object->properties = zend_new_array(3);
   HashTable *props = object->properties;
 
-  php_driver_duration  *self = PHP5TO7_ZEND_OBJECT_GET(duration, object);
+  php_driver_duration  *self = php_driver_duration_object_fetch(object);
   zval wrapped_months, wrapped_days, wrapped_nanos;
 
   ZVAL_LONG(&wrapped_months, self->months);
@@ -282,7 +282,7 @@ php_driver_duration_hash_value(zval *obj )
 static void
 php_driver_duration_free(zend_object *object )
 {
-  php_driver_duration *self = PHP5TO7_ZEND_OBJECT_GET(duration, object);
+  php_driver_duration *self = php_driver_duration_object_fetch(object);
 
   /* Clean up */
 
@@ -293,8 +293,11 @@ php_driver_duration_free(zend_object *object )
 static zend_object*
 php_driver_duration_new(zend_class_entry *ce )
 {
-  php_driver_duration *self = PHP5TO7_ZEND_OBJECT_ECALLOC(duration, ce);
-  PHP5TO7_ZEND_OBJECT_INIT(duration, self, ce);
+  php_driver_duration *self = (php_driver_duration *)ecalloc(1, sizeof(php_driver_duration) + zend_object_properties_size(ce));
+
+  zend_object_std_init(&self->zendObject, ce);
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_duration_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_Duration()
@@ -303,6 +306,8 @@ void php_driver_define_Duration()
   php_driver_duration_ce->create_object = php_driver_duration_new;
 
   memcpy(&php_driver_duration_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+  php_driver_duration_handlers.std.offset = XtOffsetOf(php_driver_duration, zendObject);
+  php_driver_duration_handlers.std.free_obj = php_driver_duration_free;
   php_driver_duration_handlers.std.get_properties  = php_driver_duration_properties;
   php_driver_duration_handlers.std.get_gc          = php_driver_duration_gc;
   php_driver_duration_handlers.std.compare = php_driver_duration_compare;
