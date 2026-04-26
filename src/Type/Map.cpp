@@ -82,7 +82,7 @@ PHP_METHOD(TypeMap, __toString)
   php_driver_type_string(self, &string );
   smart_str_0(&string);
 
-  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(ZSTR_VAL(string.s));
   smart_str_free(&string);
 }
 

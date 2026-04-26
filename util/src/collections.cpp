@@ -64,7 +64,7 @@ int php_driver_validate_object(zval* object, zval* ztype) {
 
       return 1;
     case CASS_VALUE_TYPE_BOOLEAN:
-      if (!PHP_SCYLLADB_Z_IS_BOOL_P(object)) {
+      if (!(Z_TYPE_P(object) == IS_TRUE || Z_TYPE_P(object) == IS_FALSE)) {
         EXPECTING_VALUE("a boolean");
       }
 

@@ -63,7 +63,7 @@ php_driver_collection_find(php_driver_collection *collection, zval *object, long
   PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
     zval compare;
     is_equal_function(&compare, object, current);
-    if (PHP_SCYLLADB_Z_IS_TRUE_P(&compare)) {
+    if ((Z_TYPE_P(&compare) == IS_TRUE)) {
       *index = (long) num_key;
       return 1;
     }

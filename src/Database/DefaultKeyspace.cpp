@@ -304,8 +304,8 @@ PHP_METHOD(DefaultKeyspace, function) {
   }
 
   meta = cass_keyspace_meta_function_by_name_n(self->meta, name, name_len,
-                                               PHP5TO7_SMART_STR_VAL(arguments),
-                                               PHP5TO7_SMART_STR_LEN(arguments));
+                                               (arguments.s ? arguments.s->val : NULL),
+                                               (arguments.s ? arguments.s->len : 0));
   if (meta) {
     zval zfunction = php_driver_create_function(self->schema, meta);
     RETVAL_ZVAL(&zfunction, 1, 1);
@@ -394,8 +394,8 @@ PHP_METHOD(DefaultKeyspace, aggregate) {
   }
 
   meta = cass_keyspace_meta_aggregate_by_name_n(self->meta, name, name_len,
-                                                PHP5TO7_SMART_STR_VAL(arguments),
-                                                PHP5TO7_SMART_STR_LEN(arguments));
+                                                (arguments.s ? arguments.s->val : NULL),
+                                                (arguments.s ? arguments.s->len : 0));
   if (meta) {
     zval zaggregate = php_driver_create_aggregate(self->schema, meta);
     RETVAL_ZVAL(&zaggregate, 1, 1);

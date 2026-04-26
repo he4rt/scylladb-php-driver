@@ -1259,8 +1259,8 @@ static zval php_driver_create_type(struct node_s* node) {
     zval ztype;
     smart_str class_name = {NULL, 0};
     php_driver_node_dump_to(node, &class_name);
-    ztype = php_driver_type_custom(PHP5TO7_SMART_STR_VAL(class_name),
-                                   PHP5TO7_SMART_STR_LEN(class_name));
+    ztype = php_driver_type_custom((class_name.s ? class_name.s->val : NULL),
+                                   (class_name.s ? class_name.s->len : 0));
     smart_str_free(&class_name);
     return ztype;
   } else if (type == CASS_VALUE_TYPE_MAP) {

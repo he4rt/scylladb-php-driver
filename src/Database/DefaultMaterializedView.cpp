@@ -500,13 +500,13 @@ PHP_METHOD(DefaultMaterializedView, clusteringOrder)
           cass_materialized_view_meta_clustering_key_order(self->meta, i);
       switch (order) {
         case CASS_CLUSTERING_ORDER_ASC:
-          PHP5TO7_ADD_NEXT_INDEX_STRING(&self->clustering_order, "asc");
+          add_next_index_string(&self->clustering_order, "asc");
           break;
         case CASS_CLUSTERING_ORDER_DESC:
-          PHP5TO7_ADD_NEXT_INDEX_STRING(&self->clustering_order, "desc");
+          add_next_index_string(&self->clustering_order, "desc");
           break;
         case CASS_CLUSTERING_ORDER_NONE:
-          PHP5TO7_ADD_NEXT_INDEX_STRING(&self->clustering_order, "none");
+          add_next_index_string(&self->clustering_order, "none");
           break;
       }
     }

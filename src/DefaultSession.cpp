@@ -51,10 +51,10 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
 
-  if (PHP_SCYLLADB_Z_IS_TRUE_P(value))
+  if ((Z_TYPE_P(value) == IS_TRUE))
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
 
-  if (PHP_SCYLLADB_Z_IS_FALSE_P(value))
+  if ((Z_TYPE_P(value) == IS_FALSE))
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
@@ -206,10 +206,10 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, Z_LVAL_P(value)));
 
-  if (PHP_SCYLLADB_Z_IS_TRUE_P(value))
+  if ((Z_TYPE_P(value) == IS_TRUE))
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_true));
 
-  if (PHP_SCYLLADB_Z_IS_FALSE_P(value))
+  if ((Z_TYPE_P(value) == IS_FALSE))
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {

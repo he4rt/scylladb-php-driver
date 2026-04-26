@@ -58,9 +58,6 @@ typedef unsigned long ulong;
 
 #define PHP5TO7_ZEND_OBJECT_GET(type_name, object) php_driver_##type_name##_object_fetch(object)
 
-#define PHP5TO7_SMART_STR_VAL(ss) ((ss).s ? (ss).s->val : NULL)
-#define PHP5TO7_SMART_STR_LEN(ss) ((ss).s ? (ss).s->len : 0)
-
 #define PHP5TO7_ZEND_OBJECT_ECALLOC(type_name, ce)                                                                     \
     (php_driver_##type_name *)ecalloc(1, sizeof(php_driver_##type_name) + zend_object_properties_size(ce))
 
@@ -80,8 +77,6 @@ typedef unsigned long ulong;
 
 #define PHP5TO7_ADD_ASSOC_STRINGL_EX(zv, key, key_len, str, str_len)                                                   \
     add_assoc_stringl_ex((zv), (key), (size_t)(key_len - 1), (char *)(str), (size_t)(str_len))
-
-#define PHP5TO7_ADD_NEXT_INDEX_STRING(zv, str) add_next_index_string((zv), (char *)(str));
 
 #define PHP5TO7_ZEND_HASH_FOREACH_VAL(ht, _val) ZEND_HASH_FOREACH_VAL(ht, _val)
 
@@ -152,9 +147,6 @@ typedef unsigned long ulong;
 
 #define PHP5TO7_ZEND_HASH_ZVAL_COPY(dst, src) zend_hash_copy((dst), (src), (copy_ctor_func_t)zval_add_ref);
 
-#define PHP_SCYLLADB_Z_IS_BOOL_P(zv) (Z_TYPE_P(zv) == IS_TRUE || Z_TYPE_P(zv) == IS_FALSE)
-#define PHP_SCYLLADB_Z_IS_FALSE_P(zv) (Z_TYPE_P(zv) == IS_FALSE)
-#define PHP_SCYLLADB_Z_IS_TRUE_P(zv) (Z_TYPE_P(zv) == IS_TRUE)
 
     extern zend_module_entry php_driver_module_entry;
 #define phpext_cassandra_ptr &php_driver_module_entry
