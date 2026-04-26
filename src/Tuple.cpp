@@ -207,7 +207,7 @@ PHP_METHOD(Tuple, current)
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.tuple.types, NULL, &index, &self->pos) == HASH_KEY_IS_LONG) {
+  if (zend_hash_get_current_key_ex(&type->data.tuple.types, NULL, &index, &self->pos) == HASH_KEY_IS_LONG) {
     zval *value;
     if ((value = zend_hash_index_find(&self->values, (zend_ulong)(index))) != NULL) {
       RETURN_ZVAL(value, 1, 0);
@@ -222,7 +222,7 @@ PHP_METHOD(Tuple, key)
   zend_ulong index;
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
-  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.tuple.types, NULL, &index, &self->pos) == HASH_KEY_IS_LONG) {
+  if (zend_hash_get_current_key_ex(&type->data.tuple.types, NULL, &index, &self->pos) == HASH_KEY_IS_LONG) {
     RETURN_LONG(index);
   }
 }

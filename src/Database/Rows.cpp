@@ -117,7 +117,7 @@ PHP_METHOD(Rows, key)
 
     self = PHP_DRIVER_GET_ROWS(getThis());
 
-    if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(Z_ARRVAL(self->rows), &str_index, &num_index) ==
+    if (zend_hash_get_current_key(Z_ARRVAL(self->rows), &str_index, &num_index) ==
         HASH_KEY_IS_LONG)
         RETURN_LONG(num_index);
 }

@@ -354,19 +354,10 @@ static int bind_arguments(CassStatement* statement, HashTable* arguments) {
 
   zval* current;
   ulong num_key;
-
-#if PHP_MAJOR_VERSION >= 7
   zend_string* key;
   ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, key, current) {
     if (key) {
       rc = bind_argument_by_name(statement, key->val, current);
-#else
-  char* str_key;
-  uint str_len;
-  PHP5TO7_ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, str_key, str_len, current) {
-    if (str_key) {
-      rc = bind_argument_by_name(statement, str_key, current);
-#endif
     } else {
       rc = bind_argument_by_index(statement, num_key, current);
     }

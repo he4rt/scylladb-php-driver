@@ -73,14 +73,6 @@ typedef unsigned long ulong;
         return &self->zendObject;                                                                                            \
     } while (0)
 
-#define PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(ht, str_index, num_index)                                                    \
-    zend_hash_get_current_key((ht), (str_index), (num_index))
-
-#define PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(ht, str_index, num_index, pos)                                            \
-    zend_hash_get_current_key_ex((ht), (str_index), (num_index), pos)
-
-#define PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(ht, val, val_size) ((void)zend_hash_next_index_insert((ht), (val)))
-
 
     extern zend_module_entry php_driver_module_entry;
 #define phpext_cassandra_ptr &php_driver_module_entry

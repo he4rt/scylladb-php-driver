@@ -34,8 +34,7 @@ php_driver_type_tuple_add(php_driver_type* type,
       != CASS_OK) {
     return 0;
   }
-  PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(&type->data.tuple.types,
-                                      zsub_type, sizeof(zval*));
+  (void)zend_hash_next_index_insert(&type->data.tuple.types, zsub_type);
   return 1;
 }
 

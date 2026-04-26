@@ -340,9 +340,9 @@ static inline int user_type_compare(php_driver_type* type1, php_driver_type* typ
   zend_hash_internal_pointer_reset_ex(&type1->data.udt.types, &pos1);
   zend_hash_internal_pointer_reset_ex(&type2->data.udt.types, &pos2);
 
-  while (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type1->data.udt.types, &key1, NULL, &pos1) ==
+  while (zend_hash_get_current_key_ex(&type1->data.udt.types, &key1, NULL, &pos1) ==
              HASH_KEY_IS_STRING &&
-         PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type2->data.udt.types, &key2, NULL, &pos2) ==
+         zend_hash_get_current_key_ex(&type2->data.udt.types, &key2, NULL, &pos2) ==
              HASH_KEY_IS_STRING &&
          (current1 = zend_hash_get_current_data_ex(&type1->data.udt.types, &pos1)) != NULL &&
          (current2 = zend_hash_get_current_data_ex(&type2->data.udt.types, &pos2)) != NULL) {

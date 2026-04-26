@@ -28,7 +28,7 @@ zend_class_entry *php_driver_collection_ce = NULL;
 void
 php_driver_collection_add(php_driver_collection *collection, zval *object)
 {
-  PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(&collection->values, object, sizeof(zval *));
+  (void)zend_hash_next_index_insert(&collection->values, object);
   Z_TRY_ADDREF_P(object);
   collection->dirty = 1;
 }
@@ -227,7 +227,7 @@ PHP_METHOD(Cassandra_Collection, key)
 {
   zend_ulong num_key;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
-  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
+  if (zend_hash_get_current_key(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
     RETURN_LONG(num_key);
   }
 }
