@@ -22,6 +22,7 @@
 
 #include <float.h>
 BEGIN_EXTERN_C()
+#include "Varint_arginfo.h"
 zend_class_entry *php_driver_varint_ce = NULL;
 
 static zend_result to_double(zval *result, php_driver_numeric *varint )
@@ -374,35 +375,6 @@ ZEND_METHOD(Cassandra_Varint, toDouble)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, num)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-static zend_function_entry php_driver_varint_methods[] = {
-    PHP_ME(Varint, __construct, arginfo__construct,
-           ZEND_ACC_CTOR | ZEND_ACC_PUBLIC) PHP_ME(Varint, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-        PHP_ME(Varint, type, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(Varint, value, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(Varint, add, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Varint, sub, arginfo_num, ZEND_ACC_PUBLIC)
-                PHP_ME(Varint, mul, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Varint, div, arginfo_num, ZEND_ACC_PUBLIC)
-                    PHP_ME(Varint, mod, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Varint, abs, arginfo_none, ZEND_ACC_PUBLIC)
-                        PHP_ME(Varint, neg, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(Varint, sqrt, arginfo_none, ZEND_ACC_PUBLIC)
-                                PHP_ME(Varint, toInt, arginfo_none, ZEND_ACC_PUBLIC)
-                                    PHP_ME(Varint, toDouble, arginfo_none, ZEND_ACC_PUBLIC) PHP_FE_END};
 
 static php_driver_value_handlers php_driver_varint_handlers;
 
@@ -529,28 +501,14 @@ static zend_object* php_driver_varint_new(zend_class_entry *ce )
 
 void php_driver_define_Varint()
 {
-    zend_class_entry ce;
-
-    INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Varint", php_driver_varint_methods);
-    php_driver_varint_ce = zend_register_internal_class(&ce );
-    zend_class_implements(php_driver_varint_ce , 2, php_driver_value_ce, php_driver_numeric_ce);
-
-    php_driver_varint_ce->ce_flags |= ZEND_ACC_FINAL;
+    php_driver_varint_ce = register_class_Cassandra_Varint(php_driver_value_ce, php_driver_numeric_ce);
     php_driver_varint_ce->create_object = php_driver_varint_new;
 
     memcpy(&php_driver_varint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     php_driver_varint_handlers.std.get_properties = php_driver_varint_properties;
-#if PHP_VERSION_ID >= 50400
     php_driver_varint_handlers.std.get_gc = php_driver_varint_gc;
-#endif
-
-#if PHP_MAJOR_VERSION >= 8
     php_driver_varint_handlers.std.compare = php_driver_varint_compare;
-#else
-    php_driver_varint_handlers.std.compare_objects = php_driver_varint_compare;
-#endif
     php_driver_varint_handlers.std.cast_object = php_driver_varint_cast;
-
     php_driver_varint_handlers.hash_value = php_driver_varint_hash_value;
     php_driver_varint_handlers.std.clone_obj = NULL;
 }
