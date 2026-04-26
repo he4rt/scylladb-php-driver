@@ -24,6 +24,7 @@
 #include "util/hash.h"
 #include "util/types.h"
 BEGIN_EXTERN_C()
+#include "Tuple_arginfo.h"
 zend_class_entry *php_driver_tuple_ce = NULL;
 
 void
@@ -69,7 +70,7 @@ php_driver_tuple_populate(php_driver_tuple *tuple, zval *array )
 }
 
 /* {{{ Tuple::__construct(types) */
-PHP_METHOD(Tuple, __construct)
+ZEND_METHOD(Cassandra_Tuple, __construct)
 {
   php_driver_tuple *self;
   php_driver_type *type;
@@ -118,14 +119,14 @@ PHP_METHOD(Tuple, __construct)
 /* }}} */
 
 /* {{{ Tuple::type() */
-PHP_METHOD(Tuple, type)
+ZEND_METHOD(Cassandra_Tuple, type)
 {
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 
 /* {{{ Tuple::values() */
-PHP_METHOD(Tuple, values)
+ZEND_METHOD(Cassandra_Tuple, values)
 {
   php_driver_tuple *self = NULL;
   array_init(return_value);
@@ -135,7 +136,7 @@ PHP_METHOD(Tuple, values)
 /* }}} */
 
 /* {{{ Tuple::set(int, mixed) */
-PHP_METHOD(Tuple, set)
+ZEND_METHOD(Cassandra_Tuple, set)
 {
   php_driver_tuple *self = NULL;
   long index;
@@ -166,7 +167,7 @@ PHP_METHOD(Tuple, set)
 /* }}} */
 
 /* {{{ Tuple::get(int) */
-PHP_METHOD(Tuple, get)
+ZEND_METHOD(Cassandra_Tuple, get)
 {
   php_driver_tuple *self = NULL;
   long index;
@@ -192,7 +193,7 @@ PHP_METHOD(Tuple, get)
 /* }}} */
 
 /* {{{ Tuple::count() */
-PHP_METHOD(Tuple, count)
+ZEND_METHOD(Cassandra_Tuple, count)
 {
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -201,7 +202,7 @@ PHP_METHOD(Tuple, count)
 /* }}} */
 
 /* {{{ Tuple::current() */
-PHP_METHOD(Tuple, current)
+ZEND_METHOD(Cassandra_Tuple, current)
 {
   zend_ulong index;
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
@@ -217,7 +218,7 @@ PHP_METHOD(Tuple, current)
 /* }}} */
 
 /* {{{ Tuple::key() */
-PHP_METHOD(Tuple, key)
+ZEND_METHOD(Cassandra_Tuple, key)
 {
   zend_ulong index;
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
@@ -229,7 +230,7 @@ PHP_METHOD(Tuple, key)
 /* }}} */
 
 /* {{{ Tuple::next() */
-PHP_METHOD(Tuple, next)
+ZEND_METHOD(Cassandra_Tuple, next)
 {
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -238,7 +239,7 @@ PHP_METHOD(Tuple, next)
 /* }}} */
 
 /* {{{ Tuple::valid() */
-PHP_METHOD(Tuple, valid)
+ZEND_METHOD(Cassandra_Tuple, valid)
 {
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -247,7 +248,7 @@ PHP_METHOD(Tuple, valid)
 /* }}} */
 
 /* {{{ Tuple::rewind() */
-PHP_METHOD(Tuple, rewind)
+ZEND_METHOD(Cassandra_Tuple, rewind)
 {
   php_driver_tuple *self = PHP_DRIVER_GET_TUPLE(getThis());
   php_driver_type *type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -255,69 +256,6 @@ PHP_METHOD(Tuple, rewind)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, types)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_value, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_index, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, index)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_type_return, 0, 0, Cassandra\\Type, 0)
-ZEND_END_ARG_INFO()
-
-#if PHP_MAJOR_VERSION >= 8
-ZEND_BEGIN_ARG_INFO_EX(arginfo_index_value, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, index)
-  ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-#endif
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_key, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_next, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_rewind, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_valid, 0, 0, _IS_BOOL, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_count, 0, 0, IS_LONG, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_tuple_methods[] = {
-  PHP_ME(Tuple, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Tuple, type, arginfo_type_return, ZEND_ACC_PUBLIC)
-  PHP_ME(Tuple, values, arginfo_none, ZEND_ACC_PUBLIC)
-#if PHP_MAJOR_VERSION >= 8
-  PHP_ME(Tuple, set, arginfo_index_value, ZEND_ACC_PUBLIC)
-#else
-  PHP_ME(Tuple, set, arginfo_value, ZEND_ACC_PUBLIC)
-#endif
-  PHP_ME(Tuple, get, arginfo_index, ZEND_ACC_PUBLIC)
-  /* Countable */
-  PHP_ME(Tuple, count, arginfo_count, ZEND_ACC_PUBLIC)
-  /* Iterator */
-  PHP_ME(Tuple, current, arginfo_current, ZEND_ACC_PUBLIC)
-  PHP_ME(Tuple, key, arginfo_key, ZEND_ACC_PUBLIC)
-  PHP_ME(Tuple, next, arginfo_next, ZEND_ACC_PUBLIC)
-  PHP_ME(Tuple, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-  PHP_ME(Tuple, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static php_driver_value_handlers php_driver_tuple_handlers;
 
@@ -469,28 +407,12 @@ php_driver_tuple_new(zend_class_entry *ce )
 
 void php_driver_define_Tuple()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Tuple", php_driver_tuple_methods);
-  php_driver_tuple_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_tuple_ce , 1, php_driver_value_ce);
+  php_driver_tuple_ce = register_class_Cassandra_Tuple(php_driver_value_ce, zend_ce_countable, zend_ce_iterator);
   memcpy(&php_driver_tuple_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_tuple_handlers.std.get_properties  = php_driver_tuple_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_tuple_handlers.std.get_gc          = php_driver_tuple_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_tuple_handlers.std.compare = php_driver_tuple_compare;
-#else
-  php_driver_tuple_handlers.std.compare_objects = php_driver_tuple_compare;
-#endif
-  php_driver_tuple_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_tuple_ce->create_object = php_driver_tuple_new;
-#if PHP_VERSION_ID < 80100
-  zend_class_implements(php_driver_tuple_ce , 2, spl_ce_Countable, zend_ce_iterator);
-#else
-  zend_class_implements(php_driver_tuple_ce , 2, zend_ce_countable, zend_ce_iterator);
-#endif
 
   php_driver_tuple_handlers.hash_value = php_driver_tuple_hash_value;
   php_driver_tuple_handlers.std.clone_obj = NULL;
