@@ -29,12 +29,14 @@ void php_driver_blob_init(INTERNAL_FUNCTION_PARAMETERS) {
   char *string;
   size_t string_len;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &string, &string_len) == FAILURE) {
-    return;
-  }
+  // clang-format off
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(string, string_len)
+  ZEND_PARSE_PARAMETERS_END();
+  // clang-format on
 
-  if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_blob_ce)) {
-    php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
+  if (ZEND_THIS && instanceof_function(Z_OBJCE_P(ZEND_THIS), php_driver_blob_ce)) {
+    php_driver_blob *self = PHP_DRIVER_GET_BLOB(ZEND_THIS);
     self->data = static_cast<cass_byte_t *>(emalloc(string_len * sizeof(cass_byte_t)));
     self->size = string_len;
     memcpy(self->data, string, string_len);
@@ -57,7 +59,7 @@ ZEND_METHOD(Cassandra_Blob, __construct) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
+  php_driver_blob *self = PHP_DRIVER_GET_BLOB(ZEND_THIS);
 
   self->data = static_cast<cass_byte_t *>(emalloc(ZSTR_LEN(bytes) * sizeof(cass_byte_t)));
   self->size = ZSTR_LEN(bytes);
@@ -67,7 +69,7 @@ ZEND_METHOD(Cassandra_Blob, __construct) {
 
 /* {{{ Blob::__toString() */
 ZEND_METHOD(Cassandra_Blob, __toString) {
-  php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
+  php_driver_blob *self = PHP_DRIVER_GET_BLOB(ZEND_THIS);
   char *hex;
   size_t hex_len;
   php_driver_bytes_to_hex((const char *)self->data, self->size, &hex, &hex_len);
@@ -86,7 +88,7 @@ ZEND_METHOD(Cassandra_Blob, type) {
 
 /* {{{ Blob::bytes() */
 ZEND_METHOD(Cassandra_Blob, bytes) {
-  php_driver_blob *self = PHP_DRIVER_GET_BLOB(getThis());
+  php_driver_blob *self = PHP_DRIVER_GET_BLOB(ZEND_THIS);
   char *hex;
   size_t hex_len;
   php_driver_bytes_to_hex((const char *)self->data, self->size, &hex, &hex_len);
@@ -98,7 +100,7 @@ ZEND_METHOD(Cassandra_Blob, bytes) {
 
 /* {{{ Blob::toBinaryString() */
 ZEND_METHOD(Cassandra_Blob, toBinaryString) {
-  php_driver_blob *blob = PHP_DRIVER_GET_BLOB(getThis());
+  php_driver_blob *blob = PHP_DRIVER_GET_BLOB(ZEND_THIS);
 
   RETVAL_STRINGL((const char *)blob->data, blob->size);
 }

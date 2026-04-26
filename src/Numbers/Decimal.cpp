@@ -232,14 +232,15 @@ void php_driver_decimal_init(INTERNAL_FUNCTION_PARAMETERS)
     php_driver_numeric *self;
     zval *value;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &value) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(value)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
-    if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_decimal_ce))
+    if (ZEND_THIS && instanceof_function(Z_OBJCE_P(ZEND_THIS), php_driver_decimal_ce))
     {
-        self = PHP_DRIVER_GET_NUMERIC(getThis());
+        self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
     }
     else
     {
@@ -284,23 +285,23 @@ void php_driver_decimal_init(INTERNAL_FUNCTION_PARAMETERS)
 }
 
 /* {{{ Decimal::__construct(string) */
-PHP_METHOD(Decimal, __construct)
+ZEND_METHOD(Cassandra_Decimal, __construct)
 {
     php_driver_decimal_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 /* }}} */
 
 /* {{{ Decimal::__toString() */
-PHP_METHOD(Decimal, __toString)
+ZEND_METHOD(Cassandra_Decimal, __toString)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_string(return_value, self);
 }
 /* }}} */
 
 /* {{{ Decimal::type() */
-PHP_METHOD(Decimal, type)
+ZEND_METHOD(Cassandra_Decimal, type)
 {
     zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DECIMAL);
     RETURN_ZVAL(&type, 1, 1);
@@ -308,9 +309,9 @@ PHP_METHOD(Decimal, type)
 /* }}} */
 
 /* {{{ Decimal::value() */
-PHP_METHOD(Decimal, value)
+ZEND_METHOD(Cassandra_Decimal, value)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     char *string;
     int string_len;
@@ -321,27 +322,28 @@ PHP_METHOD(Decimal, value)
 }
 /* }}} */
 
-PHP_METHOD(Decimal, scale)
+ZEND_METHOD(Cassandra_Decimal, scale)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     RETURN_LONG(self->data.decimal.scale);
 }
 
 /* {{{ Decimal::add() */
-PHP_METHOD(Decimal, add)
+ZEND_METHOD(Cassandra_Decimal, add)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_decimal_ce))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *decimal = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_decimal_ce);
@@ -359,19 +361,20 @@ PHP_METHOD(Decimal, add)
 /* }}} */
 
 /* {{{ Decimal::sub() */
-PHP_METHOD(Decimal, sub)
+ZEND_METHOD(Cassandra_Decimal, sub)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_decimal_ce))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *decimal = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_decimal_ce);
@@ -389,19 +392,20 @@ PHP_METHOD(Decimal, sub)
 /* }}} */
 
 /* {{{ Decimal::mul() */
-PHP_METHOD(Decimal, mul)
+ZEND_METHOD(Cassandra_Decimal, mul)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_decimal_ce))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *decimal = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_decimal_ce);
@@ -418,7 +422,7 @@ PHP_METHOD(Decimal, mul)
 /* }}} */
 
 /* {{{ Decimal::div() */
-PHP_METHOD(Decimal, div)
+ZEND_METHOD(Cassandra_Decimal, div)
 {
     /* TODO: Implementation of this a bit more difficult than anticipated. */
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Not implemented");
@@ -426,17 +430,17 @@ PHP_METHOD(Decimal, div)
 /* }}} */
 
 /* {{{ Decimal::mod() */
-PHP_METHOD(Decimal, mod)
+ZEND_METHOD(Cassandra_Decimal, mod)
 {
     /* TODO: We could implement a remainder method */
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Not implemented");
 }
 
 /* {{{ Decimal::abs() */
-PHP_METHOD(Decimal, abs)
+ZEND_METHOD(Cassandra_Decimal, abs)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     object_init_ex(return_value, php_driver_decimal_ce);
     result = PHP_DRIVER_GET_NUMERIC(return_value);
@@ -447,10 +451,10 @@ PHP_METHOD(Decimal, abs)
 /* }}} */
 
 /* {{{ Decimal::neg() */
-PHP_METHOD(Decimal, neg)
+ZEND_METHOD(Cassandra_Decimal, neg)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     object_init_ex(return_value, php_driver_decimal_ce);
     result = PHP_DRIVER_GET_NUMERIC(return_value);
@@ -461,11 +465,11 @@ PHP_METHOD(Decimal, neg)
 /* }}} */
 
 /* {{{ Decimal::sqrt() */
-PHP_METHOD(Decimal, sqrt)
+ZEND_METHOD(Cassandra_Decimal, sqrt)
 {
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Not implemented");
 #if 0
-  php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+  php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
   mpf_t value;
   mpf_init(value);
@@ -491,18 +495,18 @@ PHP_METHOD(Decimal, sqrt)
 /* }}} */
 
 /* {{{ Decimal::toInt() */
-PHP_METHOD(Decimal, toInt)
+ZEND_METHOD(Cassandra_Decimal, toInt)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_long(return_value, self);
 }
 /* }}} */
 
 /* {{{ Decimal::toDouble() */
-PHP_METHOD(Decimal, toDouble)
+ZEND_METHOD(Cassandra_Decimal, toDouble)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_double(return_value, self);
 }

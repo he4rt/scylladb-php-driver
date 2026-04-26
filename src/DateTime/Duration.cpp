@@ -8,6 +8,7 @@
 
 BEGIN_EXTERN_C()
 #include <spl/spl_exceptions.h>
+#include "Duration_arginfo.h"
 
 zend_class_entry *php_driver_duration_ce = nullptr;
 
@@ -91,7 +92,7 @@ char *php_driver_duration_to_string(php_driver_duration *duration)
   cass_int32_t final_months = duration->months;
   cass_int32_t final_days = duration->days;
   cass_int64_t final_nanos = duration->nanos;
-  
+
   is_negative = final_months < 0 || final_days < 0 || final_nanos < 0;
   if (final_months < 0)
     final_months = -final_months;
@@ -99,7 +100,7 @@ char *php_driver_duration_to_string(php_driver_duration *duration)
     final_days = -final_days;
   if (final_nanos < 0)
     final_nanos = -final_nanos;
-  
+
   spprintf(&rep, 0, "%s%dmo%dd%" PRId64 "ns", is_negative ? "-" : "", final_months, final_days, final_nanos);
   return rep;
 }
@@ -140,12 +141,12 @@ php_driver_duration_init(INTERNAL_FUNCTION_PARAMETERS)
   }
 }
 
-PHP_METHOD(Duration, __construct)
+ZEND_METHOD(Cassandra_Duration, __construct)
 {
   php_driver_duration_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-PHP_METHOD(Duration, __toString)
+ZEND_METHOD(Cassandra_Duration, __toString)
 {
   char* rep;
   php_driver_duration *self = nullptr;
@@ -161,13 +162,13 @@ PHP_METHOD(Duration, __toString)
   efree(rep);
 }
 
-PHP_METHOD(Duration, type)
+ZEND_METHOD(Cassandra_Duration, type)
 {
   zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DURATION );
   RETURN_ZVAL(&type, 1, 1);
 }
 
-PHP_METHOD(Duration, months)
+ZEND_METHOD(Cassandra_Duration, months)
 {
   php_driver_duration *self = nullptr;
 
@@ -178,7 +179,7 @@ PHP_METHOD(Duration, months)
   to_string(return_value, self->months);
 }
 
-PHP_METHOD(Duration, days)
+ZEND_METHOD(Cassandra_Duration, days)
 {
   php_driver_duration *self = nullptr;
 
@@ -189,7 +190,7 @@ PHP_METHOD(Duration, days)
   to_string(return_value, self->days);
 }
 
-PHP_METHOD(Duration, nanos)
+ZEND_METHOD(Cassandra_Duration, nanos)
 {
   php_driver_duration *self = NULL;
 
@@ -199,32 +200,6 @@ PHP_METHOD(Duration, nanos)
   self = PHP_DRIVER_GET_DURATION(getThis());
   to_string(return_value, self->nanos);
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 3)
-  ZEND_ARG_INFO(0, months)
-  ZEND_ARG_INFO(0, days)
-  ZEND_ARG_INFO(0, nanos)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-static zend_function_entry php_driver_duration_methods[] = {
-  PHP_ME(Duration, __construct,  arginfo__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-  PHP_ME(Duration, type, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Duration, months, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Duration, days, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Duration, nanos, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Duration, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static php_driver_value_handlers php_driver_duration_handlers;
 
@@ -236,13 +211,7 @@ static HashTable *php_driver_duration_gc(zend_object *object, zval **table, int 
 }
 
 static HashTable *
-php_driver_duration_properties(
-#if PHP_MAJOR_VERSION >= 8
-        zend_object *object
-#else
-        zendObject *object
-#endif
-)
+php_driver_duration_properties(zend_object *object)
 {
   if (object->properties) {
     zend_array_release(object->properties);
@@ -266,9 +235,7 @@ php_driver_duration_properties(
 static int
 php_driver_duration_compare(zval *obj1, zval *obj2 )
 {
-#if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
   php_driver_duration *left, *right;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
@@ -332,13 +299,7 @@ php_driver_duration_new(zend_class_entry *ce )
 
 void php_driver_define_Duration()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Duration", php_driver_duration_methods);
-  php_driver_duration_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_duration_ce , 1, php_driver_value_ce);
-
-  php_driver_duration_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_duration_ce = register_class_Cassandra_Duration(php_driver_value_ce);
   php_driver_duration_ce->create_object = php_driver_duration_new;
 
   memcpy(&php_driver_duration_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

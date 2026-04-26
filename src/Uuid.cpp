@@ -32,12 +32,15 @@ php_driver_uuid_init(INTERNAL_FUNCTION_PARAMETERS)
   size_t value_len;
   php_driver_uuid *self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "|s", &value, &value_len) == FAILURE) {
-    return;
-  }
+  // clang-format off
+  ZEND_PARSE_PARAMETERS_START(0, 1)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_STRING(value, value_len)
+  ZEND_PARSE_PARAMETERS_END();
+  // clang-format on
 
-  if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_uuid_ce )) {
-    self = PHP_DRIVER_GET_UUID(getThis());
+  if (ZEND_THIS && instanceof_function(Z_OBJCE_P(ZEND_THIS), php_driver_uuid_ce)) {
+    self = PHP_DRIVER_GET_UUID(ZEND_THIS);
   } else {
     object_init_ex(return_value, php_driver_uuid_ce);
     self = PHP_DRIVER_GET_UUID(return_value);
@@ -66,7 +69,7 @@ ZEND_METHOD(Cassandra_Uuid, __construct)
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  php_driver_uuid *self = PHP_DRIVER_GET_UUID(getThis());
+  php_driver_uuid *self = PHP_DRIVER_GET_UUID(ZEND_THIS);
 
   if (uuid == nullptr) {
     php_driver_uuid_generate_random(&self->uuid);
@@ -84,7 +87,7 @@ ZEND_METHOD(Cassandra_Uuid, __construct)
 ZEND_METHOD(Cassandra_Uuid, __toString)
 {
   char string[CASS_UUID_STRING_LENGTH];
-  php_driver_uuid *self = PHP_DRIVER_GET_UUID(getThis());
+  php_driver_uuid *self = PHP_DRIVER_GET_UUID(ZEND_THIS);
 
   cass_uuid_string(self->uuid, string);
 
@@ -104,7 +107,7 @@ ZEND_METHOD(Cassandra_Uuid, type)
 ZEND_METHOD(Cassandra_Uuid, uuid)
 {
   char string[CASS_UUID_STRING_LENGTH];
-  php_driver_uuid *self = PHP_DRIVER_GET_UUID(getThis());
+  php_driver_uuid *self = PHP_DRIVER_GET_UUID(ZEND_THIS);
 
   cass_uuid_string(self->uuid, string);
 
@@ -115,7 +118,7 @@ ZEND_METHOD(Cassandra_Uuid, uuid)
 /* {{{ Uuid::version() */
 ZEND_METHOD(Cassandra_Uuid, version)
 {
-  php_driver_uuid *self = PHP_DRIVER_GET_UUID(getThis());
+  php_driver_uuid *self = PHP_DRIVER_GET_UUID(ZEND_THIS);
 
   RETURN_LONG((long) cass_uuid_version(self->uuid));
 }
