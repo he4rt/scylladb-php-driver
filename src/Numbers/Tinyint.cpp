@@ -463,7 +463,7 @@ static HashTable *php_driver_tinyint_properties(
     zval value;
 
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -520,7 +520,7 @@ static
     php_driver_tinyint_cast(zend_object *object, zval *retval, int type )
 {
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -542,7 +542,7 @@ static
 
 static void php_driver_tinyint_free(zend_object *object )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 
     zend_object_std_dtor(&self->zendObject);
 
@@ -550,11 +550,13 @@ static void php_driver_tinyint_free(zend_object *object )
 
 static zend_object* php_driver_tinyint_new(zend_class_entry *ce )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_ECALLOC(numeric, ce);
+    php_driver_numeric *self = (php_driver_numeric *)ecalloc(1, sizeof(php_driver_numeric) + zend_object_properties_size(ce));
 
     self->type = PHP_DRIVER_TINYINT;
 
-    PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, tinyint, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+    self->zendObject.handlers = (zend_object_handlers *)&php_driver_tinyint_handlers;
+    return &self->zendObject;
 }
 
 void php_driver_define_Tinyint()
@@ -563,6 +565,8 @@ void php_driver_define_Tinyint()
     php_driver_tinyint_ce->create_object = php_driver_tinyint_new;
 
     memcpy(&php_driver_tinyint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    php_driver_tinyint_handlers.std.offset = XtOffsetOf(php_driver_numeric, zendObject);
+    php_driver_tinyint_handlers.std.free_obj = php_driver_tinyint_free;
     php_driver_tinyint_handlers.std.get_properties = php_driver_tinyint_properties;
     php_driver_tinyint_handlers.std.get_gc = php_driver_tinyint_gc;
     php_driver_tinyint_handlers.std.compare = php_driver_tinyint_compare;
