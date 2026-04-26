@@ -298,6 +298,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_type_return, 0, 0, Cassandra\\Type, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
@@ -318,7 +321,7 @@ ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_user_type_value_methods[] = {
   PHP_ME(UserTypeValue, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(UserTypeValue, type, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(UserTypeValue, type, arginfo_type_return, ZEND_ACC_PUBLIC)
   PHP_ME(UserTypeValue, values, arginfo_none, ZEND_ACC_PUBLIC)
 #if PHP_MAJOR_VERSION >= 8
   PHP_ME(UserTypeValue, set, arginfo_name_value, ZEND_ACC_PUBLIC)

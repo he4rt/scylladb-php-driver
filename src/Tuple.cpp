@@ -270,6 +270,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_type_return, 0, 0, Cassandra\\Type, 0)
+ZEND_END_ARG_INFO()
+
 #if PHP_MAJOR_VERSION >= 8
 ZEND_BEGIN_ARG_INFO_EX(arginfo_index_value, 0, ZEND_RETURN_VALUE, 1)
   ZEND_ARG_INFO(0, index)
@@ -297,7 +300,7 @@ ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_tuple_methods[] = {
   PHP_ME(Tuple, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Tuple, type, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Tuple, type, arginfo_type_return, ZEND_ACC_PUBLIC)
   PHP_ME(Tuple, values, arginfo_none, ZEND_ACC_PUBLIC)
 #if PHP_MAJOR_VERSION >= 8
   PHP_ME(Tuple, set, arginfo_index_value, ZEND_ACC_PUBLIC)

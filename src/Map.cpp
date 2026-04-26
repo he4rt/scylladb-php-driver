@@ -427,6 +427,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_type_return, 0, 0, Cassandra\\Type, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
@@ -464,7 +467,7 @@ ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_map_methods[] = {
   PHP_ME(Cassandra_Map, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, type, arginfo_none, ZEND_ACC_PUBLIC)
+  PHP_ME(Cassandra_Map, type, arginfo_type_return, ZEND_ACC_PUBLIC)
   PHP_ME(Cassandra_Map, keys, arginfo_none, ZEND_ACC_PUBLIC)
   PHP_ME(Cassandra_Map, values, arginfo_none, ZEND_ACC_PUBLIC)
   PHP_ME(Cassandra_Map, set, arginfo_two, ZEND_ACC_PUBLIC)

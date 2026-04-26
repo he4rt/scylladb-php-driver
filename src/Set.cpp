@@ -280,6 +280,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_type_return, 0, 0, Cassandra\\Type, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
@@ -300,7 +303,7 @@ ZEND_END_ARG_INFO()
 
 static zend_function_entry php_driver_set_methods[] = {
   PHP_ME(Cassandra_Set, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC)
-    PHP_ME(Cassandra_Set, type, arginfo_none, ZEND_ACC_PUBLIC)
+    PHP_ME(Cassandra_Set, type, arginfo_type_return, ZEND_ACC_PUBLIC)
       PHP_ME(Cassandra_Set, values, arginfo_none, ZEND_ACC_PUBLIC)
         PHP_ME(Cassandra_Set, add, arginfo_one, ZEND_ACC_PUBLIC)
           PHP_ME(Cassandra_Set, has, arginfo_one, ZEND_ACC_PUBLIC)
