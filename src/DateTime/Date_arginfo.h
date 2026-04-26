@@ -1,16 +1,16 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 9639d4368e5025a7499d0cff6c7c01e8e5a2bb49 */
+ * Stub hash: a26085587b713c8f4350cb93068dd0966e0396ba */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Date___construct, 0, 0, 0)
 	ZEND_ARG_TYPE_MASK(0, value, MAY_BE_LONG|MAY_BE_STRING, NULL)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Date_fromDateTime, 0, 1, Cassandra\\Date, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Date_fromDateTime, 0, 1, IS_STATIC, 0)
 	ZEND_ARG_OBJ_INFO(0, datetime, DateTimeInterface, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Date_toDateTime, 0, 0, DateTime, 0)
-	ZEND_ARG_OBJ_INFO(0, time, Cassandra\\Time, 0)
+	ZEND_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(0, time, Cassandra\\Time, 1, "null")
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Date_seconds, 0, 0, IS_LONG, 0)
@@ -22,14 +22,12 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Date___toString, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-
 ZEND_METHOD(Cassandra_Date, __construct);
 ZEND_METHOD(Cassandra_Date, fromDateTime);
 ZEND_METHOD(Cassandra_Date, toDateTime);
 ZEND_METHOD(Cassandra_Date, seconds);
 ZEND_METHOD(Cassandra_Date, type);
 ZEND_METHOD(Cassandra_Date, __toString);
-
 
 static const zend_function_entry class_Cassandra_Date_methods[] = {
 	ZEND_ME(Cassandra_Date, __construct, arginfo_class_Cassandra_Date___construct, ZEND_ACC_PUBLIC)
@@ -46,8 +44,7 @@ static zend_class_entry *register_class_Cassandra_Date(zend_class_entry *class_e
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Date", class_Cassandra_Date_methods);
-	class_entry = zend_register_internal_class_ex(&ce, NULL);
-	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Value);
 
 	return class_entry;
