@@ -12,6 +12,6 @@ namespace Cassandra\Type {
 
         public function name(): string {}
         public function __toString(): string {}
-        public function create(mixed $value = null): \Cassandra\Value {}
+        public function create(mixed $value = null): mixed {}
     }
 }

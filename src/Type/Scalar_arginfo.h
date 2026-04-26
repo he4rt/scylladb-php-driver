@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 17bb98b46a2211296ff2edb434c6858dc4a90700 */
+ * Stub hash: 49a3eca68a113e9b92d1b620df183205e8bdf5b0 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Type_Scalar___construct, 0, 0, 0)
 ZEND_END_ARG_INFO()
@@ -9,7 +9,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Type_Scalar___toString arginfo_class_Cassandra_Type_Scalar_name
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Type_Scalar_create, 0, 0, Cassandra\\Value, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Type_Scalar_create, 0, 0, IS_MIXED, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, value, IS_MIXED, 0, "null")
 ZEND_END_ARG_INFO()
 
