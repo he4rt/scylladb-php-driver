@@ -21,6 +21,8 @@
 #include "util/ref.h"
 #include "util/result.h"
 BEGIN_EXTERN_C()
+#include "Rows_arginfo.h"
+
 zend_class_entry *php_driver_rows_ce = NULL;
 
 static void free_result(void *result)
@@ -55,7 +57,7 @@ static void php_driver_rows_create(php_driver_rows *current, zval *result )
     }
 }
 
-PHP_METHOD(Rows, __construct)
+ZEND_METHOD(Cassandra_Rows, __construct)
 {
     zend_throw_exception_ex(php_driver_logic_exception_ce, 0 ,
                             "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Rows objects directly is not supported, "
@@ -64,7 +66,7 @@ PHP_METHOD(Rows, __construct)
     return;
 }
 
-PHP_METHOD(Rows, count)
+ZEND_METHOD(Cassandra_Rows, count)
 {
     php_driver_rows *self = NULL;
 
@@ -76,7 +78,7 @@ PHP_METHOD(Rows, count)
     RETURN_LONG(zend_hash_num_elements(Z_ARRVAL_P(&self->rows)));
 }
 
-PHP_METHOD(Rows, rewind)
+ZEND_METHOD(Cassandra_Rows, rewind)
 {
     php_driver_rows *self = NULL;
 
@@ -89,7 +91,7 @@ PHP_METHOD(Rows, rewind)
     zend_hash_internal_pointer_reset(Z_ARRVAL(self->rows));
 }
 
-PHP_METHOD(Rows, current)
+ZEND_METHOD(Cassandra_Rows, current)
 {
     if (zend_parse_parameters_none() == FAILURE)
     {
@@ -106,7 +108,7 @@ PHP_METHOD(Rows, current)
     }
 }
 
-PHP_METHOD(Rows, key)
+ZEND_METHOD(Cassandra_Rows, key)
 {
     zend_ulong num_index;
     zend_string* str_index;
@@ -122,7 +124,7 @@ PHP_METHOD(Rows, key)
         RETURN_LONG(num_index);
 }
 
-PHP_METHOD(Rows, next)
+ZEND_METHOD(Cassandra_Rows, next)
 {
     php_driver_rows *self = NULL;
 
@@ -136,7 +138,7 @@ PHP_METHOD(Rows, next)
     zend_hash_move_forward(Z_ARRVAL(self->rows));
 }
 
-PHP_METHOD(Rows, valid)
+ZEND_METHOD(Cassandra_Rows, valid)
 {
     php_driver_rows *self = NULL;
 
@@ -148,7 +150,7 @@ PHP_METHOD(Rows, valid)
     RETURN_BOOL(zend_hash_has_more_elements(Z_ARRVAL(self->rows)) == SUCCESS);
 }
 
-PHP_METHOD(Rows, offsetExists)
+ZEND_METHOD(Cassandra_Rows, offsetExists)
 {
     zval *offset;
     php_driver_rows *self = NULL;
@@ -166,7 +168,7 @@ PHP_METHOD(Rows, offsetExists)
     RETURN_BOOL(zend_hash_index_exists(Z_ARRVAL(self->rows), (zend_ulong)Z_LVAL_P(offset)));
 }
 
-PHP_METHOD(Rows, offsetGet)
+ZEND_METHOD(Cassandra_Rows, offsetGet)
 {
     zval *offset;
     zval *value;
@@ -187,7 +189,7 @@ PHP_METHOD(Rows, offsetGet)
     }
 }
 
-PHP_METHOD(Rows, offsetSet)
+ZEND_METHOD(Cassandra_Rows, offsetSet)
 {
     if (zend_parse_parameters_none() == FAILURE)
         return;
@@ -197,7 +199,7 @@ PHP_METHOD(Rows, offsetSet)
     return;
 }
 
-PHP_METHOD(Rows, offsetUnset)
+ZEND_METHOD(Cassandra_Rows, offsetUnset)
 {
     if (zend_parse_parameters_none() == FAILURE)
         return;
@@ -207,7 +209,7 @@ PHP_METHOD(Rows, offsetUnset)
     return;
 }
 
-PHP_METHOD(Rows, isLastPage)
+ZEND_METHOD(Cassandra_Rows, isLastPage)
 {
     php_driver_rows *self = NULL;
 
@@ -224,7 +226,7 @@ PHP_METHOD(Rows, isLastPage)
     RETURN_FALSE;
 }
 
-PHP_METHOD(Rows, nextPage)
+ZEND_METHOD(Cassandra_Rows, nextPage)
 {
     zval *timeout = NULL;
     php_driver_rows *self = PHP_DRIVER_GET_ROWS(getThis());
@@ -302,7 +304,7 @@ PHP_METHOD(Rows, nextPage)
     php_driver_rows_create(self, return_value );
 }
 
-PHP_METHOD(Rows, nextPageAsync)
+ZEND_METHOD(Cassandra_Rows, nextPageAsync)
 {
     php_driver_rows *self = NULL;
     php_driver_future_rows *future_rows = NULL;
@@ -349,7 +351,7 @@ PHP_METHOD(Rows, nextPageAsync)
     RETURN_ZVAL(&self->future_next_page, 1, 0);
 }
 
-PHP_METHOD(Rows, pagingStateToken)
+ZEND_METHOD(Cassandra_Rows, pagingStateToken)
 {
     const char *paging_state;
     size_t paging_state_size;
@@ -370,7 +372,7 @@ PHP_METHOD(Rows, pagingStateToken)
     RETVAL_STRINGL(paging_state, paging_state_size);
 }
 
-PHP_METHOD(Rows, first)
+ZEND_METHOD(Cassandra_Rows, first)
 {
     HashPosition pos;
     zval *entry;
@@ -390,105 +392,26 @@ PHP_METHOD(Rows, first)
     }
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_offset, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_set, 0, ZEND_RETURN_VALUE, 2)
-ZEND_ARG_INFO(0, offset)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-#if PHP_MAJOR_VERSION >= 8
-ZEND_BEGIN_ARG_INFO_EX(arginfo_timeout, 0, ZEND_RETURN_VALUE, 0)
-ZEND_ARG_INFO(0, timeout)
-ZEND_END_ARG_INFO()
-#else
-ZEND_BEGIN_ARG_INFO_EX(arginfo_timeout, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, timeout)
-ZEND_END_ARG_INFO()
-#endif
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_key, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_next, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_rewind, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_valid, 0, 0, _IS_BOOL, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_count, 0, 0, IS_LONG, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetExists, 0, 1, _IS_BOOL, 0)
-ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetGet, 0, 1, IS_MIXED, 0)
-ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetSet, 0, 2, IS_VOID, 0)
-ZEND_ARG_INFO(0, offset)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetUnset, 0, 1, IS_VOID, 0)
-ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_rows_methods[] = {
-    PHP_ME(Rows, __construct, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-        PHP_ME(Rows, count, arginfo_count, ZEND_ACC_PUBLIC) PHP_ME(Rows, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
-            PHP_ME(Rows, current, arginfo_current, ZEND_ACC_PUBLIC) PHP_ME(Rows, key, arginfo_key, ZEND_ACC_PUBLIC)
-                PHP_ME(Rows, next, arginfo_next, ZEND_ACC_PUBLIC) PHP_ME(Rows, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-                    PHP_ME(Rows, offsetExists, arginfo_offsetExists, ZEND_ACC_PUBLIC)
-                        PHP_ME(Rows, offsetGet, arginfo_offsetGet, ZEND_ACC_PUBLIC)
-                            PHP_ME(Rows, offsetSet, arginfo_offsetSet, ZEND_ACC_PUBLIC)
-                                PHP_ME(Rows, offsetUnset, arginfo_offsetUnset, ZEND_ACC_PUBLIC)
-                                    PHP_ME(Rows, isLastPage, arginfo_none, ZEND_ACC_PUBLIC)
-                                        PHP_ME(Rows, nextPage, arginfo_timeout, ZEND_ACC_PUBLIC)
-                                            PHP_ME(Rows, nextPageAsync, arginfo_none, ZEND_ACC_PUBLIC)
-                                                PHP_ME(Rows, pagingStateToken, arginfo_none, ZEND_ACC_PUBLIC)
-                                                    PHP_ME(Rows, first, arginfo_none, ZEND_ACC_PUBLIC) PHP_FE_END};
 
 static zend_object_handlers php_driver_rows_handlers;
 
-static HashTable *php_driver_rows_properties(
-#if PHP_MAJOR_VERSION >= 8
-    zend_object *object
-#else
-    zendObject *object
-#endif
-)
+static HashTable *php_driver_rows_properties(zend_object *object)
 {
-    HashTable *props = zend_std_get_properties(object );
+    HashTable *props = zend_std_get_properties(object);
 
     return props;
 }
 
-static int php_driver_rows_compare(zval *obj1, zval *obj2 )
+static int php_driver_rows_compare(zval *obj1, zval *obj2)
 {
-#if PHP_MAJOR_VERSION >= 8
     ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
         return 1; /* different classes */
 
     return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
 }
 
-static void php_driver_rows_free(zend_object *object )
+static void php_driver_rows_free(zend_object *object)
 {
     php_driver_rows *self = PHP5TO7_ZEND_OBJECT_GET(rows, object);
 
@@ -502,10 +425,9 @@ static void php_driver_rows_free(zend_object *object )
     zval_ptr_dtor(&self->future_next_page);
 
     zend_object_std_dtor(&self->zendObject);
-
 }
 
-static zend_object* php_driver_rows_new(zend_class_entry *ce )
+static zend_object *php_driver_rows_new(zend_class_entry *ce)
 {
     php_driver_rows *self = PHP5TO7_ZEND_OBJECT_ECALLOC(rows, ce);
 
@@ -520,23 +442,15 @@ static zend_object* php_driver_rows_new(zend_class_entry *ce )
     PHP5TO7_ZEND_OBJECT_INIT(rows, self, ce);
 }
 
+END_EXTERN_C()
+
 void php_driver_define_Rows()
 {
-    zend_class_entry ce;
-
-    INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Rows", php_driver_rows_methods);
-    php_driver_rows_ce = zend_register_internal_class(&ce );
-    zend_class_implements(php_driver_rows_ce , 2, zend_ce_iterator, zend_ce_arrayaccess);
-    php_driver_rows_ce->ce_flags |= ZEND_ACC_FINAL;
+    php_driver_rows_ce = register_class_Cassandra_Rows(zend_ce_iterator, zend_ce_countable, zend_ce_arrayaccess);
     php_driver_rows_ce->create_object = php_driver_rows_new;
 
     memcpy(&php_driver_rows_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     php_driver_rows_handlers.get_properties = php_driver_rows_properties;
-#if PHP_MAJOR_VERSION >= 8
     php_driver_rows_handlers.compare = php_driver_rows_compare;
-#else
-    php_driver_rows_handlers.compare_objects = php_driver_rows_compare;
-#endif
     php_driver_rows_handlers.clone_obj = NULL;
 }
-END_EXTERN_C()
