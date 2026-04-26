@@ -423,7 +423,7 @@ static HashTable *php_driver_bigint_properties(
     zval value;
 
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -480,7 +480,7 @@ static
     php_driver_bigint_cast(zend_object *object, zval *retval, int type)
 {
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -502,7 +502,7 @@ static
 
 static void php_driver_bigint_free(zend_object *object)
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 
     zend_object_std_dtor(&self->zendObject);
 
@@ -510,11 +510,13 @@ static void php_driver_bigint_free(zend_object *object)
 
 static zend_object* php_driver_bigint_new(zend_class_entry *ce)
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_ECALLOC(numeric, ce);
+    php_driver_numeric *self = (php_driver_numeric *)ecalloc(1, sizeof(php_driver_numeric) + zend_object_properties_size(ce));
 
     self->type = PHP_DRIVER_BIGINT;
 
-    PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, bigint, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+    self->zendObject.handlers = (zend_object_handlers *)&php_driver_bigint_handlers;
+    return &self->zendObject;
 }
 
 void php_driver_define_Bigint()
@@ -523,6 +525,8 @@ void php_driver_define_Bigint()
     php_driver_bigint_ce->create_object = php_driver_bigint_new;
 
     memcpy(&php_driver_bigint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    php_driver_bigint_handlers.std.offset = XtOffsetOf(php_driver_numeric, zendObject);
+    php_driver_bigint_handlers.std.free_obj = php_driver_bigint_free;
     php_driver_bigint_handlers.std.get_properties = php_driver_bigint_properties;
     php_driver_bigint_handlers.std.get_gc = php_driver_bigint_gc;
     php_driver_bigint_handlers.std.compare = php_driver_bigint_compare;
