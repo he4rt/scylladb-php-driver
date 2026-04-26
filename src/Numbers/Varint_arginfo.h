@@ -1,8 +1,8 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: e1be6d33b1f0bcfd02369ae7aee7f0c301e1ceab */
+ * Stub hash: bea14ef4df74481e0ecd7919a29aaa2f10b6d8d2 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Varint___construct, 0, 0, 1)
-	ZEND_ARG_TYPE_MASK(0, value, MAY_BE_STRING|MAY_BE_LONG|MAY_BE_DOUBLE, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, value, Cassandra\\Varint, MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING, NULL)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Varint_type, 0, 0, Cassandra\\Type, 0)
@@ -11,8 +11,8 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Varint_value, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Varint_add, 0, 1, Cassandra\\\116umeric, 0)
-	ZEND_ARG_TYPE_INFO(0, num, IS_MIXED, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Varint_add, 0, 1, IS_STATIC, 0)
+	ZEND_ARG_OBJ_INFO(0, num, Cassandra\\\116umeric, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Varint_sub arginfo_class_Cassandra_Varint_add
@@ -23,7 +23,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Varint_mod arginfo_class_Cassandra_Varint_add
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Varint_abs, 0, 0, Cassandra\\\116umeric, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Varint_abs, 0, 0, IS_STATIC, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Varint_neg arginfo_class_Cassandra_Varint_abs

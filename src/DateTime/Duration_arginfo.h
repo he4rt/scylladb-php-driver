@@ -1,10 +1,10 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 209954b43c5ccac97fad75fc531990803654eebd */
+ * Stub hash: e9c455c4c9188ff6fb5c2e8fad0041141c6fccfc */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Duration___construct, 0, 0, 3)
-	ZEND_ARG_TYPE_INFO(0, months, IS_MIXED, 0)
-	ZEND_ARG_TYPE_INFO(0, days, IS_MIXED, 0)
-	ZEND_ARG_TYPE_INFO(0, nanos, IS_MIXED, 0)
+	ZEND_ARG_OBJ_TYPE_MASK(0, months, Cassandra\\Bigint, MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, days, Cassandra\\Bigint, MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, nanos, Cassandra\\Bigint, MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING, NULL)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Duration_type, 0, 0, Cassandra\\Type, 0)

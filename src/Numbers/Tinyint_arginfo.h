@@ -1,8 +1,8 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 3f247aa1e230c67ae9a6b5903c138948eef8bd7e */
+ * Stub hash: 0b2c27e30e43efd0876e286f719f4c72a5c0d074 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Tinyint___construct, 0, 0, 1)
-	ZEND_ARG_TYPE_MASK(0, value, MAY_BE_STRING|MAY_BE_LONG|MAY_BE_DOUBLE, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, value, Cassandra\\Tinyint, MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING, NULL)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Tinyint_type, 0, 0, Cassandra\\Type, 0)
@@ -11,8 +11,8 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Tinyint_value, 0, 0, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Tinyint_add, 0, 1, Cassandra\\\116umeric, 0)
-	ZEND_ARG_TYPE_INFO(0, num, IS_MIXED, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Tinyint_add, 0, 1, IS_STATIC, 0)
+	ZEND_ARG_OBJ_INFO(0, num, Cassandra\\\116umeric, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Tinyint_sub arginfo_class_Cassandra_Tinyint_add
@@ -23,7 +23,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Tinyint_mod arginfo_class_Cassandra_Tinyint_add
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Tinyint_abs, 0, 0, Cassandra\\\116umeric, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Tinyint_abs, 0, 0, IS_STATIC, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Tinyint_neg arginfo_class_Cassandra_Tinyint_abs
@@ -35,10 +35,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Tinyint_toDouble, 0, 0, IS_DOUBLE, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Tinyint_min, 0, 0, Cassandra\\Tinyint, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_Cassandra_Tinyint_min arginfo_class_Cassandra_Tinyint_abs
 
-#define arginfo_class_Cassandra_Tinyint_max arginfo_class_Cassandra_Tinyint_min
+#define arginfo_class_Cassandra_Tinyint_max arginfo_class_Cassandra_Tinyint_abs
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Tinyint___toString, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()

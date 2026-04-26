@@ -8,7 +8,7 @@ namespace Cassandra {
      * @strict-properties
      */
     final class Duration implements Value {
-        public function __construct(mixed $months, mixed $days, mixed $nanos) {}
+        public function __construct(int|float|string|Bigint $months, int|float|string|Bigint $days, int|float|string|Bigint $nanos) {}
 
         public function type(): Type {}
         public function months(): string {}

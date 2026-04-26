@@ -8,24 +8,24 @@ namespace Cassandra {
      * @strict-properties
      */
     final class Tinyint implements Value, Numeric {
-        public function __construct(string|int|float $value) {}
+        public function __construct(int|float|string|Tinyint $value) {}
 
         public function type(): Type {}
         public function value(): int {}
 
-        public function add(mixed $num): Numeric {}
-        public function sub(mixed $num): Numeric {}
-        public function mul(mixed $num): Numeric {}
-        public function div(mixed $num): Numeric {}
-        public function mod(mixed $num): Numeric {}
-        public function abs(): Numeric {}
-        public function neg(): Numeric {}
-        public function sqrt(): Numeric {}
+        public function add(Numeric $num): static {}
+        public function sub(Numeric $num): static {}
+        public function mul(Numeric $num): static {}
+        public function div(Numeric $num): static {}
+        public function mod(Numeric $num): static {}
+        public function abs(): static {}
+        public function neg(): static {}
+        public function sqrt(): static {}
         public function toInt(): int {}
         public function toDouble(): float {}
 
-        public static function min(): Tinyint {}
-        public static function max(): Tinyint {}
+        public static function min(): static {}
+        public static function max(): static {}
 
         public function __toString(): string {}
     }

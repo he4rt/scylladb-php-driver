@@ -1,8 +1,8 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 227da64a4ab58b6d519710147803c897bf47d869 */
+ * Stub hash: 7ab69ba96cdae8122d9db58561bb28256c3e52ac */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_Decimal___construct, 0, 0, 1)
-	ZEND_ARG_TYPE_MASK(0, value, MAY_BE_STRING|MAY_BE_LONG|MAY_BE_DOUBLE, NULL)
+	ZEND_ARG_OBJ_TYPE_MASK(0, value, Cassandra\\Decimal, MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING, NULL)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Decimal_type, 0, 0, Cassandra\\Type, 0)
@@ -14,8 +14,8 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Decimal_scale, 0, 0, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Decimal_add, 0, 1, Cassandra\\\116umeric, 0)
-	ZEND_ARG_TYPE_INFO(0, num, IS_MIXED, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Decimal_add, 0, 1, IS_STATIC, 0)
+	ZEND_ARG_OBJ_INFO(0, num, Cassandra\\\116umeric, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Decimal_sub arginfo_class_Cassandra_Decimal_add
@@ -26,7 +26,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Decimal_mod arginfo_class_Cassandra_Decimal_add
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Decimal_abs, 0, 0, Cassandra\\\116umeric, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Decimal_abs, 0, 0, IS_STATIC, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Decimal_neg arginfo_class_Cassandra_Decimal_abs
