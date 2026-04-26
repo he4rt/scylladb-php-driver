@@ -562,26 +562,14 @@ static zend_object* php_driver_smallint_new(zend_class_entry *ce )
 
 void php_driver_define_Smallint()
 {
-    zend_class_entry ce;
-
-    INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Smallint", php_driver_smallint_methods);
-    php_driver_smallint_ce = zend_register_internal_class(&ce );
-    zend_class_implements(php_driver_smallint_ce , 2, php_driver_value_ce, php_driver_numeric_ce);
-    php_driver_smallint_ce->ce_flags |= ZEND_ACC_FINAL;
+    php_driver_smallint_ce = register_class_Cassandra_Smallint(php_driver_value_ce, php_driver_numeric_ce);
     php_driver_smallint_ce->create_object = php_driver_smallint_new;
 
     memcpy(&php_driver_smallint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     php_driver_smallint_handlers.std.get_properties = php_driver_smallint_properties;
-#if PHP_VERSION_ID >= 50400
     php_driver_smallint_handlers.std.get_gc = php_driver_smallint_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
     php_driver_smallint_handlers.std.compare = php_driver_smallint_compare;
-#else
-    php_driver_smallint_handlers.std.compare_objects = php_driver_smallint_compare;
-#endif
     php_driver_smallint_handlers.std.cast_object = php_driver_smallint_cast;
-
     php_driver_smallint_handlers.hash_value = php_driver_smallint_hash_value;
 }
 END_EXTERN_C()
