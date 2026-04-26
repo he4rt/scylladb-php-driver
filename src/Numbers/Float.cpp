@@ -20,6 +20,7 @@
 #include "util/types.h"
 #include <float.h>
 BEGIN_EXTERN_C()
+#include "Float_arginfo.h"
 zend_class_entry *php_driver_float_ce = NULL;
 
 static zend_result
@@ -347,46 +348,6 @@ ZEND_METHOD(Cassandra_Float, max)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, num)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-static zend_function_entry php_driver_float_methods[] = {
-  PHP_ME(Float, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Float, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, type, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, value, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, isInfinite, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, isFinite, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, isNaN, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, add, arginfo_num, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, sub, arginfo_num, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, mul, arginfo_num, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, div, arginfo_num, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, mod, arginfo_num, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, abs, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, neg, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, sqrt, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, toInt, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, toDouble, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Float, min, arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-  PHP_ME(Float, max, arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-  PHP_FE_END
-};
 
 static php_driver_value_handlers php_driver_float_handlers;
 
@@ -532,26 +493,14 @@ php_driver_float_new(zend_class_entry *ce )
 
 void php_driver_define_Float()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Float", php_driver_float_methods);
-  php_driver_float_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_float_ce , 2, php_driver_value_ce, php_driver_numeric_ce);
-  php_driver_float_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_float_ce = register_class_Cassandra_Float(php_driver_value_ce, php_driver_numeric_ce);
   php_driver_float_ce->create_object = php_driver_float_new;
 
   memcpy(&php_driver_float_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_float_handlers.std.get_properties  = php_driver_float_properties;
-#if PHP_VERSION_ID >= 50400
-  php_driver_float_handlers.std.get_gc          = php_driver_float_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
+  php_driver_float_handlers.std.get_properties = php_driver_float_properties;
+  php_driver_float_handlers.std.get_gc = php_driver_float_gc;
   php_driver_float_handlers.std.compare = php_driver_float_compare;
-#else
-  php_driver_float_handlers.std.compare_objects = php_driver_float_compare;
-#endif
-  php_driver_float_handlers.std.cast_object     = php_driver_float_cast;
-
+  php_driver_float_handlers.std.cast_object = php_driver_float_cast;
   php_driver_float_handlers.hash_value = php_driver_float_hash_value;
   php_driver_float_handlers.std.clone_obj = NULL;
 }
