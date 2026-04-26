@@ -25,6 +25,7 @@
 #include "util/math.h"
 #include "util/types.h"
 BEGIN_EXTERN_C()
+#include "Decimal_arginfo.h"
 zend_class_entry *php_driver_decimal_ce = NULL;
 
 static void to_mpf(mpf_t result, php_driver_numeric *decimal)
@@ -512,36 +513,6 @@ ZEND_METHOD(Cassandra_Decimal, toDouble)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, num)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-static zend_function_entry php_driver_decimal_methods[] = {
-    PHP_ME(Decimal, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC) PHP_ME(
-        Decimal, __toString, arginfo_tostring, ZEND_ACC_PUBLIC) PHP_ME(Decimal, type, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(Decimal, value, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(Decimal, scale, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(Decimal, add, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Decimal, sub, arginfo_num, ZEND_ACC_PUBLIC)
-                PHP_ME(Decimal, mul, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Decimal, div, arginfo_num, ZEND_ACC_PUBLIC)
-                    PHP_ME(Decimal, mod, arginfo_num, ZEND_ACC_PUBLIC)
-                        PHP_ME(Decimal, abs, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(Decimal, neg, arginfo_none, ZEND_ACC_PUBLIC)
-                                PHP_ME(Decimal, sqrt, arginfo_none, ZEND_ACC_PUBLIC)
-                                    PHP_ME(Decimal, toInt, arginfo_none, ZEND_ACC_PUBLIC)
-                                        PHP_ME(Decimal, toDouble, arginfo_none, ZEND_ACC_PUBLIC) PHP_FE_END};
 
 static php_driver_value_handlers php_driver_decimal_handlers;
 
@@ -683,26 +654,14 @@ static zend_object* php_driver_decimal_new(zend_class_entry *ce)
 
 void php_driver_define_Decimal()
 {
-    zend_class_entry ce;
-
-    INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Decimal", php_driver_decimal_methods);
-    php_driver_decimal_ce = zend_register_internal_class(&ce);
-    zend_class_implements(php_driver_decimal_ce, 2, php_driver_value_ce, php_driver_numeric_ce);
-    php_driver_decimal_ce->ce_flags |= ZEND_ACC_FINAL;
+    php_driver_decimal_ce = register_class_Cassandra_Decimal(php_driver_value_ce, php_driver_numeric_ce);
     php_driver_decimal_ce->create_object = php_driver_decimal_new;
 
     memcpy(&php_driver_decimal_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     php_driver_decimal_handlers.std.get_properties = php_driver_decimal_properties;
-#if PHP_VERSION_ID >= 50400
     php_driver_decimal_handlers.std.get_gc = php_driver_decimal_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
     php_driver_decimal_handlers.std.compare = php_driver_decimal_compare;
-#else
-    php_driver_decimal_handlers.std.compare_objects = php_driver_decimal_compare;
-#endif
-    php_driver_decimal_handlers.std.cast_object = static_cast<zend_object_cast_t>(php_driver_decimal_cast);
-
+    php_driver_decimal_handlers.std.cast_object = (zend_object_cast_t)php_driver_decimal_cast;
     php_driver_decimal_handlers.hash_value = php_driver_decimal_hash_value;
     php_driver_decimal_handlers.std.clone_obj = NULL;
 }
