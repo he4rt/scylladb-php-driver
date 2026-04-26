@@ -19,6 +19,8 @@
 #include "util/consistency.h"
 #include "util/math.h"
 BEGIN_EXTERN_C()
+#include "ExecutionOptions_arginfo.h"
+
 zend_class_entry *php_driver_execution_options_ce = NULL;
 
 static void init_execution_options(php_driver_execution_options *self)
@@ -194,44 +196,32 @@ int php_driver_execution_options_build_local_from_array(php_driver_execution_opt
     return build_from_array(self, options, 0);
 }
 
-PHP_METHOD(ExecutionOptions, __construct)
+ZEND_METHOD(Cassandra_ExecutionOptions, __construct)
 {
     zval *options = NULL;
     php_driver_execution_options *self = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &options) == FAILURE)
-    {
-        return;
-    }
-
-    if (!options)
-        return;
-
-    if (Z_TYPE_P(options) != IS_ARRAY)
-    {
-        INVALID_ARGUMENT(options, "an array");
-    }
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ARRAY(options)
+    ZEND_PARSE_PARAMETERS_END();
 
     self = PHP_DRIVER_GET_EXECUTION_OPTIONS(getThis());
 
     build_from_array(self, options, 1);
 }
 
-PHP_METHOD(ExecutionOptions, __get)
+ZEND_METHOD(Cassandra_ExecutionOptions, __get)
 {
-    char *name;
-    size_t name_len;
-
+    zend_string *name;
     php_driver_execution_options *self = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &name, &name_len) == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STR(name)
+    ZEND_PARSE_PARAMETERS_END();
 
     self = PHP_DRIVER_GET_EXECUTION_OPTIONS(getThis());
 
-    if (name_len == 11 && strncmp("consistency", name, name_len) == 0)
+    if (zend_string_equals_literal(name, "consistency"))
     {
         if (self->consistency == -1)
         {
@@ -239,7 +229,7 @@ PHP_METHOD(ExecutionOptions, __get)
         }
         RETURN_LONG(self->consistency);
     }
-    else if (name_len == 17 && strncmp("serialConsistency", name, name_len) == 0)
+    else if (zend_string_equals_literal(name, "serialConsistency"))
     {
         if (self->serial_consistency == -1)
         {
@@ -247,7 +237,7 @@ PHP_METHOD(ExecutionOptions, __get)
         }
         RETURN_LONG(self->serial_consistency);
     }
-    else if (name_len == 8 && strncmp("pageSize", name, name_len) == 0)
+    else if (zend_string_equals_literal(name, "pageSize"))
     {
         if (self->page_size == -1)
         {
@@ -255,7 +245,7 @@ PHP_METHOD(ExecutionOptions, __get)
         }
         RETURN_LONG(self->page_size);
     }
-    else if (name_len == 16 && strncmp("pagingStateToken", name, name_len) == 0)
+    else if (zend_string_equals_literal(name, "pagingStateToken"))
     {
         if (!self->paging_state_token)
         {
@@ -263,7 +253,7 @@ PHP_METHOD(ExecutionOptions, __get)
         }
         RETVAL_STRINGL(self->paging_state_token, self->paging_state_token_size);
     }
-    else if (name_len == 7 && strncmp("timeout", name, name_len) == 0)
+    else if (zend_string_equals_literal(name, "timeout"))
     {
         if (Z_ISUNDEF(self->timeout))
         {
@@ -271,7 +261,7 @@ PHP_METHOD(ExecutionOptions, __get)
         }
         RETURN_ZVAL(&self->timeout, 1, 0);
     }
-    else if (name_len == 9 && strncmp("arguments", name, name_len) == 0)
+    else if (zend_string_equals_literal(name, "arguments"))
     {
         if (Z_ISUNDEF(self->arguments))
         {
@@ -279,7 +269,7 @@ PHP_METHOD(ExecutionOptions, __get)
         }
         RETURN_ZVAL(&self->arguments, 1, 0);
     }
-    else if (name_len == 11 && strncmp("retryPolicy", name, name_len) == 0)
+    else if (zend_string_equals_literal(name, "retryPolicy"))
     {
         if (Z_ISUNDEF(self->retry_policy))
         {
@@ -287,44 +277,22 @@ PHP_METHOD(ExecutionOptions, __get)
         }
         RETURN_ZVAL(&self->retry_policy, 1, 0);
     }
-    else if (name_len == 9 && strncmp("timestamp", name, name_len) == 0)
+    else if (zend_string_equals_literal(name, "timestamp"))
     {
         char *string;
         if (self->timestamp == INT64_MIN)
         {
             RETURN_NULL();
         }
-#ifdef WIN32
-        spprintf(&string, 0, "%I64d", (long long int)self->timestamp);
-#else
         spprintf(&string, 0, "%lld", (long long int)self->timestamp);
-#endif
         RETVAL_STRING(string);
         efree(string);
     }
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 0)
-ZEND_ARG_ARRAY_INFO(0, options, 1)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo___get, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, name)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_execution_options_methods[] = {
-    PHP_ME(ExecutionOptions, __construct, arginfo__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR | ZEND_ACC_DEPRECATED)
-        PHP_ME(ExecutionOptions, __get, arginfo___get, ZEND_ACC_PUBLIC) PHP_FE_END};
-
 static zend_object_handlers php_driver_execution_options_handlers;
 
-static HashTable *php_driver_execution_options_properties(
-#if PHP_MAJOR_VERSION >= 8
-    zend_object *object
-#else
-    zendObject *object
-#endif
-)
+static HashTable *php_driver_execution_options_properties(zend_object *object)
 {
     HashTable *props = zend_std_get_properties(object);
 
@@ -333,9 +301,7 @@ static HashTable *php_driver_execution_options_properties(
 
 static int php_driver_execution_options_compare(zval *obj1, zval *obj2)
 {
-#if PHP_MAJOR_VERSION >= 8
     ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
         return 1; /* different classes */
 
@@ -344,7 +310,7 @@ static int php_driver_execution_options_compare(zval *obj1, zval *obj2)
 
 static void php_driver_execution_options_free(zend_object *object)
 {
-    php_driver_execution_options *self = PHP5TO7_ZEND_OBJECT_GET(execution_options, object);
+    php_driver_execution_options *self = php_driver_execution_options_object_fetch(object);
 
     if (self->paging_state_token)
     {
@@ -355,34 +321,30 @@ static void php_driver_execution_options_free(zend_object *object)
     zval_ptr_dtor(&self->retry_policy);
 
     zend_object_std_dtor(&self->zendObject);
-
 }
 
 static zend_object* php_driver_execution_options_new(zend_class_entry *ce)
 {
-    php_driver_execution_options *self = PHP5TO7_ZEND_OBJECT_ECALLOC(execution_options, ce);
+    php_driver_execution_options *self = (php_driver_execution_options *)ecalloc(1, sizeof(php_driver_execution_options) + zend_object_properties_size(ce));
 
     init_execution_options(self);
 
-    PHP5TO7_ZEND_OBJECT_INIT(execution_options, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+    self->zendObject.handlers = &php_driver_execution_options_handlers;
+    return &self->zendObject;
 }
+
+END_EXTERN_C()
 
 void php_driver_define_ExecutionOptions()
 {
-    zend_class_entry ce;
-
-    INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\ExecutionOptions", php_driver_execution_options_methods);
-    php_driver_execution_options_ce = zend_register_internal_class(&ce);
-    php_driver_execution_options_ce->ce_flags |= ZEND_ACC_FINAL;
+    php_driver_execution_options_ce = register_class_Cassandra_ExecutionOptions();
     php_driver_execution_options_ce->create_object = php_driver_execution_options_new;
 
     memcpy(&php_driver_execution_options_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    php_driver_execution_options_handlers.offset = XtOffsetOf(php_driver_execution_options, zendObject);
+    php_driver_execution_options_handlers.free_obj = php_driver_execution_options_free;
     php_driver_execution_options_handlers.get_properties = php_driver_execution_options_properties;
-#if PHP_MAJOR_VERSION >= 8
     php_driver_execution_options_handlers.compare = php_driver_execution_options_compare;
-#else
-    php_driver_execution_options_handlers.compare_objects = php_driver_execution_options_compare;
-#endif
     php_driver_execution_options_handlers.clone_obj = NULL;
 }
-END_EXTERN_C()
