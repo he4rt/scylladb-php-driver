@@ -16,47 +16,46 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/types.h"
-BEGIN_EXTERN_C()
-zend_class_entry *php_driver_timestamp_gen_server_side_ce = NULL;
 
-static zend_function_entry php_driver_timestamp_gen_server_side_methods[] = {
-  PHP_FE_END
-};
+BEGIN_EXTERN_C()
+#include "ServerSide_arginfo.h"
+
+zend_class_entry *php_driver_timestamp_gen_server_side_ce = NULL;
 
 static zend_object_handlers php_driver_timestamp_gen_server_side_handlers;
 
 static void
-php_driver_timestamp_gen_server_side_free(zend_object *object )
+php_driver_timestamp_gen_server_side_free(zend_object *object)
 {
-  php_driver_timestamp_gen *self = PHP5TO7_ZEND_OBJECT_GET(timestamp_gen, object);
+    php_driver_timestamp_gen *self = php_driver_timestamp_gen_object_fetch(object);
 
-  cass_timestamp_gen_free(self->gen);
+    cass_timestamp_gen_free(self->gen);
 
-  zend_object_std_dtor(&self->zendObject);
-
+    zend_object_std_dtor(&self->zendObject);
 }
 
-static zend_object*
-php_driver_timestamp_gen_server_side_new(zend_class_entry *ce )
+static zend_object *
+php_driver_timestamp_gen_server_side_new(zend_class_entry *ce)
 {
-  php_driver_timestamp_gen *self = PHP5TO7_ZEND_OBJECT_ECALLOC(timestamp_gen, ce);
+    php_driver_timestamp_gen *self =
+        (php_driver_timestamp_gen *)ecalloc(1, sizeof(php_driver_timestamp_gen) + zend_object_properties_size(ce));
 
-  self->gen = cass_timestamp_gen_server_side_new();
+    self->gen = cass_timestamp_gen_server_side_new();
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(timestamp_gen, timestamp_gen_server_side, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+    self->zendObject.handlers = &php_driver_timestamp_gen_server_side_handlers;
+
+    return &self->zendObject;
 }
 
 void php_driver_define_TimestampGeneratorServerSide()
 {
-  zend_class_entry ce;
+    php_driver_timestamp_gen_server_side_ce =
+        register_class_Cassandra_TimestampGenerator_ServerSide(php_driver_timestamp_gen_ce);
+    php_driver_timestamp_gen_server_side_ce->create_object = php_driver_timestamp_gen_server_side_new;
 
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\TimestampGenerator\\ServerSide", php_driver_timestamp_gen_server_side_methods);
-  php_driver_timestamp_gen_server_side_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_timestamp_gen_server_side_ce , 1, php_driver_timestamp_gen_ce);
-  php_driver_timestamp_gen_server_side_ce->ce_flags     |= ZEND_ACC_FINAL;
-  php_driver_timestamp_gen_server_side_ce->create_object = php_driver_timestamp_gen_server_side_new;
-
-  memcpy(&php_driver_timestamp_gen_server_side_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    memcpy(&php_driver_timestamp_gen_server_side_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    php_driver_timestamp_gen_server_side_handlers.offset   = XtOffsetOf(php_driver_timestamp_gen, zendObject);
+    php_driver_timestamp_gen_server_side_handlers.free_obj = php_driver_timestamp_gen_server_side_free;
 }
 END_EXTERN_C()
