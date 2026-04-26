@@ -102,9 +102,7 @@ php_driver_materialized_view_get_option(php_driver_materialized_view *view,
     php_driver_default_materialized_view_build_options(view );
   }
 
-  if (!PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(view->options),
-                         name, strlen(name) + 1,
-                         zvalue)) {
+  if ((zvalue = zend_hash_str_find(Z_ARRVAL(view->options), name, (size_t)(strlen(name) + 1 - 1))) == NULL) {
     ZVAL_FALSE(result);
     return;
   }
@@ -140,9 +138,7 @@ PHP_METHOD(DefaultMaterializedView, option)
     php_driver_default_materialized_view_build_options(self );
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(self->options),
-                         name, name_len + 1,
-                         result)) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, (size_t)(name_len + 1 - 1))) != NULL) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -418,10 +414,7 @@ PHP_METHOD(DefaultMaterializedView, columns)
       column = PHP_DRIVER_GET_COLUMN(&zcolumn);
 
       if (Z_TYPE(column->name) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value,
-                                  Z_STRVAL(column->name),
-                                  Z_STRLEN(column->name) + 1,
-                                  &zcolumn);
+        add_assoc_zval_ex(return_value, Z_STRVAL(column->name), (size_t)(Z_STRLEN(column->name) + 1 - 1), &zcolumn);
       } else {
         add_next_index_zval(return_value, &zcolumn);
       }

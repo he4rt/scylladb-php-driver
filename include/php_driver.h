@@ -73,38 +73,13 @@ typedef unsigned long ulong;
         return &self->zendObject;                                                                                            \
     } while (0)
 
-#define PHP5TO7_ADD_ASSOC_ZVAL_EX(zv, key, len, val) add_assoc_zval_ex((zv), (key), (size_t)(len - 1), val)
-
-#define PHP5TO7_ADD_ASSOC_STRINGL_EX(zv, key, key_len, str, str_len)                                                   \
-    add_assoc_stringl_ex((zv), (key), (size_t)(key_len - 1), (char *)(str), (size_t)(str_len))
-
-
 #define PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(ht, str_index, num_index)                                                    \
     zend_hash_get_current_key((ht), (str_index), (num_index))
 
 #define PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(ht, str_index, num_index, pos)                                            \
     zend_hash_get_current_key_ex((ht), (str_index), (num_index), pos)
 
-#define PHP5TO7_ZEND_HASH_EXISTS(ht, key, len) zend_hash_str_exists((ht), (key), (size_t)(len - 1))
-
-#define PHP5TO7_ZEND_HASH_FIND(ht, key, len, res) ((res = zend_hash_str_find((ht), (key), (size_t)(len - 1))) != NULL)
-
-#define PHP5TO7_ZEND_HASH_INDEX_FIND(ht, index, res)                                                                   \
-    ((res = zend_hash_index_find((ht), (zend_ulong)(index))) != NULL)
-
 #define PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(ht, val, val_size) ((void)zend_hash_next_index_insert((ht), (val)))
-
-#define PHP5TO7_ZEND_HASH_UPDATE(ht, key, len, val, val_size)                                                          \
-    ((void)zend_hash_str_update((ht), (key), (size_t)(len - 1), (val)))
-
-#define PHP5TO7_ZEND_HASH_INDEX_UPDATE(ht, index, val, val_size) ((void)zend_hash_index_update((ht), (index), (val)))
-
-#define PHP5TO7_ZEND_HASH_ADD(ht, key, len, val, val_size)                                                             \
-    ((void)zend_hash_str_add((ht), (key), (size_t)(len - 1), (val)))
-
-#define PHP5TO7_ZEND_HASH_DEL(ht, key, len) ((zend_hash_str_del((ht), (key), (size_t)(len - 1))) == SUCCESS)
-
-#define PHP5TO7_ZEND_HASH_ZVAL_COPY(dst, src) zend_hash_copy((dst), (src), (copy_ctor_func_t)zval_add_ref);
 
 
     extern zend_module_entry php_driver_module_entry;

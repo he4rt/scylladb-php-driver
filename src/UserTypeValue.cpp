@@ -157,9 +157,7 @@ PHP_METHOD(UserTypeValue, set)
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types,
-                              name, name_length + 1,
-                              sub_type)) {
+  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, (size_t)(name_length + 1 - 1))) == NULL) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
@@ -191,17 +189,13 @@ PHP_METHOD(UserTypeValue, get)
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types,
-                              name, name_length + 1,
-                              sub_type)) {
+  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, (size_t)(name_length + 1 - 1))) == NULL) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(&self->values,
-                              name, name_length + 1,
-                              value)) {
+  if ((value = zend_hash_str_find(&self->values, name, (size_t)(name_length + 1 - 1))) != NULL) {
     RETURN_ZVAL(value, 1, 0);
   }
 }
@@ -229,9 +223,9 @@ PHP_METHOD(UserTypeValue, current)
   if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type->data.udt.types, &key, NULL, &self->pos) == HASH_KEY_IS_STRING) {
     zval *value;
 #if PHP_MAJOR_VERSION >= 7
-    if (PHP5TO7_ZEND_HASH_FIND(&self->values, key->val, key->len + 1, value)) {
+    if ((value = zend_hash_str_find(&self->values, key->val, (size_t)(key->len + 1 - 1))) != NULL) {
 #else
-    if (PHP5TO7_ZEND_HASH_FIND(&self->values, key, strlen(key) + 1, value)) {
+    if ((value = zend_hash_str_find(&self->values, key, (size_t)(strlen(key) + 1 - 1))) != NULL) {
 #endif
       RETURN_ZVAL(value, 1, 0);
     }
@@ -390,15 +384,13 @@ php_driver_user_type_value_properties(
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "type", sizeof("type"),
-                           &self->type, sizeof(zval));
+  (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &self->type);
   Z_ADDREF_P(&self->type);
 
 
   array_init(&values);
   php_driver_user_type_value_populate(self, &values );
-  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval));
+  (void)zend_hash_str_update(props, "values", sizeof("values") - 1, &values);
 
   return props;
 }

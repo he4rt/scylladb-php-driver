@@ -162,9 +162,7 @@ php_driver_type_set_properties(
   object->properties = zend_new_array(1);
   HashTable *props = object->properties;
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "valueType", sizeof("valueType"),
-                           &self->data.set.value_type, sizeof(zval));
+  (void)zend_hash_str_update(props, "valueType", sizeof("valueType") - 1, &self->data.set.value_type);
   Z_ADDREF_P(&self->data.set.value_type);
 
   return props;

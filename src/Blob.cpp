@@ -151,15 +151,13 @@ static HashTable *php_driver_blob_properties(
   HashTable *props = object->properties;
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_BLOB);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"),
-                           &type, sizeof(zval));
+  (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &type);
 
   php_driver_bytes_to_hex((const char *)self->data, self->size, &hex, &hex_len);
 
   ZVAL_STRINGL(&bytes, hex, hex_len);
   efree(hex);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "bytes", sizeof("bytes"),
-                           &bytes, sizeof(zval));
+  (void)zend_hash_str_update(props, "bytes", sizeof("bytes") - 1, &bytes);
 
   return props;
 }

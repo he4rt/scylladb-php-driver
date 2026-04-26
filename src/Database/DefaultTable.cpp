@@ -102,9 +102,7 @@ php_driver_table_get_option(php_driver_table *table,
     php_driver_default_table_build_options(table );
   }
 
-  if (!PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(table->options),
-                         name, strlen(name) + 1,
-                         zvalue)) {
+  if ((zvalue = zend_hash_str_find(Z_ARRVAL(table->options), name, (size_t)(strlen(name) + 1 - 1))) == NULL) {
     ZVAL_FALSE(result);
     return;
   }
@@ -140,9 +138,7 @@ PHP_METHOD(DefaultTable, option)
     php_driver_default_table_build_options(self );
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(self->options),
-                         name, name_len + 1,
-                         result)) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, (size_t)(name_len + 1 - 1))) != NULL) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -419,10 +415,7 @@ PHP_METHOD(DefaultTable, columns)
       column = PHP_DRIVER_GET_COLUMN(&zcolumn);
 
       if (Z_TYPE(column->name) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value,
-                                  Z_STRVAL(column->name),
-                                  Z_STRLEN(column->name) + 1,
-                                  &zcolumn);
+        add_assoc_zval_ex(return_value, Z_STRVAL(column->name), (size_t)(Z_STRLEN(column->name) + 1 - 1), &zcolumn);
       } else {
         add_next_index_zval(return_value, &zcolumn);
       }
@@ -565,10 +558,7 @@ PHP_METHOD(DefaultTable, indexes)
       php_driver_index *index = PHP_DRIVER_GET_INDEX(&zindex);
 
       if (Z_TYPE(index->name) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value,
-                                  Z_STRVAL(index->name),
-                                  Z_STRLEN(index->name) + 1,
-                                  &zindex);
+        add_assoc_zval_ex(return_value, Z_STRVAL(index->name), (size_t)(Z_STRLEN(index->name) + 1 - 1), &zindex);
       } else {
         add_next_index_zval(return_value, &zindex);
       }
@@ -629,10 +619,7 @@ PHP_METHOD(DefaultTable, materializedViews)
       view = PHP_DRIVER_GET_MATERIALIZED_VIEW(&zview);
 
       if (Z_TYPE(view->name) == IS_STRING) {
-        PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value,
-                                  Z_STRVAL(view->name),
-                                  Z_STRLEN(view->name) + 1,
-                                  &zview);
+        add_assoc_zval_ex(return_value, Z_STRVAL(view->name), (size_t)(Z_STRLEN(view->name) + 1 - 1), &zview);
       } else {
         add_next_index_zval(return_value, &zview);
       }

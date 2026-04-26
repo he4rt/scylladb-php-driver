@@ -256,9 +256,9 @@ php_driver_duration_properties(
   ZVAL_LONG(&wrapped_months, self->months);
   ZVAL_LONG(&wrapped_days, self->days);
   ZVAL_LONG(&wrapped_nanos, self->nanos);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "months", sizeof("months"), &wrapped_months, sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "days", sizeof("days"), &wrapped_days, sizeof(zval));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "nanos", sizeof("nanos"), &wrapped_nanos, sizeof(zval));
+  (void)zend_hash_str_update(props, "months", sizeof("months") - 1, &wrapped_months);
+  (void)zend_hash_str_update(props, "days", sizeof("days") - 1, &wrapped_days);
+  (void)zend_hash_str_update(props, "nanos", sizeof("nanos") - 1, &wrapped_nanos);
 
   return props;
 }

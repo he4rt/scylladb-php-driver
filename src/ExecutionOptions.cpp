@@ -45,7 +45,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
     zval *retry_policy = NULL;
     zval *timestamp = NULL;
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "consistency", sizeof("consistency"), consistency))
+    if ((consistency = zend_hash_str_find(Z_ARRVAL_P(options), "consistency", sizeof("consistency") - 1)) != NULL)
     {
         zend_long val = Z_LVAL_P(consistency);
 
@@ -59,8 +59,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         self->consistency = val;
     }
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "serial_consistency", sizeof("serial_consistency"),
-                               serial_consistency))
+    if ((serial_consistency = zend_hash_str_find(Z_ARRVAL_P(options), "serial_consistency", sizeof("serial_consistency") - 1)) != NULL)
     {
         zend_long val = Z_LVAL_P(serial_consistency);
 
@@ -75,7 +74,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         self->serial_consistency = val;
     }
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "page_size", sizeof("page_size"), page_size))
+    if ((page_size = zend_hash_str_find(Z_ARRVAL_P(options), "page_size", sizeof("page_size") - 1)) != NULL)
     {
         if (Z_TYPE_P(page_size) != IS_LONG ||
             Z_LVAL_P(page_size) <= 0)
@@ -86,8 +85,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         self->page_size = Z_LVAL_P(page_size);
     }
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "paging_state_token", sizeof("paging_state_token"),
-                               paging_state_token))
+    if ((paging_state_token = zend_hash_str_find(Z_ARRVAL_P(options), "paging_state_token", sizeof("paging_state_token") - 1)) != NULL)
     {
         if (Z_TYPE_P(paging_state_token) != IS_STRING)
         {
@@ -106,7 +104,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         self->paging_state_token_size = Z_STRLEN_P(paging_state_token);
     }
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "timeout", sizeof("timeout"), timeout))
+    if ((timeout = zend_hash_str_find(Z_ARRVAL_P(options), "timeout", sizeof("timeout") - 1)) != NULL)
     {
         if (!(Z_TYPE_P(timeout) == IS_LONG &&
               Z_LVAL_P(timeout) > 0) &&
@@ -129,7 +127,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         }
     }
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "arguments", sizeof("arguments"), arguments))
+    if ((arguments = zend_hash_str_find(Z_ARRVAL_P(options), "arguments", sizeof("arguments") - 1)) != NULL)
     {
         if (Z_TYPE_P(arguments) != IS_ARRAY)
         {
@@ -147,7 +145,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         }
     }
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "retry_policy", sizeof("retry_policy"), retry_policy))
+    if ((retry_policy = zend_hash_str_find(Z_ARRVAL_P(options), "retry_policy", sizeof("retry_policy") - 1)) != NULL)
     {
         if (Z_TYPE_P(retry_policy) != IS_OBJECT &&
             !instanceof_function(Z_OBJCE_P(retry_policy), php_scylladb_retry_policy_ce))
@@ -167,7 +165,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         }
     }
 
-    if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL_P(options), "timestamp", sizeof("timestamp"), timestamp))
+    if ((timestamp = zend_hash_str_find(Z_ARRVAL_P(options), "timestamp", sizeof("timestamp") - 1)) != NULL)
     {
         if (Z_TYPE_P(timestamp) == IS_LONG)
         {

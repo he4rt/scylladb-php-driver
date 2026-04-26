@@ -449,8 +449,7 @@ int php_driver_get_result(const CassResult *result, zval *out)
                 return FAILURE;
             }
 
-            PHP5TO7_ADD_ASSOC_ZVAL_EX(&row, column_names[i], strlen(column_names[i]) + 1,
-                                      &value);
+            add_assoc_zval_ex(&row, column_names[i], (size_t)(strlen(column_names[i]) + 1 - 1), &value);
         }
 
         add_next_index_zval(&rows, &row);

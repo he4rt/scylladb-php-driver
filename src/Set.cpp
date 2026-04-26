@@ -355,16 +355,14 @@ php_driver_set_properties(
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "type", sizeof("type"),
-                           &self->type, sizeof(zval));
+  (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &self->type);
   Z_ADDREF_P(&self->type);
 
 
   array_init(&values);
   php_driver_set_populate(self, &values );
   zend_hash_sort(Z_ARRVAL_P(&values), php_driver_data_compare, 1);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval));
+  (void)zend_hash_str_update(props, "values", sizeof("values") - 1, &values);
 
   return props;
 }

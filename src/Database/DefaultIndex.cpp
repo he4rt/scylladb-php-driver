@@ -127,9 +127,7 @@ void php_driver_index_build_option(php_driver_index *index)
 
       cass_value_get_string(key, &key_str, &key_str_length);
       cass_value_get_string(value, &value_str, &value_str_length);
-      PHP5TO7_ADD_ASSOC_STRINGL_EX(&index->options,
-                                   key_str, key_str_length + 1,
-                                   value_str, value_str_length);
+      add_assoc_stringl_ex(&index->options, key_str, (size_t)(key_str_length + 1 - 1), (char *)(value_str), (size_t)(value_str_length));
     }
   }
 }
@@ -151,9 +149,7 @@ PHP_METHOD(DefaultIndex, option)
     php_driver_index_build_option(self);
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(self->options),
-                         name, name_len + 1,
-                         result)) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, (size_t)(name_len + 1 - 1))) != NULL) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -187,9 +183,7 @@ PHP_METHOD(DefaultIndex, className)
     php_driver_index_build_option(self);
   }
 
-  if (PHP5TO7_ZEND_HASH_FIND(Z_ARRVAL(self->options),
-                         "class_name", sizeof("class_name"),
-                         result)) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), "class_name", sizeof("class_name") - 1)) != NULL) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -208,9 +202,7 @@ PHP_METHOD(DefaultIndex, isCustom)
     php_driver_index_build_option(self);
   }
 
-  is_custom =
-      PHP5TO7_ZEND_HASH_EXISTS(Z_ARRVAL(self->options),
-                               "class_name", sizeof("class_name"));
+  is_custom = zend_hash_str_exists(Z_ARRVAL(self->options), "class_name", sizeof("class_name") - 1);
   RETURN_BOOL(is_custom);
 }
 

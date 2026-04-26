@@ -45,9 +45,7 @@ php_driver_table_build_options(CassIterator* iterator ) {
           if (php_driver_value(value,
                                   data_type,
                                   &zvalue ) == SUCCESS) {
-            PHP5TO7_ADD_ASSOC_ZVAL_EX(&zoptions,
-                                      name, name_length + 1,
-                                      &zvalue);
+            add_assoc_zval_ex(&zoptions, name, (size_t)(name_length + 1 - 1), &zvalue);
           }
         }
       }

@@ -787,7 +787,7 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
   ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
     php_driver_type* sub_type;
-    if (!PHP5TO7_ZEND_HASH_INDEX_FIND(&type->data.tuple.types, num_key, zsub_type) ||
+    if ((zsub_type = zend_hash_index_find(&type->data.tuple.types, (zend_ulong)(num_key))) == NULL ||
         !php_driver_validate_object((current), (zsub_type))) {
       result = 0;
       break;
@@ -822,7 +822,7 @@ int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_t
   ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
     zval* zsub_type;
     php_driver_type* sub_type;
-    if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types, ZSTR_VAL(name), ZSTR_LEN(name) + 1, zsub_type) ||
+    if ((zsub_type = zend_hash_str_find(&type->data.udt.types, ZSTR_VAL(name), (size_t)(ZSTR_LEN(name) + 1 - 1))) == NULL ||
         !php_driver_validate_object((current), (zsub_type))) {
       result = 0;
       break;
