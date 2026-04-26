@@ -78,47 +78,6 @@ typedef unsigned long ulong;
 #define PHP5TO7_ADD_ASSOC_STRINGL_EX(zv, key, key_len, str, str_len)                                                   \
     add_assoc_stringl_ex((zv), (key), (size_t)(key_len - 1), (char *)(str), (size_t)(str_len))
 
-#define PHP5TO7_ZEND_HASH_FOREACH_VAL(ht, _val) ZEND_HASH_FOREACH_VAL(ht, _val)
-
-#define PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(ht, _h, _val) ZEND_HASH_FOREACH_NUM_KEY_VAL(ht, _h, _val)
-
-#if PHP_VERSION_ID >= 80200
-
-#define PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(ht, _key, _val)                                                          \
-    ZEND_HASH_FOREACH(ht, 0);                                                                                          \
-    if (__key)                                                                                                         \
-    {                                                                                                                  \
-        (_key) = ZSTR_VAL(__key);                                                                                      \
-    }                                                                                                                  \
-    else                                                                                                               \
-    {                                                                                                                  \
-        (_key) = NULL;                                                                                                 \
-    }                                                                                                                  \
-    _val = _z;
-
-#else
-
-#define PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(ht, _key, _val)                                                          \
-    ZEND_HASH_FOREACH(ht, 0);                                                                                          \
-    if (_p->key)                                                                                                       \
-    {                                                                                                                  \
-        (_key) = _p->key->val;                                                                                         \
-    }                                                                                                                  \
-    else                                                                                                               \
-    {                                                                                                                  \
-        (_key) = NULL;                                                                                                 \
-    }                                                                                                                  \
-    _val = _z;
-
-#endif
-
-#define PHP5TO7_ZEND_HASH_FOREACH_END(ht) ZEND_HASH_FOREACH_END()
-
-#define PHP5TO7_ZEND_HASH_GET_CURRENT_DATA(ht, res) ((res = zend_hash_get_current_data((ht))) != NULL)
-
-#define PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(ht, res, pos) ((res = zend_hash_get_current_data_ex((ht), (pos))) != NULL)
-
-#define PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(ht, res, pos) ((res = zend_hash_get_current_data_ex((ht), (pos))) != NULL)
 
 #define PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(ht, str_index, num_index)                                                    \
     zend_hash_get_current_key((ht), (str_index), (num_index))

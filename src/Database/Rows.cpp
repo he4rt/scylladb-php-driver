@@ -181,7 +181,7 @@ PHP_METHOD(Rows, offsetGet)
     }
 
     self = PHP_DRIVER_GET_ROWS(getThis());
-    if (PHP5TO7_ZEND_HASH_INDEX_FIND(Z_ARRVAL(self->rows), Z_LVAL_P(offset), value))
+    if ((value = zend_hash_index_find(Z_ARRVAL(self->rows), (zend_ulong)(Z_LVAL_P(offset)))) != NULL)
     {
         RETURN_ZVAL(value, 1, 0);
     }
@@ -384,7 +384,7 @@ PHP_METHOD(Rows, first)
     self = PHP_DRIVER_GET_ROWS(getThis());
 
     zend_hash_internal_pointer_reset_ex(Z_ARRVAL(self->rows), &pos);
-    if (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA(Z_ARRVAL(self->rows), entry))
+    if ((entry = zend_hash_get_current_data(Z_ARRVAL(self->rows))) != NULL)
     {
         RETVAL_ZVAL(entry, 1, 0);
     }

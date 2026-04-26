@@ -372,7 +372,7 @@ static int bind_arguments(CassStatement* statement, HashTable* arguments) {
     }
     if (rc == FAILURE) break;
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(arguments);
+  ZEND_HASH_FOREACH_END();
 
   return rc;
 }
@@ -411,7 +411,7 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
   CassError rc = CASS_OK;
 
   zval* current;
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
+  ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
     php_driver_statement* statement;
     php_driver_statement simple_statement;
     HashTable* arguments;
@@ -445,7 +445,7 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
     cass_batch_add_statement(cass_batch, stmt);
     cass_statement_free(stmt);
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&batch->data.batch.statements);
+  ZEND_HASH_FOREACH_END();
 
   rc = cass_batch_set_consistency(cass_batch, consistency);
   ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
@@ -790,7 +790,7 @@ PHP_METHOD(DefaultSession, prepare) {
     hash_key_len = spprintf(&hash_key, 0, "%s%s:prepared_statement:%s",
                             self->hash_key, Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
 
-    if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
+    if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1))) != NULL &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
       object_init_ex(return_value, php_driver_prepared_statement_ce);
@@ -823,15 +823,13 @@ PHP_METHOD(DefaultSession, prepare) {
 #if PHP_MAJOR_VERSION >= 7
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
                                 php_le_php_driver_prepared_statement());
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource,
-                                 sizeof(zval));
+        (void)zend_hash_str_update(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1), &resource);
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #else
         resource.type = php_le_php_driver_prepared_statement();
         resource.ptr = pprepared_statement;
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, resource,
-                                 sizeof(zendObject));
+        (void)zend_hash_str_update(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1), resource);
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #endif
@@ -841,7 +839,7 @@ PHP_METHOD(DefaultSession, prepare) {
 
   if (self->persist) {
     if (php_driver_future_is_error(future) == FAILURE) {
-      (void)PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
+      (void)(zend_hash_str_del(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1)) == SUCCESS);
     }
     efree(hash_key);
   } else {
