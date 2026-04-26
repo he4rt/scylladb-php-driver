@@ -1,4 +1,5 @@
 # Directories to ignore
+.claude/worktrees
 /.idea/
 /.vagrant/
 /bin/
