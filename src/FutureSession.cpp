@@ -112,7 +112,7 @@ static int php_driver_future_session_compare(zval *obj1, zval *obj2)
 
 static void php_driver_future_session_free(zend_object *object)
 {
-  php_driver_future_session *self = PHP5TO7_ZEND_OBJECT_GET(future_session, object);
+  php_driver_future_session *self = php_driver_future_session_object_fetch(object);
 
   if (self->persist) {
     efree(self->hash_key);
@@ -135,7 +135,7 @@ static void php_driver_future_session_free(zend_object *object)
 
 static zend_object *php_driver_future_session_new(zend_class_entry *ce)
 {
-  php_driver_future_session *self = PHP5TO7_ZEND_OBJECT_ECALLOC(future_session, ce);
+  php_driver_future_session *self = (php_driver_future_session *)ecalloc(1, sizeof(php_driver_future_session) + zend_object_properties_size(ce));
 
   self->session           = nullptr;
   self->future            = nullptr;
@@ -145,10 +145,10 @@ static zend_object *php_driver_future_session_new(zend_class_entry *ce)
 
   ZVAL_UNDEF(&self->default_session);
 
-  PHP5TO7_ZEND_OBJECT_INIT(future_session, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  self->zendObject.handlers = &php_driver_future_session_handlers;
+  return &self->zendObject;
 }
-
-END_EXTERN_C()
 
 void php_driver_define_FutureSession()
 {
@@ -156,7 +156,11 @@ void php_driver_define_FutureSession()
   php_driver_future_session_ce->create_object = php_driver_future_session_new;
 
   memcpy(&php_driver_future_session_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+  php_driver_future_session_handlers.offset = XtOffsetOf(php_driver_future_session, zendObject);
+  php_driver_future_session_handlers.free_obj = php_driver_future_session_free;
   php_driver_future_session_handlers.get_properties = php_driver_future_session_properties;
   php_driver_future_session_handlers.compare = php_driver_future_session_compare;
   php_driver_future_session_handlers.clone_obj = nullptr;
 }
+
+END_EXTERN_C()
