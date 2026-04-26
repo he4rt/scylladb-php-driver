@@ -18,16 +18,17 @@
 #include "php_driver_types.h"
 #include "util/types.h"
 BEGIN_EXTERN_C()
+#include "Custom_arginfo.h"
 zend_class_entry *php_driver_type_custom_ce = NULL;
 
-PHP_METHOD(TypeCustom, __construct) {
+ZEND_METHOD(Cassandra_Type_Custom, __construct) {
   zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE
                           "\\Type\\Custom type is not supported.");
   return;
 }
 
-PHP_METHOD(TypeCustom, name) {
+ZEND_METHOD(Cassandra_Type_Custom, name) {
   php_driver_type *custom;
 
   if (zend_parse_parameters_none() == FAILURE) {
@@ -39,7 +40,7 @@ PHP_METHOD(TypeCustom, name) {
   RETVAL_STRING(custom->data.custom.class_name);
 }
 
-PHP_METHOD(TypeCustom, __toString) {
+ZEND_METHOD(Cassandra_Type_Custom, __toString) {
   php_driver_type *custom;
 
   if (zend_parse_parameters_none() == FAILURE) {
@@ -51,32 +52,13 @@ PHP_METHOD(TypeCustom, __toString) {
   RETVAL_STRING(custom->data.custom.class_name);
 }
 
-PHP_METHOD(TypeCustom, create) {
+ZEND_METHOD(Cassandra_Type_Custom, create) {
   zend_throw_exception_ex(php_driver_logic_exception_ce, 0,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE
                           "\\Type\\Custom instance is not supported.");
   return;
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_value, 0, ZEND_RETURN_VALUE, 0)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_type_custom_methods[] = {
-    PHP_ME(TypeCustom, __construct, arginfo_none, ZEND_ACC_PRIVATE)
-        PHP_ME(TypeCustom, name, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(TypeCustom, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-                PHP_ME(TypeCustom, create, arginfo_value, ZEND_ACC_PUBLIC) PHP_FE_END};
 
 static zend_object_handlers php_driver_type_custom_handlers;
 
@@ -140,22 +122,12 @@ static zend_object *php_driver_type_custom_new(zend_class_entry *ce) {
 }
 
 void php_driver_define_TypeCustom() {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\Custom", php_driver_type_custom_methods);
-  php_driver_type_custom_ce = zend_register_internal_class_ex(&ce, php_driver_type_ce);
+  php_driver_type_custom_ce = register_class_Cassandra_Type_Custom(php_driver_type_ce);
   memcpy(&php_driver_type_custom_handlers, zend_get_std_object_handlers(),
          sizeof(zend_object_handlers));
   php_driver_type_custom_handlers.get_properties = php_driver_type_custom_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_type_custom_handlers.get_gc = php_driver_type_custom_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_type_custom_handlers.compare = php_driver_type_custom_compare;
-#else
-  php_driver_type_custom_handlers.compare_objects = php_driver_type_custom_compare;
-#endif
-  php_driver_type_custom_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_type_custom_ce->create_object = php_driver_type_custom_new;
 }
 END_EXTERN_C()
