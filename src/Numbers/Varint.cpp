@@ -405,7 +405,7 @@ static HashTable *php_driver_varint_properties(
     zval value;
 
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -460,7 +460,7 @@ static
     php_driver_varint_cast(zend_object *object, zval *retval, int type )
 {
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -482,7 +482,7 @@ static
 
 static void php_driver_varint_free(zend_object *object )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 
     mpz_clear(self->data.varint.value);
 
@@ -492,11 +492,13 @@ static void php_driver_varint_free(zend_object *object )
 
 static zend_object* php_driver_varint_new(zend_class_entry *ce )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_ECALLOC(numeric, ce);
+    php_driver_numeric *self = (php_driver_numeric *)ecalloc(1, sizeof(php_driver_numeric) + zend_object_properties_size(ce));
 
     mpz_init(self->data.varint.value);
 
-    PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, varint, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+    self->zendObject.handlers = (zend_object_handlers *)&php_driver_varint_handlers;
+    return &self->zendObject;
 }
 
 void php_driver_define_Varint()
@@ -505,6 +507,8 @@ void php_driver_define_Varint()
     php_driver_varint_ce->create_object = php_driver_varint_new;
 
     memcpy(&php_driver_varint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    php_driver_varint_handlers.std.offset = XtOffsetOf(php_driver_numeric, zendObject);
+    php_driver_varint_handlers.std.free_obj = php_driver_varint_free;
     php_driver_varint_handlers.std.get_properties = php_driver_varint_properties;
     php_driver_varint_handlers.std.get_gc = php_driver_varint_gc;
     php_driver_varint_handlers.std.compare = php_driver_varint_compare;
