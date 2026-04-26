@@ -234,7 +234,7 @@ static int php_driver_cluster_builder_compare(zval *obj1, zval *obj2)
 }
 static void php_driver_cluster_builder_free(zend_object *object)
 {
-    php_driver_cluster_builder *self = PHP5TO7_ZEND_OBJECT_GET(cluster_builder, object);
+    php_driver_cluster_builder *self = php_driver_cluster_builder_object_fetch(object);
 
     zend_string_release(self->contact_points);
     self->contact_points = nullptr;

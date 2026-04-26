@@ -27,7 +27,7 @@ static int php_driver_default_cluster_compare(zval *obj1, zval *obj2)
 
 static void php_driver_default_cluster_free(zend_object *object)
 {
-    php_driver_cluster *self = PHP5TO7_ZEND_OBJECT_GET(cluster, object);
+    php_driver_cluster *self = php_driver_cluster_object_fetch(object);
 
     if (self->persist)
     {
@@ -47,7 +47,7 @@ static void php_driver_default_cluster_free(zend_object *object)
 
 zend_object *php_driver_default_cluster_new(zend_class_entry *ce)
 {
-    auto *self = PHP5TO7_ZEND_OBJECT_ECALLOC(cluster, ce);
+    auto *self = (php_driver_cluster *)ecalloc(1, sizeof(php_driver_cluster) + zend_object_properties_size(ce));
 
     self->cluster = nullptr;
     self->default_consistency = PHP_DRIVER_DEFAULT_CONSISTENCY;
