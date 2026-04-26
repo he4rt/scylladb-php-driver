@@ -50,7 +50,13 @@ Stage 3 in the full plan. Bigger commitment; gates Stage 4.
 
 Stage 3.5 in the full plan. **86 classes total, 27 done, 59 to go.** Order:
 
-- [x] Round A foundational: `Value` (interface), `Numeric` (interface), `UuidInterface` (interface), `Uuid`, `Blob`, `Inet`, `Duration`, `Bigint`, `Smallint`, `Tinyint`, `Float`, `Decimal`, `Varint`, `Timeuuid` (wired). Done on `refactor/stage2-macro-purge`. Custom TBD.
+- [x] Round A foundational: `Value` (interface), `Numeric` (interface), `UuidInterface` (interface), `Uuid`, `Blob`, `Inet`, `Duration`, `Bigint`, `Smallint`, `Tinyint`, `Float`, `Decimal`, `Varint`, `Timeuuid` (wired). All stubs strictly typed (concrete return types, `static` for fluent/factory, `int|float|string|T` constructors). Done on `refactor/stage2-macro-purge`.
+- [x] Round B Type system: `Type`, `Type\Scalar`, `Type\Collection`, `Type\Set`, `Type\Map`, `Type\Tuple`, `Type\UserType`, `Type\Custom`. Strictly typed. Done on `refactor/stage2-macro-purge`.
+- [x] Round C Collections: `Collection`, `Set`, `Map`, `Tuple`, `UserTypeValue`. Constructor types tightened (`Type|string`); `key()` typed as `int` or `string` per implementation. Done on `refactor/stage2-macro-purge`.
+- [x] Round F TimestampGenerator: `TimestampGenerator` (interface), `Monotonic`, `ServerSide`. Done on `refactor/stage2-macro-purge`.
+- [x] Round G Exceptions: all 25 exception classes consolidated into `exceptions.stub.php`. Done on `refactor/stage2-macro-purge`.
+- [ ] Round D Database surface: `Session`, `DefaultSession`, `SimpleStatement`, `PreparedStatement`, `BatchStatement`, `ExecutionOptions`, `Future*`, `Rows`.
+- [ ] Round E Schema metadata: `Schema`, `Keyspace`, `Table`, `Column`, `Index`, `MaterializedView`, `Function`, `Aggregate` classes.
 - [ ] Round B Type system (8 classes): `Type`, `Type\{Scalar,Collection,Set,Map,Tuple,UserType,Custom}`.
 - [ ] Round C Collections (5 classes): `Collection`, `Set`, `Map`, `Tuple`, `UserTypeValue`.
 - [ ] Round D Database (14 classes): `Session`, `DefaultSession`, `Statement`, `SimpleStatement`, `PreparedStatement`, `BatchStatement`, `ExecutionOptions`, `Future`, `FutureClose`, `FuturePreparedStatement`, `FutureRows`, `FutureSession`, `FutureValue`, `Rows`.
