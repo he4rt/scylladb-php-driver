@@ -22,6 +22,7 @@
 
 #include "DefaultIndex.h"
 BEGIN_EXTERN_C()
+#include "DefaultIndex_arginfo.h"
 zend_class_entry *php_driver_default_index_ce = NULL;
 
 zval
@@ -49,7 +50,7 @@ php_driver_create_index(php_driver_ref *schema,
   return result;
 }
 
-PHP_METHOD(DefaultIndex, name)
+ZEND_METHOD(Cassandra_DefaultIndex, name)
 {
   php_driver_index *self;
 
@@ -60,7 +61,7 @@ PHP_METHOD(DefaultIndex, name)
   RETURN_ZVAL(&self->name, 1, 0);
 }
 
-PHP_METHOD(DefaultIndex, target)
+ZEND_METHOD(Cassandra_DefaultIndex, target)
 {
   php_driver_index *self;
 
@@ -79,7 +80,7 @@ PHP_METHOD(DefaultIndex, target)
   RETURN_ZVAL(&self->target, 1, 0);
 }
 
-PHP_METHOD(DefaultIndex, kind)
+ZEND_METHOD(Cassandra_DefaultIndex, kind)
 {
   php_driver_index *self;
 
@@ -132,7 +133,7 @@ void php_driver_index_build_option(php_driver_index *index)
   }
 }
 
-PHP_METHOD(DefaultIndex, option)
+ZEND_METHOD(Cassandra_DefaultIndex, option)
 {
   char *name;
   size_t name_len;
@@ -155,7 +156,7 @@ PHP_METHOD(DefaultIndex, option)
   RETURN_FALSE;
 }
 
-PHP_METHOD(DefaultIndex, options)
+ZEND_METHOD(Cassandra_DefaultIndex, options)
 {
   php_driver_index *self;
 
@@ -170,7 +171,7 @@ PHP_METHOD(DefaultIndex, options)
   RETURN_ZVAL(&self->options, 1, 0);
 }
 
-PHP_METHOD(DefaultIndex, className)
+ZEND_METHOD(Cassandra_DefaultIndex, className)
 {
   php_driver_index *self;
   zval* result;
@@ -189,7 +190,7 @@ PHP_METHOD(DefaultIndex, className)
   RETURN_FALSE;
 }
 
-PHP_METHOD(DefaultIndex, isCustom)
+ZEND_METHOD(Cassandra_DefaultIndex, isCustom)
 {
   php_driver_index *self;
   int is_custom;
@@ -205,24 +206,6 @@ PHP_METHOD(DefaultIndex, isCustom)
   is_custom = zend_hash_str_exists(Z_ARRVAL(self->options), ZEND_STRL("class_name"));
   RETURN_BOOL(is_custom);
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_name, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, name)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_index_methods[] = {
-  PHP_ME(DefaultIndex, name, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultIndex, kind, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultIndex, target, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultIndex, option, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultIndex, options, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultIndex, className, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultIndex, isCustom, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_default_index_handlers;
 
@@ -306,12 +289,7 @@ php_driver_default_index_new(zend_class_entry *ce )
 
 void php_driver_define_DefaultIndex()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultIndex", php_driver_default_index_methods);
-  php_driver_default_index_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_default_index_ce , 1, php_driver_index_ce);
-  php_driver_default_index_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_default_index_ce = register_class_Cassandra_DefaultIndex(php_driver_index_ce);
   php_driver_default_index_ce->create_object = php_driver_default_index_new;
 
   memcpy(&php_driver_default_index_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

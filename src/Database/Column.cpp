@@ -16,28 +16,11 @@
 
 #include "php_driver.h"
 BEGIN_EXTERN_C()
+#include "Column_arginfo.h"
 zend_class_entry *php_driver_column_ce = NULL;
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_column_methods[] = {
-  PHP_ABSTRACT_ME(Column, name, arginfo_none)
-  PHP_ABSTRACT_ME(Column, type, arginfo_none)
-  PHP_ABSTRACT_ME(Column, isReversed, arginfo_none)
-  PHP_ABSTRACT_ME(Column, isStatic, arginfo_none)
-  PHP_ABSTRACT_ME(Column, isFrozen, arginfo_none)
-  PHP_ABSTRACT_ME(Column, indexName, arginfo_none)
-  PHP_ABSTRACT_ME(Column, indexOptions, arginfo_none)
-  PHP_FE_END
-};
 
 void php_driver_define_Column()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Column", php_driver_column_methods);
-  php_driver_column_ce = zend_register_internal_class(&ce);
-  php_driver_column_ce->ce_flags |= ZEND_ACC_INTERFACE;
+  php_driver_column_ce = register_class_Cassandra_Column();
 }
 END_EXTERN_C()

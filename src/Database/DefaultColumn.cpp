@@ -22,6 +22,7 @@
 
 #include "DefaultColumn.h"
 BEGIN_EXTERN_C()
+#include "DefaultColumn_arginfo.h"
 zend_class_entry *php_driver_default_column_ce = NULL;
 
 zval
@@ -105,7 +106,7 @@ php_driver_create_column(php_driver_ref *schema,
 }
 
 
-PHP_METHOD(DefaultColumn, name)
+ZEND_METHOD(Cassandra_DefaultColumn, name)
 {
   php_driver_column *self;
 
@@ -118,7 +119,7 @@ PHP_METHOD(DefaultColumn, name)
   RETURN_ZVAL(&self->name, 1, 0);
 }
 
-PHP_METHOD(DefaultColumn, type)
+ZEND_METHOD(Cassandra_DefaultColumn, type)
 {
   php_driver_column *self;
 
@@ -135,7 +136,7 @@ PHP_METHOD(DefaultColumn, type)
   RETURN_ZVAL(&self->type, 1, 0);
 }
 
-PHP_METHOD(DefaultColumn, isReversed)
+ZEND_METHOD(Cassandra_DefaultColumn, isReversed)
 {
   php_driver_column *self;
 
@@ -148,7 +149,7 @@ PHP_METHOD(DefaultColumn, isReversed)
   RETURN_BOOL(self->reversed);
 }
 
-PHP_METHOD(DefaultColumn, isStatic)
+ZEND_METHOD(Cassandra_DefaultColumn, isStatic)
 {
   php_driver_column *self;
 
@@ -161,7 +162,7 @@ PHP_METHOD(DefaultColumn, isStatic)
   RETURN_BOOL(cass_column_meta_type(self->meta) == CASS_COLUMN_TYPE_STATIC);
 }
 
-PHP_METHOD(DefaultColumn, isFrozen)
+ZEND_METHOD(Cassandra_DefaultColumn, isFrozen)
 {
   php_driver_column *self;
 
@@ -174,7 +175,7 @@ PHP_METHOD(DefaultColumn, isFrozen)
   RETURN_BOOL(self->frozen);
 }
 
-PHP_METHOD(DefaultColumn, indexName)
+ZEND_METHOD(Cassandra_DefaultColumn, indexName)
 {
   php_driver_column *self;
   zval value;
@@ -189,7 +190,7 @@ PHP_METHOD(DefaultColumn, indexName)
   RETURN_ZVAL(&value, 0, 1);
 }
 
-PHP_METHOD(DefaultColumn, indexOptions)
+ZEND_METHOD(Cassandra_DefaultColumn, indexOptions)
 {
   php_driver_column *self;
   zval value;
@@ -203,20 +204,6 @@ PHP_METHOD(DefaultColumn, indexOptions)
   php_driver_get_column_field(self->meta, "index_options", &value );
   RETURN_ZVAL(&value, 0, 1);
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_column_methods[] = {
-  PHP_ME(DefaultColumn, name,         arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, type,         arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, isReversed,   arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
-  PHP_ME(DefaultColumn, isStatic,     arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, isFrozen,     arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultColumn, indexName,    arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
-  PHP_ME(DefaultColumn, indexOptions, arginfo_none, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_default_column_handlers;
 
@@ -297,12 +284,7 @@ php_driver_default_column_new(zend_class_entry *ce )
 
 void php_driver_define_DefaultColumn()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultColumn", php_driver_default_column_methods);
-  php_driver_default_column_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_default_column_ce , 1, php_driver_column_ce);
-  php_driver_default_column_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_default_column_ce = register_class_Cassandra_DefaultColumn(php_driver_column_ce);
   php_driver_default_column_ce->create_object = php_driver_default_column_new;
 
   memcpy(&php_driver_default_column_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

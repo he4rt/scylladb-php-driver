@@ -25,6 +25,7 @@
 #include "DefaultIndex.h"
 #include "Table.h"
 BEGIN_EXTERN_C()
+#include "DefaultTable_arginfo.h"
 
 zend_class_entry *php_driver_default_table_ce = NULL;
 
@@ -110,7 +111,7 @@ php_driver_table_get_option(php_driver_table *table,
   ZVAL_COPY(result, zvalue);
 }
 
-PHP_METHOD(DefaultTable, name)
+ZEND_METHOD(Cassandra_DefaultTable, name)
 {
   php_driver_table *self;
 
@@ -121,7 +122,7 @@ PHP_METHOD(DefaultTable, name)
   RETURN_ZVAL(&self->name, 1, 0);
 }
 
-PHP_METHOD(DefaultTable, option)
+ZEND_METHOD(Cassandra_DefaultTable, option)
 {
   char *name;
   size_t name_len;
@@ -144,7 +145,7 @@ PHP_METHOD(DefaultTable, option)
   RETURN_FALSE;
 }
 
-PHP_METHOD(DefaultTable, options)
+ZEND_METHOD(Cassandra_DefaultTable, options)
 {
   php_driver_table *self;
 
@@ -159,7 +160,7 @@ PHP_METHOD(DefaultTable, options)
   RETURN_ZVAL(&self->options, 1, 0);
 }
 
-PHP_METHOD(DefaultTable, comment)
+ZEND_METHOD(Cassandra_DefaultTable, comment)
 {
   php_driver_table *self;
 
@@ -171,7 +172,7 @@ PHP_METHOD(DefaultTable, comment)
   php_driver_table_get_option(self, "comment", return_value );
 }
 
-PHP_METHOD(DefaultTable, readRepairChance)
+ZEND_METHOD(Cassandra_DefaultTable, readRepairChance)
 {
   php_driver_table *self;
 
@@ -183,7 +184,7 @@ PHP_METHOD(DefaultTable, readRepairChance)
   php_driver_table_get_option(self, "read_repair_chance", return_value );
 }
 
-PHP_METHOD(DefaultTable, localReadRepairChance)
+ZEND_METHOD(Cassandra_DefaultTable, localReadRepairChance)
 {
   php_driver_table *self;
 
@@ -195,7 +196,7 @@ PHP_METHOD(DefaultTable, localReadRepairChance)
   php_driver_table_get_option(self, "local_read_repair_chance", return_value );
 }
 
-PHP_METHOD(DefaultTable, gcGraceSeconds)
+ZEND_METHOD(Cassandra_DefaultTable, gcGraceSeconds)
 {
   php_driver_table *self;
 
@@ -207,7 +208,7 @@ PHP_METHOD(DefaultTable, gcGraceSeconds)
   php_driver_table_get_option(self, "gc_grace_seconds", return_value );
 }
 
-PHP_METHOD(DefaultTable, caching)
+ZEND_METHOD(Cassandra_DefaultTable, caching)
 {
   php_driver_table *self;
 
@@ -219,7 +220,7 @@ PHP_METHOD(DefaultTable, caching)
   php_driver_table_get_option(self, "caching", return_value );
 }
 
-PHP_METHOD(DefaultTable, bloomFilterFPChance)
+ZEND_METHOD(Cassandra_DefaultTable, bloomFilterFPChance)
 {
   php_driver_table *self;
 
@@ -231,7 +232,7 @@ PHP_METHOD(DefaultTable, bloomFilterFPChance)
   php_driver_table_get_option(self, "bloom_filter_fp_chance", return_value );
 }
 
-PHP_METHOD(DefaultTable, memtableFlushPeriodMs)
+ZEND_METHOD(Cassandra_DefaultTable, memtableFlushPeriodMs)
 {
   php_driver_table *self;
 
@@ -243,7 +244,7 @@ PHP_METHOD(DefaultTable, memtableFlushPeriodMs)
   php_driver_table_get_option(self, "memtable_flush_period_in_ms", return_value );
 }
 
-PHP_METHOD(DefaultTable, defaultTTL)
+ZEND_METHOD(Cassandra_DefaultTable, defaultTTL)
 {
   php_driver_table *self;
 
@@ -255,7 +256,7 @@ PHP_METHOD(DefaultTable, defaultTTL)
   php_driver_table_get_option(self, "default_time_to_live", return_value );
 }
 
-PHP_METHOD(DefaultTable, speculativeRetry)
+ZEND_METHOD(Cassandra_DefaultTable, speculativeRetry)
 {
   php_driver_table *self;
 
@@ -267,7 +268,7 @@ PHP_METHOD(DefaultTable, speculativeRetry)
   php_driver_table_get_option(self, "speculative_retry", return_value );
 }
 
-PHP_METHOD(DefaultTable, indexInterval)
+ZEND_METHOD(Cassandra_DefaultTable, indexInterval)
 {
   php_driver_table *self;
 
@@ -279,7 +280,7 @@ PHP_METHOD(DefaultTable, indexInterval)
   php_driver_table_get_option(self, "index_interval", return_value );
 }
 
-PHP_METHOD(DefaultTable, compactionStrategyClassName)
+ZEND_METHOD(Cassandra_DefaultTable, compactionStrategyClassName)
 {
   php_driver_table *self;
 
@@ -291,7 +292,7 @@ PHP_METHOD(DefaultTable, compactionStrategyClassName)
   php_driver_table_get_option(self, "compaction_strategy_class", return_value );
 }
 
-PHP_METHOD(DefaultTable, compactionStrategyOptions)
+ZEND_METHOD(Cassandra_DefaultTable, compactionStrategyOptions)
 {
   php_driver_table *self;
 
@@ -303,7 +304,7 @@ PHP_METHOD(DefaultTable, compactionStrategyOptions)
   php_driver_table_get_option(self, "compaction_strategy_options", return_value );
 }
 
-PHP_METHOD(DefaultTable, compressionParameters)
+ZEND_METHOD(Cassandra_DefaultTable, compressionParameters)
 {
   php_driver_table *self;
 
@@ -315,7 +316,7 @@ PHP_METHOD(DefaultTable, compressionParameters)
   php_driver_table_get_option(self, "compression_parameters", return_value );
 }
 
-PHP_METHOD(DefaultTable, populateIOCacheOnFlush)
+ZEND_METHOD(Cassandra_DefaultTable, populateIOCacheOnFlush)
 {
   php_driver_table *self;
 
@@ -327,7 +328,7 @@ PHP_METHOD(DefaultTable, populateIOCacheOnFlush)
   php_driver_table_get_option(self, "populate_io_cache_on_flush", return_value );
 }
 
-PHP_METHOD(DefaultTable, replicateOnWrite)
+ZEND_METHOD(Cassandra_DefaultTable, replicateOnWrite)
 {
   php_driver_table *self;
 
@@ -339,7 +340,7 @@ PHP_METHOD(DefaultTable, replicateOnWrite)
   php_driver_table_get_option(self, "replicate_on_write", return_value );
 }
 
-PHP_METHOD(DefaultTable, maxIndexInterval)
+ZEND_METHOD(Cassandra_DefaultTable, maxIndexInterval)
 {
   php_driver_table *self;
 
@@ -351,7 +352,7 @@ PHP_METHOD(DefaultTable, maxIndexInterval)
   php_driver_table_get_option(self, "max_index_interval", return_value );
 }
 
-PHP_METHOD(DefaultTable, minIndexInterval)
+ZEND_METHOD(Cassandra_DefaultTable, minIndexInterval)
 {
   php_driver_table *self;
 
@@ -364,7 +365,7 @@ PHP_METHOD(DefaultTable, minIndexInterval)
 }
 
 
-PHP_METHOD(DefaultTable, column)
+ZEND_METHOD(Cassandra_DefaultTable, column)
 {
   php_driver_table *self;
   char *name;
@@ -391,7 +392,7 @@ PHP_METHOD(DefaultTable, column)
   RETURN_ZVAL(&column, 0, 1);
 }
 
-PHP_METHOD(DefaultTable, columns)
+ZEND_METHOD(Cassandra_DefaultTable, columns)
 {
   php_driver_table *self;
   CassIterator    *iterator;
@@ -425,7 +426,7 @@ PHP_METHOD(DefaultTable, columns)
   cass_iterator_free(iterator);
 }
 
-PHP_METHOD(DefaultTable, partitionKey)
+ZEND_METHOD(Cassandra_DefaultTable, partitionKey)
 {
   php_driver_table *self;
 
@@ -442,7 +443,7 @@ PHP_METHOD(DefaultTable, partitionKey)
   RETURN_ZVAL(&self->partition_key, 1, 0);
 }
 
-PHP_METHOD(DefaultTable, primaryKey)
+ZEND_METHOD(Cassandra_DefaultTable, primaryKey)
 {
   php_driver_table *self;
 
@@ -460,7 +461,7 @@ PHP_METHOD(DefaultTable, primaryKey)
   RETURN_ZVAL(&self->primary_key, 1, 0);
 }
 
-PHP_METHOD(DefaultTable, clusteringKey)
+ZEND_METHOD(Cassandra_DefaultTable, clusteringKey)
 {
   php_driver_table *self;
 
@@ -477,7 +478,7 @@ PHP_METHOD(DefaultTable, clusteringKey)
   RETURN_ZVAL(&self->clustering_key, 1, 0);
 }
 
-PHP_METHOD(DefaultTable, clusteringOrder)
+ZEND_METHOD(Cassandra_DefaultTable, clusteringOrder)
 {
   php_driver_table *self;
 
@@ -509,7 +510,7 @@ PHP_METHOD(DefaultTable, clusteringOrder)
   RETURN_ZVAL(&self->clustering_order, 1, 0);
 }
 
-PHP_METHOD(DefaultTable, index)
+ZEND_METHOD(Cassandra_DefaultTable, index)
 {
   php_driver_table *self;
   char *name;
@@ -535,7 +536,7 @@ PHP_METHOD(DefaultTable, index)
   RETURN_ZVAL(&index, 0, 1);
 }
 
-PHP_METHOD(DefaultTable, indexes)
+ZEND_METHOD(Cassandra_DefaultTable, indexes)
 {
   php_driver_table *self;
   CassIterator *iterator;
@@ -568,7 +569,7 @@ PHP_METHOD(DefaultTable, indexes)
   cass_iterator_free(iterator);
 }
 
-PHP_METHOD(DefaultTable, materializedView)
+ZEND_METHOD(Cassandra_DefaultTable, materializedView)
 {
   php_driver_table *self;
   char *name;
@@ -595,7 +596,7 @@ PHP_METHOD(DefaultTable, materializedView)
   RETURN_ZVAL(&zview, 0, 1);
 }
 
-PHP_METHOD(DefaultTable, materializedViews)
+ZEND_METHOD(Cassandra_DefaultTable, materializedViews)
 {
   php_driver_table *self;
   CassIterator *iterator;
@@ -628,47 +629,6 @@ PHP_METHOD(DefaultTable, materializedViews)
 
   cass_iterator_free(iterator);
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_name, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, name)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_table_methods[] = {
-  PHP_ME(DefaultTable, name, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, option, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, options, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, comment, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, readRepairChance, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, localReadRepairChance, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, gcGraceSeconds, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, caching, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, bloomFilterFPChance, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, memtableFlushPeriodMs, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, defaultTTL, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, speculativeRetry, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, indexInterval, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, compactionStrategyClassName, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, compactionStrategyOptions, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, compressionParameters, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, populateIOCacheOnFlush, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, replicateOnWrite, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, maxIndexInterval, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, minIndexInterval, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, column, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, columns, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, partitionKey, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, primaryKey, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, clusteringKey, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, clusteringOrder, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, index, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, indexes, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, materializedView, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultTable, materializedViews, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_default_table_handlers;
 
@@ -756,12 +716,7 @@ php_driver_default_table_new(zend_class_entry *ce )
 
 void php_driver_define_DefaultTable()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultTable", php_driver_default_table_methods);
-  php_driver_default_table_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_default_table_ce , 1, php_driver_table_ce);
-  php_driver_default_table_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_default_table_ce = register_class_Cassandra_DefaultTable(php_driver_table_ce);
   php_driver_default_table_ce->create_object = php_driver_default_table_new;
 
   memcpy(&php_driver_default_table_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

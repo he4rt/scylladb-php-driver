@@ -22,6 +22,7 @@
 
 #include "DefaultFunction.h"
 BEGIN_EXTERN_C()
+#include "DefaultFunction_arginfo.h"
 zend_class_entry *php_driver_default_function_ce = NULL;
 
 zval
@@ -49,7 +50,7 @@ php_driver_create_function(php_driver_ref* schema,
   return result;
 }
 
-PHP_METHOD(DefaultFunction, name)
+ZEND_METHOD(Cassandra_DefaultFunction, name)
 {
   php_driver_function *self;
 
@@ -61,7 +62,7 @@ PHP_METHOD(DefaultFunction, name)
   RETURN_ZVAL(&self->signature, 1, 0);
 }
 
-PHP_METHOD(DefaultFunction, simpleName)
+ZEND_METHOD(Cassandra_DefaultFunction, simpleName)
 {
   php_driver_function *self;
 
@@ -80,7 +81,7 @@ PHP_METHOD(DefaultFunction, simpleName)
   RETURN_ZVAL(&self->simple_name, 1, 0);
 }
 
-PHP_METHOD(DefaultFunction, arguments)
+ZEND_METHOD(Cassandra_DefaultFunction, arguments)
 {
   php_driver_function *self;
 
@@ -108,7 +109,7 @@ PHP_METHOD(DefaultFunction, arguments)
   RETURN_ZVAL(&self->arguments, 1, 0);
 }
 
-PHP_METHOD(DefaultFunction, returnType)
+ZEND_METHOD(Cassandra_DefaultFunction, returnType)
 {
   php_driver_function *self;
 
@@ -127,7 +128,7 @@ PHP_METHOD(DefaultFunction, returnType)
   RETURN_ZVAL(&self->return_type, 1, 0);
 }
 
-PHP_METHOD(DefaultFunction, signature)
+ZEND_METHOD(Cassandra_DefaultFunction, signature)
 {
   php_driver_function *self;
 
@@ -138,7 +139,7 @@ PHP_METHOD(DefaultFunction, signature)
   RETURN_ZVAL(&self->signature, 1, 0);
 }
 
-PHP_METHOD(DefaultFunction, language)
+ZEND_METHOD(Cassandra_DefaultFunction, language)
 {
   php_driver_function *self;
 
@@ -157,7 +158,7 @@ PHP_METHOD(DefaultFunction, language)
   RETURN_ZVAL(&self->language, 1, 0);
 }
 
-PHP_METHOD(DefaultFunction, body)
+ZEND_METHOD(Cassandra_DefaultFunction, body)
 {
   php_driver_function *self;
 
@@ -176,7 +177,7 @@ PHP_METHOD(DefaultFunction, body)
   RETURN_ZVAL(&self->body, 1, 0);
 }
 
-PHP_METHOD(DefaultFunction, isCalledOnNullInput)
+ZEND_METHOD(Cassandra_DefaultFunction, isCalledOnNullInput)
 {
   php_driver_function *self;
 
@@ -186,21 +187,6 @@ PHP_METHOD(DefaultFunction, isCalledOnNullInput)
   self = PHP_DRIVER_GET_FUNCTION(getThis());
   RETURN_BOOL((int)cass_function_meta_called_on_null_input(self->meta));
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_function_methods[] = {
-  PHP_ME(DefaultFunction, name, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultFunction, simpleName, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultFunction, arguments, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultFunction, returnType, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultFunction, signature, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultFunction, language, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultFunction, body, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultFunction, isCalledOnNullInput, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_default_function_handlers;
 
@@ -288,12 +274,7 @@ php_driver_default_function_new(zend_class_entry *ce )
 
 void php_driver_define_DefaultFunction()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultFunction", php_driver_default_function_methods);
-  php_driver_default_function_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_default_function_ce , 1, php_driver_function_ce);
-  php_driver_default_function_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_default_function_ce = register_class_Cassandra_DefaultFunction(php_driver_function_ce);
   php_driver_default_function_ce->create_object = php_driver_default_function_new;
 
   memcpy(&php_driver_default_function_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

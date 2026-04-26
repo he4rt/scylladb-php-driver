@@ -28,7 +28,7 @@ BEGIN_EXTERN_C()
 
 zend_class_entry *php_driver_default_keyspace_ce = NULL;
 
-PHP_METHOD(DefaultKeyspace, name) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   zval value;
 
@@ -40,7 +40,7 @@ PHP_METHOD(DefaultKeyspace, name) {
   RETURN_ZVAL(&value, 0, 1);
 }
 
-PHP_METHOD(DefaultKeyspace, replicationClassName) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   zval value;
 
@@ -52,7 +52,7 @@ PHP_METHOD(DefaultKeyspace, replicationClassName) {
   RETURN_ZVAL(&value, 0, 1);
 }
 
-PHP_METHOD(DefaultKeyspace, replicationOptions) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   zval value;
 
@@ -64,7 +64,7 @@ PHP_METHOD(DefaultKeyspace, replicationOptions) {
   RETURN_ZVAL(&value, 0, 1);
 }
 
-PHP_METHOD(DefaultKeyspace, hasDurableWrites) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   zval value;
 
@@ -76,7 +76,7 @@ PHP_METHOD(DefaultKeyspace, hasDurableWrites) {
   RETURN_ZVAL(&value, 0, 1);
 }
 
-PHP_METHOD(DefaultKeyspace, table) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   char *name;
   size_t name_len;
   php_driver_keyspace *self;
@@ -101,7 +101,7 @@ PHP_METHOD(DefaultKeyspace, table) {
   RETURN_ZVAL(&ztable, 0, 1);
 }
 
-PHP_METHOD(DefaultKeyspace, tables) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   CassIterator *iterator;
 
@@ -137,7 +137,7 @@ PHP_METHOD(DefaultKeyspace, tables) {
   cass_iterator_free(iterator);
 }
 
-PHP_METHOD(DefaultKeyspace, userType) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   char *name;
   size_t name_len;
   php_driver_keyspace *self;
@@ -159,7 +159,7 @@ PHP_METHOD(DefaultKeyspace, userType) {
   RETURN_ZVAL(&ztype, 0, 1);
 }
 
-PHP_METHOD(DefaultKeyspace, userTypes) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   CassIterator *iterator;
 
@@ -185,7 +185,7 @@ PHP_METHOD(DefaultKeyspace, userTypes) {
   cass_iterator_free(iterator);
 }
 
-PHP_METHOD(DefaultKeyspace, materializedView) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   char *name;
   size_t name_len;
@@ -210,7 +210,7 @@ PHP_METHOD(DefaultKeyspace, materializedView) {
   RETURN_ZVAL(&zview, 0, 1);
 }
 
-PHP_METHOD(DefaultKeyspace, materializedViews) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   CassIterator *iterator;
 
@@ -276,7 +276,7 @@ int php_driver_arguments_string(zval* args, int argc, smart_str *arguments) {
   return SUCCESS;
 }
 
-PHP_METHOD(DefaultKeyspace, function) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   char *name;
   size_t name_len;
@@ -312,7 +312,7 @@ PHP_METHOD(DefaultKeyspace, function) {
 
 }
 
-PHP_METHOD(DefaultKeyspace, functions) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   CassIterator *iterator;
 
@@ -363,7 +363,7 @@ static zval php_driver_create_aggregate(php_driver_ref *schema,
   return result;
 }
 
-PHP_METHOD(DefaultKeyspace, aggregate) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   char *name;
   size_t name_len;
@@ -400,7 +400,7 @@ PHP_METHOD(DefaultKeyspace, aggregate) {
 
 }
 
-PHP_METHOD(DefaultKeyspace, aggregates) {
+ZEND_METHOD(Cassandra_DefaultKeyspace, \1) {
   php_driver_keyspace *self;
   CassIterator *iterator;
 
@@ -427,35 +427,6 @@ PHP_METHOD(DefaultKeyspace, aggregates) {
 
   cass_iterator_free(iterator);
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_name, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, name)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_signature, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, name)
-ZEND_ARG_INFO(0, ...)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_keyspace_methods[] = {
-    PHP_ME(DefaultKeyspace, name, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(
-        DefaultKeyspace, replicationClassName, arginfo_none,
-        ZEND_ACC_PUBLIC) PHP_ME(DefaultKeyspace, replicationOptions, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(DefaultKeyspace, hasDurableWrites, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(
-            DefaultKeyspace, table, arginfo_name,
-            ZEND_ACC_PUBLIC) PHP_ME(DefaultKeyspace, tables, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(DefaultKeyspace, userType, arginfo_name, ZEND_ACC_PUBLIC) PHP_ME(
-                DefaultKeyspace, userTypes, arginfo_none, ZEND_ACC_PUBLIC)
-                PHP_ME(DefaultKeyspace, materializedView, arginfo_name, ZEND_ACC_PUBLIC) PHP_ME(
-                    DefaultKeyspace, materializedViews, arginfo_none, ZEND_ACC_PUBLIC)
-                    PHP_ME(DefaultKeyspace, function, arginfo_signature, ZEND_ACC_PUBLIC)
-                        PHP_ME(DefaultKeyspace, functions, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(DefaultKeyspace, aggregate, arginfo_signature, ZEND_ACC_PUBLIC)
-                                PHP_ME(DefaultKeyspace, aggregates, arginfo_none, ZEND_ACC_PUBLIC)
-                                    PHP_FE_END};
 
 static zend_object_handlers php_driver_default_keyspace_handlers;
 
@@ -515,13 +486,7 @@ static zend_object* php_driver_default_keyspace_new(zend_class_entry *ce) {
 }
 
 void php_driver_define_DefaultKeyspace() {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultKeyspace",
-                   php_driver_default_keyspace_methods);
-  php_driver_default_keyspace_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_default_keyspace_ce, 1, php_driver_keyspace_ce);
-  php_driver_default_keyspace_ce->ce_flags |= ZEND_ACC_FINAL;
+  php_driver_default_keyspace_ce = register_class_Cassandra_DefaultKeyspace(php_driver_keyspace_ce);
   php_driver_default_keyspace_ce->create_object = php_driver_default_keyspace_new;
 
   memcpy(&php_driver_default_keyspace_handlers, zend_get_std_object_handlers(),

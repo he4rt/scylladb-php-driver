@@ -25,6 +25,7 @@
 #include "DefaultTable.h"
 #include "Table.h"
 BEGIN_EXTERN_C()
+#include "DefaultMaterializedView_arginfo.h"
 zend_class_entry *php_driver_default_materialized_view_ce = NULL;
 
 static void
@@ -110,7 +111,7 @@ php_driver_materialized_view_get_option(php_driver_materialized_view *view,
   ZVAL_COPY(result, zvalue);
 }
 
-PHP_METHOD(DefaultMaterializedView, name)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, name)
 {
   php_driver_materialized_view *self;
 
@@ -121,7 +122,7 @@ PHP_METHOD(DefaultMaterializedView, name)
   RETURN_ZVAL(&self->name, 1, 0);
 }
 
-PHP_METHOD(DefaultMaterializedView, option)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, option)
 {
   char *name;
   size_t name_len;
@@ -144,7 +145,7 @@ PHP_METHOD(DefaultMaterializedView, option)
   RETURN_FALSE;
 }
 
-PHP_METHOD(DefaultMaterializedView, options)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, options)
 {
   php_driver_materialized_view *self;
 
@@ -159,7 +160,7 @@ PHP_METHOD(DefaultMaterializedView, options)
   RETURN_ZVAL(&self->options, 1, 0);
 }
 
-PHP_METHOD(DefaultMaterializedView, comment)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, comment)
 {
   php_driver_materialized_view *self;
 
@@ -171,7 +172,7 @@ PHP_METHOD(DefaultMaterializedView, comment)
   php_driver_materialized_view_get_option(self, "comment", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, readRepairChance)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, readRepairChance)
 {
   php_driver_materialized_view *self;
 
@@ -183,7 +184,7 @@ PHP_METHOD(DefaultMaterializedView, readRepairChance)
   php_driver_materialized_view_get_option(self, "read_repair_chance", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, localReadRepairChance)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, localReadRepairChance)
 {
   php_driver_materialized_view *self;
 
@@ -195,7 +196,7 @@ PHP_METHOD(DefaultMaterializedView, localReadRepairChance)
   php_driver_materialized_view_get_option(self, "local_read_repair_chance", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, gcGraceSeconds)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, gcGraceSeconds)
 {
   php_driver_materialized_view *self;
 
@@ -207,7 +208,7 @@ PHP_METHOD(DefaultMaterializedView, gcGraceSeconds)
   php_driver_materialized_view_get_option(self, "gc_grace_seconds", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, caching)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, caching)
 {
   php_driver_materialized_view *self;
 
@@ -219,7 +220,7 @@ PHP_METHOD(DefaultMaterializedView, caching)
   php_driver_materialized_view_get_option(self, "caching", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, bloomFilterFPChance)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, bloomFilterFPChance)
 {
   php_driver_materialized_view *self;
 
@@ -231,7 +232,7 @@ PHP_METHOD(DefaultMaterializedView, bloomFilterFPChance)
   php_driver_materialized_view_get_option(self, "bloom_filter_fp_chance", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, memtableFlushPeriodMs)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, memtableFlushPeriodMs)
 {
   php_driver_materialized_view *self;
 
@@ -243,7 +244,7 @@ PHP_METHOD(DefaultMaterializedView, memtableFlushPeriodMs)
   php_driver_materialized_view_get_option(self, "memtable_flush_period_in_ms", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, defaultTTL)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, defaultTTL)
 {
   php_driver_materialized_view *self;
 
@@ -255,7 +256,7 @@ PHP_METHOD(DefaultMaterializedView, defaultTTL)
   php_driver_materialized_view_get_option(self, "default_time_to_live", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, speculativeRetry)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, speculativeRetry)
 {
   php_driver_materialized_view *self;
 
@@ -267,7 +268,7 @@ PHP_METHOD(DefaultMaterializedView, speculativeRetry)
   php_driver_materialized_view_get_option(self, "speculative_retry", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, indexInterval)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, indexInterval)
 {
   php_driver_materialized_view *self;
 
@@ -279,7 +280,7 @@ PHP_METHOD(DefaultMaterializedView, indexInterval)
   php_driver_materialized_view_get_option(self, "index_interval", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, compactionStrategyClassName)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, compactionStrategyClassName)
 {
   php_driver_materialized_view *self;
 
@@ -291,7 +292,7 @@ PHP_METHOD(DefaultMaterializedView, compactionStrategyClassName)
   php_driver_materialized_view_get_option(self, "compaction_strategy_class", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, compactionStrategyOptions)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, compactionStrategyOptions)
 {
   php_driver_materialized_view *self;
 
@@ -303,7 +304,7 @@ PHP_METHOD(DefaultMaterializedView, compactionStrategyOptions)
   php_driver_materialized_view_get_option(self, "compaction_strategy_options", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, compressionParameters)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, compressionParameters)
 {
   php_driver_materialized_view *self;
 
@@ -315,7 +316,7 @@ PHP_METHOD(DefaultMaterializedView, compressionParameters)
   php_driver_materialized_view_get_option(self, "compression_parameters", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, populateIOCacheOnFlush)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, populateIOCacheOnFlush)
 {
   php_driver_materialized_view *self;
 
@@ -327,7 +328,7 @@ PHP_METHOD(DefaultMaterializedView, populateIOCacheOnFlush)
   php_driver_materialized_view_get_option(self, "populate_io_cache_on_flush", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, replicateOnWrite)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, replicateOnWrite)
 {
   php_driver_materialized_view *self;
 
@@ -339,7 +340,7 @@ PHP_METHOD(DefaultMaterializedView, replicateOnWrite)
   php_driver_materialized_view_get_option(self, "replicate_on_write", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, maxIndexInterval)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, maxIndexInterval)
 {
   php_driver_materialized_view *self;
 
@@ -351,7 +352,7 @@ PHP_METHOD(DefaultMaterializedView, maxIndexInterval)
   php_driver_materialized_view_get_option(self, "max_index_interval", return_value );
 }
 
-PHP_METHOD(DefaultMaterializedView, minIndexInterval)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, minIndexInterval)
 {
   php_driver_materialized_view *self;
 
@@ -364,7 +365,7 @@ PHP_METHOD(DefaultMaterializedView, minIndexInterval)
 }
 
 
-PHP_METHOD(DefaultMaterializedView, column)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, column)
 {
   php_driver_materialized_view *self;
   char *name;
@@ -390,7 +391,7 @@ PHP_METHOD(DefaultMaterializedView, column)
   RETURN_ZVAL(&column, 0, 1);
 }
 
-PHP_METHOD(DefaultMaterializedView, columns)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, columns)
 {
   php_driver_materialized_view *self;
   CassIterator    *iterator;
@@ -424,7 +425,7 @@ PHP_METHOD(DefaultMaterializedView, columns)
   cass_iterator_free(iterator);
 }
 
-PHP_METHOD(DefaultMaterializedView, partitionKey)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, partitionKey)
 {
   php_driver_materialized_view *self;
 
@@ -441,7 +442,7 @@ PHP_METHOD(DefaultMaterializedView, partitionKey)
   RETURN_ZVAL(&self->partition_key, 1, 0);
 }
 
-PHP_METHOD(DefaultMaterializedView, primaryKey)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, primaryKey)
 {
   php_driver_materialized_view *self;
 
@@ -459,7 +460,7 @@ PHP_METHOD(DefaultMaterializedView, primaryKey)
   RETURN_ZVAL(&self->primary_key, 1, 0);
 }
 
-PHP_METHOD(DefaultMaterializedView, clusteringKey)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, clusteringKey)
 {
   php_driver_materialized_view *self;
 
@@ -476,7 +477,7 @@ PHP_METHOD(DefaultMaterializedView, clusteringKey)
   RETURN_ZVAL(&self->clustering_key, 1, 0);
 }
 
-PHP_METHOD(DefaultMaterializedView, clusteringOrder)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, clusteringOrder)
 {
   php_driver_materialized_view *self;
 
@@ -508,7 +509,7 @@ PHP_METHOD(DefaultMaterializedView, clusteringOrder)
   RETURN_ZVAL(&self->clustering_order, 1, 0);
 }
 
-PHP_METHOD(DefaultMaterializedView, baseTable)
+ZEND_METHOD(Cassandra_DefaultMaterializedView, baseTable)
 {
   php_driver_materialized_view *self;
 
@@ -529,44 +530,6 @@ PHP_METHOD(DefaultMaterializedView, baseTable)
   RETURN_ZVAL(&self->base_table, 1, 0);
 }
 
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_name, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, name)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_materialized_view_methods[] = {
-  PHP_ME(DefaultMaterializedView, name, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, option, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, options, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, comment, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, readRepairChance, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, localReadRepairChance, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, gcGraceSeconds, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, caching, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, bloomFilterFPChance, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, memtableFlushPeriodMs, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, defaultTTL, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, speculativeRetry, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, indexInterval, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, compactionStrategyClassName, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, compactionStrategyOptions, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, compressionParameters, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, populateIOCacheOnFlush, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, replicateOnWrite, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, maxIndexInterval, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, minIndexInterval, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, column, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, columns, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, partitionKey, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, primaryKey, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, clusteringKey, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, clusteringOrder, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultMaterializedView, baseTable, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_default_materialized_view_handlers;
 
@@ -656,11 +619,7 @@ php_driver_default_materialized_view_new(zend_class_entry *ce )
 
 void php_driver_define_DefaultMaterializedView()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultMaterializedView", php_driver_default_materialized_view_methods);
-  php_driver_default_materialized_view_ce = zend_register_internal_class_ex(&ce, php_driver_materialized_view_ce);
-  php_driver_default_materialized_view_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_default_materialized_view_ce = register_class_Cassandra_DefaultMaterializedView(php_driver_materialized_view_ce);
   php_driver_default_materialized_view_ce->create_object = php_driver_default_materialized_view_new;
 
   memcpy(&php_driver_default_materialized_view_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
