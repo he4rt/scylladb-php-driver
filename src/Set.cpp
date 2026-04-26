@@ -23,6 +23,7 @@
 
 #include "src/Set.h"
 BEGIN_EXTERN_C()
+#include "Set_arginfo.h"
 zend_class_entry* php_driver_set_ce = NULL;
 
 int
@@ -269,55 +270,6 @@ PHP_METHOD(Cassandra_Set, rewind)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, type)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_one, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_type_return, 0, 0, Cassandra\\Type, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_key, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_next, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_rewind, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_valid, 0, 0, _IS_BOOL, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_count, 0, 0, IS_LONG, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_set_methods[] = {
-  PHP_ME(Cassandra_Set, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC)
-    PHP_ME(Cassandra_Set, type, arginfo_type_return, ZEND_ACC_PUBLIC)
-      PHP_ME(Cassandra_Set, values, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(Cassandra_Set, add, arginfo_one, ZEND_ACC_PUBLIC)
-          PHP_ME(Cassandra_Set, has, arginfo_one, ZEND_ACC_PUBLIC)
-            PHP_ME(Cassandra_Set, remove, arginfo_one, ZEND_ACC_PUBLIC)
-  /* Countable */
-  PHP_ME(Cassandra_Set, count, arginfo_count, ZEND_ACC_PUBLIC)
-  /* Iterator */
-  PHP_ME(Cassandra_Set, current, arginfo_current, ZEND_ACC_PUBLIC)
-    PHP_ME(Cassandra_Set, key, arginfo_key, ZEND_ACC_PUBLIC)
-      PHP_ME(Cassandra_Set, next, arginfo_next, ZEND_ACC_PUBLIC)
-        PHP_ME(Cassandra_Set, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-          PHP_ME(Cassandra_Set, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
-            PHP_FE_END
-};
 
 static php_driver_value_handlers php_driver_set_handlers;
 
@@ -469,29 +421,12 @@ php_driver_set_new(zend_class_entry* ce )
 void
 php_driver_define_Set()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Set", php_driver_set_methods);
-  php_driver_set_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_set_ce , 1, php_driver_value_ce);
+  php_driver_set_ce = register_class_Cassandra_Set(php_driver_value_ce, zend_ce_countable, zend_ce_iterator);
   memcpy(&php_driver_set_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_set_handlers.std.get_properties = php_driver_set_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_set_handlers.std.get_gc = php_driver_set_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_set_handlers.std.compare = php_driver_set_compare;
-#else
-  php_driver_set_handlers.std.compare_objects = php_driver_set_compare;
-#endif
-  php_driver_set_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_set_ce->create_object = php_driver_set_new;
-
-#if PHP_VERSION_ID < 80100
-  zend_class_implements(php_driver_set_ce , 2, spl_ce_Countable, zend_ce_iterator);
-#else
-  zend_class_implements(php_driver_set_ce , 2, zend_ce_countable, zend_ce_iterator);
-#endif
 
   php_driver_set_handlers.hash_value    = php_driver_set_hash_value;
   php_driver_set_handlers.std.clone_obj = NULL;
