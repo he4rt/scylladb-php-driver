@@ -379,7 +379,7 @@ php_driver_float_properties(
   zval value;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+  php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
   php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -452,7 +452,7 @@ php_driver_float_cast(
 )
 {
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+  php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
   php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -476,7 +476,7 @@ php_driver_float_cast(
 static void
 php_driver_float_free(zend_object *object )
 {
-  php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+  php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -485,10 +485,11 @@ php_driver_float_free(zend_object *object )
 static zend_object*
 php_driver_float_new(zend_class_entry *ce )
 {
-  php_driver_numeric *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(numeric, ce);
+  php_driver_numeric *self = (php_driver_numeric *)ecalloc(1, sizeof(php_driver_numeric) + zend_object_properties_size(ce));
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, float, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_float_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_Float()
@@ -497,6 +498,8 @@ void php_driver_define_Float()
   php_driver_float_ce->create_object = php_driver_float_new;
 
   memcpy(&php_driver_float_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+  php_driver_float_handlers.std.offset = XtOffsetOf(php_driver_numeric, zendObject);
+  php_driver_float_handlers.std.free_obj = php_driver_float_free;
   php_driver_float_handlers.std.get_properties = php_driver_float_properties;
   php_driver_float_handlers.std.get_gc = php_driver_float_gc;
   php_driver_float_handlers.std.compare = php_driver_float_compare;
