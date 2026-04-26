@@ -90,7 +90,7 @@ static HashTable *php_driver_type_scalar_properties(zend_object *object) {
 
   ZVAL_STRING(&name,
                       php_driver_scalar_type_name(type));
-  (void)zend_hash_str_update(props, "name", sizeof("name") - 1, &name);
+  (void)zend_hash_str_update(props, ZEND_STRL("name"), &name);
   return props;
 }
 

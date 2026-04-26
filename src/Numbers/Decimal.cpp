@@ -555,17 +555,17 @@ static HashTable *php_driver_decimal_properties(
     HashTable *props = object->properties;
 
     type = php_driver_type_scalar(CASS_VALUE_TYPE_DECIMAL);
-    (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &type);
+    (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
     php_driver_format_integer(self->data.decimal.value, &string, &string_len);
 
     ZVAL_STRINGL(&value, string, string_len);
     efree(string);
-    (void)zend_hash_str_update(props, "value", sizeof("value") - 1, &value);
+    (void)zend_hash_str_update(props, ZEND_STRL("value"), &value);
 
 
     ZVAL_LONG(&scale, self->data.decimal.scale);
-    (void)zend_hash_str_update(props, "scale", sizeof("scale") - 1, &scale);
+    (void)zend_hash_str_update(props, ZEND_STRL("scale"), &scale);
 
     return props;
 }

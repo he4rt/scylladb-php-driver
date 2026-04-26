@@ -77,7 +77,7 @@ PHP_METHOD(DefaultSchema, keyspaces)
     keyspace = PHP_DRIVER_GET_KEYSPACE(&zkeyspace);
     keyspace->schema = php_driver_add_ref(self->schema);
     keyspace->meta   = meta;
-    add_assoc_zval_ex(return_value, keyspace_name, (size_t)(keyspace_name_len + 1 - 1), &zkeyspace);
+    add_assoc_zval_ex(return_value, keyspace_name, keyspace_name_len, &zkeyspace);
   }
 
   cass_iterator_free(iterator);

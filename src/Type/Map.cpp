@@ -160,10 +160,10 @@ php_driver_type_map_properties(
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
-  (void)zend_hash_str_update(props, "keyType", sizeof("keyType") - 1, &self->data.map.key_type);
+  (void)zend_hash_str_update(props, ZEND_STRL("keyType"), &self->data.map.key_type);
   Z_ADDREF_P(&self->data.map.key_type);
 
-  (void)zend_hash_str_update(props, "valueType", sizeof("valueType") - 1, &self->data.map.value_type);
+  (void)zend_hash_str_update(props, ZEND_STRL("valueType"), &self->data.map.value_type);
   Z_ADDREF_P(&self->data.map.value_type);
 
   return props;

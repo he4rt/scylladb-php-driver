@@ -296,13 +296,13 @@ php_driver_tuple_properties(
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
-  (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &self->type);
+  (void)zend_hash_str_update(props, ZEND_STRL("type"), &self->type);
   Z_ADDREF_P(&self->type);
 
 
   array_init(&values);
   php_driver_tuple_populate(self, &values );
-  (void)zend_hash_str_update(props, "values", sizeof("values") - 1, &values);
+  (void)zend_hash_str_update(props, ZEND_STRL("values"), &values);
 
   return props;
 }

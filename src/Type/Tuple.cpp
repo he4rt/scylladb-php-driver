@@ -175,7 +175,7 @@ php_driver_type_tuple_properties(
 
   array_init(&types);
   zend_hash_copy(Z_ARRVAL(types), &self->data.tuple.types, (copy_ctor_func_t)zval_add_ref);
-  (void)zend_hash_str_update(props, "types", sizeof("types") - 1, &types);
+  (void)zend_hash_str_update(props, ZEND_STRL("types"), &types);
 
   return props;
 }

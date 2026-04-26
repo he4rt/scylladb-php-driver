@@ -134,7 +134,7 @@ static HashTable* php_driver_type_collection_properties(
   object->properties = zend_new_array(1);
   HashTable *props = object->properties;
 
-  (void)zend_hash_str_update(props, "valueType", sizeof("valueType") - 1, &self->data.collection.value_type);
+  (void)zend_hash_str_update(props, ZEND_STRL("valueType"), &self->data.collection.value_type);
   Z_ADDREF_P(&self->data.collection.value_type);
 
   return props;

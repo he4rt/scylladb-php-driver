@@ -99,7 +99,7 @@ PHP_METHOD(DefaultFunction, arguments)
       if (cass_function_meta_argument(self->meta, i, &name, &name_length, &data_type) == CASS_OK) {
         zval type = php_driver_type_from_data_type(data_type );
         if (!Z_ISUNDEF(type)) {
-          add_assoc_zval_ex(&self->arguments, name, (size_t)(name_length + 1 - 1), &type);
+          add_assoc_zval_ex(&self->arguments, name, name_length, &type);
         }
       }
     }

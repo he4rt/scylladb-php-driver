@@ -31,7 +31,7 @@ php_driver_user_type_value_set(php_driver_user_type_value *user_type_value,
                                   const char *name, size_t name_length,
                                   zval *object )
 {
-  (void)zend_hash_str_update(&user_type_value->values, name, (size_t)(name_length + 1 - 1), object);
+  (void)zend_hash_str_update(&user_type_value->values, name, name_length, object);
   Z_TRY_ADDREF_P(object);
   user_type_value->dirty = 1;
 }
@@ -53,11 +53,11 @@ php_driver_user_type_value_populate(php_driver_user_type_value *user_type_value,
     zval *value = NULL;
     size_t name_len = ZSTR_LEN(name);
     (void) current;
-    if ((value = zend_hash_str_find(&user_type_value->values, ZSTR_VAL(name), (size_t)(name_len + 1 - 1))) != NULL) {
-      add_assoc_zval_ex(array, ZSTR_VAL(name), (size_t)(name_len + 1 - 1), value);
+    if ((value = zend_hash_str_find(&user_type_value->values, ZSTR_VAL(name), name_len)) != NULL) {
+      add_assoc_zval_ex(array, ZSTR_VAL(name), name_len, value);
       Z_TRY_ADDREF_P(value);
     } else {
-      add_assoc_zval_ex(array, ZSTR_VAL(name), (size_t)(name_len + 1 - 1), &null);
+      add_assoc_zval_ex(array, ZSTR_VAL(name), name_len, &null);
       Z_TRY_ADDREF_P(&null);
     }
   } ZEND_HASH_FOREACH_END();
@@ -158,7 +158,7 @@ ZEND_METHOD(Cassandra_UserTypeValue, set)
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, (size_t)(name_length + 1 - 1))) == NULL) {
+  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, name_length)) == NULL) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
@@ -190,13 +190,13 @@ ZEND_METHOD(Cassandra_UserTypeValue, get)
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
 
-  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, (size_t)(name_length + 1 - 1))) == NULL) {
+  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, name_length)) == NULL) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
   }
 
-  if ((value = zend_hash_str_find(&self->values, name, (size_t)(name_length + 1 - 1))) != NULL) {
+  if ((value = zend_hash_str_find(&self->values, name, name_length)) != NULL) {
     RETURN_ZVAL(value, 1, 0);
   }
 }
@@ -317,13 +317,13 @@ php_driver_user_type_value_properties(
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
-  (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &self->type);
+  (void)zend_hash_str_update(props, ZEND_STRL("type"), &self->type);
   Z_ADDREF_P(&self->type);
 
 
   array_init(&values);
   php_driver_user_type_value_populate(self, &values );
-  (void)zend_hash_str_update(props, "values", sizeof("values") - 1, &values);
+  (void)zend_hash_str_update(props, ZEND_STRL("values"), &values);
 
   return props;
 }

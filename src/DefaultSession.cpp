@@ -781,7 +781,7 @@ PHP_METHOD(DefaultSession, prepare) {
     hash_key_len = spprintf(&hash_key, 0, "%s%s:prepared_statement:%s",
                             self->hash_key, Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
 
-    if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1))) != NULL &&
+    if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
       object_init_ex(return_value, php_driver_prepared_statement_ce);
@@ -814,13 +814,13 @@ PHP_METHOD(DefaultSession, prepare) {
 #if PHP_MAJOR_VERSION >= 7
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
                                 php_le_php_driver_prepared_statement());
-        (void)zend_hash_str_update(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1), &resource);
+        (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #else
         resource.type = php_le_php_driver_prepared_statement();
         resource.ptr = pprepared_statement;
-        (void)zend_hash_str_update(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1), resource);
+        (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, resource);
         PHP_DRIVER_G(persistent_prepared_statements)
         ++;
 #endif
@@ -830,7 +830,7 @@ PHP_METHOD(DefaultSession, prepare) {
 
   if (self->persist) {
     if (php_driver_future_is_error(future) == FAILURE) {
-      (void)(zend_hash_str_del(&EG(persistent_list), hash_key, (size_t)(hash_key_len + 1 - 1)) == SUCCESS);
+      (void)(zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len) == SUCCESS);
     }
     efree(hash_key);
   } else {

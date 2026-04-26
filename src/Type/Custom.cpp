@@ -86,7 +86,7 @@ static HashTable *php_driver_type_custom_properties(zend_object *object) {
 
   ZVAL_STRING(&name, self->data.custom.class_name);
 
-  (void)zend_hash_str_update(props, "name", sizeof("name") - 1, &name);
+  (void)zend_hash_str_update(props, ZEND_STRL("name"), &name);
   return props;
 }
 

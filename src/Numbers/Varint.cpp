@@ -418,12 +418,12 @@ static HashTable *php_driver_varint_properties(
     php_driver_format_integer(self->data.varint.value, &string, &string_len);
 
     type = php_driver_type_scalar(CASS_VALUE_TYPE_VARINT );
-    (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &type);
+    (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
 
     ZVAL_STRINGL(&value, string, string_len);
     efree(string);
-    (void)zend_hash_str_update(props, "value", sizeof("value") - 1, &value);
+    (void)zend_hash_str_update(props, ZEND_STRL("value"), &value);
 
     return props;
 }

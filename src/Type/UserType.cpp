@@ -35,7 +35,7 @@ int php_driver_type_user_type_add(php_driver_type *type,
                                             sub_type->data_type) != CASS_OK) {
     return 0;
   }
-  (void)zend_hash_str_add(&type->data.udt.types, name, (size_t)(name_length + 1 - 1), zsub_type);
+  (void)zend_hash_str_add(&type->data.udt.types, name, name_length, zsub_type);
   return 1;
 }
 
@@ -203,7 +203,7 @@ ZEND_METHOD(Cassandra_Type_UserType, create)
 
         return;
       }
-      if ((sub_type = zend_hash_str_find(&self->data.udt.types, Z_STRVAL_P(name), (size_t)(Z_STRLEN_P(name) + 1 - 1))) == NULL) {
+      if ((sub_type = zend_hash_str_find(&self->data.udt.types, Z_STRVAL_P(name), Z_STRLEN_P(name))) == NULL) {
         zend_throw_exception_ex(php_driver_invalid_argument_exception_ce,
                                 0 ,
                                 "Invalid name '%s'", Z_STRVAL_P(name));
@@ -266,7 +266,7 @@ php_driver_type_user_type_properties(
 
   array_init(&types);
   zend_hash_copy(Z_ARRVAL(types), &self->data.udt.types, (copy_ctor_func_t)zval_add_ref);
-  (void)zend_hash_str_update(props, "types", sizeof("types") - 1, &types);
+  (void)zend_hash_str_update(props, ZEND_STRL("types"), &types);
 
   return props;
 }

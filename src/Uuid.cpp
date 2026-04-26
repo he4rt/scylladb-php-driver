@@ -152,13 +152,13 @@ php_driver_uuid_properties(zend_object *object)
   cass_uuid_string(self->uuid, string);
 
   type = php_driver_type_scalar(CASS_VALUE_TYPE_UUID);
-  (void)zend_hash_str_update(props, "type", sizeof("type") - 1, &type);
+  (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
   ZVAL_STRING(&uuid, string);
-  (void)zend_hash_str_update(props, "uuid", sizeof("uuid") - 1, &uuid);
+  (void)zend_hash_str_update(props, ZEND_STRL("uuid"), &uuid);
 
   ZVAL_LONG(&version, (long) cass_uuid_version(self->uuid));
-  (void)zend_hash_str_update(props, "version", sizeof("version") - 1, &version);
+  (void)zend_hash_str_update(props, ZEND_STRL("version"), &version);
 
   return props;
 }
