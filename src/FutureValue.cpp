@@ -75,7 +75,7 @@ static void
 php_driver_future_value_free(zend_object *object )
 {
   php_driver_future_value *self =
-      PHP5TO7_ZEND_OBJECT_GET(future_value, object);
+      php_driver_future_value_object_fetch(object);
 
   zval_ptr_dtor(&self->value);
 
@@ -86,12 +86,13 @@ php_driver_future_value_free(zend_object *object )
 static zend_object*
 php_driver_future_value_new(zend_class_entry *ce )
 {
-  php_driver_future_value *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(future_value, ce);
+  php_driver_future_value *self = (php_driver_future_value *)ecalloc(1, sizeof(php_driver_future_value) + zend_object_properties_size(ce));
 
   ZVAL_UNDEF(&self->value);
 
-  PHP5TO7_ZEND_OBJECT_INIT(future_value, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  self->zendObject.handlers = &php_driver_future_value_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_FutureValue()
@@ -105,6 +106,8 @@ void php_driver_define_FutureValue()
   php_driver_future_value_ce->create_object = php_driver_future_value_new;
 
   memcpy(&php_driver_future_value_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+  php_driver_future_value_handlers.offset = XtOffsetOf(php_driver_future_value, zendObject);
+  php_driver_future_value_handlers.free_obj = php_driver_future_value_free;
   php_driver_future_value_handlers.get_properties  = php_driver_future_value_properties;
 #if PHP_MAJOR_VERSION >= 8
   php_driver_future_value_handlers.compare = php_driver_future_value_compare;
