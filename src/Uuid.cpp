@@ -142,7 +142,7 @@ php_driver_uuid_properties(zend_object *object)
   zval uuid;
   zval version;
 
-  php_driver_uuid *self = PHP5TO7_ZEND_OBJECT_GET(uuid, object);
+  php_driver_uuid *self = php_driver_uuid_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -195,7 +195,7 @@ php_driver_uuid_hash_value(zval *obj)
 static void
 php_driver_uuid_free(zend_object *object)
 {
-  php_driver_uuid *self = PHP5TO7_ZEND_OBJECT_GET(uuid, object);
+  php_driver_uuid *self = php_driver_uuid_object_fetch(object);
 
   zend_object_std_dtor(&self->zendObject);
 }
@@ -203,10 +203,11 @@ php_driver_uuid_free(zend_object *object)
 static zend_object*
 php_driver_uuid_new(zend_class_entry *ce)
 {
-  php_driver_uuid *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(uuid, ce);
+  php_driver_uuid *self = (php_driver_uuid *)ecalloc(1, sizeof(php_driver_uuid) + zend_object_properties_size(ce));
 
-  PHP5TO7_ZEND_OBJECT_INIT(uuid, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_uuid_handlers;
+  return &self->zendObject;
 }
 
 void
@@ -216,6 +217,8 @@ php_driver_define_Uuid()
   php_driver_uuid_ce->create_object = php_driver_uuid_new;
 
   memcpy(&php_driver_uuid_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+  php_driver_uuid_handlers.std.offset = XtOffsetOf(php_driver_uuid, zendObject);
+  php_driver_uuid_handlers.std.free_obj = php_driver_uuid_free;
   php_driver_uuid_handlers.std.get_properties  = php_driver_uuid_properties;
   php_driver_uuid_handlers.std.get_gc          = php_driver_uuid_gc;
   php_driver_uuid_handlers.std.compare = php_driver_uuid_compare;
