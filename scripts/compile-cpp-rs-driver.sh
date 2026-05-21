@@ -110,19 +110,30 @@ git clone --depth 1 --branch "$GIT_REF" "$GIT_REPO" "$SRC_DIR" 2>/dev/null \
 NPROC="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
 
 # OpenSSL hint for cargo's openssl-sys on macOS
-OPENSSL_HINT=""
 if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
-    if _ossl="$(brew --prefix openssl@3 2>/dev/null)"; then
-        OPENSSL_HINT="$_ossl"
+    if _ossl="$(brew --prefix openssl@3 2>/dev/null)" && [[ -d "$_ossl" ]]; then
+        export OPENSSL_DIR="$_ossl"
+        echo "==> OPENSSL_DIR=$OPENSSL_DIR"
     fi
 fi
 
+# cmake 4.x marks Rust language support as experimental and requires opt-in
+# via a per-version UUID. The cpp-rs-driver's CMakeLists calls
+# enable_language(Rust), so we set the variable that matches the active cmake.
+# UUIDs:
+#   3.31+ (stable Rust experimental): e3739111-7af2-4fdb-9d27-d4a31a4d2eda
+#   4.3.x:                            3cc9b32c-47d3-4056-8953-d74e69fc0d6c
+# We pass both — cmake only validates the value for its own version.
+CMAKE_RUST_OPTS=(
+    -DCMAKE_EXPERIMENTAL_RUST=3cc9b32c-47d3-4056-8953-d74e69fc0d6c
+)
+
 echo "==> Configuring (prefix=$INSTALL_PREFIX, build=$BUILD_TYPE)"
-${OPENSSL_HINT:+OPENSSL_DIR="$OPENSSL_HINT"} \
 cmake -B "$SRC_DIR/build" -S "$SRC_DIR" \
     -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
     -DCASS_BUILD_SHARED=ON \
     -DCASS_BUILD_STATIC=ON \
+    "${CMAKE_RUST_OPTS[@]}" \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 
 echo "==> Building (jobs=$NPROC)"
