@@ -192,7 +192,7 @@ php_driver_uuid_compare(zval *obj1, zval *obj2 )
   php_driver_uuid *uuid2 = NULL;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   uuid1 = PHP_DRIVER_GET_UUID(obj1);
   uuid2 = PHP_DRIVER_GET_UUID(obj2);

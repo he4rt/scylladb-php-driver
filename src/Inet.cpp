@@ -168,7 +168,7 @@ php_driver_inet_compare(zval *obj1, zval *obj2 )
   php_driver_inet *inet2 = NULL;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   inet1 = PHP_DRIVER_GET_INET(obj1);
   inet2 = PHP_DRIVER_GET_INET(obj2);
