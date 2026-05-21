@@ -383,7 +383,7 @@ php_driver_tuple_compare(zval *obj1, zval *obj2 )
   int result;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   tuple1 = PHP_DRIVER_GET_TUPLE(obj1);
   tuple2 = PHP_DRIVER_GET_TUPLE(obj2);

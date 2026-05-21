@@ -602,7 +602,7 @@ static int php_driver_decimal_compare(zval *obj1, zval *obj2)
     php_driver_numeric *decimal2 = NULL;
 
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-        return 1; /* different classes */
+        return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
     decimal1 = PHP_DRIVER_GET_NUMERIC(obj1);
     decimal2 = PHP_DRIVER_GET_NUMERIC(obj2);

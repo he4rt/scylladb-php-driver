@@ -34,9 +34,12 @@ php_driver_table_build_options(CassIterator* iterator ) {
   while (cass_iterator_next(iterator)) {
     const CassValue *value = NULL;
     if (cass_iterator_get_meta_field_name(iterator, &name, &name_length) == CASS_OK) {
-      if (strncmp(name, "keyspace_name", name_length) == 0 ||
-          strncmp(name, "table_name", name_length) == 0 ||
-          strncmp(name, "columnfamily_name", name_length) == 0) {
+      if ((name_length == sizeof("keyspace_name") - 1 &&
+           memcmp(name, "keyspace_name", name_length) == 0) ||
+          (name_length == sizeof("table_name") - 1 &&
+           memcmp(name, "table_name", name_length) == 0) ||
+          (name_length == sizeof("columnfamily_name") - 1 &&
+           memcmp(name, "columnfamily_name", name_length) == 0)) {
         break;
       }
       value = cass_iterator_get_meta_field_value(iterator);

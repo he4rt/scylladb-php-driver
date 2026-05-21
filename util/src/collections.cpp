@@ -713,6 +713,11 @@ int php_driver_collection_from_set(php_driver_set* set, CassCollection** collect
   type = PHP_DRIVER_GET_TYPE(&set->type);
   value_type = PHP_DRIVER_GET_TYPE(&type->data.set.value_type);
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(set->entries));
+  if (collection == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassCollection for set");
+    return 0;
+  }
   HASH_ITER(hh, set->entries, curr, temp) {
     if (!php_driver_collection_append(collection, &curr->value, value_type->type)) {
       result = 0;
@@ -741,6 +746,11 @@ int php_driver_collection_from_collection(php_driver_collection* coll,
   value_type = PHP_DRIVER_GET_TYPE(&(type->data.collection.value_type));
   collection =
       cass_collection_new_from_data_type(type->data_type, zend_hash_num_elements(&coll->values));
+  if (collection == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassCollection for list");
+    return 0;
+  }
 
   PHP5TO7_ZEND_HASH_FOREACH_VAL(&coll->values, current) {
     if (!php_driver_collection_append(collection, current, value_type->type)) {
@@ -770,6 +780,11 @@ int php_driver_collection_from_map(php_driver_map* map, CassCollection** collect
   value_type = PHP_DRIVER_GET_TYPE(&(type->data.map.value_type));
   key_type = PHP_DRIVER_GET_TYPE(&(type->data.map.key_type));
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(map->entries));
+  if (collection == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassCollection for map");
+    return 0;
+  }
   HASH_ITER(hh, map->entries, curr, temp) {
     if (!php_driver_collection_append(collection, &(curr->key), key_type->type)) {
       result = 0;
@@ -798,6 +813,11 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
 
   type = PHP_DRIVER_GET_TYPE(&(tuple->type));
   tup = cass_tuple_new_from_data_type(type->data_type);
+  if (tup == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassTuple");
+    return 0;
+  }
 
   PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
@@ -833,6 +853,11 @@ int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_t
 
   type = PHP_DRIVER_GET_TYPE(&user_type_value->type);
   ut = cass_user_type_new_from_data_type(type->data_type);
+  if (ut == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassUserType");
+    return 0;
+  }
 
   PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
     zval* zsub_type;

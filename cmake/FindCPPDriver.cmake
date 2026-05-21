@@ -28,50 +28,79 @@ if (NOT PHP_DRIVER_BACKEND MATCHES "^(cassandra|scylla-cpp|scylla-rust)$")
 endif ()
 
 # ── pkg-config lookup ────────────────────────────────────────────────────────
-# Note: cpp-rs-driver and scylla cpp-driver both ship a pkg-config module named
-# `scylla-cpp-driver`. The user disambiguates by pointing PKG_CONFIG_PATH (or
-# CMAKE_PREFIX_PATH) at the install prefix of the desired backend before
-# configuring. We additionally probe a sentinel symbol so a misconfigured
-# environment fails loudly instead of linking the wrong driver.
+# Note: cpp-rs-driver and the ScyllaDB cpp-driver both ship a pkg-config module
+# named `scylla-cpp-driver`. The user disambiguates by pointing PKG_CONFIG_PATH
+# (or CMAKE_PREFIX_PATH) at the install prefix of the desired backend before
+# configuring.
 if (PHP_DRIVER_BACKEND STREQUAL "cassandra")
+    set(_cpp_driver_label "DataStax cassandra")
+    set(_install_hint "cassandra")
+    set(_cpp_driver_define PHP_DRIVER_BACKEND_CASSANDRA)
     if (PHP_DRIVER_STATIC)
-        pkg_check_modules(LIBCASSANDRA REQUIRED IMPORTED_TARGET cassandra_static)
+        set(_cpp_driver_pc "cassandra_static")
     else ()
-        pkg_check_modules(LIBCASSANDRA REQUIRED IMPORTED_TARGET cassandra)
+        set(_cpp_driver_pc "cassandra")
     endif ()
-    set(_cpp_driver_underlying PkgConfig::LIBCASSANDRA)
-    set(_cpp_driver_version    "${LIBCASSANDRA_VERSION}")
-    set(_cpp_driver_define     PHP_DRIVER_BACKEND_CASSANDRA)
+elseif (PHP_DRIVER_BACKEND STREQUAL "scylla-rust")
+    set(_cpp_driver_label "ScyllaDB cpp-rs-driver")
+    set(_install_hint "scylla-rust")
+    set(_cpp_driver_define PHP_DRIVER_BACKEND_SCYLLA_RUST)
+    if (PHP_DRIVER_STATIC)
+        set(_cpp_driver_pc "scylla-cpp-driver_static")
+    else ()
+        set(_cpp_driver_pc "scylla-cpp-driver")
+    endif ()
 else ()
-    # Both scylla-cpp and scylla-rust ship scylla-cpp-driver{,_static}.pc
+    set(_cpp_driver_label "ScyllaDB cpp-driver")
+    set(_install_hint "scylladb")
+    set(_cpp_driver_define PHP_DRIVER_BACKEND_SCYLLA_CPP)
     if (PHP_DRIVER_STATIC)
-        pkg_check_modules(LIBSCYLLADB REQUIRED IMPORTED_TARGET scylla-cpp-driver_static)
+        set(_cpp_driver_pc "scylla-cpp-driver_static")
     else ()
-        pkg_check_modules(LIBSCYLLADB REQUIRED IMPORTED_TARGET scylla-cpp-driver)
-    endif ()
-    set(_cpp_driver_underlying PkgConfig::LIBSCYLLADB)
-    set(_cpp_driver_version    "${LIBSCYLLADB_VERSION}")
-    if (PHP_DRIVER_BACKEND STREQUAL "scylla-rust")
-        set(_cpp_driver_define PHP_DRIVER_BACKEND_SCYLLA_RUST)
-    else ()
-        set(_cpp_driver_define PHP_DRIVER_BACKEND_SCYLLA_CPP)
+        set(_cpp_driver_pc "scylla-cpp-driver")
     endif ()
 endif ()
+
+pkg_check_modules(LIBCPPDRIVER QUIET IMPORTED_TARGET "${_cpp_driver_pc}")
+
+if (NOT LIBCPPDRIVER_FOUND)
+    if (PHP_DRIVER_BACKEND STREQUAL "scylla-rust")
+        set(_install_cmd "scripts/compile-cpp-rs-driver.sh --prefix <prefix>")
+    else ()
+        set(_install_cmd "scripts/compile-cpp-driver.sh --driver ${_install_hint}")
+    endif ()
+    message(FATAL_ERROR
+        "Could not find ${_cpp_driver_label} via pkg-config module '${_cpp_driver_pc}'.\n"
+        "Hints:\n"
+        "  * Install it with: ${_install_cmd}\n"
+        "  * Then point CMake at the install prefix with:\n"
+        "      -DCPP_DRIVER_PREFIX=<prefix>   (e.g. /usr/local/${_install_hint})\n"
+        "  * Switch backend with: -DPHP_DRIVER_BACKEND=cassandra|scylla-cpp|scylla-rust\n"
+        "  * To link statically, pass: -DPHP_DRIVER_STATIC=ON (expects '${_cpp_driver_pc}.pc')\n"
+        "Current PKG_CONFIG_PATH: $ENV{PKG_CONFIG_PATH}"
+    )
+endif ()
+
+set(_cpp_driver_version "${LIBCPPDRIVER_VERSION}")
 
 # ── Create CppDriver::Driver INTERFACE IMPORTED target ───────────────────────
 if (NOT TARGET CppDriver::Driver)
     add_library(CppDriver::Driver INTERFACE IMPORTED GLOBAL)
-    target_link_libraries(CppDriver::Driver INTERFACE "${_cpp_driver_underlying}")
+    target_link_libraries(CppDriver::Driver INTERFACE PkgConfig::LIBCPPDRIVER)
     target_compile_definitions(CppDriver::Driver INTERFACE "${_cpp_driver_define}")
 endif ()
 
-message(STATUS "PHP driver backend: ${PHP_DRIVER_BACKEND} (cass library version ${_cpp_driver_version})")
-
-unset(_cpp_driver_underlying)
-unset(_cpp_driver_define)
+message(STATUS "PHP driver backend: ${PHP_DRIVER_BACKEND} "
+               "(${_cpp_driver_label} ${_cpp_driver_version})")
 
 find_package_handle_standard_args(CPPDriver
         REQUIRED_VARS _cpp_driver_version
         VERSION_VAR   _cpp_driver_version
 )
+
 unset(_cpp_driver_version)
+unset(_cpp_driver_label)
+unset(_cpp_driver_pc)
+unset(_cpp_driver_define)
+unset(_install_hint)
+unset(_install_cmd)
