@@ -22,6 +22,7 @@
 
 #include <float.h>
 BEGIN_EXTERN_C()
+#include "Varint_arginfo.h"
 zend_class_entry *php_driver_varint_ce = NULL;
 
 static zend_result to_double(zval *result, php_driver_numeric *varint )
@@ -77,14 +78,15 @@ void php_driver_varint_init(INTERNAL_FUNCTION_PARAMETERS)
     zval *num;
     php_driver_numeric *self;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
-    if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_varint_ce ))
+    if (ZEND_THIS && instanceof_function(Z_OBJCE_P(ZEND_THIS), php_driver_varint_ce))
     {
-        self = PHP_DRIVER_GET_NUMERIC(getThis());
+        self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
     }
     else
     {
@@ -115,23 +117,23 @@ void php_driver_varint_init(INTERNAL_FUNCTION_PARAMETERS)
     }
 }
 /* {{{ Varint::__construct(string) */
-PHP_METHOD(Varint, __construct)
+ZEND_METHOD(Cassandra_Varint, __construct)
 {
     php_driver_varint_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 /* }}} */
 
 /* {{{ Varint::__toString() */
-PHP_METHOD(Varint, __toString)
+ZEND_METHOD(Cassandra_Varint, __toString)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_string(return_value, self );
 }
 /* }}} */
 
 /* {{{ Varint::type() */
-PHP_METHOD(Varint, type)
+ZEND_METHOD(Cassandra_Varint, type)
 {
     zval type = php_driver_type_scalar(CASS_VALUE_TYPE_VARINT );
     RETURN_ZVAL(&type, 1, 1);
@@ -139,9 +141,9 @@ PHP_METHOD(Varint, type)
 /* }}} */
 
 /* {{{ Varint::value() */
-PHP_METHOD(Varint, value)
+ZEND_METHOD(Cassandra_Varint, value)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     char *string;
     int string_len;
@@ -153,19 +155,20 @@ PHP_METHOD(Varint, value)
 /* }}} */
 
 /* {{{ Varint::add() */
-PHP_METHOD(Varint, add)
+ZEND_METHOD(Cassandra_Varint, add)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_varint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *varint = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_varint_ce);
@@ -181,19 +184,20 @@ PHP_METHOD(Varint, add)
 /* }}} */
 
 /* {{{ Varint::sub() */
-PHP_METHOD(Varint, sub)
+ZEND_METHOD(Cassandra_Varint, sub)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_varint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *varint = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_varint_ce);
@@ -209,19 +213,20 @@ PHP_METHOD(Varint, sub)
 /* }}} */
 
 /* {{{ Varint::mul() */
-PHP_METHOD(Varint, mul)
+ZEND_METHOD(Cassandra_Varint, mul)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_varint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *varint = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_varint_ce);
@@ -237,19 +242,20 @@ PHP_METHOD(Varint, mul)
 /* }}} */
 
 /* {{{ Varint::div() */
-PHP_METHOD(Varint, div)
+ZEND_METHOD(Cassandra_Varint, div)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_varint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *varint = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_varint_ce);
@@ -271,19 +277,20 @@ PHP_METHOD(Varint, div)
 /* }}} */
 
 /* {{{ Varint::mod() */
-PHP_METHOD(Varint, mod)
+ZEND_METHOD(Cassandra_Varint, mod)
 {
     zval *num;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &num) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(num)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_driver_varint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *varint = PHP_DRIVER_GET_NUMERIC(num);
 
         object_init_ex(return_value, php_driver_varint_ce);
@@ -305,10 +312,10 @@ PHP_METHOD(Varint, mod)
 /* }}} */
 
 /* {{{ Varint::abs() */
-PHP_METHOD(Varint, abs)
+ZEND_METHOD(Cassandra_Varint, abs)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     object_init_ex(return_value, php_driver_varint_ce);
     result = PHP_DRIVER_GET_NUMERIC(return_value);
@@ -318,10 +325,10 @@ PHP_METHOD(Varint, abs)
 /* }}} */
 
 /* {{{ Varint::neg() */
-PHP_METHOD(Varint, neg)
+ZEND_METHOD(Cassandra_Varint, neg)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     object_init_ex(return_value, php_driver_varint_ce);
     result = PHP_DRIVER_GET_NUMERIC(return_value);
@@ -331,10 +338,10 @@ PHP_METHOD(Varint, neg)
 /* }}} */
 
 /* {{{ Varint::sqrt() */
-PHP_METHOD(Varint, sqrt)
+ZEND_METHOD(Cassandra_Varint, sqrt)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     if (mpz_sgn(self->data.varint.value) < 0)
     {
@@ -351,52 +358,23 @@ PHP_METHOD(Varint, sqrt)
 /* }}} */
 
 /* {{{ Varint::toInt() */
-PHP_METHOD(Varint, toInt)
+ZEND_METHOD(Cassandra_Varint, toInt)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_long(return_value, self );
 }
 /* }}} */
 
 /* {{{ Varint::toDouble() */
-PHP_METHOD(Varint, toDouble)
+ZEND_METHOD(Cassandra_Varint, toDouble)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_double(return_value, self );
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, num)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-static zend_function_entry php_driver_varint_methods[] = {
-    PHP_ME(Varint, __construct, arginfo__construct,
-           ZEND_ACC_CTOR | ZEND_ACC_PUBLIC) PHP_ME(Varint, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-        PHP_ME(Varint, type, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(Varint, value, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(Varint, add, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Varint, sub, arginfo_num, ZEND_ACC_PUBLIC)
-                PHP_ME(Varint, mul, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Varint, div, arginfo_num, ZEND_ACC_PUBLIC)
-                    PHP_ME(Varint, mod, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Varint, abs, arginfo_none, ZEND_ACC_PUBLIC)
-                        PHP_ME(Varint, neg, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(Varint, sqrt, arginfo_none, ZEND_ACC_PUBLIC)
-                                PHP_ME(Varint, toInt, arginfo_none, ZEND_ACC_PUBLIC)
-                                    PHP_ME(Varint, toDouble, arginfo_none, ZEND_ACC_PUBLIC) PHP_FE_END};
 
 static php_driver_value_handlers php_driver_varint_handlers;
 
@@ -425,7 +403,7 @@ static HashTable *php_driver_varint_properties(
     zval value;
 
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -438,12 +416,12 @@ static HashTable *php_driver_varint_properties(
     php_driver_format_integer(self->data.varint.value, &string, &string_len);
 
     type = php_driver_type_scalar(CASS_VALUE_TYPE_VARINT );
-    PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
+    (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
 
     ZVAL_STRINGL(&value, string, string_len);
     efree(string);
-    PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), &value, sizeof(zval));
+    (void)zend_hash_str_update(props, ZEND_STRL("value"), &value);
 
     return props;
 }
@@ -480,7 +458,7 @@ static
     php_driver_varint_cast(zend_object *object, zval *retval, int type )
 {
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -502,7 +480,7 @@ static
 
 static void php_driver_varint_free(zend_object *object )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 
     mpz_clear(self->data.varint.value);
 
@@ -512,37 +490,27 @@ static void php_driver_varint_free(zend_object *object )
 
 static zend_object* php_driver_varint_new(zend_class_entry *ce )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_ECALLOC(numeric, ce);
+    php_driver_numeric *self = (php_driver_numeric *)ecalloc(1, sizeof(php_driver_numeric) + zend_object_properties_size(ce));
 
     mpz_init(self->data.varint.value);
 
-    PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, varint, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+    self->zendObject.handlers = (zend_object_handlers *)&php_driver_varint_handlers;
+    return &self->zendObject;
 }
 
 void php_driver_define_Varint()
 {
-    zend_class_entry ce;
-
-    INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Varint", php_driver_varint_methods);
-    php_driver_varint_ce = zend_register_internal_class(&ce );
-    zend_class_implements(php_driver_varint_ce , 2, php_driver_value_ce, php_driver_numeric_ce);
-
-    php_driver_varint_ce->ce_flags |= ZEND_ACC_FINAL;
+    php_driver_varint_ce = register_class_Cassandra_Varint(php_driver_value_ce, php_driver_numeric_ce);
     php_driver_varint_ce->create_object = php_driver_varint_new;
 
     memcpy(&php_driver_varint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    php_driver_varint_handlers.std.offset = XtOffsetOf(php_driver_numeric, zendObject);
+    php_driver_varint_handlers.std.free_obj = php_driver_varint_free;
     php_driver_varint_handlers.std.get_properties = php_driver_varint_properties;
-#if PHP_VERSION_ID >= 50400
     php_driver_varint_handlers.std.get_gc = php_driver_varint_gc;
-#endif
-
-#if PHP_MAJOR_VERSION >= 8
     php_driver_varint_handlers.std.compare = php_driver_varint_compare;
-#else
-    php_driver_varint_handlers.std.compare_objects = php_driver_varint_compare;
-#endif
     php_driver_varint_handlers.std.cast_object = php_driver_varint_cast;
-
     php_driver_varint_handlers.hash_value = php_driver_varint_hash_value;
     php_driver_varint_handlers.std.clone_obj = NULL;
 }

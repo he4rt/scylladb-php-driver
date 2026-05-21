@@ -23,12 +23,13 @@
 
 #include "Collection.h"
 BEGIN_EXTERN_C()
+#include "Collection_arginfo.h"
 zend_class_entry *php_driver_collection_ce = NULL;
 
 void
 php_driver_collection_add(php_driver_collection *collection, zval *object)
 {
-  PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(&collection->values, object, sizeof(zval *));
+  (void)zend_hash_next_index_insert(&collection->values, object);
   Z_TRY_ADDREF_P(object);
   collection->dirty = 1;
 }
@@ -48,7 +49,7 @@ static int
 php_driver_collection_get(php_driver_collection *collection, ulong index, zval *zvalue)
 {
   zval *value;
-  if (PHP5TO7_ZEND_HASH_INDEX_FIND(&collection->values, index, value)) {
+  if ((value = zend_hash_index_find(&collection->values, (zend_ulong)(index))) != NULL) {
     *zvalue = *value;
     return 1;
   }
@@ -60,14 +61,14 @@ php_driver_collection_find(php_driver_collection *collection, zval *object, long
 {
   zend_ulong num_key;
   zval *current;
-  PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
+  ZEND_HASH_FOREACH_NUM_KEY_VAL(&collection->values, num_key, current) {
     zval compare;
     is_equal_function(&compare, object, current);
-    if (PHP_SCYLLADB_Z_IS_TRUE_P(&compare)) {
+    if ((Z_TYPE_P(&compare) == IS_TRUE)) {
       *index = (long) num_key;
       return 1;
     }
-  } PHP5TO7_ZEND_HASH_FOREACH_END(&collection->values);
+  } ZEND_HASH_FOREACH_END();
 
   return 0;
 }
@@ -76,12 +77,12 @@ static void
 php_driver_collection_populate(php_driver_collection *collection, zval *array)
 {
   zval *current;
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&collection->values, current) {
+  ZEND_HASH_FOREACH_VAL(&collection->values, current) {
     if (add_next_index_zval(array, current) == SUCCESS)
       Z_TRY_ADDREF_P(current);
     else
       break;
-  } PHP5TO7_ZEND_HASH_FOREACH_END(&collection->values);
+  } ZEND_HASH_FOREACH_END();
 }
 
 /* {{{ Collection::__construct(type) */
@@ -216,7 +217,7 @@ PHP_METHOD(Cassandra_Collection, current)
   zval *current;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
 
-  if (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA(&collection->values, current)) {
+  if ((current = zend_hash_get_current_data(&collection->values)) != NULL) {
     RETURN_ZVAL(current, 1, 0);
   }
 }
@@ -227,7 +228,7 @@ PHP_METHOD(Cassandra_Collection, key)
 {
   zend_ulong num_key;
   php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
-  if (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
+  if (zend_hash_get_current_key(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
     RETURN_LONG(num_key);
   }
 }
@@ -277,67 +278,6 @@ PHP_METHOD(Cassandra_Collection, remove)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, type)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_value, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-#if PHP_MAJOR_VERSION >= 8
-ZEND_BEGIN_ARG_INFO_EX(arginfo_values, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_VARIADIC_INFO(0, value)
-ZEND_END_ARG_INFO()
-#endif
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_index, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, index)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_key, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_next, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_rewind, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_valid, 0, 0, _IS_BOOL, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_count, 0, 0, IS_LONG, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_collection_methods[] = {
-  PHP_ME(Cassandra_Collection, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, type, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, values, arginfo_none, ZEND_ACC_PUBLIC)
-#if PHP_MAJOR_VERSION >= 8
-  PHP_ME(Cassandra_Collection, add, arginfo_values, ZEND_ACC_PUBLIC)
-#else
-  PHP_ME(Cassandra_Collection, add, arginfo_value, ZEND_ACC_PUBLIC)
-#endif
-  PHP_ME(Cassandra_Collection, get, arginfo_index, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, find, arginfo_value, ZEND_ACC_PUBLIC)
-  /* Countable */
-  PHP_ME(Cassandra_Collection, count, arginfo_count, ZEND_ACC_PUBLIC)
-  /* Iterator */
-  PHP_ME(Cassandra_Collection, current, arginfo_current, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, key, arginfo_key, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, next, arginfo_next, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Collection, remove, arginfo_index, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static php_driver_value_handlers php_driver_collection_handlers;
 
@@ -376,14 +316,12 @@ php_driver_collection_properties(
   HashTable *props = object->properties;
 
   Z_TRY_ADDREF_P(&self->type);
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "type", sizeof("type"),
-                           &self->type, sizeof(zval));
+  (void)zend_hash_str_update(props, ZEND_STRL("type"), &self->type);
 
 
   array_init(&values);
   php_driver_collection_populate(self, &values);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval));
+  (void)zend_hash_str_update(props, ZEND_STRL("values"), &values);
 
   return props;
 }
@@ -423,8 +361,8 @@ php_driver_collection_compare(zval *obj1, zval *obj2)
   zend_hash_internal_pointer_reset_ex(&collection1->values, &pos1);
   zend_hash_internal_pointer_reset_ex(&collection2->values, &pos2);
 
-  while (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&collection1->values, current1, &pos1) &&
-         PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&collection2->values, current2, &pos2)) {
+  while ((current1 = zend_hash_get_current_data_ex(&collection1->values, &pos1)) != NULL &&
+         (current2 = zend_hash_get_current_data_ex(&collection2->values, &pos2)) != NULL) {
     result = php_driver_value_compare(current1,
                                          current2);
     if (result != 0) return result;
@@ -444,10 +382,10 @@ php_driver_collection_hash_value(zval *obj)
 
   if (!self->dirty) return self->hashv;
 
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&self->values, current) {
+  ZEND_HASH_FOREACH_VAL(&self->values, current) {
     hashv = php_driver_combine_hash(hashv,
                                        php_driver_value_hash(current));
-  } PHP5TO7_ZEND_HASH_FOREACH_END(&self->values);
+  } ZEND_HASH_FOREACH_END();
 
   self->hashv = hashv;
   self->dirty = 0;
@@ -462,7 +400,7 @@ php_driver_collection_free(zend_object *object)
       PHP5TO7_ZEND_OBJECT_GET(collection, object);
 
   zend_hash_destroy(&self->values);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  zval_ptr_dtor(&self->type);
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -483,28 +421,12 @@ php_driver_collection_new(zend_class_entry *ce)
 
 void php_driver_define_Collection()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Collection", php_driver_collection_methods);
-  php_driver_collection_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_collection_ce, 1, php_driver_value_ce);
+  php_driver_collection_ce = register_class_Cassandra_Collection(php_driver_value_ce, zend_ce_countable, zend_ce_iterator);
   memcpy(&php_driver_collection_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_collection_handlers.std.get_properties  = php_driver_collection_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_collection_handlers.std.get_gc          = php_driver_collection_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_collection_handlers.std.compare = php_driver_collection_compare;
-#else
-  php_driver_collection_handlers.std.compare_objects = php_driver_collection_compare;
-#endif
-  php_driver_collection_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_collection_ce->create_object = php_driver_collection_new;
-#if PHP_VERSION_ID < 80100
-  zend_class_implements(php_driver_collection_ce, 2, spl_ce_Countable, zend_ce_iterator);
-#else
-  zend_class_implements(php_driver_collection_ce, 2, zend_ce_countable, zend_ce_iterator);
-#endif
 
   php_driver_collection_handlers.hash_value = php_driver_collection_hash_value;
   php_driver_collection_handlers.std.clone_obj = NULL;

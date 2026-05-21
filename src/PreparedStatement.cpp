@@ -17,19 +17,13 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 BEGIN_EXTERN_C()
+#include "PreparedStatement_arginfo.h"
+
 zend_class_entry *php_driver_prepared_statement_ce = NULL;
 
-PHP_METHOD(PreparedStatement, __construct)
+ZEND_METHOD(Cassandra_PreparedStatement, __construct)
 {
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_prepared_statement_methods[] = {
-  PHP_ME(PreparedStatement, __construct, arginfo_none, ZEND_ACC_PRIVATE | ZEND_ACC_CTOR)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_prepared_statement_handlers;
 
@@ -83,23 +77,15 @@ php_driver_prepared_statement_new(zend_class_entry *ce )
   PHP5TO7_ZEND_OBJECT_INIT_EX(statement, prepared_statement, self, ce);
 }
 
+END_EXTERN_C()
+
 void php_driver_define_PreparedStatement()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\PreparedStatement", php_driver_prepared_statement_methods);
-  php_driver_prepared_statement_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_prepared_statement_ce , 1, php_driver_statement_ce);
-  php_driver_prepared_statement_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_prepared_statement_ce = register_class_Cassandra_PreparedStatement(php_driver_statement_ce);
   php_driver_prepared_statement_ce->create_object = php_driver_prepared_statement_new;
 
   memcpy(&php_driver_prepared_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_prepared_statement_handlers.get_properties  = php_driver_prepared_statement_properties;
-#if PHP_MAJOR_VERSION >= 8
   php_driver_prepared_statement_handlers.compare = php_driver_prepared_statement_compare;
-#else
-  php_driver_prepared_statement_handlers.compare_objects = php_driver_prepared_statement_compare;
-#endif
   php_driver_prepared_statement_handlers.clone_obj = NULL;
 }
-END_EXTERN_C()

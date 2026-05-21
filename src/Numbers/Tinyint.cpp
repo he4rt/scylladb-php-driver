@@ -25,6 +25,7 @@
 #define INT8_MIN (-INT8_MAX - 1)
 #endif
 BEGIN_EXTERN_C()
+#include "Tinyint_arginfo.h"
 zend_class_entry *php_driver_tinyint_ce = NULL;
 
 static zend_result to_double(zval *result, php_driver_numeric *tinyint )
@@ -54,14 +55,15 @@ void php_driver_tinyint_init(INTERNAL_FUNCTION_PARAMETERS)
     zval *value;
     cass_int32_t number;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &value) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(value)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
-    if (getThis() && instanceof_function(Z_OBJCE_P(getThis()), php_driver_tinyint_ce ))
+    if (ZEND_THIS && instanceof_function(Z_OBJCE_P(ZEND_THIS), php_driver_tinyint_ce))
     {
-        self = PHP_DRIVER_GET_NUMERIC(getThis());
+        self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
     }
     else
     {
@@ -131,23 +133,23 @@ void php_driver_tinyint_init(INTERNAL_FUNCTION_PARAMETERS)
 }
 
 /* {{{ Tinyint::__construct(string) */
-PHP_METHOD(Tinyint, __construct)
+ZEND_METHOD(Cassandra_Tinyint, __construct)
 {
     php_driver_tinyint_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 /* }}} */
 
 /* {{{ Tinyint::__toString() */
-PHP_METHOD(Tinyint, __toString)
+ZEND_METHOD(Cassandra_Tinyint, __toString)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_string(return_value, self );
 }
 /* }}} */
 
 /* {{{ Tinyint::type() */
-PHP_METHOD(Tinyint, type)
+ZEND_METHOD(Cassandra_Tinyint, type)
 {
     zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TINY_INT );
     RETURN_ZVAL(&type, 1, 1);
@@ -155,30 +157,31 @@ PHP_METHOD(Tinyint, type)
 /* }}} */
 
 /* {{{ Tinyint::value() */
-PHP_METHOD(Tinyint, value)
+ZEND_METHOD(Cassandra_Tinyint, value)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_long(return_value, self );
 }
 /* }}} */
 
 /* {{{ Tinyint::add() */
-PHP_METHOD(Tinyint, add)
+ZEND_METHOD(Cassandra_Tinyint, add)
 {
     zval *addend;
     php_driver_numeric *self;
     php_driver_numeric *tinyint;
     php_driver_numeric *result;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &addend) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(addend)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(addend) == IS_OBJECT && instanceof_function(Z_OBJCE_P(addend), php_driver_tinyint_ce ))
     {
-        self = PHP_DRIVER_GET_NUMERIC(getThis());
+        self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         tinyint = PHP_DRIVER_GET_NUMERIC(addend);
 
         object_init_ex(return_value, php_driver_tinyint_ce);
@@ -199,20 +202,21 @@ PHP_METHOD(Tinyint, add)
 /* }}} */
 
 /* {{{ Tinyint::sub() */
-PHP_METHOD(Tinyint, sub)
+ZEND_METHOD(Cassandra_Tinyint, sub)
 {
     zval *difference;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &difference) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(difference)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(difference) == IS_OBJECT &&
         instanceof_function(Z_OBJCE_P(difference), php_driver_tinyint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *tinyint = PHP_DRIVER_GET_NUMERIC(difference);
 
         object_init_ex(return_value, php_driver_tinyint_ce);
@@ -233,20 +237,21 @@ PHP_METHOD(Tinyint, sub)
 /* }}} */
 
 /* {{{ Tinyint::mul() */
-PHP_METHOD(Tinyint, mul)
+ZEND_METHOD(Cassandra_Tinyint, mul)
 {
     zval *multiplier;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &multiplier) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(multiplier)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(multiplier) == IS_OBJECT &&
         instanceof_function(Z_OBJCE_P(multiplier), php_driver_tinyint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *tinyint = PHP_DRIVER_GET_NUMERIC(multiplier);
 
         object_init_ex(return_value, php_driver_tinyint_ce);
@@ -268,19 +273,20 @@ PHP_METHOD(Tinyint, mul)
 /* }}} */
 
 /* {{{ Tinyint::div() */
-PHP_METHOD(Tinyint, div)
+ZEND_METHOD(Cassandra_Tinyint, div)
 {
     zval *divisor;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &divisor) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(divisor)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(divisor) == IS_OBJECT && instanceof_function(Z_OBJCE_P(divisor), php_driver_tinyint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *tinyint = PHP_DRIVER_GET_NUMERIC(divisor);
 
         object_init_ex(return_value, php_driver_tinyint_ce);
@@ -302,19 +308,20 @@ PHP_METHOD(Tinyint, div)
 /* }}} */
 
 /* {{{ Tinyint::mod() */
-PHP_METHOD(Tinyint, mod)
+ZEND_METHOD(Cassandra_Tinyint, mod)
 {
     zval *divisor;
     php_driver_numeric *result = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &divisor) == FAILURE)
-    {
-        return;
-    }
+    // clang-format off
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(divisor)
+    ZEND_PARSE_PARAMETERS_END();
+    // clang-format on
 
     if (Z_TYPE_P(divisor) == IS_OBJECT && instanceof_function(Z_OBJCE_P(divisor), php_driver_tinyint_ce ))
     {
-        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+        php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
         php_driver_numeric *tinyint = PHP_DRIVER_GET_NUMERIC(divisor);
 
         object_init_ex(return_value, php_driver_tinyint_ce);
@@ -336,10 +343,10 @@ PHP_METHOD(Tinyint, mod)
 /* }}} */
 
 /* {{{ Tinyint::abs() */
-PHP_METHOD(Tinyint, abs)
+ZEND_METHOD(Cassandra_Tinyint, abs)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     if (self->data.tinyint.value == INT8_MIN)
     {
@@ -354,10 +361,10 @@ PHP_METHOD(Tinyint, abs)
 /* }}} */
 
 /* {{{ Tinyint::neg() */
-PHP_METHOD(Tinyint, neg)
+ZEND_METHOD(Cassandra_Tinyint, neg)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     if (self->data.tinyint.value == INT8_MIN)
     {
@@ -372,10 +379,10 @@ PHP_METHOD(Tinyint, neg)
 /* }}} */
 
 /* {{{ Tinyint::sqrt() */
-PHP_METHOD(Tinyint, sqrt)
+ZEND_METHOD(Cassandra_Tinyint, sqrt)
 {
     php_driver_numeric *result = NULL;
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     if (self->data.tinyint.value < 0)
     {
@@ -391,25 +398,25 @@ PHP_METHOD(Tinyint, sqrt)
 /* }}} */
 
 /* {{{ Tinyint::toInt() */
-PHP_METHOD(Tinyint, toInt)
+ZEND_METHOD(Cassandra_Tinyint, toInt)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_long(return_value, self );
 }
 /* }}} */
 
 /* {{{ Tinyint::toDouble() */
-PHP_METHOD(Tinyint, toDouble)
+ZEND_METHOD(Cassandra_Tinyint, toDouble)
 {
-    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(getThis());
+    php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(ZEND_THIS);
 
     to_double(return_value, self );
 }
 /* }}} */
 
 /* {{{ Tinyint::min() */
-PHP_METHOD(Tinyint, min)
+ZEND_METHOD(Cassandra_Tinyint, min)
 {
     php_driver_numeric *tinyint = NULL;
     object_init_ex(return_value, php_driver_tinyint_ce);
@@ -419,7 +426,7 @@ PHP_METHOD(Tinyint, min)
 /* }}} */
 
 /* {{{ Tinyint::max() */
-PHP_METHOD(Tinyint, max)
+ZEND_METHOD(Cassandra_Tinyint, max)
 {
     php_driver_numeric *tinyint = NULL;
     object_init_ex(return_value, php_driver_tinyint_ce);
@@ -428,36 +435,6 @@ PHP_METHOD(Tinyint, max)
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_num, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, num)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-static zend_function_entry php_driver_tinyint_methods[] = {
-    PHP_ME(Tinyint, __construct, arginfo__construct, ZEND_ACC_CTOR | ZEND_ACC_PUBLIC) PHP_ME(
-        Tinyint, __toString, arginfo_tostring, ZEND_ACC_PUBLIC) PHP_ME(Tinyint, type, arginfo_none, ZEND_ACC_PUBLIC)
-        PHP_ME(Tinyint, value, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(Tinyint, add, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(
-            Tinyint, sub, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Tinyint, mul, arginfo_num, ZEND_ACC_PUBLIC)
-            PHP_ME(Tinyint, div, arginfo_num, ZEND_ACC_PUBLIC) PHP_ME(Tinyint, mod, arginfo_num, ZEND_ACC_PUBLIC)
-                PHP_ME(Tinyint, abs, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(Tinyint, neg, arginfo_none, ZEND_ACC_PUBLIC)
-                    PHP_ME(Tinyint, sqrt, arginfo_none, ZEND_ACC_PUBLIC)
-                        PHP_ME(Tinyint, toInt, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(Tinyint, toDouble, arginfo_none, ZEND_ACC_PUBLIC)
-                                PHP_ME(Tinyint, min, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-                                    PHP_ME(Tinyint, max, arginfo_none, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC) PHP_FE_END};
 
 static php_driver_value_handlers php_driver_tinyint_handlers;
 
@@ -486,7 +463,7 @@ static HashTable *php_driver_tinyint_properties(
     zval value;
 
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -497,11 +474,11 @@ static HashTable *php_driver_tinyint_properties(
     HashTable *props = object->properties;
 
     type = php_driver_type_scalar(CASS_VALUE_TYPE_TINY_INT );
-    PHP5TO7_ZEND_HASH_UPDATE(props, "type", sizeof("type"), &type, sizeof(zval));
+    (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
 
     to_string(&value, self );
-    PHP5TO7_ZEND_HASH_UPDATE(props, "value", sizeof("value"), &value, sizeof(zval));
+    (void)zend_hash_str_update(props, ZEND_STRL("value"), &value);
 
     return props;
 }
@@ -543,7 +520,7 @@ static
     php_driver_tinyint_cast(zend_object *object, zval *retval, int type )
 {
 #if PHP_MAJOR_VERSION >= 8
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 #else
     php_driver_numeric *self = PHP_DRIVER_GET_NUMERIC(object);
 #endif
@@ -565,7 +542,7 @@ static
 
 static void php_driver_tinyint_free(zend_object *object )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_GET(numeric, object);
+    php_driver_numeric *self = php_driver_numeric_object_fetch(object);
 
     zend_object_std_dtor(&self->zendObject);
 
@@ -573,35 +550,27 @@ static void php_driver_tinyint_free(zend_object *object )
 
 static zend_object* php_driver_tinyint_new(zend_class_entry *ce )
 {
-    php_driver_numeric *self = PHP5TO7_ZEND_OBJECT_ECALLOC(numeric, ce);
+    php_driver_numeric *self = (php_driver_numeric *)ecalloc(1, sizeof(php_driver_numeric) + zend_object_properties_size(ce));
 
     self->type = PHP_DRIVER_TINYINT;
 
-    PHP5TO7_ZEND_OBJECT_INIT_EX(numeric, tinyint, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+    self->zendObject.handlers = (zend_object_handlers *)&php_driver_tinyint_handlers;
+    return &self->zendObject;
 }
 
 void php_driver_define_Tinyint()
 {
-    zend_class_entry ce;
-
-    INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Tinyint", php_driver_tinyint_methods);
-    php_driver_tinyint_ce = zend_register_internal_class(&ce );
-    zend_class_implements(php_driver_tinyint_ce , 2, php_driver_value_ce, php_driver_numeric_ce);
-    php_driver_tinyint_ce->ce_flags |= ZEND_ACC_FINAL;
+    php_driver_tinyint_ce = register_class_Cassandra_Tinyint(php_driver_value_ce, php_driver_numeric_ce);
     php_driver_tinyint_ce->create_object = php_driver_tinyint_new;
 
     memcpy(&php_driver_tinyint_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    php_driver_tinyint_handlers.std.offset = XtOffsetOf(php_driver_numeric, zendObject);
+    php_driver_tinyint_handlers.std.free_obj = php_driver_tinyint_free;
     php_driver_tinyint_handlers.std.get_properties = php_driver_tinyint_properties;
-#if PHP_VERSION_ID >= 50400
     php_driver_tinyint_handlers.std.get_gc = php_driver_tinyint_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
     php_driver_tinyint_handlers.std.compare = php_driver_tinyint_compare;
-#else
-    php_driver_tinyint_handlers.std.compare_objects = php_driver_tinyint_compare;
-#endif
     php_driver_tinyint_handlers.std.cast_object = php_driver_tinyint_cast;
-
     php_driver_tinyint_handlers.hash_value = php_driver_tinyint_hash_value;
 }
 END_EXTERN_C()

@@ -18,6 +18,7 @@
 
 #include "util/result.h"
 BEGIN_EXTERN_C()
+#include "Table_arginfo.h"
 zend_class_entry *php_driver_table_ce = NULL;
 
 zval
@@ -51,9 +52,7 @@ php_driver_table_build_options(CassIterator* iterator ) {
           if (php_driver_value(value,
                                   data_type,
                                   &zvalue ) == SUCCESS) {
-            PHP5TO7_ADD_ASSOC_ZVAL_EX(&zoptions,
-                                      name, name_length + 1,
-                                      &zvalue);
+            add_assoc_zval_ex(&zoptions, name, name_length, &zvalue);
           }
         }
       }
@@ -63,49 +62,8 @@ php_driver_table_build_options(CassIterator* iterator ) {
   return zoptions;
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_name, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, name)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_table_methods[] = {
-  PHP_ABSTRACT_ME(Table, name, arginfo_none)
-  PHP_ABSTRACT_ME(Table, option, arginfo_name)
-  PHP_ABSTRACT_ME(Table, options, arginfo_none)
-  PHP_ABSTRACT_ME(Table, comment, arginfo_none)
-  PHP_ABSTRACT_ME(Table, readRepairChance, arginfo_none)
-  PHP_ABSTRACT_ME(Table, localReadRepairChance, arginfo_none)
-  PHP_ABSTRACT_ME(Table, gcGraceSeconds, arginfo_none)
-  PHP_ABSTRACT_ME(Table, caching, arginfo_none)
-  PHP_ABSTRACT_ME(Table, bloomFilterFPChance, arginfo_none)
-  PHP_ABSTRACT_ME(Table, memtableFlushPeriodMs, arginfo_none)
-  PHP_ABSTRACT_ME(Table, defaultTTL, arginfo_none)
-  PHP_ABSTRACT_ME(Table, speculativeRetry, arginfo_none)
-  PHP_ABSTRACT_ME(Table, indexInterval, arginfo_none)
-  PHP_ABSTRACT_ME(Table, compactionStrategyClassName, arginfo_none)
-  PHP_ABSTRACT_ME(Table, compactionStrategyOptions, arginfo_none)
-  PHP_ABSTRACT_ME(Table, compressionParameters, arginfo_none)
-  PHP_ABSTRACT_ME(Table, populateIOCacheOnFlush, arginfo_none)
-  PHP_ABSTRACT_ME(Table, replicateOnWrite, arginfo_none)
-  PHP_ABSTRACT_ME(Table, maxIndexInterval, arginfo_none)
-  PHP_ABSTRACT_ME(Table, minIndexInterval, arginfo_none)
-  PHP_ABSTRACT_ME(Table, column, arginfo_name)
-  PHP_ABSTRACT_ME(Table, columns, arginfo_none)
-  PHP_ABSTRACT_ME(Table, partitionKey, arginfo_none)
-  PHP_ABSTRACT_ME(Table, primaryKey, arginfo_none)
-  PHP_ABSTRACT_ME(Table, clusteringKey, arginfo_none)
-  PHP_ABSTRACT_ME(Table, clusteringOrder, arginfo_none)
-  PHP_FE_END
-};
-
 void php_driver_define_Table()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Table", php_driver_table_methods);
-  php_driver_table_ce = zend_register_internal_class(&ce );
-  php_driver_table_ce->ce_flags |= ZEND_ACC_INTERFACE;
+  php_driver_table_ce = register_class_Cassandra_Table();
 }
 END_EXTERN_C()

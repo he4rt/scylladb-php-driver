@@ -8,27 +8,27 @@ namespace Cassandra\Cluster {
      */
     final class Builder
     {
-        public function withDefaultConsistency(int $consistency): Builder
+        public function withDefaultConsistency(int $consistency): static
         {
         }
 
-        public function withDefaultPageSize(int $pageSize): Builder
+        public function withDefaultPageSize(int $pageSize): static
         {
         }
 
-        public function withDefaultTimeout(float $timeout): Builder
+        public function withDefaultTimeout(float $timeout): static
         {
         }
 
-        public function withContactPoints(string ...$host): Builder
+        public function withContactPoints(string ...$host): static
         {
         }
 
-        public function withPort(int $port): Builder
+        public function withPort(int $port): static
         {
         }
 
-        public function withRoundRobinLoadBalancingPolicy(): Builder
+        public function withRoundRobinLoadBalancingPolicy(): static
         {
         }
 
@@ -36,98 +36,98 @@ namespace Cassandra\Cluster {
             string $localDatacenter,
             int $hostPerRemoteDatacenter,
             bool $useRemoteDatacenterForLocalConsistencies
-        ): Builder {
+        ): static {
         }
 
-        public function withBlackListHosts(string $hosts): Builder
+        public function withBlackListHosts(string ...$hosts): static
         {
         }
 
-        public function withWhiteListHosts(string $hosts): Builder
+        public function withWhiteListHosts(string ...$hosts): static
         {
         }
 
-        public function withBlackListDCs(string $dcs): Builder
+        public function withBlackListDCs(string ...$dcs): static
         {
         }
 
-        public function withWhiteListDCs(string $dcs): Builder
+        public function withWhiteListDCs(string ...$dcs): static
         {
         }
 
-        public function withTokenAwareRouting(bool $enabled = true): Builder
+        public function withTokenAwareRouting(bool $enabled = true): static
         {
         }
 
-        public function withCredentials(string $username, string $password): Builder
+        public function withCredentials(string $username, string $password): static
         {
         }
 
-        public function withConnectTimeout(float $timeout): Builder
+        public function withConnectTimeout(float $timeout): static
         {
         }
 
-        public function withRequestTimeout(float $timeout): Builder
+        public function withRequestTimeout(float $timeout): static
         {
         }
 
-        public function withSSL(\Cassandra\SSLOptions $options): Builder
+        public function withSSL(\Cassandra\SSLOptions $options): static
         {
         }
 
-        public function withPersistentSessions(bool $enabled = true): Builder
+        public function withPersistentSessions(bool $enabled = true): static
         {
         }
 
-        public function withProtocolVersion(int $version): Builder
+        public function withProtocolVersion(int $version): static
         {
         }
 
-        public function withIOThreads(int $count): Builder
+        public function withIOThreads(int $count): static
         {
         }
 
-        public function withConnectionsPerHost(int $core, int $max = 2): Builder
+        public function withConnectionsPerHost(int $core, int $max = 2): static
         {
         }
 
-        public function withReconnectInterval(float $interval): Builder
+        public function withReconnectInterval(float $interval): static
         {
         }
 
-        public function withLatencyAwareRouting(bool $enabled = true): Builder
+        public function withLatencyAwareRouting(bool $enabled = true): static
         {
         }
 
-        public function withTCPNodelay(bool $enabled = true): Builder
+        public function withTCPNodelay(bool $enabled = true): static
         {
         }
 
-        public function withTCPKeepalive(?float $delay): Builder
+        public function withTCPKeepalive(?float $delay): static
         {
         }
 
-        public function withRetryPolicy(\Cassandra\RetryPolicy $policy): Builder
+        public function withRetryPolicy(\Cassandra\RetryPolicy $policy): static
         {
         }
 
-        public function withTimestampGenerator(\Cassandra\TimestampGenerator $generator): Builder
+        public function withTimestampGenerator(\Cassandra\TimestampGenerator $generator): static
         {
         }
 
-        public function withSchemaMetadata(bool $enabled = true): Builder
+        public function withSchemaMetadata(bool $enabled = true): static
         {
         }
 
-        public function withHostnameResolution(bool $enabled = true): Builder
+        public function withHostnameResolution(bool $enabled = true): static
         {
         }
 
-        public function withRandomizedContactPoints(bool $enabled = true): Builder
+        public function withRandomizedContactPoints(bool $enabled = true): static
         {
         }
 
-        public function withConnectionHeartbeatInterval(float $interval): Builder
+        public function withConnectionHeartbeatInterval(float $interval): static
         {
         }
 

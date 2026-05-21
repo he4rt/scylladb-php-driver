@@ -7,8 +7,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      */
-    final class Timeuuid implements Value {
-        public function __construct(string $uuid = UNKNOWN) {}
+    final class Timeuuid implements Value, UuidInterface {
+        public function __construct(string|int $uuid = UNKNOWN) {}
 
         public function type(): Type {}
         public function time(): int {}

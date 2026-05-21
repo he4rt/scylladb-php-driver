@@ -18,9 +18,10 @@
 #include "php_driver_types.h"
 #include "util/ref.h"
 BEGIN_EXTERN_C()
+#include "DefaultSchema_arginfo.h"
 zend_class_entry *php_driver_default_schema_ce = NULL;
 
-PHP_METHOD(DefaultSchema, keyspace)
+ZEND_METHOD(Cassandra_DefaultSchema, keyspace)
 {
   char *name;
   size_t name_len;
@@ -44,7 +45,7 @@ PHP_METHOD(DefaultSchema, keyspace)
   keyspace->meta   = meta;
 }
 
-PHP_METHOD(DefaultSchema, keyspaces)
+ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
 {
   php_driver_schema *self;
   CassIterator     *iterator;
@@ -77,15 +78,13 @@ PHP_METHOD(DefaultSchema, keyspaces)
     keyspace = PHP_DRIVER_GET_KEYSPACE(&zkeyspace);
     keyspace->schema = php_driver_add_ref(self->schema);
     keyspace->meta   = meta;
-    PHP5TO7_ADD_ASSOC_ZVAL_EX(return_value,
-                              keyspace_name, keyspace_name_len + 1,
-                              &zkeyspace);
+    add_assoc_zval_ex(return_value, keyspace_name, keyspace_name_len, &zkeyspace);
   }
 
   cass_iterator_free(iterator);
 }
 
-PHP_METHOD(DefaultSchema, version)
+ZEND_METHOD(Cassandra_DefaultSchema, version)
 {
   php_driver_schema *self;
 
@@ -95,20 +94,6 @@ PHP_METHOD(DefaultSchema, version)
   self = PHP_DRIVER_GET_SCHEMA(getThis());
   RETURN_LONG(cass_schema_meta_snapshot_version((CassSchemaMeta *) self->schema->data));
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_name, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, name)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_schema_methods[] = {
-  PHP_ME(DefaultSchema, keyspace, arginfo_name, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultSchema, keyspaces, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultSchema, version, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_default_schema_handlers;
 
@@ -165,12 +150,7 @@ php_driver_default_schema_new(zend_class_entry *ce )
 
 void php_driver_define_DefaultSchema()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultSchema", php_driver_default_schema_methods);
-  php_driver_default_schema_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_default_schema_ce , 1, php_driver_schema_ce);
-  php_driver_default_schema_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_default_schema_ce = register_class_Cassandra_DefaultSchema(php_driver_schema_ce);
   php_driver_default_schema_ce->create_object = php_driver_default_schema_new;
 
   memcpy(&php_driver_default_schema_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

@@ -12,7 +12,7 @@ namespace Cassandra {
 
         public function type(): Type {}
         public function seconds(): int {}
-        public static function fromDateTime(\DateTimeInterface $datetime): Time {}
+        public static function fromDateTime(\DateTimeInterface $datetime): static {}
 
         public function __toString(): string {}
     }

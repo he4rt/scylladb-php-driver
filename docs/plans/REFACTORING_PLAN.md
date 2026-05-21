@@ -48,9 +48,15 @@ Stage 3 in the full plan. Bigger commitment; gates Stage 4.
 
 ### Round D — Universal stub coverage (target: v1.5.0 or v1.6.0)
 
-Stage 3.5 in the full plan. **86 classes total, 14 done, 72 to go.** Order:
+Stage 3.5 in the full plan. **86 classes total, 27 done, 59 to go.** Order:
 
-- [ ] Round A foundational (12 classes): `Cassandra` facade, `Value`, `Numeric`, `UuidInterface`, `Uuid`, `Inet`, `Blob`, `Duration`, `Bigint`, `Smallint`, `Tinyint`, `Float`, `Decimal`, `Varint`, `Custom`.
+- [x] Round A foundational: `Value` (interface), `Numeric` (interface), `UuidInterface` (interface), `Uuid`, `Blob`, `Inet`, `Duration`, `Bigint`, `Smallint`, `Tinyint`, `Float`, `Decimal`, `Varint`, `Timeuuid` (wired). All stubs strictly typed (concrete return types, `static` for fluent/factory, `int|float|string|T` constructors). Done on `refactor/stage2-macro-purge`.
+- [x] Round B Type system: `Type`, `Type\Scalar`, `Type\Collection`, `Type\Set`, `Type\Map`, `Type\Tuple`, `Type\UserType`, `Type\Custom`. Strictly typed. Done on `refactor/stage2-macro-purge`.
+- [x] Round C Collections: `Collection`, `Set`, `Map`, `Tuple`, `UserTypeValue`. Constructor types tightened (`Type|string`); `key()` typed as `int` or `string` per implementation. Done on `refactor/stage2-macro-purge`.
+- [x] Round F TimestampGenerator: `TimestampGenerator` (interface), `Monotonic`, `ServerSide`. Done on `refactor/stage2-macro-purge`.
+- [x] Round G Exceptions: all 25 exception classes consolidated into `exceptions.stub.php`. Done on `refactor/stage2-macro-purge`.
+- [ ] Round D Database surface: `Session`, `DefaultSession`, `SimpleStatement`, `PreparedStatement`, `BatchStatement`, `ExecutionOptions`, `Future*`, `Rows`.
+- [ ] Round E Schema metadata: `Schema`, `Keyspace`, `Table`, `Column`, `Index`, `MaterializedView`, `Function`, `Aggregate` classes.
 - [ ] Round B Type system (8 classes): `Type`, `Type\{Scalar,Collection,Set,Map,Tuple,UserType,Custom}`.
 - [ ] Round C Collections (5 classes): `Collection`, `Set`, `Map`, `Tuple`, `UserTypeValue`.
 - [ ] Round D Database (14 classes): `Session`, `DefaultSession`, `Statement`, `SimpleStatement`, `PreparedStatement`, `BatchStatement`, `ExecutionOptions`, `Future`, `FutureClose`, `FuturePreparedStatement`, `FutureRows`, `FutureSession`, `FutureValue`, `Rows`.
@@ -72,11 +78,11 @@ Stage 3.6 in the full plan. **107 `zend_parse_parameters` callsites across 37 fi
 
 Stage 2 in the full plan. Previously attempted as a flat sweep (PR #122 wave-1) and reverted because it caused collection/UDT round-trip regressions and a buffer overflow. Redo *module-by-module alongside Round D's stub work*.
 
-- [ ] Round 1 — pure renames (6 macros, 22 callsites): `PHP5TO7_SMART_STR_VAL/LEN`, `PHP_SCYLLADB_Z_IS_*`, `PHP5TO7_ADD_NEXT_INDEX_STRING`. Lowest risk; can ship standalone.
-- [ ] Round 2 — hashtable iteration (8 macros, ~188 callsites): `PHP5TO7_ZEND_HASH_FOREACH_*`, `GET_CURRENT_*`. Medium risk — the `STR_KEY_VAL` `char*` ↔ `zend_string*` adaptation is the historical landmine. Must include round-trip tests for Collection/Map/Set/UDT in CI before merging.
-- [ ] Round 3 — hashtable mutation (11 macros, ~161 callsites): `PHP5TO7_ZEND_HASH_FIND/EXISTS/UPDATE/ADD/DEL/INDEX_*`, `ADD_ASSOC_*`, `ZVAL_COPY`.
-- [ ] Round 4 — zval lifecycle (1 macro, 58 callsites): `PHP5TO7_ZVAL_MAYBE_DESTROY`. Drop the `do { … } while (0)` wrapper since callsites are inlined code, not macro expansions.
-- [ ] Round 5 — load-bearing (4 macros, ~168 callsites): `PHP5TO7_ZEND_OBJECT_GET/ECALLOC/INIT/INIT_EX`. Coupled to handler refactor; do per-module after the module's stub + Z_PARAM port.
+- [x] Round 1 — pure renames (6 macros): `PHP5TO7_SMART_STR_VAL/LEN`, `PHP_SCYLLADB_Z_IS_*`, `PHP5TO7_ADD_NEXT_INDEX_STRING`. Done on `refactor/stage2-macro-purge`.
+- [x] Round 2 — hashtable iteration: `PHP5TO7_ZEND_HASH_FOREACH_*`, `GET_CURRENT_*` (all variants). Done; STR_KEY_VAL adapted to `zend_string *`.
+- [x] Round 3 — hashtable mutation: `PHP5TO7_ZEND_HASH_FIND/EXISTS/UPDATE/ADD/DEL/INDEX_*`, `ADD_ASSOC_*`, `ZVAL_COPY`. Done.
+- [x] Round 4 — zval lifecycle: `PHP5TO7_ZVAL_MAYBE_DESTROY` → `zval_ptr_dtor`. Done (54 callsites).
+- [ ] Round 5 — load-bearing (4 macros, 163 callsites): `PHP5TO7_ZEND_OBJECT_GET/ECALLOC/INIT/INIT_EX`. Deferred per-module alongside handler refactor (Stage 4). 163 callsites remain in `php_driver.h` macros.
 - [ ] **Stage 2.3 — delete `util/`** (12 headers + 10 cpp files): inline thin wrappers into owning modules; replace `uthash.h` with `zend_hash`; replace `php_driver_ref` with native resource refcounting (depends on Round B).
 
 ### Round G — Module ports to C23 (target: v1.6.0–v2.0.0)

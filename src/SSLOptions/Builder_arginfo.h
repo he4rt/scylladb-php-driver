@@ -1,24 +1,24 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 9533a68b40616c351207d0054fad9e65e14722b6 */
+ * Stub hash: 61e7e5afb565fe6aa8cfcdffedcf83aa87acfc83 */
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withTrustedCerts, 0, 0, Cassandra\\SSLOptions\\Builder, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withTrustedCerts, 0, 0, IS_STATIC, 0)
 	ZEND_ARG_VARIADIC_TYPE_INFO(0, path, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withVerifyFlags, 0, 1, Cassandra\\SSLOptions\\Builder, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withVerifyFlags, 0, 1, IS_STATIC, 0)
 	ZEND_ARG_TYPE_INFO(0, flags, IS_LONG, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withClientCert, 0, 1, Cassandra\\SSLOptions\\Builder, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withClientCert, 0, 1, IS_STATIC, 0)
 	ZEND_ARG_TYPE_INFO(0, path, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withPrivateKey, 0, 2, Cassandra\\SSLOptions\\Builder, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_withPrivateKey, 0, 1, IS_STATIC, 0)
 	ZEND_ARG_TYPE_INFO(0, path, IS_STRING, 0)
-	ZEND_ARG_TYPE_INFO(0, passphrase, IS_STRING, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, passphrase, IS_STRING, 1, "null")
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_build, 0, 0, Cassandra\\SSLOptions\\Cassandra\\SSLOptions, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_SSLOptions_Builder_build, 0, 0, Cassandra\\SSLOptions, 0)
 ZEND_END_ARG_INFO()
 
 

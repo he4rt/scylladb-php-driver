@@ -17,34 +17,23 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 BEGIN_EXTERN_C()
+#include "SimpleStatement_arginfo.h"
+
 zend_class_entry *php_driver_simple_statement_ce = NULL;
 
-PHP_METHOD(SimpleStatement, __construct)
+ZEND_METHOD(Cassandra_SimpleStatement, __construct)
 {
-  zval *cql = NULL;
+  zend_string *cql = NULL;
   php_driver_statement *self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &cql) == FAILURE) {
-    return;
-  }
-
-  if (Z_TYPE_P(cql) != IS_STRING) {
-    INVALID_ARGUMENT(cql, "a string");
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STR(cql)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_STATEMENT(getThis());
 
-  self->data.simple.cql = estrndup(Z_STRVAL_P(cql), Z_STRLEN_P(cql));
+  self->data.simple.cql = estrndup(ZSTR_VAL(cql), ZSTR_LEN(cql));
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, cql)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_simple_statement_methods[] = {
-  PHP_ME(SimpleStatement, __construct, arginfo__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_simple_statement_handlers;
 
@@ -100,24 +89,15 @@ php_driver_simple_statement_new(zend_class_entry *ce )
   PHP5TO7_ZEND_OBJECT_INIT_EX(statement, simple_statement, self, ce);
 }
 
+END_EXTERN_C()
+
 void php_driver_define_SimpleStatement()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\SimpleStatement", php_driver_simple_statement_methods);
-  php_driver_simple_statement_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_simple_statement_ce , 1, php_driver_statement_ce);
-  php_driver_simple_statement_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_simple_statement_ce = register_class_Cassandra_SimpleStatement(php_driver_statement_ce);
   php_driver_simple_statement_ce->create_object = php_driver_simple_statement_new;
 
   memcpy(&php_driver_simple_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_simple_statement_handlers.get_properties  = php_driver_simple_statement_properties;
-#if PHP_MAJOR_VERSION >= 8
   php_driver_simple_statement_handlers.compare = php_driver_simple_statement_compare;
-#else
-  php_driver_simple_statement_handlers.compare_objects = php_driver_simple_statement_compare;
-#endif
   php_driver_simple_statement_handlers.clone_obj = NULL;
 }
-
-END_EXTERN_C()

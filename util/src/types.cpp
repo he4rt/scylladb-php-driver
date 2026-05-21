@@ -308,8 +308,8 @@ static inline int tuple_compare(php_driver_type* type1, php_driver_type* type2) 
   zend_hash_internal_pointer_reset_ex(&type1->data.tuple.types, &pos1);
   zend_hash_internal_pointer_reset_ex(&type2->data.tuple.types, &pos2);
 
-  while (PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&type1->data.tuple.types, current1, &pos1) &&
-         PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&type2->data.tuple.types, current2, &pos2)) {
+  while ((current1 = zend_hash_get_current_data_ex(&type1->data.tuple.types, &pos1)) != NULL &&
+         (current2 = zend_hash_get_current_data_ex(&type2->data.tuple.types, &pos2)) != NULL) {
     php_driver_type* sub_type1 = PHP_DRIVER_GET_TYPE(current1);
     php_driver_type* sub_type2 = PHP_DRIVER_GET_TYPE(current2);
     int result = php_driver_type_compare(sub_type1, sub_type2);
@@ -340,12 +340,12 @@ static inline int user_type_compare(php_driver_type* type1, php_driver_type* typ
   zend_hash_internal_pointer_reset_ex(&type1->data.udt.types, &pos1);
   zend_hash_internal_pointer_reset_ex(&type2->data.udt.types, &pos2);
 
-  while (PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type1->data.udt.types, &key1, NULL, &pos1) ==
+  while (zend_hash_get_current_key_ex(&type1->data.udt.types, &key1, NULL, &pos1) ==
              HASH_KEY_IS_STRING &&
-         PHP5TO7_ZEND_HASH_GET_CURRENT_KEY_EX(&type2->data.udt.types, &key2, NULL, &pos2) ==
+         zend_hash_get_current_key_ex(&type2->data.udt.types, &key2, NULL, &pos2) ==
              HASH_KEY_IS_STRING &&
-         PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&type1->data.udt.types, current1, &pos1) &&
-         PHP5TO7_ZEND_HASH_GET_CURRENT_DATA_EX(&type2->data.udt.types, current2, &pos2)) {
+         (current1 = zend_hash_get_current_data_ex(&type1->data.udt.types, &pos1)) != NULL &&
+         (current2 = zend_hash_get_current_data_ex(&type2->data.udt.types, &pos2)) != NULL) {
     int result;
     php_driver_type* sub_type1 = PHP_DRIVER_GET_TYPE(current1);
     php_driver_type* sub_type2 = PHP_DRIVER_GET_TYPE(current2);
@@ -420,18 +420,18 @@ static inline void tuple_string(php_driver_type* type, smart_str* string) {
   int first = 1;
 
   smart_str_appendl(string, "tuple<", 6);
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&type->data.tuple.types, current) {
+  ZEND_HASH_FOREACH_VAL(&type->data.tuple.types, current) {
     php_driver_type* sub_type = PHP_DRIVER_GET_TYPE(current);
     if (!first) smart_str_appendl(string, ", ", 2);
     first = 0;
     php_driver_type_string(sub_type, string);
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&type->data.tuple.types);
+  ZEND_HASH_FOREACH_END();
   smart_str_appendl(string, ">", 1);
 }
 
 static inline void user_type_string(php_driver_type* type, smart_str* string) {
-  char* name;
+  zend_string* name;
   zval* current;
   int first = 1;
 
@@ -443,15 +443,15 @@ static inline void user_type_string(php_driver_type* type, smart_str* string) {
     smart_str_appendl(string, type->data.udt.type_name, strlen(type->data.udt.type_name));
   } else {
     smart_str_appendl(string, "userType<", 9);
-    PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
+    ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
       php_driver_type* sub_type = PHP_DRIVER_GET_TYPE(current);
       if (!first) smart_str_appendl(string, ", ", 2);
       first = 0;
-      smart_str_appendl(string, name, strlen(name));
+      smart_str_appendl(string, ZSTR_VAL(name), ZSTR_LEN(name));
       smart_str_appendl(string, ":", 1);
       php_driver_type_string(sub_type, string);
     }
-    PHP5TO7_ZEND_HASH_FOREACH_END(&type->data.udt.types);
+    ZEND_HASH_FOREACH_END();
     smart_str_appendl(string, ">", 1);
   }
 }
@@ -1259,8 +1259,8 @@ static zval php_driver_create_type(struct node_s* node) {
     zval ztype;
     smart_str class_name = {NULL, 0};
     php_driver_node_dump_to(node, &class_name);
-    ztype = php_driver_type_custom(PHP5TO7_SMART_STR_VAL(class_name),
-                                   PHP5TO7_SMART_STR_LEN(class_name));
+    ztype = php_driver_type_custom((class_name.s ? class_name.s->val : NULL),
+                                   (class_name.s ? class_name.s->len : 0));
     smart_str_free(&class_name);
     return ztype;
   } else if (type == CASS_VALUE_TYPE_MAP) {

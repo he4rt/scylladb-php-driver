@@ -1,0 +1,156 @@
+/* This is a generated file, edit the .stub.php file instead.
+ * Stub hash: c8a8f4f33deb2257371d9b2d4cca96cb79359e1f */
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_DefaultTable_name, 0, 0, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_DefaultTable_option, 0, 1, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO(0, name, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_DefaultTable_options, 0, 0, IS_ARRAY, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_comment, 0, 0, MAY_BE_STRING|MAY_BE_FALSE)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_readRepairChance, 0, 0, MAY_BE_DOUBLE|MAY_BE_FALSE)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Cassandra_DefaultTable_localReadRepairChance arginfo_class_Cassandra_DefaultTable_readRepairChance
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_gcGraceSeconds, 0, 0, MAY_BE_LONG|MAY_BE_FALSE)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Cassandra_DefaultTable_caching arginfo_class_Cassandra_DefaultTable_comment
+
+#define arginfo_class_Cassandra_DefaultTable_bloomFilterFPChance arginfo_class_Cassandra_DefaultTable_readRepairChance
+
+#define arginfo_class_Cassandra_DefaultTable_memtableFlushPeriodMs arginfo_class_Cassandra_DefaultTable_gcGraceSeconds
+
+#define arginfo_class_Cassandra_DefaultTable_defaultTTL arginfo_class_Cassandra_DefaultTable_gcGraceSeconds
+
+#define arginfo_class_Cassandra_DefaultTable_speculativeRetry arginfo_class_Cassandra_DefaultTable_comment
+
+#define arginfo_class_Cassandra_DefaultTable_indexInterval arginfo_class_Cassandra_DefaultTable_gcGraceSeconds
+
+#define arginfo_class_Cassandra_DefaultTable_compactionStrategyClassName arginfo_class_Cassandra_DefaultTable_comment
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_compactionStrategyOptions, 0, 0, MAY_BE_ARRAY|MAY_BE_FALSE)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Cassandra_DefaultTable_compressionParameters arginfo_class_Cassandra_DefaultTable_compactionStrategyOptions
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_populateIOCacheOnFlush, 0, 0, MAY_BE_BOOL|MAY_BE_FALSE)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Cassandra_DefaultTable_replicateOnWrite arginfo_class_Cassandra_DefaultTable_populateIOCacheOnFlush
+
+#define arginfo_class_Cassandra_DefaultTable_maxIndexInterval arginfo_class_Cassandra_DefaultTable_gcGraceSeconds
+
+#define arginfo_class_Cassandra_DefaultTable_minIndexInterval arginfo_class_Cassandra_DefaultTable_gcGraceSeconds
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_column, 0, 1, Cassandra\\Column, MAY_BE_FALSE)
+	ZEND_ARG_TYPE_INFO(0, name, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Cassandra_DefaultTable_columns arginfo_class_Cassandra_DefaultTable_options
+
+#define arginfo_class_Cassandra_DefaultTable_partitionKey arginfo_class_Cassandra_DefaultTable_options
+
+#define arginfo_class_Cassandra_DefaultTable_primaryKey arginfo_class_Cassandra_DefaultTable_options
+
+#define arginfo_class_Cassandra_DefaultTable_clusteringKey arginfo_class_Cassandra_DefaultTable_options
+
+#define arginfo_class_Cassandra_DefaultTable_clusteringOrder arginfo_class_Cassandra_DefaultTable_options
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_index, 0, 1, Cassandra\\Index, MAY_BE_FALSE)
+	ZEND_ARG_TYPE_INFO(0, name, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Cassandra_DefaultTable_indexes arginfo_class_Cassandra_DefaultTable_options
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(arginfo_class_Cassandra_DefaultTable_materializedView, 0, 1, Cassandra\\MaterializedView, MAY_BE_FALSE)
+	ZEND_ARG_TYPE_INFO(0, name, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Cassandra_DefaultTable_materializedViews arginfo_class_Cassandra_DefaultTable_options
+
+
+ZEND_METHOD(Cassandra_DefaultTable, name);
+ZEND_METHOD(Cassandra_DefaultTable, option);
+ZEND_METHOD(Cassandra_DefaultTable, options);
+ZEND_METHOD(Cassandra_DefaultTable, comment);
+ZEND_METHOD(Cassandra_DefaultTable, readRepairChance);
+ZEND_METHOD(Cassandra_DefaultTable, localReadRepairChance);
+ZEND_METHOD(Cassandra_DefaultTable, gcGraceSeconds);
+ZEND_METHOD(Cassandra_DefaultTable, caching);
+ZEND_METHOD(Cassandra_DefaultTable, bloomFilterFPChance);
+ZEND_METHOD(Cassandra_DefaultTable, memtableFlushPeriodMs);
+ZEND_METHOD(Cassandra_DefaultTable, defaultTTL);
+ZEND_METHOD(Cassandra_DefaultTable, speculativeRetry);
+ZEND_METHOD(Cassandra_DefaultTable, indexInterval);
+ZEND_METHOD(Cassandra_DefaultTable, compactionStrategyClassName);
+ZEND_METHOD(Cassandra_DefaultTable, compactionStrategyOptions);
+ZEND_METHOD(Cassandra_DefaultTable, compressionParameters);
+ZEND_METHOD(Cassandra_DefaultTable, populateIOCacheOnFlush);
+ZEND_METHOD(Cassandra_DefaultTable, replicateOnWrite);
+ZEND_METHOD(Cassandra_DefaultTable, maxIndexInterval);
+ZEND_METHOD(Cassandra_DefaultTable, minIndexInterval);
+ZEND_METHOD(Cassandra_DefaultTable, column);
+ZEND_METHOD(Cassandra_DefaultTable, columns);
+ZEND_METHOD(Cassandra_DefaultTable, partitionKey);
+ZEND_METHOD(Cassandra_DefaultTable, primaryKey);
+ZEND_METHOD(Cassandra_DefaultTable, clusteringKey);
+ZEND_METHOD(Cassandra_DefaultTable, clusteringOrder);
+ZEND_METHOD(Cassandra_DefaultTable, index);
+ZEND_METHOD(Cassandra_DefaultTable, indexes);
+ZEND_METHOD(Cassandra_DefaultTable, materializedView);
+ZEND_METHOD(Cassandra_DefaultTable, materializedViews);
+
+
+static const zend_function_entry class_Cassandra_DefaultTable_methods[] = {
+	ZEND_ME(Cassandra_DefaultTable, name, arginfo_class_Cassandra_DefaultTable_name, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, option, arginfo_class_Cassandra_DefaultTable_option, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, options, arginfo_class_Cassandra_DefaultTable_options, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, comment, arginfo_class_Cassandra_DefaultTable_comment, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, readRepairChance, arginfo_class_Cassandra_DefaultTable_readRepairChance, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, localReadRepairChance, arginfo_class_Cassandra_DefaultTable_localReadRepairChance, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, gcGraceSeconds, arginfo_class_Cassandra_DefaultTable_gcGraceSeconds, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, caching, arginfo_class_Cassandra_DefaultTable_caching, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, bloomFilterFPChance, arginfo_class_Cassandra_DefaultTable_bloomFilterFPChance, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, memtableFlushPeriodMs, arginfo_class_Cassandra_DefaultTable_memtableFlushPeriodMs, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, defaultTTL, arginfo_class_Cassandra_DefaultTable_defaultTTL, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, speculativeRetry, arginfo_class_Cassandra_DefaultTable_speculativeRetry, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, indexInterval, arginfo_class_Cassandra_DefaultTable_indexInterval, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, compactionStrategyClassName, arginfo_class_Cassandra_DefaultTable_compactionStrategyClassName, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, compactionStrategyOptions, arginfo_class_Cassandra_DefaultTable_compactionStrategyOptions, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, compressionParameters, arginfo_class_Cassandra_DefaultTable_compressionParameters, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, populateIOCacheOnFlush, arginfo_class_Cassandra_DefaultTable_populateIOCacheOnFlush, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, replicateOnWrite, arginfo_class_Cassandra_DefaultTable_replicateOnWrite, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, maxIndexInterval, arginfo_class_Cassandra_DefaultTable_maxIndexInterval, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, minIndexInterval, arginfo_class_Cassandra_DefaultTable_minIndexInterval, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, column, arginfo_class_Cassandra_DefaultTable_column, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, columns, arginfo_class_Cassandra_DefaultTable_columns, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, partitionKey, arginfo_class_Cassandra_DefaultTable_partitionKey, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, primaryKey, arginfo_class_Cassandra_DefaultTable_primaryKey, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, clusteringKey, arginfo_class_Cassandra_DefaultTable_clusteringKey, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, clusteringOrder, arginfo_class_Cassandra_DefaultTable_clusteringOrder, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, index, arginfo_class_Cassandra_DefaultTable_index, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, indexes, arginfo_class_Cassandra_DefaultTable_indexes, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, materializedView, arginfo_class_Cassandra_DefaultTable_materializedView, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultTable, materializedViews, arginfo_class_Cassandra_DefaultTable_materializedViews, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+static zend_class_entry *register_class_Cassandra_DefaultTable(zend_class_entry *class_entry_Cassandra_Table)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultTable", class_Cassandra_DefaultTable_methods);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	zend_class_implements(class_entry, 1, class_entry_Cassandra_Table);
+
+	return class_entry;
+}

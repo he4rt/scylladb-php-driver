@@ -64,7 +64,7 @@ int php_driver_validate_object(zval* object, zval* ztype) {
 
       return 1;
     case CASS_VALUE_TYPE_BOOLEAN:
-      if (!PHP_SCYLLADB_Z_IS_BOOL_P(object)) {
+      if (!(Z_TYPE_P(object) == IS_TRUE || Z_TYPE_P(object) == IS_FALSE)) {
         EXPECTING_VALUE("a boolean");
       }
 
@@ -752,13 +752,13 @@ int php_driver_collection_from_collection(php_driver_collection* coll,
     return 0;
   }
 
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&coll->values, current) {
+  ZEND_HASH_FOREACH_VAL(&coll->values, current) {
     if (!php_driver_collection_append(collection, current, value_type->type)) {
       result = 0;
       break;
     }
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&coll->values);
+  ZEND_HASH_FOREACH_END();
 
   if (result)
     *collection_ptr = collection;
@@ -819,10 +819,10 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
     return 0;
   }
 
-  PHP5TO7_ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
+  ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
     php_driver_type* sub_type;
-    if (!PHP5TO7_ZEND_HASH_INDEX_FIND(&type->data.tuple.types, num_key, zsub_type) ||
+    if ((zsub_type = zend_hash_index_find(&type->data.tuple.types, (zend_ulong)(num_key))) == NULL ||
         !php_driver_validate_object((current), (zsub_type))) {
       result = 0;
       break;
@@ -833,7 +833,7 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
       break;
     }
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&tuple->values);
+  ZEND_HASH_FOREACH_END();
 
   if (result)
     *output = tup;
@@ -846,7 +846,7 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
 int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_type_value,
                                               CassUserType** output) {
   int result = 1;
-  char* name;
+  zend_string* name;
   zval* current;
   php_driver_type* type;
   CassUserType* ut;
@@ -859,21 +859,21 @@ int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_t
     return 0;
   }
 
-  PHP5TO7_ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
+  ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
     zval* zsub_type;
     php_driver_type* sub_type;
-    if (!PHP5TO7_ZEND_HASH_FIND(&type->data.udt.types, name, strlen(name) + 1, zsub_type) ||
+    if ((zsub_type = zend_hash_str_find(&type->data.udt.types, ZSTR_VAL(name), (size_t)(ZSTR_LEN(name) + 1 - 1))) == NULL ||
         !php_driver_validate_object((current), (zsub_type))) {
       result = 0;
       break;
     }
     sub_type = PHP_DRIVER_GET_TYPE((zsub_type));
-    if (!php_driver_user_type_set(ut, name, (current), sub_type->type)) {
+    if (!php_driver_user_type_set(ut, ZSTR_VAL(name), (current), sub_type->type)) {
       result = 0;
       break;
     }
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&user_type_value->values);
+  ZEND_HASH_FOREACH_END();
 
   if (result) {
     *output = ut;

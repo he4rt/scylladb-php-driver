@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @generate-class-entries
+ */
+namespace Cassandra {
+    /**
+     * @strict-properties
+     */
+    final class Float implements Value, Numeric {
+        public function __construct(int|float|string|Float $value) {}
+
+        public function type(): Type {}
+        public function value(): float {}
+        public function isInfinite(): bool {}
+        public function isFinite(): bool {}
+        public function isNaN(): bool {}
+
+        public function add(Numeric $num): static {}
+        public function sub(Numeric $num): static {}
+        public function mul(Numeric $num): static {}
+        public function div(Numeric $num): static {}
+        public function mod(Numeric $num): static {}
+        public function abs(): static {}
+        public function neg(): static {}
+        public function sqrt(): static {}
+        public function toInt(): int {}
+        public function toDouble(): float {}
+
+        public static function min(): static {}
+        public static function max(): static {}
+
+        public function __toString(): string {}
+    }
+}

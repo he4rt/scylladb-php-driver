@@ -22,9 +22,10 @@
 
 #include "DefaultFunction.h"
 BEGIN_EXTERN_C()
+#include "DefaultAggregate_arginfo.h"
 zend_class_entry *php_driver_default_aggregate_ce = NULL;
 
-PHP_METHOD(DefaultAggregate, name)
+ZEND_METHOD(Cassandra_DefaultAggregate, name)
 {
   php_driver_aggregate *self;
 
@@ -36,7 +37,7 @@ PHP_METHOD(DefaultAggregate, name)
   RETURN_ZVAL(&self->signature, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, simpleName)
+ZEND_METHOD(Cassandra_DefaultAggregate, simpleName)
 {
   php_driver_aggregate *self;
 
@@ -55,7 +56,7 @@ PHP_METHOD(DefaultAggregate, simpleName)
   RETURN_ZVAL(&self->simple_name, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, argumentTypes)
+ZEND_METHOD(Cassandra_DefaultAggregate, argumentTypes)
 {
   php_driver_aggregate *self;
 
@@ -82,7 +83,7 @@ PHP_METHOD(DefaultAggregate, argumentTypes)
   RETURN_ZVAL(&self->argument_types, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, stateFunction)
+ZEND_METHOD(Cassandra_DefaultAggregate, stateFunction)
 {
   php_driver_aggregate *self;
 
@@ -102,7 +103,7 @@ PHP_METHOD(DefaultAggregate, stateFunction)
   RETURN_ZVAL(&self->state_function, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, finalFunction)
+ZEND_METHOD(Cassandra_DefaultAggregate, finalFunction)
 {
   php_driver_aggregate *self;
 
@@ -122,7 +123,7 @@ PHP_METHOD(DefaultAggregate, finalFunction)
   RETURN_ZVAL(&self->final_function, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, initialCondition)
+ZEND_METHOD(Cassandra_DefaultAggregate, initialCondition)
 {
   php_driver_aggregate *self;
 
@@ -146,7 +147,7 @@ PHP_METHOD(DefaultAggregate, initialCondition)
   RETURN_ZVAL(&self->initial_condition, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, stateType)
+ZEND_METHOD(Cassandra_DefaultAggregate, stateType)
 {
   php_driver_aggregate *self;
 
@@ -165,7 +166,7 @@ PHP_METHOD(DefaultAggregate, stateType)
   RETURN_ZVAL(&self->state_type, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, returnType)
+ZEND_METHOD(Cassandra_DefaultAggregate, returnType)
 {
   php_driver_aggregate *self;
 
@@ -184,7 +185,7 @@ PHP_METHOD(DefaultAggregate, returnType)
   RETURN_ZVAL(&self->return_type, 1, 0);
 }
 
-PHP_METHOD(DefaultAggregate, signature)
+ZEND_METHOD(Cassandra_DefaultAggregate, signature)
 {
   php_driver_aggregate *self;
 
@@ -194,22 +195,6 @@ PHP_METHOD(DefaultAggregate, signature)
   self = PHP_DRIVER_GET_AGGREGATE(getThis());
   RETURN_ZVAL(&self->signature, 1, 0);
 }
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_aggregate_methods[] = {
-  PHP_ME(DefaultAggregate, name, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, simpleName, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, argumentTypes, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, stateFunction, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, finalFunction, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, initialCondition, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, stateType, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, returnType, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(DefaultAggregate, signature, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static zend_object_handlers php_driver_default_aggregate_handlers;
 
@@ -259,14 +244,14 @@ php_driver_default_aggregate_free(zend_object *object )
 {
   php_driver_aggregate *self = PHP5TO7_ZEND_OBJECT_GET(aggregate, object);
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->simple_name);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->argument_types);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->final_function);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->initial_condition);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->state_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->return_type);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->signature);
+  zval_ptr_dtor(&self->simple_name);
+  zval_ptr_dtor(&self->argument_types);
+  zval_ptr_dtor(&self->state_function);
+  zval_ptr_dtor(&self->final_function);
+  zval_ptr_dtor(&self->initial_condition);
+  zval_ptr_dtor(&self->state_type);
+  zval_ptr_dtor(&self->return_type);
+  zval_ptr_dtor(&self->signature);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -301,12 +286,7 @@ php_driver_default_aggregate_new(zend_class_entry *ce )
 
 void php_driver_define_DefaultAggregate()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultAggregate", php_driver_default_aggregate_methods);
-  php_driver_default_aggregate_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_default_aggregate_ce , 1, php_driver_aggregate_ce);
-  php_driver_default_aggregate_ce->ce_flags     |= ZEND_ACC_FINAL;
+  php_driver_default_aggregate_ce = register_class_Cassandra_DefaultAggregate(php_driver_aggregate_ce);
   php_driver_default_aggregate_ce->create_object = php_driver_default_aggregate_new;
 
   memcpy(&php_driver_default_aggregate_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));

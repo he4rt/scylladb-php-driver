@@ -25,6 +25,8 @@
 #include "util/ref.h"
 #include "util/result.h"
 BEGIN_EXTERN_C()
+#include "DefaultSession_arginfo.h"
+
 zend_class_entry* php_driver_default_session_ce = NULL;
 
 #define CHECK_RESULT(rc)               \
@@ -51,10 +53,10 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
 
-  if (PHP_SCYLLADB_Z_IS_TRUE_P(value))
+  if ((Z_TYPE_P(value) == IS_TRUE))
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
 
-  if (PHP_SCYLLADB_Z_IS_FALSE_P(value))
+  if ((Z_TYPE_P(value) == IS_FALSE))
     CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
@@ -209,10 +211,10 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
   if (Z_TYPE_P(value) == IS_LONG)
     CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, Z_LVAL_P(value)));
 
-  if (PHP_SCYLLADB_Z_IS_TRUE_P(value))
+  if ((Z_TYPE_P(value) == IS_TRUE))
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_true));
 
-  if (PHP_SCYLLADB_Z_IS_FALSE_P(value))
+  if ((Z_TYPE_P(value) == IS_FALSE))
     CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
@@ -360,25 +362,16 @@ static int bind_arguments(CassStatement* statement, HashTable* arguments) {
 
   zval* current;
   ulong num_key;
-
-#if PHP_MAJOR_VERSION >= 7
   zend_string* key;
   ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, key, current) {
     if (key) {
       rc = bind_argument_by_name(statement, key->val, current);
-#else
-  char* str_key;
-  uint str_len;
-  PHP5TO7_ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, str_key, str_len, current) {
-    if (str_key) {
-      rc = bind_argument_by_name(statement, str_key, current);
-#endif
     } else {
       rc = bind_argument_by_index(statement, num_key, current);
     }
     if (rc == FAILURE) break;
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(arguments);
+  ZEND_HASH_FOREACH_END();
 
   return rc;
 }
@@ -423,7 +416,7 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
   CassError rc = CASS_OK;
 
   zval* current;
-  PHP5TO7_ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
+  ZEND_HASH_FOREACH_VAL(&batch->data.batch.statements, current) {
     php_driver_statement* statement;
     php_driver_statement simple_statement;
     HashTable* arguments;
@@ -457,7 +450,7 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
     cass_batch_add_statement(cass_batch, stmt);
     cass_statement_free(stmt);
   }
-  PHP5TO7_ZEND_HASH_FOREACH_END(&batch->data.batch.statements);
+  ZEND_HASH_FOREACH_END();
 
   rc = cass_batch_set_consistency(cass_batch, consistency);
   ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
@@ -514,7 +507,7 @@ static CassStatement* create_single(php_driver_statement* statement, HashTable* 
   return stmt;
 }
 
-PHP_METHOD(DefaultSession, execute) {
+ZEND_METHOD(Cassandra_DefaultSession, execute) {
   zval* statement = NULL;
   zval* options = NULL;
   php_driver_session* self = NULL;
@@ -661,7 +654,7 @@ PHP_METHOD(DefaultSession, execute) {
   if (single) cass_statement_free(single);
 }
 
-PHP_METHOD(DefaultSession, executeAsync) {
+ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   zval* statement = NULL;
   zval* options = NULL;
   php_driver_session* self = NULL;
@@ -769,7 +762,7 @@ PHP_METHOD(DefaultSession, executeAsync) {
   }
 }
 
-PHP_METHOD(DefaultSession, prepare) {
+ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   zval* cql = NULL;
   zval* options = NULL;
   char* hash_key = NULL;
@@ -813,7 +806,7 @@ PHP_METHOD(DefaultSession, prepare) {
     hash_key_len = spprintf(&hash_key, 0, "%s%s:prepared_statement:%s",
                             self->hash_key, Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
 
-    if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
+    if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
 
@@ -832,8 +825,8 @@ PHP_METHOD(DefaultSession, prepare) {
         }
       }
 
-      /* Cached future is bad — drop the entry and re-prepare below. */
-      (void)PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
+      /* Cached future is bad - drop the entry and re-prepare below. */
+      (void)zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len);
     }
   }
 
@@ -872,8 +865,7 @@ PHP_METHOD(DefaultSession, prepare) {
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
                             php_le_php_driver_prepared_statement());
-    PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource,
-                             sizeof(zval));
+    (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
     PHP_DRIVER_G(persistent_prepared_statements)++;
     efree(hash_key);
     /* Ownership of `future` transferred to the persistent_list entry. */
@@ -882,7 +874,7 @@ PHP_METHOD(DefaultSession, prepare) {
   }
 }
 
-PHP_METHOD(DefaultSession, prepareAsync) {
+ZEND_METHOD(Cassandra_DefaultSession, prepareAsync) {
   zval* cql = NULL;
   zval* options = NULL;
   php_driver_session* self = NULL;
@@ -904,7 +896,7 @@ PHP_METHOD(DefaultSession, prepareAsync) {
   future_prepared->future = future;
 }
 
-PHP_METHOD(DefaultSession, close) {
+ZEND_METHOD(Cassandra_DefaultSession, close) {
   zval* timeout = NULL;
   CassFuture* future = NULL;
   php_driver_session* self;
@@ -924,7 +916,7 @@ PHP_METHOD(DefaultSession, close) {
   cass_future_free(future);
 }
 
-PHP_METHOD(DefaultSession, closeAsync) {
+ZEND_METHOD(Cassandra_DefaultSession, closeAsync) {
   php_driver_session* self;
   php_driver_future_close* future = NULL;
 
@@ -945,7 +937,7 @@ PHP_METHOD(DefaultSession, closeAsync) {
   future->future = cass_session_close((CassSession*)self->session->data);
 }
 
-PHP_METHOD(DefaultSession, metrics) {
+ZEND_METHOD(Cassandra_DefaultSession, metrics) {
   CassMetrics metrics;
   zval requests;
   zval stats;
@@ -991,7 +983,7 @@ PHP_METHOD(DefaultSession, metrics) {
   add_assoc_zval(return_value, "errors", &errors);
 }
 
-PHP_METHOD(DefaultSession, schema) {
+ZEND_METHOD(Cassandra_DefaultSession, schema) {
   php_driver_session* self;
   php_driver_schema* schema;
 
@@ -1006,51 +998,16 @@ PHP_METHOD(DefaultSession, schema) {
       (void*)cass_session_get_schema_meta((CassSession*)self->session->data), free_schema);
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_execute, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, statement)
-ZEND_ARG_INFO(0, options)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_prepare, 0, ZEND_RETURN_VALUE, 1)
-ZEND_ARG_INFO(0, cql)
-ZEND_ARG_INFO(0, options)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_timeout, 0, ZEND_RETURN_VALUE, 0)
-ZEND_ARG_INFO(0, timeout)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_default_session_methods[] = {
-    PHP_ME(DefaultSession, execute, arginfo_execute, ZEND_ACC_PUBLIC)
-        PHP_ME(DefaultSession, executeAsync, arginfo_execute, ZEND_ACC_PUBLIC)
-            PHP_ME(DefaultSession, prepare, arginfo_prepare, ZEND_ACC_PUBLIC)
-                PHP_ME(DefaultSession, prepareAsync, arginfo_prepare, ZEND_ACC_PUBLIC)
-                    PHP_ME(DefaultSession, close, arginfo_timeout, ZEND_ACC_PUBLIC)
-                        PHP_ME(DefaultSession, closeAsync, arginfo_none, ZEND_ACC_PUBLIC)
-                            PHP_ME(DefaultSession, metrics, arginfo_none, ZEND_ACC_PUBLIC) PHP_ME(
-                                DefaultSession, schema, arginfo_none, ZEND_ACC_PUBLIC) PHP_FE_END};
-
 static zend_object_handlers php_driver_default_session_handlers;
 
-static HashTable* php_driver_default_session_properties(
-#if PHP_MAJOR_VERSION >= 8
-    zend_object* object
-#else
-    zendObject* object
-#endif
-) {
+static HashTable* php_driver_default_session_properties(zend_object* object) {
   HashTable* props = zend_std_get_properties(object);
 
   return props;
 }
 
 static int php_driver_default_session_compare(zval* obj1, zval* obj2) {
-#if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
@@ -1060,7 +1017,7 @@ static void php_driver_default_session_free(zend_object* object) {
   php_driver_session* self = PHP5TO7_ZEND_OBJECT_GET(session, object);
 
   php_driver_del_peref(&self->session, 1);
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+  zval_ptr_dtor(&self->default_timeout);
 
   if (self->keyspace) {
     efree(self->keyspace);
@@ -1084,23 +1041,15 @@ static zend_object* php_driver_default_session_new(zend_class_entry* ce) {
   PHP5TO7_ZEND_OBJECT_INIT_EX(session, default_session, self, ce);
 }
 
-void php_driver_define_DefaultSession() {
-  zend_class_entry ce;
+END_EXTERN_C()
 
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\DefaultSession", php_driver_default_session_methods);
-  php_driver_default_session_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_default_session_ce, 1, php_driver_session_ce);
-  php_driver_default_session_ce->ce_flags |= ZEND_ACC_FINAL;
+void php_driver_define_DefaultSession() {
+  php_driver_default_session_ce = register_class_Cassandra_DefaultSession(php_driver_session_ce);
   php_driver_default_session_ce->create_object = php_driver_default_session_new;
 
   memcpy(&php_driver_default_session_handlers, zend_get_std_object_handlers(),
          sizeof(zend_object_handlers));
   php_driver_default_session_handlers.get_properties = php_driver_default_session_properties;
-#if PHP_MAJOR_VERSION >= 8
   php_driver_default_session_handlers.compare = php_driver_default_session_compare;
-#else
-  php_driver_default_session_handlers.compare_objects = php_driver_default_session_compare;
-#endif
   php_driver_default_session_handlers.clone_obj = NULL;
 }
-END_EXTERN_C()

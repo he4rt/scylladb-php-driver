@@ -22,6 +22,7 @@
 #include "util/hash.h"
 #include "util/types.h"
 BEGIN_EXTERN_C()
+#include "Map_arginfo.h"
 zend_class_entry *php_driver_map_ce = NULL;
 
 int
@@ -410,82 +411,6 @@ PHP_METHOD(Cassandra_Map, offsetExists)
   RETURN_FALSE;
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo__construct, 0, ZEND_RETURN_VALUE, 2)
-  ZEND_ARG_INFO(0, keyType)
-  ZEND_ARG_INFO(0, valueType)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_two, 0, ZEND_RETURN_VALUE, 2)
-  ZEND_ARG_INFO(0, key)
-  ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_one, 0, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0, key)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_current, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_key, 0, 0, IS_MIXED, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_next, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_rewind, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_valid, 0, 0, _IS_BOOL, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_count, 0, 0, IS_LONG, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetExists, 0, 1, _IS_BOOL, 0)
-	ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetGet, 0, 1, IS_MIXED, 0)
-	ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetSet, 0, 2, IS_VOID, 0)
-	ZEND_ARG_INFO(0, offset)
-	ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_offsetUnset, 0, 1, IS_VOID, 0)
-	ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_map_methods[] = {
-  PHP_ME(Cassandra_Map, __construct, arginfo__construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, type, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, keys, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, values, arginfo_none, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, set, arginfo_two, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, get, arginfo_one, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, remove, arginfo_one, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, has, arginfo_one, ZEND_ACC_PUBLIC)
-  /* Countable */
-  PHP_ME(Cassandra_Map, count, arginfo_count, ZEND_ACC_PUBLIC)
-  /* Iterator */
-  PHP_ME(Cassandra_Map, current, arginfo_current, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, key, arginfo_key, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, next, arginfo_next, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, valid, arginfo_valid, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, rewind, arginfo_rewind, ZEND_ACC_PUBLIC)
-  /* ArrayAccess */
-  PHP_ME(Cassandra_Map, offsetSet, arginfo_offsetSet, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, offsetGet, arginfo_offsetGet, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, offsetUnset, arginfo_offsetUnset, ZEND_ACC_PUBLIC)
-  PHP_ME(Cassandra_Map, offsetExists, arginfo_offsetExists, ZEND_ACC_PUBLIC)
-  PHP_FE_END
-};
 
 static php_driver_value_handlers php_driver_map_handlers;
 
@@ -525,22 +450,20 @@ php_driver_map_properties(
   object->properties = zend_new_array(3);
   HashTable *props = object->properties;
 
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                          "type", sizeof("type"),
-                           &self->type, sizeof(zval));
+  (void)zend_hash_str_update(props, ZEND_STRL("type"), &self->type);
   Z_ADDREF_P(&self->type);
 
 
   array_init(&keys);
   php_driver_map_populate_keys(self, &keys );
   zend_hash_sort(Z_ARRVAL_P(&keys), php_driver_data_compare, 1);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "keys", sizeof("keys"), &keys, sizeof(zval *));
+  (void)zend_hash_str_update(props, ZEND_STRL("keys"), &keys);
 
 
   array_init(&values);
   php_driver_map_populate_values(self, &values );
   zend_hash_sort(Z_ARRVAL_P(&values), php_driver_data_compare, 1);
-  PHP5TO7_ZEND_HASH_UPDATE(props, "values", sizeof("values"), &values, sizeof(zval *));
+  (void)zend_hash_str_update(props, ZEND_STRL("values"), &values);
 
   return props;
 }
@@ -623,7 +546,7 @@ php_driver_map_free(zend_object *object )
     efree(curr);
   }
 
-  PHP5TO7_ZVAL_MAYBE_DESTROY(self->type);
+  zval_ptr_dtor(&self->type);
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -644,29 +567,12 @@ php_driver_map_new(zend_class_entry *ce )
 
 void php_driver_define_Map()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Map", php_driver_map_methods);
-  php_driver_map_ce = zend_register_internal_class(&ce );
-  zend_class_implements(php_driver_map_ce , 1, php_driver_value_ce);
+  php_driver_map_ce = register_class_Cassandra_Map(php_driver_value_ce, zend_ce_countable, zend_ce_iterator, zend_ce_arrayaccess);
   memcpy(&php_driver_map_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_map_handlers.std.get_properties  = php_driver_map_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_map_handlers.std.get_gc          = php_driver_map_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_map_handlers.std.compare = php_driver_map_compare;
-#else
-  php_driver_map_handlers.std.compare_objects = php_driver_map_compare;
-#endif
-  php_driver_map_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_map_ce->create_object = php_driver_map_new;
-
-#if PHP_VERSION_ID < 80100
-  zend_class_implements(php_driver_map_ce , 3, spl_ce_Countable, zend_ce_iterator, zend_ce_arrayaccess);
-#else
-  zend_class_implements(php_driver_map_ce , 3, zend_ce_countable, zend_ce_iterator, zend_ce_arrayaccess);
-#endif
 
   php_driver_map_handlers.hash_value = php_driver_map_hash_value;
   php_driver_map_handlers.std.clone_obj = NULL;

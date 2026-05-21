@@ -20,9 +20,10 @@
 #include "php_driver_types.h"
 
 BEGIN_EXTERN_C()
+#include "Scalar_arginfo.h"
 zend_class_entry *php_driver_type_scalar_ce = nullptr;
 
-PHP_METHOD(TypeScalar, __construct) {
+ZEND_METHOD(Cassandra_Type_Scalar, __construct) {
   zend_throw_exception_ex(
       php_driver_logic_exception_ce, 0,
       "Instantiation of a " PHP_DRIVER_NAMESPACE
@@ -34,7 +35,7 @@ PHP_METHOD(TypeScalar, __construct) {
       "\\Type statically instead.");
 }
 
-PHP_METHOD(TypeScalar, name) {
+ZEND_METHOD(Cassandra_Type_Scalar, name) {
   php_driver_type *self;
   const char *name;
 
@@ -47,7 +48,7 @@ PHP_METHOD(TypeScalar, name) {
   RETVAL_STRING(name);
 }
 
-PHP_METHOD(TypeScalar, __toString) {
+ZEND_METHOD(Cassandra_Type_Scalar, __toString) {
   php_driver_type *self;
   const char *name;
 
@@ -60,30 +61,10 @@ PHP_METHOD(TypeScalar, __toString) {
   RETVAL_STRING(name);
 }
 
-PHP_METHOD(TypeScalar, create) {
+ZEND_METHOD(Cassandra_Type_Scalar, create) {
   php_driver_scalar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_value, 0, ZEND_RETURN_VALUE, 0)
-ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_type_scalar_methods[] = {
-    PHP_ME(TypeScalar, __construct, arginfo_none, ZEND_ACC_PRIVATE)
-        PHP_ME(TypeScalar, name, arginfo_none, ZEND_ACC_PUBLIC)
-            PHP_ME(TypeScalar, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-                PHP_ME(TypeScalar, create, arginfo_value, ZEND_ACC_PUBLIC)
-                    PHP_FE_END};
 
 static zend_object_handlers php_driver_type_scalar_handlers;
 
@@ -109,8 +90,7 @@ static HashTable *php_driver_type_scalar_properties(zend_object *object) {
 
   ZVAL_STRING(&name,
                       php_driver_scalar_type_name(type));
-  PHP5TO7_ZEND_HASH_UPDATE(props, "name", sizeof("name"),
-                           &name, sizeof(zval));
+  (void)zend_hash_str_update(props, ZEND_STRL("name"), &name);
   return props;
 }
 
@@ -141,19 +121,13 @@ static zend_object* php_driver_type_scalar_new(zend_class_entry *ce) {
 }
 
 void php_driver_define_TypeScalar() {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\Scalar",
-                   php_driver_type_scalar_methods);
-  php_driver_type_scalar_ce =
-      zend_register_internal_class_ex(&ce, php_driver_type_ce);
+  php_driver_type_scalar_ce = register_class_Cassandra_Type_Scalar(php_driver_type_ce);
   memcpy(&php_driver_type_scalar_handlers, zend_get_std_object_handlers(),
          sizeof(zend_object_handlers));
   php_driver_type_scalar_handlers.get_properties =
       php_driver_type_scalar_properties;
   php_driver_type_scalar_handlers.get_gc = php_driver_type_scalar_gc;
   php_driver_type_scalar_handlers.compare = php_driver_type_scalar_compare;
-  php_driver_type_scalar_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_type_scalar_ce->create_object = php_driver_type_scalar_new;
 }
 END_EXTERN_C()

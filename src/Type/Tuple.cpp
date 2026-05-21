@@ -22,6 +22,7 @@
 #include <util/types.h>
 #include <zend_smart_str.h>
 BEGIN_EXTERN_C()
+#include "Tuple_arginfo.h"
 zend_class_entry* php_driver_type_tuple_ce = NULL;
 
 int
@@ -34,19 +35,18 @@ php_driver_type_tuple_add(php_driver_type* type,
       != CASS_OK) {
     return 0;
   }
-  PHP5TO7_ZEND_HASH_NEXT_INDEX_INSERT(&type->data.tuple.types,
-                                      zsub_type, sizeof(zval*));
+  (void)zend_hash_next_index_insert(&type->data.tuple.types, zsub_type);
   return 1;
 }
 
-PHP_METHOD(TypeTuple, __construct)
+ZEND_METHOD(Cassandra_Type_Tuple, __construct)
 {
   zend_throw_exception_ex(php_driver_logic_exception_ce, 0 ,
                           "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Type\\Tuple type is not supported.");
   return;
 }
 
-PHP_METHOD(TypeTuple, name)
+ZEND_METHOD(Cassandra_Type_Tuple, name)
 {
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -55,7 +55,7 @@ PHP_METHOD(TypeTuple, name)
   RETVAL_STRING("tuple");
 }
 
-PHP_METHOD(TypeTuple, types)
+ZEND_METHOD(Cassandra_Type_Tuple, types)
 {
   php_driver_type* self;
 
@@ -66,10 +66,10 @@ PHP_METHOD(TypeTuple, types)
   self = PHP_DRIVER_GET_TYPE(getThis());
 
   array_init(return_value);
-  PHP5TO7_ZEND_HASH_ZVAL_COPY(Z_ARRVAL_P(return_value), &self->data.tuple.types);
+  zend_hash_copy(Z_ARRVAL_P(return_value), &self->data.tuple.types, (copy_ctor_func_t)zval_add_ref);
 }
 
-PHP_METHOD(TypeTuple, __toString)
+ZEND_METHOD(Cassandra_Type_Tuple, __toString)
 {
   php_driver_type* self;
   smart_str string = {NULL,0};
@@ -83,11 +83,11 @@ PHP_METHOD(TypeTuple, __toString)
   php_driver_type_string(self, &string );
   smart_str_0(&string);
 
-  RETVAL_STRING(PHP5TO7_SMART_STR_VAL(string));
+  RETVAL_STRING(ZSTR_VAL(string.s));
   smart_str_free(&string);
 }
 
-PHP_METHOD(TypeTuple, create)
+ZEND_METHOD(Cassandra_Type_Tuple, create)
 {
   php_driver_type* self;
   php_driver_tuple* tuple;
@@ -122,7 +122,7 @@ PHP_METHOD(TypeTuple, create)
     for (i = 0; i < argc; i++) {
       zval* sub_type;
 
-      if (!PHP5TO7_ZEND_HASH_INDEX_FIND(&self->data.tuple.types, i, sub_type) || !php_driver_validate_object(&args[i], sub_type )) {
+      if ((sub_type = zend_hash_index_find(&self->data.tuple.types, (zend_ulong)(i))) == NULL || !php_driver_validate_object(&args[i], sub_type )) {
 
         return;
       }
@@ -134,32 +134,6 @@ PHP_METHOD(TypeTuple, create)
   }
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_none, 0, ZEND_RETURN_VALUE, 0)
-ZEND_END_ARG_INFO()
-
-#if PHP_VERSION_ID >= 80200
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tostring, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-#define arginfo_tostring arginfo_none
-#endif
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_values, 0, ZEND_RETURN_VALUE, 0)
-#if PHP_MAJOR_VERSION >= 8
-ZEND_ARG_VARIADIC_INFO(0, values)
-#else
-ZEND_ARG_INFO(0, values)
-#endif
-ZEND_END_ARG_INFO()
-
-static zend_function_entry php_driver_type_tuple_methods[] = {
-  PHP_ME(TypeTuple, __construct, arginfo_none, ZEND_ACC_PRIVATE)
-    PHP_ME(TypeTuple, name, arginfo_none, ZEND_ACC_PUBLIC)
-      PHP_ME(TypeTuple, __toString, arginfo_tostring, ZEND_ACC_PUBLIC)
-        PHP_ME(TypeTuple, types, arginfo_none, ZEND_ACC_PUBLIC)
-          PHP_ME(TypeTuple, create, arginfo_values, ZEND_ACC_PUBLIC)
-            PHP_FE_END
-};
 
 static zend_object_handlers php_driver_type_tuple_handlers;
 
@@ -200,10 +174,8 @@ php_driver_type_tuple_properties(
   HashTable *props = object->properties;
 
   array_init(&types);
-  PHP5TO7_ZEND_HASH_ZVAL_COPY(Z_ARRVAL(types), &self->data.tuple.types);
-  PHP5TO7_ZEND_HASH_UPDATE(props,
-                           "types", sizeof("types"),
-                           &types, sizeof(zval));
+  zend_hash_copy(Z_ARRVAL(types), &self->data.tuple.types, (copy_ctor_func_t)zval_add_ref);
+  (void)zend_hash_str_update(props, ZEND_STRL("types"), &types);
 
   return props;
 }
@@ -248,21 +220,11 @@ php_driver_type_tuple_new(zend_class_entry* ce )
 void
 php_driver_define_TypeTuple()
 {
-  zend_class_entry ce;
-
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Type\\Tuple", php_driver_type_tuple_methods);
-  php_driver_type_tuple_ce = zend_register_internal_class_ex(&ce, php_driver_type_ce);
+  php_driver_type_tuple_ce = register_class_Cassandra_Type_Tuple(php_driver_type_ce);
   memcpy(&php_driver_type_tuple_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
   php_driver_type_tuple_handlers.get_properties = php_driver_type_tuple_properties;
-#if PHP_VERSION_ID >= 50400
   php_driver_type_tuple_handlers.get_gc = php_driver_type_tuple_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
   php_driver_type_tuple_handlers.compare = php_driver_type_tuple_compare;
-#else
-  php_driver_type_tuple_handlers.compare_objects = php_driver_type_tuple_compare;
-#endif
-  php_driver_type_tuple_ce->ce_flags |= ZEND_ACC_FINAL;
   php_driver_type_tuple_ce->create_object = php_driver_type_tuple_new;
 }
 END_EXTERN_C()

@@ -73,7 +73,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
         hash_key_len = spprintf(&hash_key, 0, "%s:session:%s", self->hash_key, SAFE_STR(keyspace));
 
-        if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
+        if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
             Z_RES_P(le)->type == php_le_php_driver_session())
         {
             psession = (php_driver_psession *)Z_RES_P(le)->ptr;
@@ -104,8 +104,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
             psession->future = future;
 
             ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
-            PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource,
-                                     sizeof(zval));
+            (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
             PHP_DRIVER_G(persistent_sessions)++;
         }
     }
@@ -116,7 +115,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
         {
             /* Remove the broken/timed-out session so the next request gets a
                fresh connection attempt instead of reusing a stale future. */
-            (void)PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
+            (void)(zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len) == SUCCESS);
             efree(hash_key);
         }
         else
@@ -131,7 +130,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     {
         if (session->persist)
         {
-            (void)PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
+            (void)(zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len) == SUCCESS);
             efree(hash_key);
         }
         else
@@ -178,7 +177,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         future->hash_key = hash_key;
         future->hash_key_len = hash_key_len;
 
-        if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
+        if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
             Z_RES_P(le)->type == php_le_php_driver_session())
         {
             php_driver_psession *psession = (php_driver_psession *)Z_RES_P(le)->ptr;
@@ -207,8 +206,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         psession->future = future->future;
 
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource,
-                                 sizeof(zval));
+        (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
         PHP_DRIVER_G(persistent_sessions)++;
     }
 }

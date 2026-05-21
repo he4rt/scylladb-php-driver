@@ -187,52 +187,39 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 
     ZVAL_LONG(&connectionHeartbeatInterval, self->connection_heartbeat_interval);
 
-    PHP5TO7_ZEND_HASH_UPDATE(props, "contactPoints", sizeof("contactPoints"), &contactPoints, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "loadBalancingPolicy", sizeof("loadBalancingPolicy"), &loadBalancingPolicy,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "localDatacenter", sizeof("localDatacenter"), &localDatacenter, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "hostPerRemoteDatacenter", sizeof("hostPerRemoteDatacenter"),
-                             &hostPerRemoteDatacenter, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "useRemoteDatacenterForLocalConsistencies",
-                             sizeof("useRemoteDatacenterForLocalConsistencies"),
-                             &useRemoteDatacenterForLocalConsistencies, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "useTokenAwareRouting", sizeof("useTokenAwareRouting"), &useTokenAwareRouting,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "username", sizeof("username"), &username, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "password", sizeof("password"), &password, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "connectTimeout", sizeof("connectTimeout"), &connectTimeout, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "requestTimeout", sizeof("requestTimeout"), &requestTimeout, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "sslOptions", sizeof("sslOptions"), &sslOptions, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "defaultConsistency", sizeof("defaultConsistency"), &defaultConsistency,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "defaultPageSize", sizeof("defaultPageSize"), &defaultPageSize, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "defaultTimeout", sizeof("defaultTimeout"), &defaultTimeout, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "usePersistentSessions", sizeof("usePersistentSessions"), &usePersistentSessions,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "protocolVersion", sizeof("protocolVersion"), &protocolVersion, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "ioThreads", sizeof("ioThreads"), &ioThreads, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "coreConnectionPerHost", sizeof("coreConnectionPerHost"), &coreConnectionPerHost,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "maxConnectionsPerHost", sizeof("maxConnectionsPerHost"), &maxConnectionsPerHost,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "reconnectInterval", sizeof("reconnectInterval"), &reconnectInterval, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "latencyAwareRouting", sizeof("latencyAwareRouting"), &latencyAwareRouting,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "tcpNodelay", sizeof("tcpNodelay"), &tcpNodelay, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "tcpKeepalive", sizeof("tcpKeepalive"), &tcpKeepalive, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "retryPolicy", sizeof("retryPolicy"), &retryPolicy, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "timestampGenerator", sizeof("timestampGenerator"), &timestampGen, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "schemaMetadata", sizeof("schemaMetadata"), &schemaMetadata, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "blacklist_hosts", sizeof("blacklist_hosts"), &blacklistHosts, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "whitelist_hosts", sizeof("whitelist_hosts"), &whitelistHosts, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "blacklist_dcs", sizeof("blacklist_dcs"), &blacklistDCs, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "whitelist_dcs", sizeof("whitelist_dcs"), &whitelistDCs, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "hostnameResolution", sizeof("hostnameResolution"), &hostnameResolution,
-                             sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "randomizedContactPoints", sizeof("randomizedContactPoints"),
-                             &randomizedContactPoints, sizeof(zval));
-    PHP5TO7_ZEND_HASH_UPDATE(props, "connectionHeartbeatInterval", sizeof("connectionHeartbeatInterval"),
-                             &connectionHeartbeatInterval, sizeof(zval));
+    (void)zend_hash_str_update(props, ZEND_STRL("contactPoints"), &contactPoints);
+    (void)zend_hash_str_update(props, ZEND_STRL("loadBalancingPolicy"), &loadBalancingPolicy);
+    (void)zend_hash_str_update(props, ZEND_STRL("localDatacenter"), &localDatacenter);
+    (void)zend_hash_str_update(props, ZEND_STRL("hostPerRemoteDatacenter"), &hostPerRemoteDatacenter);
+    (void)zend_hash_str_update(props, ZEND_STRL("useRemoteDatacenterForLocalConsistencies"), &useRemoteDatacenterForLocalConsistencies);
+    (void)zend_hash_str_update(props, ZEND_STRL("useTokenAwareRouting"), &useTokenAwareRouting);
+    (void)zend_hash_str_update(props, ZEND_STRL("username"), &username);
+    (void)zend_hash_str_update(props, ZEND_STRL("password"), &password);
+    (void)zend_hash_str_update(props, ZEND_STRL("connectTimeout"), &connectTimeout);
+    (void)zend_hash_str_update(props, ZEND_STRL("requestTimeout"), &requestTimeout);
+    (void)zend_hash_str_update(props, ZEND_STRL("sslOptions"), &sslOptions);
+    (void)zend_hash_str_update(props, ZEND_STRL("defaultConsistency"), &defaultConsistency);
+    (void)zend_hash_str_update(props, ZEND_STRL("defaultPageSize"), &defaultPageSize);
+    (void)zend_hash_str_update(props, ZEND_STRL("defaultTimeout"), &defaultTimeout);
+    (void)zend_hash_str_update(props, ZEND_STRL("usePersistentSessions"), &usePersistentSessions);
+    (void)zend_hash_str_update(props, ZEND_STRL("protocolVersion"), &protocolVersion);
+    (void)zend_hash_str_update(props, ZEND_STRL("ioThreads"), &ioThreads);
+    (void)zend_hash_str_update(props, ZEND_STRL("coreConnectionPerHost"), &coreConnectionPerHost);
+    (void)zend_hash_str_update(props, ZEND_STRL("maxConnectionsPerHost"), &maxConnectionsPerHost);
+    (void)zend_hash_str_update(props, ZEND_STRL("reconnectInterval"), &reconnectInterval);
+    (void)zend_hash_str_update(props, ZEND_STRL("latencyAwareRouting"), &latencyAwareRouting);
+    (void)zend_hash_str_update(props, ZEND_STRL("tcpNodelay"), &tcpNodelay);
+    (void)zend_hash_str_update(props, ZEND_STRL("tcpKeepalive"), &tcpKeepalive);
+    (void)zend_hash_str_update(props, ZEND_STRL("retryPolicy"), &retryPolicy);
+    (void)zend_hash_str_update(props, ZEND_STRL("timestampGenerator"), &timestampGen);
+    (void)zend_hash_str_update(props, ZEND_STRL("schemaMetadata"), &schemaMetadata);
+    (void)zend_hash_str_update(props, ZEND_STRL("blacklist_hosts"), &blacklistHosts);
+    (void)zend_hash_str_update(props, ZEND_STRL("whitelist_hosts"), &whitelistHosts);
+    (void)zend_hash_str_update(props, ZEND_STRL("blacklist_dcs"), &blacklistDCs);
+    (void)zend_hash_str_update(props, ZEND_STRL("whitelist_dcs"), &whitelistDCs);
+    (void)zend_hash_str_update(props, ZEND_STRL("hostnameResolution"), &hostnameResolution);
+    (void)zend_hash_str_update(props, ZEND_STRL("randomizedContactPoints"), &randomizedContactPoints);
+    (void)zend_hash_str_update(props, ZEND_STRL("connectionHeartbeatInterval"), &connectionHeartbeatInterval);
 
     return props;
 }
@@ -245,7 +232,7 @@ static int php_driver_cluster_builder_compare(zval *obj1, zval *obj2)
 }
 static void php_driver_cluster_builder_free(zend_object *object)
 {
-    php_driver_cluster_builder *self = PHP5TO7_ZEND_OBJECT_GET(cluster_builder, object);
+    php_driver_cluster_builder *self = php_driver_cluster_builder_object_fetch(object);
 
     zend_string_release(self->contact_points);
     self->contact_points = nullptr;
