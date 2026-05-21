@@ -35,15 +35,17 @@ ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Session_schema, 0
 ZEND_END_ARG_INFO()
 
 
+
+
 static const zend_function_entry class_Cassandra_Session_methods[] = {
-	ZEND_RAW_FENTRY("execute", NULL, arginfo_class_Cassandra_Session_execute, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("executeAsync", NULL, arginfo_class_Cassandra_Session_executeAsync, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("prepare", NULL, arginfo_class_Cassandra_Session_prepare, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("prepareAsync", NULL, arginfo_class_Cassandra_Session_prepareAsync, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("close", NULL, arginfo_class_Cassandra_Session_close, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("closeAsync", NULL, arginfo_class_Cassandra_Session_closeAsync, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("metrics", NULL, arginfo_class_Cassandra_Session_metrics, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("schema", NULL, arginfo_class_Cassandra_Session_schema, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, execute, arginfo_class_Cassandra_Session_execute, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, executeAsync, arginfo_class_Cassandra_Session_executeAsync, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, prepare, arginfo_class_Cassandra_Session_prepare, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, prepareAsync, arginfo_class_Cassandra_Session_prepareAsync, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, close, arginfo_class_Cassandra_Session_close, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, closeAsync, arginfo_class_Cassandra_Session_closeAsync, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, metrics, arginfo_class_Cassandra_Session_metrics, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Session, schema, arginfo_class_Cassandra_Session_schema, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

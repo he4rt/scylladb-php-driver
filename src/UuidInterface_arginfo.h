@@ -8,9 +8,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_UuidInterface_ve
 ZEND_END_ARG_INFO()
 
 
+
+
 static const zend_function_entry class_Cassandra_UuidInterface_methods[] = {
-	ZEND_RAW_FENTRY("uuid", NULL, arginfo_class_Cassandra_UuidInterface_uuid, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("version", NULL, arginfo_class_Cassandra_UuidInterface_version, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_UuidInterface, uuid, arginfo_class_Cassandra_UuidInterface_uuid, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_UuidInterface, version, arginfo_class_Cassandra_UuidInterface_version, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

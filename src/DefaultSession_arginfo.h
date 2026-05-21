@@ -34,6 +34,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_DefaultSession_schema, 0, 0, Cassandra\\Schema, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_DefaultSession, execute);
 ZEND_METHOD(Cassandra_DefaultSession, executeAsync);
 ZEND_METHOD(Cassandra_DefaultSession, prepare);
@@ -42,6 +43,7 @@ ZEND_METHOD(Cassandra_DefaultSession, close);
 ZEND_METHOD(Cassandra_DefaultSession, closeAsync);
 ZEND_METHOD(Cassandra_DefaultSession, metrics);
 ZEND_METHOD(Cassandra_DefaultSession, schema);
+
 
 static const zend_function_entry class_Cassandra_DefaultSession_methods[] = {
 	ZEND_ME(Cassandra_DefaultSession, execute, arginfo_class_Cassandra_DefaultSession_execute, ZEND_ACC_PUBLIC)
@@ -60,7 +62,8 @@ static zend_class_entry *register_class_Cassandra_DefaultSession(zend_class_entr
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultSession", class_Cassandra_DefaultSession_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Session);
 
 	return class_entry;

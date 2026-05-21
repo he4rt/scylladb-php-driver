@@ -67,6 +67,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_DefaultMaterializedView_baseTable, 0, 0, Cassandra\\Table, 1)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_DefaultMaterializedView, name);
 ZEND_METHOD(Cassandra_DefaultMaterializedView, option);
 ZEND_METHOD(Cassandra_DefaultMaterializedView, options);
@@ -94,6 +95,7 @@ ZEND_METHOD(Cassandra_DefaultMaterializedView, primaryKey);
 ZEND_METHOD(Cassandra_DefaultMaterializedView, clusteringKey);
 ZEND_METHOD(Cassandra_DefaultMaterializedView, clusteringOrder);
 ZEND_METHOD(Cassandra_DefaultMaterializedView, baseTable);
+
 
 static const zend_function_entry class_Cassandra_DefaultMaterializedView_methods[] = {
 	ZEND_ME(Cassandra_DefaultMaterializedView, name, arginfo_class_Cassandra_DefaultMaterializedView_name, ZEND_ACC_PUBLIC)
@@ -131,7 +133,8 @@ static zend_class_entry *register_class_Cassandra_DefaultMaterializedView(zend_c
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultMaterializedView", class_Cassandra_DefaultMaterializedView_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, class_entry_Cassandra_MaterializedView, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_Cassandra_MaterializedView);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 
 	return class_entry;
 }

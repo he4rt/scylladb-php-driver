@@ -16,11 +16,13 @@ ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Type_Set_create, 
 	ZEND_ARG_VARIADIC_TYPE_INFO(0, value, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_Type_Set, __construct);
 ZEND_METHOD(Cassandra_Type_Set, name);
 ZEND_METHOD(Cassandra_Type_Set, valueType);
 ZEND_METHOD(Cassandra_Type_Set, __toString);
 ZEND_METHOD(Cassandra_Type_Set, create);
+
 
 static const zend_function_entry class_Cassandra_Type_Set_methods[] = {
 	ZEND_ME(Cassandra_Type_Set, __construct, arginfo_class_Cassandra_Type_Set___construct, ZEND_ACC_PRIVATE)
@@ -36,7 +38,8 @@ static zend_class_entry *register_class_Cassandra_Type_Set(zend_class_entry *cla
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra\\Type", "Set", class_Cassandra_Type_Set_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, class_entry_Cassandra_Type, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_Cassandra_Type);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 
 	return class_entry;
 }

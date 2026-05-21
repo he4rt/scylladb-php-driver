@@ -40,6 +40,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Decimal___toString arginfo_class_Cassandra_Decimal_value
 
+
 ZEND_METHOD(Cassandra_Decimal, __construct);
 ZEND_METHOD(Cassandra_Decimal, type);
 ZEND_METHOD(Cassandra_Decimal, value);
@@ -55,6 +56,7 @@ ZEND_METHOD(Cassandra_Decimal, sqrt);
 ZEND_METHOD(Cassandra_Decimal, toInt);
 ZEND_METHOD(Cassandra_Decimal, toDouble);
 ZEND_METHOD(Cassandra_Decimal, __toString);
+
 
 static const zend_function_entry class_Cassandra_Decimal_methods[] = {
 	ZEND_ME(Cassandra_Decimal, __construct, arginfo_class_Cassandra_Decimal___construct, ZEND_ACC_PUBLIC)
@@ -80,7 +82,8 @@ static zend_class_entry *register_class_Cassandra_Decimal(zend_class_entry *clas
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Decimal", class_Cassandra_Decimal_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 2, class_entry_Cassandra_Value, class_entry_Cassandra_Numeric);
 
 	return class_entry;

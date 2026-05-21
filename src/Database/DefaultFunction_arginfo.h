@@ -21,6 +21,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_DefaultFunction_isCalledOnNullInput, 0, 0, _IS_BOOL, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_DefaultFunction, name);
 ZEND_METHOD(Cassandra_DefaultFunction, simpleName);
 ZEND_METHOD(Cassandra_DefaultFunction, arguments);
@@ -29,6 +30,7 @@ ZEND_METHOD(Cassandra_DefaultFunction, signature);
 ZEND_METHOD(Cassandra_DefaultFunction, language);
 ZEND_METHOD(Cassandra_DefaultFunction, body);
 ZEND_METHOD(Cassandra_DefaultFunction, isCalledOnNullInput);
+
 
 static const zend_function_entry class_Cassandra_DefaultFunction_methods[] = {
 	ZEND_ME(Cassandra_DefaultFunction, name, arginfo_class_Cassandra_DefaultFunction_name, ZEND_ACC_PUBLIC)
@@ -47,7 +49,8 @@ static zend_class_entry *register_class_Cassandra_DefaultFunction(zend_class_ent
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultFunction", class_Cassandra_DefaultFunction_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Function_);
 
 	return class_entry;

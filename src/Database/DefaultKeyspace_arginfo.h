@@ -44,6 +44,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_DefaultKeyspace_aggregates arginfo_class_Cassandra_DefaultKeyspace_replicationOptions
 
+
 ZEND_METHOD(Cassandra_DefaultKeyspace, name);
 ZEND_METHOD(Cassandra_DefaultKeyspace, replicationClassName);
 ZEND_METHOD(Cassandra_DefaultKeyspace, replicationOptions);
@@ -58,6 +59,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, function);
 ZEND_METHOD(Cassandra_DefaultKeyspace, functions);
 ZEND_METHOD(Cassandra_DefaultKeyspace, aggregate);
 ZEND_METHOD(Cassandra_DefaultKeyspace, aggregates);
+
 
 static const zend_function_entry class_Cassandra_DefaultKeyspace_methods[] = {
 	ZEND_ME(Cassandra_DefaultKeyspace, name, arginfo_class_Cassandra_DefaultKeyspace_name, ZEND_ACC_PUBLIC)
@@ -82,7 +84,8 @@ static zend_class_entry *register_class_Cassandra_DefaultKeyspace(zend_class_ent
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultKeyspace", class_Cassandra_DefaultKeyspace_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Keyspace);
 
 	return class_entry;

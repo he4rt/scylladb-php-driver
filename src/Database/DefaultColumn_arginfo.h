@@ -19,6 +19,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_DefaultColumn_indexOptions arginfo_class_Cassandra_DefaultColumn_indexName
 
+
 ZEND_METHOD(Cassandra_DefaultColumn, name);
 ZEND_METHOD(Cassandra_DefaultColumn, type);
 ZEND_METHOD(Cassandra_DefaultColumn, isReversed);
@@ -27,14 +28,15 @@ ZEND_METHOD(Cassandra_DefaultColumn, isFrozen);
 ZEND_METHOD(Cassandra_DefaultColumn, indexName);
 ZEND_METHOD(Cassandra_DefaultColumn, indexOptions);
 
+
 static const zend_function_entry class_Cassandra_DefaultColumn_methods[] = {
 	ZEND_ME(Cassandra_DefaultColumn, name, arginfo_class_Cassandra_DefaultColumn_name, ZEND_ACC_PUBLIC)
 	ZEND_ME(Cassandra_DefaultColumn, type, arginfo_class_Cassandra_DefaultColumn_type, ZEND_ACC_PUBLIC)
 	ZEND_ME(Cassandra_DefaultColumn, isReversed, arginfo_class_Cassandra_DefaultColumn_isReversed, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
 	ZEND_ME(Cassandra_DefaultColumn, isStatic, arginfo_class_Cassandra_DefaultColumn_isStatic, ZEND_ACC_PUBLIC)
 	ZEND_ME(Cassandra_DefaultColumn, isFrozen, arginfo_class_Cassandra_DefaultColumn_isFrozen, ZEND_ACC_PUBLIC)
-	ZEND_ME(Cassandra_DefaultColumn, indexName, arginfo_class_Cassandra_DefaultColumn_indexName, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
-	ZEND_ME(Cassandra_DefaultColumn, indexOptions, arginfo_class_Cassandra_DefaultColumn_indexOptions, ZEND_ACC_PUBLIC|ZEND_ACC_DEPRECATED)
+	ZEND_ME(Cassandra_DefaultColumn, indexName, arginfo_class_Cassandra_DefaultColumn_indexName, ZEND_ACC_PUBLIC)
+	ZEND_ME(Cassandra_DefaultColumn, indexOptions, arginfo_class_Cassandra_DefaultColumn_indexOptions, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -43,7 +45,8 @@ static zend_class_entry *register_class_Cassandra_DefaultColumn(zend_class_entry
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultColumn", class_Cassandra_DefaultColumn_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Column);
 
 	return class_entry;

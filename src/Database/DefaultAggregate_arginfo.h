@@ -24,6 +24,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_DefaultAggregate_signature arginfo_class_Cassandra_DefaultAggregate_name
 
+
 ZEND_METHOD(Cassandra_DefaultAggregate, name);
 ZEND_METHOD(Cassandra_DefaultAggregate, simpleName);
 ZEND_METHOD(Cassandra_DefaultAggregate, argumentTypes);
@@ -33,6 +34,7 @@ ZEND_METHOD(Cassandra_DefaultAggregate, initialCondition);
 ZEND_METHOD(Cassandra_DefaultAggregate, returnType);
 ZEND_METHOD(Cassandra_DefaultAggregate, stateType);
 ZEND_METHOD(Cassandra_DefaultAggregate, signature);
+
 
 static const zend_function_entry class_Cassandra_DefaultAggregate_methods[] = {
 	ZEND_ME(Cassandra_DefaultAggregate, name, arginfo_class_Cassandra_DefaultAggregate_name, ZEND_ACC_PUBLIC)
@@ -52,7 +54,8 @@ static zend_class_entry *register_class_Cassandra_DefaultAggregate(zend_class_en
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultAggregate", class_Cassandra_DefaultAggregate_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Aggregate);
 
 	return class_entry;

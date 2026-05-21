@@ -4,7 +4,9 @@
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Cassandra_PreparedStatement___construct, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_PreparedStatement, __construct);
+
 
 static const zend_function_entry class_Cassandra_PreparedStatement_methods[] = {
 	ZEND_ME(Cassandra_PreparedStatement, __construct, arginfo_class_Cassandra_PreparedStatement___construct, ZEND_ACC_PRIVATE)
@@ -16,7 +18,8 @@ static zend_class_entry *register_class_Cassandra_PreparedStatement(zend_class_e
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "PreparedStatement", class_Cassandra_PreparedStatement_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Statement);
 
 	return class_entry;

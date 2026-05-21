@@ -51,6 +51,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Rows_first arginfo_class_Cassandra_Rows_current
 
+
 ZEND_METHOD(Cassandra_Rows, __construct);
 ZEND_METHOD(Cassandra_Rows, count);
 ZEND_METHOD(Cassandra_Rows, rewind);
@@ -67,6 +68,7 @@ ZEND_METHOD(Cassandra_Rows, nextPage);
 ZEND_METHOD(Cassandra_Rows, nextPageAsync);
 ZEND_METHOD(Cassandra_Rows, pagingStateToken);
 ZEND_METHOD(Cassandra_Rows, first);
+
 
 static const zend_function_entry class_Cassandra_Rows_methods[] = {
 	ZEND_ME(Cassandra_Rows, __construct, arginfo_class_Cassandra_Rows___construct, ZEND_ACC_PUBLIC)
@@ -93,7 +95,8 @@ static zend_class_entry *register_class_Cassandra_Rows(zend_class_entry *class_e
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Rows", class_Cassandra_Rows_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 3, class_entry_Iterator, class_entry_Countable, class_entry_ArrayAccess);
 
 	return class_entry;

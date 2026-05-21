@@ -27,17 +27,19 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Numeric_toDouble
 ZEND_END_ARG_INFO()
 
 
+
+
 static const zend_function_entry class_Cassandra_Numeric_methods[] = {
-	ZEND_RAW_FENTRY("add", NULL, arginfo_class_Cassandra_Numeric_add, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("sub", NULL, arginfo_class_Cassandra_Numeric_sub, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("mul", NULL, arginfo_class_Cassandra_Numeric_mul, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("div", NULL, arginfo_class_Cassandra_Numeric_div, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("mod", NULL, arginfo_class_Cassandra_Numeric_mod, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("abs", NULL, arginfo_class_Cassandra_Numeric_abs, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("neg", NULL, arginfo_class_Cassandra_Numeric_neg, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("sqrt", NULL, arginfo_class_Cassandra_Numeric_sqrt, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("toInt", NULL, arginfo_class_Cassandra_Numeric_toInt, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("toDouble", NULL, arginfo_class_Cassandra_Numeric_toDouble, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, add, arginfo_class_Cassandra_Numeric_add, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, sub, arginfo_class_Cassandra_Numeric_sub, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, mul, arginfo_class_Cassandra_Numeric_mul, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, div, arginfo_class_Cassandra_Numeric_div, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, mod, arginfo_class_Cassandra_Numeric_mod, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, abs, arginfo_class_Cassandra_Numeric_abs, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, neg, arginfo_class_Cassandra_Numeric_neg, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, sqrt, arginfo_class_Cassandra_Numeric_sqrt, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, toInt, arginfo_class_Cassandra_Numeric_toInt, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Numeric, toDouble, arginfo_class_Cassandra_Numeric_toDouble, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

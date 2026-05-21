@@ -105,6 +105,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Cluster_Builder_build, 0, 0, Cassandra\\Cluster, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultConsistency);
 ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultPageSize);
 ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout);
@@ -136,6 +137,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withHostnameResolution);
 ZEND_METHOD(Cassandra_Cluster_Builder, withRandomizedContactPoints);
 ZEND_METHOD(Cassandra_Cluster_Builder, withConnectionHeartbeatInterval);
 ZEND_METHOD(Cassandra_Cluster_Builder, build);
+
 
 static const zend_function_entry class_Cassandra_Cluster_Builder_methods[] = {
 	ZEND_ME(Cassandra_Cluster_Builder, withDefaultConsistency, arginfo_class_Cassandra_Cluster_Builder_withDefaultConsistency, ZEND_ACC_PUBLIC)
@@ -177,7 +179,8 @@ static zend_class_entry *register_class_Cassandra_Cluster_Builder(void)
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra\\Cluster", "Builder", class_Cassandra_Cluster_Builder_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 
 	return class_entry;
 }

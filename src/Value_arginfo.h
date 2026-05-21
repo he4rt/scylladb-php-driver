@@ -5,8 +5,10 @@ ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Value_type, 0, 0,
 ZEND_END_ARG_INFO()
 
 
+
+
 static const zend_function_entry class_Cassandra_Value_methods[] = {
-	ZEND_RAW_FENTRY("type", NULL, arginfo_class_Cassandra_Value_type, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Value, type, arginfo_class_Cassandra_Value_type, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

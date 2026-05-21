@@ -20,14 +20,16 @@ ZEND_END_ARG_INFO()
 #define arginfo_class_Cassandra_Column_indexOptions arginfo_class_Cassandra_Column_indexName
 
 
+
+
 static const zend_function_entry class_Cassandra_Column_methods[] = {
-	ZEND_RAW_FENTRY("name", NULL, arginfo_class_Cassandra_Column_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("type", NULL, arginfo_class_Cassandra_Column_type, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("isReversed", NULL, arginfo_class_Cassandra_Column_isReversed, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("isStatic", NULL, arginfo_class_Cassandra_Column_isStatic, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("isFrozen", NULL, arginfo_class_Cassandra_Column_isFrozen, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("indexName", NULL, arginfo_class_Cassandra_Column_indexName, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("indexOptions", NULL, arginfo_class_Cassandra_Column_indexOptions, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Column, name, arginfo_class_Cassandra_Column_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Column, type, arginfo_class_Cassandra_Column_type, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Column, isReversed, arginfo_class_Cassandra_Column_isReversed, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Column, isStatic, arginfo_class_Cassandra_Column_isStatic, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Column, isFrozen, arginfo_class_Cassandra_Column_isFrozen, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Column, indexName, arginfo_class_Cassandra_Column_indexName, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Column, indexOptions, arginfo_class_Cassandra_Column_indexOptions, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

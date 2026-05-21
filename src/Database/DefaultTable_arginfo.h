@@ -76,6 +76,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_DefaultTable_materializedViews arginfo_class_Cassandra_DefaultTable_options
 
+
 ZEND_METHOD(Cassandra_DefaultTable, name);
 ZEND_METHOD(Cassandra_DefaultTable, option);
 ZEND_METHOD(Cassandra_DefaultTable, options);
@@ -106,6 +107,7 @@ ZEND_METHOD(Cassandra_DefaultTable, index);
 ZEND_METHOD(Cassandra_DefaultTable, indexes);
 ZEND_METHOD(Cassandra_DefaultTable, materializedView);
 ZEND_METHOD(Cassandra_DefaultTable, materializedViews);
+
 
 static const zend_function_entry class_Cassandra_DefaultTable_methods[] = {
 	ZEND_ME(Cassandra_DefaultTable, name, arginfo_class_Cassandra_DefaultTable_name, ZEND_ACC_PUBLIC)
@@ -146,7 +148,8 @@ static zend_class_entry *register_class_Cassandra_DefaultTable(zend_class_entry 
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "DefaultTable", class_Cassandra_DefaultTable_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Table);
 
 	return class_entry;

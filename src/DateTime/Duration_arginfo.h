@@ -19,12 +19,14 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Duration___toString arginfo_class_Cassandra_Duration_months
 
+
 ZEND_METHOD(Cassandra_Duration, __construct);
 ZEND_METHOD(Cassandra_Duration, type);
 ZEND_METHOD(Cassandra_Duration, months);
 ZEND_METHOD(Cassandra_Duration, days);
 ZEND_METHOD(Cassandra_Duration, nanos);
 ZEND_METHOD(Cassandra_Duration, __toString);
+
 
 static const zend_function_entry class_Cassandra_Duration_methods[] = {
 	ZEND_ME(Cassandra_Duration, __construct, arginfo_class_Cassandra_Duration___construct, ZEND_ACC_PUBLIC)
@@ -41,7 +43,8 @@ static zend_class_entry *register_class_Cassandra_Duration(zend_class_entry *cla
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Duration", class_Cassandra_Duration_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Value);
 
 	return class_entry;

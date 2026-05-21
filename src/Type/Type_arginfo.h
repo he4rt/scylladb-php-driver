@@ -71,6 +71,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Cassandra_Type_userType, 0,
 	ZEND_ARG_VARIADIC_TYPE_INFO(0, types, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_Type, ascii);
 ZEND_METHOD(Cassandra_Type, bigint);
 ZEND_METHOD(Cassandra_Type, smallint);
@@ -98,9 +99,10 @@ ZEND_METHOD(Cassandra_Type, map);
 ZEND_METHOD(Cassandra_Type, tuple);
 ZEND_METHOD(Cassandra_Type, userType);
 
+
 static const zend_function_entry class_Cassandra_Type_methods[] = {
-	ZEND_RAW_FENTRY("name", NULL, arginfo_class_Cassandra_Type_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("__toString", NULL, arginfo_class_Cassandra_Type___toString, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Type, name, arginfo_class_Cassandra_Type_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Type, __toString, arginfo_class_Cassandra_Type___toString, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_ME(Cassandra_Type, ascii, arginfo_class_Cassandra_Type_ascii, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC|ZEND_ACC_FINAL)
 	ZEND_ME(Cassandra_Type, bigint, arginfo_class_Cassandra_Type_bigint, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC|ZEND_ACC_FINAL)
 	ZEND_ME(Cassandra_Type, smallint, arginfo_class_Cassandra_Type_smallint, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC|ZEND_ACC_FINAL)
@@ -135,7 +137,8 @@ static zend_class_entry *register_class_Cassandra_Type(void)
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Type", class_Cassandra_Type_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_ABSTRACT);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_ABSTRACT;
 
 	return class_entry;
 }

@@ -22,14 +22,16 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Index_isCustom, 
 ZEND_END_ARG_INFO()
 
 
+
+
 static const zend_function_entry class_Cassandra_Index_methods[] = {
-	ZEND_RAW_FENTRY("name", NULL, arginfo_class_Cassandra_Index_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("kind", NULL, arginfo_class_Cassandra_Index_kind, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("target", NULL, arginfo_class_Cassandra_Index_target, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("option", NULL, arginfo_class_Cassandra_Index_option, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("options", NULL, arginfo_class_Cassandra_Index_options, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("className", NULL, arginfo_class_Cassandra_Index_className, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("isCustom", NULL, arginfo_class_Cassandra_Index_isCustom, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Index, name, arginfo_class_Cassandra_Index_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Index, kind, arginfo_class_Cassandra_Index_kind, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Index, target, arginfo_class_Cassandra_Index_target, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Index, option, arginfo_class_Cassandra_Index_option, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Index, options, arginfo_class_Cassandra_Index_options, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Index, className, arginfo_class_Cassandra_Index_className, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Index, isCustom, arginfo_class_Cassandra_Index_isCustom, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

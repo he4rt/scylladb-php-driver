@@ -38,6 +38,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Varint___toString arginfo_class_Cassandra_Varint_value
 
+
 ZEND_METHOD(Cassandra_Varint, __construct);
 ZEND_METHOD(Cassandra_Varint, type);
 ZEND_METHOD(Cassandra_Varint, value);
@@ -52,6 +53,7 @@ ZEND_METHOD(Cassandra_Varint, sqrt);
 ZEND_METHOD(Cassandra_Varint, toInt);
 ZEND_METHOD(Cassandra_Varint, toDouble);
 ZEND_METHOD(Cassandra_Varint, __toString);
+
 
 static const zend_function_entry class_Cassandra_Varint_methods[] = {
 	ZEND_ME(Cassandra_Varint, __construct, arginfo_class_Cassandra_Varint___construct, ZEND_ACC_PUBLIC)
@@ -76,7 +78,8 @@ static zend_class_entry *register_class_Cassandra_Varint(zend_class_entry *class
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Varint", class_Cassandra_Varint_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 2, class_entry_Cassandra_Value, class_entry_Cassandra_Numeric);
 
 	return class_entry;

@@ -22,15 +22,17 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Function__isCall
 ZEND_END_ARG_INFO()
 
 
+
+
 static const zend_function_entry class_Cassandra_Function__methods[] = {
-	ZEND_RAW_FENTRY("name", NULL, arginfo_class_Cassandra_Function__name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("simpleName", NULL, arginfo_class_Cassandra_Function__simpleName, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("arguments", NULL, arginfo_class_Cassandra_Function__arguments, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("returnType", NULL, arginfo_class_Cassandra_Function__returnType, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("signature", NULL, arginfo_class_Cassandra_Function__signature, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("language", NULL, arginfo_class_Cassandra_Function__language, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("body", NULL, arginfo_class_Cassandra_Function__body, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("isCalledOnNullInput", NULL, arginfo_class_Cassandra_Function__isCalledOnNullInput, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, name, arginfo_class_Cassandra_Function__name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, simpleName, arginfo_class_Cassandra_Function__simpleName, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, arguments, arginfo_class_Cassandra_Function__arguments, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, returnType, arginfo_class_Cassandra_Function__returnType, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, signature, arginfo_class_Cassandra_Function__signature, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, language, arginfo_class_Cassandra_Function__language, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, body, arginfo_class_Cassandra_Function__body, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Function_, isCalledOnNullInput, arginfo_class_Cassandra_Function__isCalledOnNullInput, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

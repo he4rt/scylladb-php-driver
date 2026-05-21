@@ -26,6 +26,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Timestamp___toString, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_Timestamp, __construct);
 ZEND_METHOD(Cassandra_Timestamp, type);
 ZEND_METHOD(Cassandra_Timestamp, time);
@@ -33,6 +34,7 @@ ZEND_METHOD(Cassandra_Timestamp, microtime);
 ZEND_METHOD(Cassandra_Timestamp, toDateTime);
 ZEND_METHOD(Cassandra_Timestamp, fromDateTime);
 ZEND_METHOD(Cassandra_Timestamp, __toString);
+
 
 static const zend_function_entry class_Cassandra_Timestamp_methods[] = {
 	ZEND_ME(Cassandra_Timestamp, __construct, arginfo_class_Cassandra_Timestamp___construct, ZEND_ACC_PUBLIC)
@@ -50,7 +52,8 @@ static zend_class_entry *register_class_Cassandra_Timestamp(zend_class_entry *cl
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Timestamp", class_Cassandra_Timestamp_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 1, class_entry_Cassandra_Value);
 
 	return class_entry;

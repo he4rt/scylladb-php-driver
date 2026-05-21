@@ -9,9 +9,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Schema_keyspaces
 ZEND_END_ARG_INFO()
 
 
+
+
 static const zend_function_entry class_Cassandra_Schema_methods[] = {
-	ZEND_RAW_FENTRY("keyspace", NULL, arginfo_class_Cassandra_Schema_keyspace, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("keyspaces", NULL, arginfo_class_Cassandra_Schema_keyspaces, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Schema, keyspace, arginfo_class_Cassandra_Schema_keyspace, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Schema, keyspaces, arginfo_class_Cassandra_Schema_keyspaces, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

@@ -62,6 +62,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Cassandra_Map_offsetExists
 	ZEND_ARG_TYPE_INFO(0, offset, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
+
 ZEND_METHOD(Cassandra_Map, __construct);
 ZEND_METHOD(Cassandra_Map, type);
 ZEND_METHOD(Cassandra_Map, keys);
@@ -80,6 +81,7 @@ ZEND_METHOD(Cassandra_Map, offsetSet);
 ZEND_METHOD(Cassandra_Map, offsetGet);
 ZEND_METHOD(Cassandra_Map, offsetUnset);
 ZEND_METHOD(Cassandra_Map, offsetExists);
+
 
 static const zend_function_entry class_Cassandra_Map_methods[] = {
 	ZEND_ME(Cassandra_Map, __construct, arginfo_class_Cassandra_Map___construct, ZEND_ACC_PUBLIC)
@@ -108,7 +110,8 @@ static zend_class_entry *register_class_Cassandra_Map(zend_class_entry *class_en
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Map", class_Cassandra_Map_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 4, class_entry_Cassandra_Value, class_entry_Countable, class_entry_Iterator, class_entry_ArrayAccess);
 
 	return class_entry;

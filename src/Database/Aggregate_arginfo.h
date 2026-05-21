@@ -25,16 +25,18 @@ ZEND_END_ARG_INFO()
 #define arginfo_class_Cassandra_Aggregate_signature arginfo_class_Cassandra_Aggregate_name
 
 
+
+
 static const zend_function_entry class_Cassandra_Aggregate_methods[] = {
-	ZEND_RAW_FENTRY("name", NULL, arginfo_class_Cassandra_Aggregate_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("simpleName", NULL, arginfo_class_Cassandra_Aggregate_simpleName, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("argumentTypes", NULL, arginfo_class_Cassandra_Aggregate_argumentTypes, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("finalFunction", NULL, arginfo_class_Cassandra_Aggregate_finalFunction, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("stateFunction", NULL, arginfo_class_Cassandra_Aggregate_stateFunction, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("initialCondition", NULL, arginfo_class_Cassandra_Aggregate_initialCondition, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("returnType", NULL, arginfo_class_Cassandra_Aggregate_returnType, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("stateType", NULL, arginfo_class_Cassandra_Aggregate_stateType, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
-	ZEND_RAW_FENTRY("signature", NULL, arginfo_class_Cassandra_Aggregate_signature, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT, NULL, NULL)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, name, arginfo_class_Cassandra_Aggregate_name, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, simpleName, arginfo_class_Cassandra_Aggregate_simpleName, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, argumentTypes, arginfo_class_Cassandra_Aggregate_argumentTypes, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, finalFunction, arginfo_class_Cassandra_Aggregate_finalFunction, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, stateFunction, arginfo_class_Cassandra_Aggregate_stateFunction, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, initialCondition, arginfo_class_Cassandra_Aggregate_initialCondition, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, returnType, arginfo_class_Cassandra_Aggregate_returnType, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, stateType, arginfo_class_Cassandra_Aggregate_stateType, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
+	ZEND_ABSTRACT_ME_WITH_FLAGS(Cassandra_Aggregate, signature, arginfo_class_Cassandra_Aggregate_signature, ZEND_ACC_PUBLIC|ZEND_ACC_ABSTRACT)
 	ZEND_FE_END
 };
 

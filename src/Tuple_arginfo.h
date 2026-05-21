@@ -36,6 +36,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Cassandra_Tuple_rewind arginfo_class_Cassandra_Tuple_next
 
+
 ZEND_METHOD(Cassandra_Tuple, __construct);
 ZEND_METHOD(Cassandra_Tuple, type);
 ZEND_METHOD(Cassandra_Tuple, values);
@@ -47,6 +48,7 @@ ZEND_METHOD(Cassandra_Tuple, key);
 ZEND_METHOD(Cassandra_Tuple, next);
 ZEND_METHOD(Cassandra_Tuple, valid);
 ZEND_METHOD(Cassandra_Tuple, rewind);
+
 
 static const zend_function_entry class_Cassandra_Tuple_methods[] = {
 	ZEND_ME(Cassandra_Tuple, __construct, arginfo_class_Cassandra_Tuple___construct, ZEND_ACC_PUBLIC)
@@ -68,7 +70,8 @@ static zend_class_entry *register_class_Cassandra_Tuple(zend_class_entry *class_
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Cassandra", "Tuple", class_Cassandra_Tuple_methods);
-	class_entry = zend_register_internal_class_with_flags(&ce, NULL, ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(class_entry, 3, class_entry_Cassandra_Value, class_entry_Countable, class_entry_Iterator);
 
 	return class_entry;
