@@ -48,16 +48,21 @@ install_system_deps() {
             brew install cmake ninja git
             ;;
         Linux)
+            local SUDO=""
+            if [[ $EUID -ne 0 ]] && command -v sudo >/dev/null 2>&1; then
+                SUDO="sudo"
+            fi
             # shellcheck source=/dev/null
             . /etc/os-release 2>/dev/null || return
             case "${ID:-}" in
                 fedora)
                     echo "==> Installing build deps (Fedora)"
-                    dnf install -y cmake git ninja-build
+                    $SUDO dnf install -y cmake git ninja-build
                     ;;
                 ubuntu|debian)
                     echo "==> Installing build deps (Ubuntu/Debian)"
-                    apt-get install -y cmake git ninja-build
+                    $SUDO apt-get update
+                    $SUDO apt-get install -y cmake git ninja-build
                     ;;
                 *)
                     echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2

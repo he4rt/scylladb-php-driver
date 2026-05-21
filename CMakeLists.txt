@@ -30,21 +30,51 @@ set(PHP_SCYLLADB_DRIVER_VERSION "${PROJECT_VERSION}-dev")
 # Homebrew on Apple Silicon installs to /opt/homebrew; on Intel to /usr/local.
 # Adding the prefix to CMAKE_PREFIX_PATH lets find_package / pkg-config locate
 # libraries without requiring the user to set PKG_CONFIG_PATH manually.
+#
+# Several formulae we depend on are keg-only (openssl@3, libuv, libssh2, gmp)
+# — their headers/pkgconfig live under their own prefix, not the global one —
+# so we probe each individually and add them too.
 if (APPLE)
-    execute_process(
-            COMMAND brew --prefix
-            OUTPUT_VARIABLE _brew_prefix
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            ERROR_QUIET
-            RESULT_VARIABLE _brew_rc
-    )
-    if (_brew_rc EQUAL 0 AND _brew_prefix)
-        list(PREPEND CMAKE_PREFIX_PATH "${_brew_prefix}")
-        set(ENV{PKG_CONFIG_PATH} "${_brew_prefix}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
-        message(STATUS "Homebrew prefix: ${_brew_prefix}")
+    function(_scylladb_add_brew_prefix formula)
+        execute_process(
+                COMMAND brew --prefix ${formula}
+                OUTPUT_VARIABLE _p
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+                RESULT_VARIABLE _rc
+        )
+        if (_rc EQUAL 0 AND _p AND IS_DIRECTORY "${_p}")
+            list(PREPEND CMAKE_PREFIX_PATH "${_p}")
+            set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" PARENT_SCOPE)
+            set(ENV{PKG_CONFIG_PATH} "${_p}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+            message(STATUS "Homebrew prefix [${formula}]: ${_p}")
+        endif ()
+    endfunction()
+
+    _scylladb_add_brew_prefix("")          # global brew prefix
+    _scylladb_add_brew_prefix(openssl@3)
+    _scylladb_add_brew_prefix(libuv)
+    _scylladb_add_brew_prefix(libssh2)
+    _scylladb_add_brew_prefix(gmp)
+endif ()
+
+# ── C++ driver prefix selection ──────────────────────────────────────────────
+# When the cpp-driver is installed under a non-standard location (e.g.
+# /usr/local/scylladb or /usr/local/cassandra from scripts/compile-cpp-driver.sh
+# with the per-driver layout), prepend its pkgconfig dir so FindCPPDriver picks
+# the intended one — this is also how you switch between scylladb / cassandra
+# when both are installed side by side.
+set(CPP_DRIVER_PREFIX "" CACHE PATH
+        "Install prefix where the chosen cpp-driver was installed \
+(e.g. /usr/local/scylladb or /usr/local/cassandra). \
+Its lib/pkgconfig dir is prepended to PKG_CONFIG_PATH.")
+if (CPP_DRIVER_PREFIX)
+    if (NOT IS_DIRECTORY "${CPP_DRIVER_PREFIX}")
+        message(WARNING "CPP_DRIVER_PREFIX='${CPP_DRIVER_PREFIX}' does not exist")
     endif ()
-    unset(_brew_prefix)
-    unset(_brew_rc)
+    list(PREPEND CMAKE_PREFIX_PATH "${CPP_DRIVER_PREFIX}")
+    set(ENV{PKG_CONFIG_PATH} "${CPP_DRIVER_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    message(STATUS "CPP driver prefix: ${CPP_DRIVER_PREFIX}")
 endif ()
 
 # ── Library options ───────────────────────────────────────────────────────────
@@ -86,6 +116,32 @@ find_package(PHP      REQUIRED)
 include(cmake/PhpExtensionHelpers.cmake)
 
 if (ENABLE_SANITIZERS)
+    set(_sanitizers_cmake_dir "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake")
+    if (NOT EXISTS "${_sanitizers_cmake_dir}/FindSanitizers.cmake")
+        # Submodule not initialized — try to init it automatically when we're
+        # inside a git checkout; otherwise tell the user exactly what to run.
+        find_package(Git QUIET)
+        if (Git_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.gitmodules")
+            message(STATUS "Initializing third-party/sanitizers-cmake submodule")
+            execute_process(
+                COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive
+                        third-party/sanitizers-cmake
+                WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+                RESULT_VARIABLE _sm_rc
+            )
+        else ()
+            set(_sm_rc 1)
+        endif ()
+        if (NOT EXISTS "${_sanitizers_cmake_dir}/FindSanitizers.cmake")
+            message(FATAL_ERROR
+                "ENABLE_SANITIZERS=ON but third-party/sanitizers-cmake is missing.\n"
+                "Run: git submodule update --init --recursive\n"
+                "Or disable with: -DENABLE_SANITIZERS=OFF"
+            )
+        endif ()
+        unset(_sm_rc)
+    endif ()
+    unset(_sanitizers_cmake_dir)
     find_package(Sanitizers REQUIRED)
 endif ()
 
