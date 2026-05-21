@@ -465,8 +465,14 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
   rc = cass_batch_set_retry_policy(cass_batch, retry_policy);
   ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
 
-  rc = cass_batch_set_timestamp(cass_batch, timestamp);
-  ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
+  // INT64_MIN is our sentinel for "no explicit timestamp set" (see
+  // ExecutionOptions). The legacy cpp-driver tolerated forwarding it on the
+  // wire; cpp-rs-driver rejects with "Out of bound timestamp" since the
+  // protocol range excludes INT64_MIN. Only set when caller provided a value.
+  if (timestamp != INT64_MIN) {
+    rc = cass_batch_set_timestamp(cass_batch, timestamp);
+    ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
+  }
 
   return cass_batch;
 }
@@ -494,7 +500,10 @@ static CassStatement* create_single(php_driver_statement* statement, HashTable* 
 
   if (rc == CASS_OK && retry_policy) rc = cass_statement_set_retry_policy(stmt, retry_policy);
 
-  if (rc == CASS_OK) rc = cass_statement_set_timestamp(stmt, timestamp);
+  // INT64_MIN means "no explicit timestamp" — skip to avoid cpp-rs-driver
+  // rejecting it as out-of-range. See create_batch() for the same reason.
+  if (rc == CASS_OK && timestamp != INT64_MIN)
+    rc = cass_statement_set_timestamp(stmt, timestamp);
 
   if (rc != CASS_OK) {
     cass_statement_free(stmt);

@@ -5,7 +5,7 @@ inputs:
   driver:
     required: false
     default: 'scylladb'
-    description: 'Which driver: scylladb or cassandra'
+    description: 'Which driver: scylladb | cassandra | scylla-rust'
   cpp_driver_pkg_config_path:
     required: true
     description: 'PKG_CONFIG_PATH entry for the C++ driver'
@@ -28,8 +28,11 @@ runs:
     - name: Configure
       shell: bash
       run: |
-        USE_CASSANDRA="OFF"
-        [[ "${{ inputs.driver }}" == "cassandra" ]] && USE_CASSANDRA="ON"
+        case "${{ inputs.driver }}" in
+          cassandra)   BACKEND="cassandra"   ;;
+          scylla-rust) BACKEND="scylla-rust" ;;
+          scylladb|*)  BACKEND="scylla-cpp"  ;;
+        esac
 
         export PKG_CONFIG_PATH="${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
 
@@ -39,7 +42,7 @@ runs:
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DPHP_DRIVER_STATIC="${{ inputs.static_driver }}" \
-          -DUSE_LIBCASSANDRA="${USE_CASSANDRA}" \
+          -DPHP_DRIVER_BACKEND="${BACKEND}" \
           -DENABLE_LTO="${{ inputs.enable_lto }}"
 
     - name: Build

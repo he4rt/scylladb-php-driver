@@ -111,7 +111,9 @@ static zend_always_inline void php_driver_set_timeout(INTERNAL_FUNCTION_PARAMETE
 
 ZEND_METHOD(Cassandra_Cluster_Builder, build)
 {
+#ifndef PHP_DRIVER_BACKEND_SCYLLA_RUST
     CassError rc;
+#endif
     php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
     object_init_ex(return_value, php_driver_default_cluster_ce);
@@ -207,23 +209,33 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     ASSERT_SUCCESS(cass_cluster_set_protocol_version(cluster->cluster, self->protocol_version));
     ASSERT_SUCCESS(cass_cluster_set_num_threads_io(cluster->cluster, self->io_threads));
     ASSERT_SUCCESS(cass_cluster_set_core_connections_per_host(cluster->cluster, self->core_connections_per_host));
+#ifndef PHP_DRIVER_BACKEND_SCYLLA_RUST
     ASSERT_SUCCESS(cass_cluster_set_max_connections_per_host(cluster->cluster, self->max_connections_per_host));
+#endif
     cass_cluster_set_constant_reconnect(cluster->cluster, self->reconnect_interval);
     cass_cluster_set_latency_aware_routing(cluster->cluster, self->enable_latency_aware_routing);
     cass_cluster_set_tcp_nodelay(cluster->cluster, self->enable_tcp_nodelay);
     cass_cluster_set_tcp_keepalive(cluster->cluster, self->enable_tcp_keepalive, self->tcp_keepalive_delay);
     cass_cluster_set_use_schema(cluster->cluster, self->enable_schema);
 
+#ifdef PHP_DRIVER_BACKEND_SCYLLA_RUST
+    if (self->enable_hostname_resolution)
+    {
+        php_error_docref(nullptr, E_WARNING,
+                         "The underlying C/C++ driver does not implement hostname resolution; it will be disabled.");
+    }
+#else
     rc = cass_cluster_set_use_hostname_resolution(cluster->cluster, self->enable_hostname_resolution);
     if (rc == CASS_ERROR_LIB_NOT_IMPLEMENTED && self->enable_hostname_resolution)
     {
         php_error_docref(nullptr, E_WARNING,
-                         "The underlying C/C++ driver does not implement hostname resolution it will be disabled");
+                         "The underlying C/C++ driver does not implement hostname resolution; it will be disabled.");
     }
     else
     {
         ASSERT_SUCCESS(rc);
     }
+#endif
     ASSERT_SUCCESS(
         cass_cluster_set_use_randomized_contact_points(cluster->cluster, self->enable_randomized_contact_points));
     cass_cluster_set_connection_heartbeat_interval(cluster->cluster, self->connection_heartbeat_interval);

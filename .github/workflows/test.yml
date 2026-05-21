@@ -37,6 +37,8 @@ jobs:
   test:
     name: PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
     runs-on: ubuntu-24.04
+    # scylla-rust is experimental — don't fail the whole CI when it breaks
+    continue-on-error: ${{ matrix.driver == 'scylla-rust' }}
 
     services:
       scylladb:
@@ -63,6 +65,7 @@ jobs:
         driver:
           - "scylladb"
           - "cassandra"
+          - "scylla-rust"
 
     steps:
       - uses: actions/checkout@v4
@@ -133,6 +136,7 @@ jobs:
           php -d extension=cassandra ./vendor/bin/pest --colors=always
         env:
           SCYLLADB_HOSTS: "127.0.0.1"
+          SCYLLADB_PHP_BACKEND: ${{ steps.driver.outputs.backend }}
 
   pie-build:
     name: PIE / PHP ${{ matrix.php }}-nts / ${{ matrix.driver }}

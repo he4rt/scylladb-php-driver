@@ -63,8 +63,13 @@ BEGIN_EXTERN_C()
 static char *log_location = nullptr;
 static uv_rwlock_t log_lock;
 
+// cpp-rs-driver uses its own 1.x versioning track (it's a rewrite, not a
+// successor of the 2.x cpp-driver line). Skip the legacy version check on
+// the rust backend; required-version constants are about a different library.
+#ifndef PHP_DRIVER_BACKEND_SCYLLA_RUST
 #if CURRENT_CPP_DRIVER_VERSION < CPP_DRIVER_VERSION(2, 16, 2)
 #error C/C++ driver version 2.16.2 or greater required
+#endif
 #endif
 
 ZEND_DECLARE_MODULE_GLOBALS(php_driver)

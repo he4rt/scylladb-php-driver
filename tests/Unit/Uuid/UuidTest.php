@@ -78,35 +78,41 @@ describe('Cassandra\Uuid', function () {
         [new Uuid('2a5072fa-7da4-4ccd-a9b4-f017a3872304'), new Uuid('3b5072fa-7da4-4ccd-a9b4-f017a3872304')],
     ]);
 
-    it('produces unique UUIDs across forked child processes', function () {
-        if (!function_exists('pcntl_fork')) {
-            $this->markTestSkipped('pcntl_fork() not available (ZTS or non-Linux build)');
-        }
+    it('produces unique UUIDs across separate processes', function () {
+        // Use child PHP processes rather than pcntl_fork so this test runs on
+        // ZTS builds and platforms without pcntl. Each child generates one
+        // UUID and prints it; the parent collects stdout and checks uniqueness.
+        $numProcesses = 64;
+        $snippet      = 'echo (new \Cassandra\Uuid())->uuid(), "\n";';
+        $cmd          = sprintf(
+            '%s -d extension=cassandra -r %s',
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg($snippet),
+        );
 
-        $numProcesses  = 64;
-        $uuidsFilename = tempnam(sys_get_temp_dir(), 'uuid');
-        $children      = [];
-
+        $procs = [];
         foreach (range(1, $numProcesses) as $i) {
-            $pid = pcntl_fork();
-            if ($pid < 0) {
-                unlink($uuidsFilename);
-                $this->fail('Unable to create fork: unique UUID test cannot complete');
-            } elseif ($pid === 0) {
-                $uuid = new \Cassandra\Uuid();
-                file_put_contents($uuidsFilename, $uuid->uuid() . PHP_EOL, FILE_APPEND);
-                exit(0);
-            } else {
-                $children[] = $pid;
+            $pipes = [];
+            $proc  = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+            if (!is_resource($proc)) {
+                foreach ($procs as $p) { proc_close($p['proc']); }
+                $this->fail('Unable to spawn PHP subprocess: unique UUID test cannot complete');
             }
+            $procs[] = ['proc' => $proc, 'pipes' => $pipes];
         }
 
-        foreach ($children as $pid) {
-            pcntl_waitpid($pid, $status);
+        $uuids = [];
+        foreach ($procs as $p) {
+            $stdout = stream_get_contents($p['pipes'][1]);
+            $stderr = stream_get_contents($p['pipes'][2]);
+            fclose($p['pipes'][1]);
+            fclose($p['pipes'][2]);
+            $rc = proc_close($p['proc']);
+            if ($rc !== 0) {
+                $this->fail("UUID child exited with $rc: $stderr");
+            }
+            $uuids[] = trim($stdout);
         }
-
-        $uuids = file($uuidsFilename);
-        unlink($uuidsFilename);
 
         expect(count(array_unique($uuids)))->toEqual($numProcesses);
     });

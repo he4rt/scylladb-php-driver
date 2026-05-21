@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Experimental support for [scylladb/cpp-rs-driver](https://github.com/scylladb/cpp-rs-driver)
+  as a third backend, selectable at build time via the new `PHP_DRIVER_BACKEND` CMake
+  cache variable (`cassandra | scylla-cpp | scylla-rust`). Install the Rust-backed
+  driver with `scripts/compile-cpp-rs-driver.sh --prefix <path>`, then configure with
+  `cmake -DPHP_DRIVER_BACKEND=scylla-rust` (or use a `*ScyllaRust` preset).
+- New CMake presets `*PHP*<ver><ts>ScyllaRust` covering the third backend across PHP
+  versions and build types.
+
+### Deprecated
+
+- `USE_LIBCASSANDRA` CMake option is now an alias for `PHP_DRIVER_BACKEND=cassandra`
+  and will be removed in a future release. Use `PHP_DRIVER_BACKEND` explicitly.
+
+### Known limitations (scylla-rust backend)
+
+- `Cassandra\Cluster\Builder::withMaxConnectionsPerHost()` is a no-op (removed upstream).
+- Schema introspection of column clustering order, keyspace metadata via name, and
+  table/materialized-view options will return empty values or throw — the upstream
+  declarations of `cass_*_meta_field_by_name` and `cass_iterator_fields_from_*` are
+  intentionally no-ops in the Rust driver (see upstream "Functions intentionally not
+  implemented" docs). Our call sites null-check the returned pointer/iterator so the
+  extension keeps working; affected PHP-level operations just yield empty results.
+
 ## [v1.3.17](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2026-04-25)
 
 [Full Changelog](https://github.com/he4rt/scylladb-php-driver/compare/v1.3.16...v1.3.17)
