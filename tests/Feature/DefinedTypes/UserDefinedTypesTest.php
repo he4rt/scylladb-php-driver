@@ -33,6 +33,10 @@ afterAll(function () use($keyspace) {
 
 it('Using Cassandra user defined types from schema metadata', function () use($keyspace, $table) {
 
+    if (isScyllaRustBackend()) {
+        $this->markTestSkipped('Schema introspection (keyspace meta) is intentionally unsupported by cpp-rs-driver');
+    }
+
     $session = scyllaDbConnection($keyspace);
 
     $keyspace = $session->schema()->keyspace('user_defined_types');

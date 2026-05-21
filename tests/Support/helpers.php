@@ -64,3 +64,22 @@ if (! function_exists('dropKeyspace')) {
         scyllaDbConnection()->execute("DROP KEYSPACE IF EXISTS $keyspace");
     }
 }
+
+if (! function_exists('driverBackend')) {
+    /**
+     * Returns the underlying C/C++ driver backend the extension was built
+     * against: 'cassandra', 'scylla-cpp', or 'scylla-rust'. Driven by the
+     * SCYLLADB_PHP_BACKEND env var set by CI; defaults to 'scylla-cpp'.
+     */
+    function driverBackend(): string
+    {
+        return (string) env('SCYLLADB_PHP_BACKEND', 'scylla-cpp');
+    }
+}
+
+if (! function_exists('isScyllaRustBackend')) {
+    function isScyllaRustBackend(): bool
+    {
+        return driverBackend() === 'scylla-rust';
+    }
+}
