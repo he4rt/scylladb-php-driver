@@ -146,6 +146,11 @@ php_driver_future_session_free(zend_object *object )
     efree(self->exception_message);
   }
 
+  if (self->session_keyspace) {
+    efree(self->session_keyspace);
+    self->session_keyspace = NULL;
+  }
+
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_session);
 
   zend_object_std_dtor(&self->zendObject);

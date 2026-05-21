@@ -281,6 +281,8 @@ static void php_driver_ssl_builder_free(zend_object *object) {
   if (self->passphrase) {
     zend_string_release(self->passphrase);
   }
+
+  zend_object_std_dtor(object);
 }
 
 static zend_object *php_driver_ssl_builder_new(zend_class_entry *ce) {

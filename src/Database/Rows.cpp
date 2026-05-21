@@ -273,11 +273,13 @@ PHP_METHOD(Rows, nextPage)
 
             if (php_driver_future_wait_timed(future, timeout ) == FAILURE)
             {
+                cass_future_free(future);
                 return;
             }
 
             if (php_driver_future_is_error(future ) == FAILURE)
             {
+                cass_future_free(future);
                 return;
             }
 

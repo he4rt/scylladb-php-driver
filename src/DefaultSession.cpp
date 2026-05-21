@@ -603,8 +603,10 @@ PHP_METHOD(DefaultSession, execute) {
     php_driver_rows* rows = NULL;
 
     if (php_driver_future_wait_timed(future, timeout) == FAILURE ||
-        php_driver_future_is_error(future) == FAILURE)
+        php_driver_future_is_error(future) == FAILURE) {
+      cass_future_free(future);
       break;
+    }
 
     result = cass_future_get_result(future);
     cass_future_free(future);
@@ -797,7 +799,6 @@ PHP_METHOD(DefaultSession, prepare) {
       prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
       prepared_statement->data.prepared.prepared =
           cass_future_get_prepared(pprepared_statement->future);
-      self->session = php_driver_add_ref(pprepared_statement->ref);
       future = pprepared_statement->future;
     }
   }
@@ -1028,6 +1029,11 @@ static void php_driver_default_session_free(zend_object* object) {
 
   php_driver_del_peref(&self->session, 1);
   PHP5TO7_ZVAL_MAYBE_DESTROY(self->default_timeout);
+
+  if (self->keyspace) {
+    efree(self->keyspace);
+    self->keyspace = NULL;
+  }
 
   zend_object_std_dtor(&self->zendObject);
 }

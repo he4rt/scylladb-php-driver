@@ -43,7 +43,7 @@ PHP_METHOD(FuturePreparedStatement, get)
     return;
   }
 
-  object_init_ex(return_value, php_driver_statement_ce);
+  object_init_ex(return_value, php_driver_prepared_statement_ce);
   ZVAL_COPY(&self->prepared_statement, return_value);
 
   prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);

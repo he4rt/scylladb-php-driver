@@ -544,7 +544,10 @@ PHP_MINIT_FUNCTION(php_driver) {
   return SUCCESS;
 }
 
-PHP_MSHUTDOWN_FUNCTION(php_driver) { return SUCCESS; }
+PHP_MSHUTDOWN_FUNCTION(php_driver) {
+  UNREGISTER_INI_ENTRIES();
+  return SUCCESS;
+}
 
 PHP_RINIT_FUNCTION(php_driver) {
 #define XX_SCALAR(name, value) ZVAL_UNDEF(&PHP_DRIVER_G(type_## name));
