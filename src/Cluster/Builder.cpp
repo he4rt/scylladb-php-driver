@@ -111,7 +111,9 @@ static zend_always_inline void php_driver_set_timeout(INTERNAL_FUNCTION_PARAMETE
 
 ZEND_METHOD(Cassandra_Cluster_Builder, build)
 {
+#ifndef PHP_DRIVER_BACKEND_SCYLLA_RUST
     CassError rc;
+#endif
     php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
 
     object_init_ex(return_value, php_driver_default_cluster_ce);
@@ -216,6 +218,13 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     cass_cluster_set_tcp_keepalive(cluster->cluster, self->enable_tcp_keepalive, self->tcp_keepalive_delay);
     cass_cluster_set_use_schema(cluster->cluster, self->enable_schema);
 
+#ifdef PHP_DRIVER_BACKEND_SCYLLA_RUST
+    if (self->enable_hostname_resolution)
+    {
+        php_error_docref(nullptr, E_WARNING,
+                         "The underlying C/C++ driver does not implement hostname resolution it will be disabled");
+    }
+#else
     rc = cass_cluster_set_use_hostname_resolution(cluster->cluster, self->enable_hostname_resolution);
     if (rc == CASS_ERROR_LIB_NOT_IMPLEMENTED && self->enable_hostname_resolution)
     {
@@ -226,6 +235,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     {
         ASSERT_SUCCESS(rc);
     }
+#endif
     ASSERT_SUCCESS(
         cass_cluster_set_use_randomized_contact_points(cluster->cluster, self->enable_randomized_contact_points));
     cass_cluster_set_connection_heartbeat_interval(cluster->cluster, self->connection_heartbeat_interval);
