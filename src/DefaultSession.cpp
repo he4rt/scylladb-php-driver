@@ -189,6 +189,9 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
     }
   }
 
+  zend_throw_exception_ex(
+      php_driver_invalid_argument_exception_ce, 0,
+      "Unsupported argument type at index %zu", index);
   return FAILURE;
 }
 
@@ -346,6 +349,9 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
     }
   }
 
+  zend_throw_exception_ex(
+      php_driver_invalid_argument_exception_ce, 0,
+      "Unsupported argument type for '%s'", name);
   return FAILURE;
 }
 
@@ -395,6 +401,12 @@ static CassStatement* create_statement(php_driver_statement* statement, HashTabl
     default:
       zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported statement type.");
       return NULL;
+  }
+
+  if (stmt == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassStatement");
+    return NULL;
   }
 
   if (arguments && bind_arguments(stmt, arguments) == FAILURE) {
@@ -795,56 +807,67 @@ PHP_METHOD(DefaultSession, prepare) {
     if (PHP5TO7_ZEND_HASH_FIND(&EG(persistent_list), hash_key, hash_key_len + 1, le) &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
-      object_init_ex(return_value, php_driver_prepared_statement_ce);
-      prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
-      prepared_statement->data.prepared.prepared =
-          cass_future_get_prepared(pprepared_statement->future);
-      future = pprepared_statement->future;
-    }
-  }
 
-  if (future == NULL) {
-    zval resource;
-
-    future =
-        cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
-
-    if (php_driver_future_wait_timed(future, timeout) == SUCCESS &&
-        php_driver_future_is_error(future) == SUCCESS) {
-      object_init_ex(return_value, php_driver_prepared_statement_ce);
-      prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
-      prepared_statement->data.prepared.prepared = cass_future_get_prepared(future);
-
-      if (self->persist) {
-        pprepared_statement =
-            (php_driver_pprepared_statement*)pecalloc(1, sizeof(php_driver_pprepared_statement), 1);
-        pprepared_statement->ref    = php_driver_add_ref(self->session);
-        pprepared_statement->future = future;
-
-#if PHP_MAJOR_VERSION >= 7
-        ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
-                                php_le_php_driver_prepared_statement());
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource,
-                                 sizeof(zval));
-        PHP_DRIVER_G(persistent_prepared_statements)
-        ++;
-#else
-        resource.type = php_le_php_driver_prepared_statement();
-        resource.ptr = pprepared_statement;
-        PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, resource,
-                                 sizeof(zendObject));
-        PHP_DRIVER_G(persistent_prepared_statements)
-        ++;
-#endif
+      /* The cached future may belong to a previous prepare that has since
+       * failed (e.g. a server-side schema drop). Validate the error code
+       * before trusting cass_future_get_prepared, which returns NULL on
+       * error futures and would otherwise corrupt the prepared statement. */
+      if (cass_future_error_code(pprepared_statement->future) == CASS_OK) {
+        const CassPrepared* cached = cass_future_get_prepared(pprepared_statement->future);
+        if (cached != NULL) {
+          object_init_ex(return_value, php_driver_prepared_statement_ce);
+          prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
+          prepared_statement->data.prepared.prepared = cached;
+          efree(hash_key);
+          return;
+        }
       }
-    }
-  }
 
-  if (self->persist) {
-    if (php_driver_future_is_error(future) == FAILURE) {
+      /* Cached future is bad — drop the entry and re-prepare below. */
       (void)PHP5TO7_ZEND_HASH_DEL(&EG(persistent_list), hash_key, hash_key_len + 1);
     }
+  }
+
+  future =
+      cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
+
+  if (future == NULL) {
+    if (hash_key) efree(hash_key);
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a prepare future");
+    return;
+  }
+
+  if (php_driver_future_wait_timed(future, timeout) == FAILURE) {
+    cass_future_free(future);
+    if (hash_key) efree(hash_key);
+    return;
+  }
+
+  if (php_driver_future_is_error(future) == FAILURE) {
+    cass_future_free(future);
+    if (hash_key) efree(hash_key);
+    return;
+  }
+
+  object_init_ex(return_value, php_driver_prepared_statement_ce);
+  prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
+  prepared_statement->data.prepared.prepared = cass_future_get_prepared(future);
+
+  if (self->persist) {
+    zval resource;
+    pprepared_statement =
+        (php_driver_pprepared_statement*)pecalloc(1, sizeof(php_driver_pprepared_statement), 1);
+    pprepared_statement->ref    = php_driver_add_ref(self->session);
+    pprepared_statement->future = future;
+
+    ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
+                            php_le_php_driver_prepared_statement());
+    PHP5TO7_ZEND_HASH_UPDATE(&EG(persistent_list), hash_key, hash_key_len + 1, &resource,
+                             sizeof(zval));
+    PHP_DRIVER_G(persistent_prepared_statements)++;
     efree(hash_key);
+    /* Ownership of `future` transferred to the persistent_list entry. */
   } else {
     cass_future_free(future);
   }
@@ -1019,9 +1042,9 @@ static int php_driver_default_session_compare(zval* obj1, zval* obj2) {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
+  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+  return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
 static void php_driver_default_session_free(zend_object* object) {

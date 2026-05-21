@@ -24,6 +24,12 @@ php_driver_future_wait_timed(CassFuture* future, zval* timeout)
 {
   cass_duration_t timeout_us;
 
+  if (future == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Received a NULL future from the driver (allocation failure)");
+    return FAILURE;
+  }
+
   if (cass_future_ready(future))
     return SUCCESS;
 
@@ -52,6 +58,12 @@ php_driver_future_wait_timed(CassFuture* future, zval* timeout)
 int
 php_driver_future_is_error(CassFuture* future)
 {
+  if (future == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Received a NULL future from the driver (allocation failure)");
+    return FAILURE;
+  }
+
   CassError rc = cass_future_error_code(future);
   if (rc != CASS_OK) {
     const char* message;

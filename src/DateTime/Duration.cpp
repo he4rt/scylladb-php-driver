@@ -272,7 +272,7 @@ php_driver_duration_compare(zval *obj1, zval *obj2 )
   php_driver_duration *left, *right;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   left = PHP_DRIVER_GET_DURATION(obj1);
   right = PHP_DRIVER_GET_DURATION(obj2);

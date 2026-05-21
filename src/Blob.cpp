@@ -174,7 +174,7 @@ static int php_driver_blob_compare(zval *obj1, zval *obj2) {
   php_driver_blob *blob1 = NULL;
   php_driver_blob *blob2 = NULL;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
+  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   blob1 = PHP_DRIVER_GET_BLOB(obj1);
   blob2 = PHP_DRIVER_GET_BLOB(obj2);

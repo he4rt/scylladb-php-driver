@@ -246,7 +246,7 @@ static HashTable *php_driver_timestamp_properties(zend_object *object) {
 static int php_driver_timestamp_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
+  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   auto timestamp1 = ZendCPP::ObjectFetch<php_scylladb_timestamp>(obj1);
   auto timestamp2 = ZendCPP::ObjectFetch<php_scylladb_timestamp>(obj2);
