@@ -76,7 +76,10 @@ option(PHP_THREAD_SAFE "Target a ZTS (thread-safe) PHP build" OFF)
 option(LINK_LIBUV_STATIC  "Link libuv statically"                         OFF)
 option(BUILD_LIBUV_FROM_SRC "Fetch and build libuv via CPM instead of system" OFF)
 option(PHP_DRIVER_STATIC  "Link the C++ driver statically"                OFF)
-option(USE_LIBCASSANDRA   "Use DataStax libcassandra instead of libscylla-cpp-driver" OFF)
+
+# Backend selection — see cmake/FindCPPDriver.cmake. USE_LIBCASSANDRA is kept
+# for backwards compatibility and is consumed there.
+option(USE_LIBCASSANDRA   "(deprecated) Alias: ON → PHP_DRIVER_BACKEND=cassandra" OFF)
 
 # ── Dependencies ──────────────────────────────────────────────────────────────
 find_package(PHPConfig REQUIRED)

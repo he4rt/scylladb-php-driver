@@ -90,7 +90,9 @@ php_driver_default_materialized_view_build_options(php_driver_materialized_view 
       cass_iterator_fields_from_materialized_view_meta(view->meta);
   view->options =
       php_driver_table_build_options(iterator );
-  cass_iterator_free(iterator);
+  if (iterator) {
+    cass_iterator_free(iterator);
+  }
 }
 
 void

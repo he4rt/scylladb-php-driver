@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassandra.h>
+#include <php_driver_rust_compat.h>
 #include <gmp.h>
 #include <sys/stat.h>
 #include <sys/types.h>

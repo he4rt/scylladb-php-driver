@@ -90,7 +90,9 @@ php_driver_default_table_build_options(php_driver_table *table ) {
   CassIterator *iterator =
       cass_iterator_fields_from_table_meta(table->meta);
   table->options = php_driver_table_build_options(iterator );
-  cass_iterator_free(iterator);
+  if (iterator) {
+    cass_iterator_free(iterator);
+  }
 }
 
 void

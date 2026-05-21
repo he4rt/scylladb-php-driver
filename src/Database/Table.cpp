@@ -28,6 +28,9 @@ php_driver_table_build_options(CassIterator* iterator ) {
 
 
   array_init(&zoptions);
+  if (!iterator) {
+    return zoptions;
+  }
   while (cass_iterator_next(iterator)) {
     const CassValue *value = NULL;
     if (cass_iterator_get_meta_field_name(iterator, &name, &name_length) == CASS_OK) {

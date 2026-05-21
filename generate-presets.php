@@ -22,14 +22,30 @@ enum PHPTS: string
     case NTS = 'nts';
 }
 
+enum Backend: string
+{
+    case ScyllaCpp  = 'scylla-cpp';
+    case Cassandra  = 'cassandra';
+    case ScyllaRust = 'scylla-rust';
+
+    public function nameSuffix(): string
+    {
+        return match ($this) {
+            self::ScyllaCpp  => '',
+            self::Cassandra  => 'Cassandra',
+            self::ScyllaRust => 'ScyllaRust',
+        };
+    }
+}
+
 function preset(
     string $name,
-    bool $useCassandra = true,
-    BuildType $buildType = BuildType::Debug,
-    PHPVersion $phpVersion = PHPVersion::PHP85,
-    PHPTS $phpTS = PHPTS::NTS,
+    Backend $backend,
+    BuildType $buildType,
+    PHPVersion $phpVersion,
+    PHPTS $phpTS,
 ): array {
-    $fullName = $name  . 'PHP' . $phpVersion->value . strtoupper($phpTS->value) . ($useCassandra ? 'Cassandra' : '');
+    $fullName = $name . 'PHP' . $phpVersion->value . strtoupper($phpTS->value) . $backend->nameSuffix();
 
     return [
         "name" => $fullName,
@@ -43,7 +59,7 @@ function preset(
             "ENABLE_SANITIZERS" => $buildType === BuildType::Debug ? 'ON' : 'OFF',
             'SANITIZE_UNDEFINED' => $buildType === BuildType::Debug ? 'ON' : 'OFF',
             'SANITIZE_ADDRESS' => $buildType === BuildType::Debug ? 'ON' : 'OFF',
-            'USE_LIBCASSANDRA' => $useCassandra ? 'ON' : 'OFF',
+            'PHP_DRIVER_BACKEND' => $backend->value,
             'PHP_VERSION_FOR_PHP_CONFIG' => $phpVersion->value,
             'LINK_LIBUV_STATIC' => 'ON',
             'PHP_DRIVER_STATIC' => 'ON',
@@ -54,23 +70,18 @@ function preset(
 
 function main()
 {
-    $useCassandra = [true, false];
-    $phpVersions = PHPVersion::cases();
-    $phpTS = PHPTS::cases();
-
     $presets = [];
 
-    foreach ($phpVersions as $phpVersion) {
+    foreach (PHPVersion::cases() as $phpVersion) {
         foreach (BuildType::cases() as $buildType) {
-            foreach ($useCassandra as $useCassandraValue) {
-                foreach ($phpTS as $ts) {
-                    $preset = preset($buildType->value, $useCassandraValue, $buildType, $phpVersion, $ts);
+            foreach (Backend::cases() as $backend) {
+                foreach (PHPTS::cases() as $ts) {
+                    $preset = preset($buildType->value, $backend, $buildType, $phpVersion, $ts);
                     $presets[$preset['name']] = $preset;
                 }
             }
         }
     }
-
 
     $cmakePresets = [
         'version' => 2,
