@@ -43,6 +43,8 @@ static void php_driver_default_cluster_free(zend_object *object)
         zval_ptr_dtor(&self->default_timeout);
         ZVAL_UNDEF(&self->default_timeout);
     }
+
+    zend_object_std_dtor(object);
 }
 
 zend_object *php_driver_default_cluster_new(zend_class_entry *ce)

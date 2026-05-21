@@ -44,13 +44,12 @@ static void php_driver_retry_policy_downgrading_consistency_free(zend_object *ob
 {
   auto *self = ZendCPP::ObjectFetch<php_driver_retry_policy>(object);
   cass_retry_policy_free(self->policy);
+  zend_object_std_dtor(object);
 }
 
 static zend_object* php_driver_retry_policy_downgrading_consistency_new(zend_class_entry *ce) {
   auto *self = ZendCPP::Allocate<php_driver_retry_policy>(ce, &php_driver_retry_policy_downgrading_consistency_handlers);
   self->policy = cass_retry_policy_downgrading_consistency_new();
-
-  zend_object_std_init(&self->zendObject, ce);
   return &self->zendObject;
 }
 

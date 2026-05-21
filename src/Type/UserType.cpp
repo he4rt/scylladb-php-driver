@@ -281,9 +281,7 @@ php_driver_type_user_type_gc(
         zval** table, int *n
 )
 {
-  *table = NULL;
-  *n = 0;
-  return NULL;
+  return zend_std_get_gc(object, table, n);
 }
 
 static HashTable *

@@ -36,6 +36,7 @@ static int php_driver_ssl_compare(zval *obj1, zval *obj2) {
 static void php_driver_ssl_free(zend_object *object) {
   const auto *self = ZendCPP::ObjectFetch<php_scylladb_ssl>(object);
   cass_ssl_free(self->ssl);
+  zend_object_std_dtor(object);
 }
 
 static zend_object *php_driver_ssl_new(zend_class_entry *ce) {

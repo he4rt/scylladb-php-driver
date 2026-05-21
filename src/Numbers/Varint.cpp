@@ -408,9 +408,7 @@ static HashTable *php_driver_varint_gc(
 #endif
     zval** table, int *n )
 {
-    *table = NULL;
-    *n = 0;
-    return NULL;
+    return zend_std_get_gc(object, table, n);
 }
 
 static HashTable *php_driver_varint_properties(

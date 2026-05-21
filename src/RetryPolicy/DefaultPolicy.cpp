@@ -46,6 +46,7 @@ static void php_scylladb_retry_policy_default_free(zend_object *object)
   auto *self = ZendCPP::ObjectFetch<php_driver_retry_policy>(object);
 
   cass_retry_policy_free(self->policy);
+  zend_object_std_dtor(object);
 }
 
 static zend_object*php_scylladb_retry_policy_default_new(zend_class_entry *ce)

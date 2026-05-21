@@ -350,9 +350,7 @@ php_driver_collection_gc(
 #endif
         zval** table, int *n)
 {
-  *table = NULL;
-  *n = 0;
-  return NULL;
+  return zend_std_get_gc(object, table, n);
 }
 
 static HashTable *
@@ -377,10 +375,10 @@ php_driver_collection_properties(
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
+  Z_TRY_ADDREF_P(&self->type);
   PHP5TO7_ZEND_HASH_UPDATE(props,
                            "type", sizeof("type"),
                            &self->type, sizeof(zval));
-  Z_ADDREF_P(&self->type);
 
 
   array_init(&values);

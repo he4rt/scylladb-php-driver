@@ -549,9 +549,7 @@ static HashTable *php_driver_decimal_gc(
 #endif
     zval** table, int *n)
 {
-    *table = NULL;
-    *n = 0;
-    return NULL;
+    return zend_std_get_gc(object, table, n);
 }
 
 static HashTable *php_driver_decimal_properties(

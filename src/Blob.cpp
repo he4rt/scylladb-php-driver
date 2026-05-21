@@ -39,6 +39,9 @@ void php_driver_blob_init(INTERNAL_FUNCTION_PARAMETERS) {
     self = PHP_DRIVER_GET_BLOB(return_value);
   }
 
+  if (self->data) {
+    efree(self->data);
+  }
   self->data =
       static_cast<cass_byte_t *>(emalloc(string_len * sizeof(cass_byte_t)));
   self->size = string_len;
