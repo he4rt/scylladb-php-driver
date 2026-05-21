@@ -60,7 +60,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     session->default_page_size = self->default_page_size;
     session->persist = self->persist;
     session->hash_key = self->hash_key;
-    session->keyspace = keyspace;
+    session->keyspace = keyspace ? estrndup(keyspace, keyspace_len) : nullptr;
 
     if (!Z_ISUNDEF(session->default_timeout))
     {
@@ -173,7 +173,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         hash_key_len = spprintf(&hash_key, 0, "%s:session:%s", self->hash_key, SAFE_STR(keyspace));
 
         future->session_hash_key = self->hash_key;
-        future->session_keyspace = keyspace;
+        future->session_keyspace = keyspace ? estrndup(keyspace, keyspace_len) : nullptr;
         future->hash_key = hash_key;
         future->hash_key_len = hash_key_len;
 

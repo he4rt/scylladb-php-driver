@@ -52,6 +52,7 @@ static void php_driver_retry_policy_logging_free(zend_object *object)
   if (self->policy) {
     cass_retry_policy_free(self->policy);
   }
+  zend_object_std_dtor(object);
 }
 
 static zend_object*

@@ -49,6 +49,12 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
 
     if ((consistency = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("consistency"))) != NULL)
     {
+        if (Z_TYPE_P(consistency) != IS_LONG)
+        {
+            throw_invalid_argument(consistency, "consistency", "one of " PHP_DRIVER_NAMESPACE "::CONSISTENCY_*");
+            return FAILURE;
+        }
+
         zend_long val = Z_LVAL_P(consistency);
 
         if (php_driver_validate_consistency(val) == -1)
@@ -63,6 +69,14 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
 
     if ((serial_consistency = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("serial_consistency"))) != NULL)
     {
+        if (Z_TYPE_P(serial_consistency) != IS_LONG)
+        {
+            throw_invalid_argument(serial_consistency, "serial_consistency",
+                                   "either " PHP_DRIVER_NAMESPACE
+                                   "::CONSISTENCY_SERIAL or Cassandra::CASS_CONSISTENCY_LOCAL_SERIAL");
+            return FAILURE;
+        }
+
         zend_long val = Z_LVAL_P(serial_consistency);
 
         if (php_driver_validate_serial_consistency(val) == -1)
@@ -149,7 +163,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
 
     if ((retry_policy = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("retry_policy"))) != NULL)
     {
-        if (Z_TYPE_P(retry_policy) != IS_OBJECT &&
+        if (Z_TYPE_P(retry_policy) != IS_OBJECT ||
             !instanceof_function(Z_OBJCE_P(retry_policy), php_scylladb_retry_policy_ce))
         {
             throw_invalid_argument(retry_policy, "retry_policy",
@@ -303,9 +317,9 @@ static int php_driver_execution_options_compare(zval *obj1, zval *obj2)
 {
     ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-        return 1; /* different classes */
+        return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-    return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+    return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
 static void php_driver_execution_options_free(zend_object *object)

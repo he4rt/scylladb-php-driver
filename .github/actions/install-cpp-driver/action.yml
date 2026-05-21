@@ -5,7 +5,7 @@ inputs:
   driver:
     required: false
     default: 'scylladb'
-    description: 'Which driver to build: scylladb or cassandra'
+    description: 'Which driver to build: scylladb | cassandra | scylla-rust'
 
 outputs:
   install_dir:
@@ -14,6 +14,9 @@ outputs:
   pkg_config_path:
     value: ${{ steps.values.outputs.pkg_config_path }}
     description: 'Directory containing the driver .pc file for PKG_CONFIG_PATH'
+  backend:
+    value: ${{ steps.meta.outputs.backend }}
+    description: 'PHP_DRIVER_BACKEND value (cassandra | scylla-cpp | scylla-rust)'
 
 runs:
   using: composite
@@ -22,13 +25,29 @@ runs:
       id: meta
       shell: bash
       run: |
-        if [[ "${{ inputs.driver }}" == "cassandra" ]]; then
-          echo "repo=https://github.com/datastax/cpp-driver.git"  >> "$GITHUB_OUTPUT"
-          echo "prefix=/opt/cassandra-cpp"                         >> "$GITHUB_OUTPUT"
-        else
-          echo "repo=https://github.com/scylladb/cpp-driver.git"  >> "$GITHUB_OUTPUT"
-          echo "prefix=/opt/scylladb-cpp"                          >> "$GITHUB_OUTPUT"
-        fi
+        case "${{ inputs.driver }}" in
+          cassandra)
+            echo "repo=https://github.com/datastax/cpp-driver.git"  >> "$GITHUB_OUTPUT"
+            echo "ref="                                             >> "$GITHUB_OUTPUT"
+            echo "prefix=/opt/cassandra-cpp"                        >> "$GITHUB_OUTPUT"
+            echo "backend=cassandra"                                >> "$GITHUB_OUTPUT"
+            echo "kind=cpp"                                         >> "$GITHUB_OUTPUT"
+            ;;
+          scylla-rust)
+            echo "repo=https://github.com/scylladb/cpp-rs-driver.git" >> "$GITHUB_OUTPUT"
+            echo "ref=v1.0.0"                                         >> "$GITHUB_OUTPUT"
+            echo "prefix=/opt/scylla-rust"                            >> "$GITHUB_OUTPUT"
+            echo "backend=scylla-rust"                                >> "$GITHUB_OUTPUT"
+            echo "kind=rust"                                          >> "$GITHUB_OUTPUT"
+            ;;
+          scylladb|*)
+            echo "repo=https://github.com/scylladb/cpp-driver.git"   >> "$GITHUB_OUTPUT"
+            echo "ref="                                              >> "$GITHUB_OUTPUT"
+            echo "prefix=/opt/scylladb-cpp"                          >> "$GITHUB_OUTPUT"
+            echo "backend=scylla-cpp"                                >> "$GITHUB_OUTPUT"
+            echo "kind=cpp"                                          >> "$GITHUB_OUTPUT"
+            ;;
+        esac
         # Monthly cache key — stable within the month, refreshes automatically
         # to pick up upstream changes without any network call at cache-key time.
         echo "month=$(date +%Y-%m)" >> "$GITHUB_OUTPUT"
@@ -38,31 +57,46 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
+        key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
         restore-keys: |
-          cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-system-libuv-shared-deps
+          cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-system-libuv-shared-deps
 
     - name: Install build dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         sudo apt-get update -q
-        sudo apt-get install -y --no-install-recommends \
-          ninja-build pkg-config libuv1-dev libssl-dev zlib1g-dev libssh2-1-dev
+        if [[ "${{ steps.meta.outputs.kind }}" == "rust" ]]; then
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential libssl-dev cmake ca-certificates curl
+        else
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config libuv1-dev libssl-dev zlib1g-dev libssh2-1-dev
+        fi
+
+    - name: Install Rust toolchain
+      if: steps.cache.outputs.cache-hit != 'true' && steps.meta.outputs.kind == 'rust'
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Clone driver source
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: git clone --depth 1 "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src
+      run: |
+        REF="${{ steps.meta.outputs.ref }}"
+        if [[ -z "$REF" ]]; then
+          # Use repo default branch (varies: trunk for datastax, master for scylladb)
+          git clone --depth 1 "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src
+        else
+          git clone --depth 1 --branch "$REF" \
+            "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src 2>/dev/null \
+            || { git clone "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src; \
+                 git -C /tmp/cpp-driver-src checkout "$REF"; }
+        fi
 
-    - name: Build and install driver
-      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Build and install (cpp driver)
+      if: steps.cache.outputs.cache-hit != 'true' && steps.meta.outputs.kind == 'cpp'
       shell: bash
       run: |
-        # timerfd is a Linux-only kernel feature
-        TIMERFD=ON
-        [[ "$(uname -s)" == "Darwin" ]] && TIMERFD=OFF
-
         cmake -G Ninja -B /tmp/cpp-driver-src/build -S /tmp/cpp-driver-src \
           -DCMAKE_INSTALL_PREFIX="${{ steps.meta.outputs.prefix }}" \
           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -73,12 +107,26 @@ runs:
           -DCASS_BUILD_STATIC=ON \
           -DCASS_BUILD_SHARED=ON \
           -DCASS_USE_STD_ATOMIC=ON \
-          -DCASS_USE_TIMERFD="${TIMERFD}" \
+          -DCASS_USE_TIMERFD=ON \
           -DCASS_USE_LIBSSH2=ON \
           -DCASS_USE_ZLIB=ON \
           -DCASS_BUILD_TESTS=OFF \
           -DCASS_BUILD_EXAMPLES=OFF
-        cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
+        cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc)"
+        sudo cmake --install /tmp/cpp-driver-src/build
+        rm -rf /tmp/cpp-driver-src
+
+    - name: Build and install (rust driver)
+      if: steps.cache.outputs.cache-hit != 'true' && steps.meta.outputs.kind == 'rust'
+      shell: bash
+      run: |
+        # cpp-rs-driver's CMakeLists delegates to cargo.
+        cmake -B /tmp/cpp-driver-src/build -S /tmp/cpp-driver-src \
+          -DCMAKE_INSTALL_PREFIX="${{ steps.meta.outputs.prefix }}" \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DCASS_BUILD_STATIC=ON \
+          -DCASS_BUILD_SHARED=ON
+        cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc)"
         sudo cmake --install /tmp/cpp-driver-src/build
         rm -rf /tmp/cpp-driver-src
 
@@ -88,7 +136,7 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
+        key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
 
     - name: Expose outputs
       id: values

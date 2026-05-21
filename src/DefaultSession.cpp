@@ -191,6 +191,9 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
     }
   }
 
+  zend_throw_exception_ex(
+      php_driver_invalid_argument_exception_ce, 0,
+      "Unsupported argument type at index %zu", index);
   return FAILURE;
 }
 
@@ -348,6 +351,9 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
     }
   }
 
+  zend_throw_exception_ex(
+      php_driver_invalid_argument_exception_ce, 0,
+      "Unsupported argument type for '%s'", name);
   return FAILURE;
 }
 
@@ -388,6 +394,12 @@ static CassStatement* create_statement(php_driver_statement* statement, HashTabl
     default:
       zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported statement type.");
       return NULL;
+  }
+
+  if (stmt == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassStatement");
+    return NULL;
   }
 
   if (arguments && bind_arguments(stmt, arguments) == FAILURE) {
@@ -446,8 +458,14 @@ static CassBatch* create_batch(php_driver_statement* batch, CassConsistency cons
   rc = cass_batch_set_retry_policy(cass_batch, retry_policy);
   ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
 
-  rc = cass_batch_set_timestamp(cass_batch, timestamp);
-  ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
+  // INT64_MIN is our sentinel for "no explicit timestamp set" (see
+  // ExecutionOptions). The legacy cpp-driver tolerated forwarding it on the
+  // wire; cpp-rs-driver rejects with "Out of bound timestamp" since the
+  // protocol range excludes INT64_MIN. Only set when caller provided a value.
+  if (timestamp != INT64_MIN) {
+    rc = cass_batch_set_timestamp(cass_batch, timestamp);
+    ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
+  }
 
   return cass_batch;
 }
@@ -475,7 +493,10 @@ static CassStatement* create_single(php_driver_statement* statement, HashTable* 
 
   if (rc == CASS_OK && retry_policy) rc = cass_statement_set_retry_policy(stmt, retry_policy);
 
-  if (rc == CASS_OK) rc = cass_statement_set_timestamp(stmt, timestamp);
+  // INT64_MIN means "no explicit timestamp" — skip to avoid cpp-rs-driver
+  // rejecting it as out-of-range. See create_batch() for the same reason.
+  if (rc == CASS_OK && timestamp != INT64_MIN)
+    rc = cass_statement_set_timestamp(stmt, timestamp);
 
   if (rc != CASS_OK) {
     cass_statement_free(stmt);
@@ -596,8 +617,10 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
     php_driver_rows* rows = NULL;
 
     if (php_driver_future_wait_timed(future, timeout) == FAILURE ||
-        php_driver_future_is_error(future) == FAILURE)
+        php_driver_future_is_error(future) == FAILURE) {
+      cass_future_free(future);
       break;
+    }
 
     result = cass_future_get_result(future);
     cass_future_free(future);
@@ -786,55 +809,66 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
     if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
-      object_init_ex(return_value, php_driver_prepared_statement_ce);
-      prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
-      prepared_statement->data.prepared.prepared =
-          cass_future_get_prepared(pprepared_statement->future);
-      self->session = php_driver_add_ref(pprepared_statement->ref);
-      future = pprepared_statement->future;
+
+      /* The cached future may belong to a previous prepare that has since
+       * failed (e.g. a server-side schema drop). Validate the error code
+       * before trusting cass_future_get_prepared, which returns NULL on
+       * error futures and would otherwise corrupt the prepared statement. */
+      if (cass_future_error_code(pprepared_statement->future) == CASS_OK) {
+        const CassPrepared* cached = cass_future_get_prepared(pprepared_statement->future);
+        if (cached != NULL) {
+          object_init_ex(return_value, php_driver_prepared_statement_ce);
+          prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
+          prepared_statement->data.prepared.prepared = cached;
+          efree(hash_key);
+          return;
+        }
+      }
+
+      /* Cached future is bad - drop the entry and re-prepare below. */
+      (void)zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len);
     }
   }
+
+  future =
+      cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
   if (future == NULL) {
-    zval resource;
-
-    future =
-        cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
-
-    if (php_driver_future_wait_timed(future, timeout) == SUCCESS &&
-        php_driver_future_is_error(future) == SUCCESS) {
-      object_init_ex(return_value, php_driver_prepared_statement_ce);
-      prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
-      prepared_statement->data.prepared.prepared = cass_future_get_prepared(future);
-
-      if (self->persist) {
-        pprepared_statement =
-            (php_driver_pprepared_statement*)pecalloc(1, sizeof(php_driver_pprepared_statement), 1);
-        pprepared_statement->ref    = php_driver_add_ref(self->session);
-        pprepared_statement->future = future;
-
-#if PHP_MAJOR_VERSION >= 7
-        ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
-                                php_le_php_driver_prepared_statement());
-        (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
-        PHP_DRIVER_G(persistent_prepared_statements)
-        ++;
-#else
-        resource.type = php_le_php_driver_prepared_statement();
-        resource.ptr = pprepared_statement;
-        (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, resource);
-        PHP_DRIVER_G(persistent_prepared_statements)
-        ++;
-#endif
-      }
-    }
+    if (hash_key) efree(hash_key);
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a prepare future");
+    return;
   }
 
+  if (php_driver_future_wait_timed(future, timeout) == FAILURE) {
+    cass_future_free(future);
+    if (hash_key) efree(hash_key);
+    return;
+  }
+
+  if (php_driver_future_is_error(future) == FAILURE) {
+    cass_future_free(future);
+    if (hash_key) efree(hash_key);
+    return;
+  }
+
+  object_init_ex(return_value, php_driver_prepared_statement_ce);
+  prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
+  prepared_statement->data.prepared.prepared = cass_future_get_prepared(future);
+
   if (self->persist) {
-    if (php_driver_future_is_error(future) == FAILURE) {
-      (void)(zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len) == SUCCESS);
-    }
+    zval resource;
+    pprepared_statement =
+        (php_driver_pprepared_statement*)pecalloc(1, sizeof(php_driver_pprepared_statement), 1);
+    pprepared_statement->ref    = php_driver_add_ref(self->session);
+    pprepared_statement->future = future;
+
+    ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
+                            php_le_php_driver_prepared_statement());
+    (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
+    PHP_DRIVER_G(persistent_prepared_statements)++;
     efree(hash_key);
+    /* Ownership of `future` transferred to the persistent_list entry. */
   } else {
     cass_future_free(future);
   }
@@ -974,9 +1008,9 @@ static HashTable* php_driver_default_session_properties(zend_object* object) {
 
 static int php_driver_default_session_compare(zval* obj1, zval* obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
+  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+  return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
 static void php_driver_default_session_free(zend_object* object) {
@@ -984,6 +1018,11 @@ static void php_driver_default_session_free(zend_object* object) {
 
   php_driver_del_peref(&self->session, 1);
   zval_ptr_dtor(&self->default_timeout);
+
+  if (self->keyspace) {
+    efree(self->keyspace);
+    self->keyspace = NULL;
+  }
 
   zend_object_std_dtor(&self->zendObject);
 }

@@ -126,8 +126,12 @@ void php_driver_index_build_option(php_driver_index *index)
       const CassValue* key = cass_iterator_get_map_key(iterator);
       const CassValue* value = cass_iterator_get_map_value(iterator);
 
-      cass_value_get_string(key, &key_str, &key_str_length);
-      cass_value_get_string(value, &value_str, &value_str_length);
+      if (cass_value_get_string(key, &key_str, &key_str_length) != CASS_OK) {
+        continue;
+      }
+      if (cass_value_get_string(value, &value_str, &value_str_length) != CASS_OK) {
+        continue;
+      }
       add_assoc_stringl_ex(&index->options, key_str, key_str_length, (char *)(value_str), (size_t)(value_str_length));
     }
   }
@@ -245,9 +249,9 @@ php_driver_default_index_compare(zval *obj1, zval *obj2 )
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+  return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
 static void

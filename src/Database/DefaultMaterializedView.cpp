@@ -91,7 +91,9 @@ php_driver_default_materialized_view_build_options(php_driver_materialized_view 
       cass_iterator_fields_from_materialized_view_meta(view->meta);
   view->options =
       php_driver_table_build_options(iterator );
-  cass_iterator_free(iterator);
+  if (iterator) {
+    cass_iterator_free(iterator);
+  }
 }
 
 void
@@ -569,9 +571,9 @@ php_driver_default_materialized_view_compare(zval *obj1, zval *obj2 )
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+  return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
 static void

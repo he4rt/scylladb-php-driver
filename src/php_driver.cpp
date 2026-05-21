@@ -60,12 +60,16 @@ BEGIN_EXTERN_C()
 #define PHP_DRIVER_SESSION_RES_NAME PHP_DRIVER_NAMESPACE " Session"
 #define PHP_DRIVER_PREPARED_STATEMENT_RES_NAME PHP_DRIVER_NAMESPACE " PreparedStatement"
 
-static uv_once_t log_once = UV_ONCE_INIT;
 static char *log_location = nullptr;
 static uv_rwlock_t log_lock;
 
+// cpp-rs-driver uses its own 1.x versioning track (it's a rewrite, not a
+// successor of the 2.x cpp-driver line). Skip the legacy version check on
+// the rust backend; required-version constants are about a different library.
+#ifndef PHP_DRIVER_BACKEND_SCYLLA_RUST
 #if CURRENT_CPP_DRIVER_VERSION < CPP_DRIVER_VERSION(2, 16, 2)
 #error C/C++ driver version 2.16.2 or greater required
+#endif
 #endif
 
 ZEND_DECLARE_MODULE_GLOBALS(php_driver)
@@ -118,8 +122,8 @@ END_EXTERN_C()
 
 // clang-format off
 PHP_INI_BEGIN()
-  PHP_INI_ENTRY(PHP_DRIVER_NAME ".log", PHP_DRIVER_DEFAULT_LOG, PHP_INI_ALL, OnUpdateLog)
-  PHP_INI_ENTRY(PHP_DRIVER_NAME ".log_level", PHP_DRIVER_DEFAULT_LOG_LEVEL, PHP_INI_ALL, OnUpdateLogLevel)
+  PHP_INI_ENTRY(PHP_DRIVER_NAME ".log", PHP_DRIVER_DEFAULT_LOG, PHP_INI_SYSTEM, OnUpdateLog)
+  PHP_INI_ENTRY(PHP_DRIVER_NAME ".log_level", PHP_DRIVER_DEFAULT_LOG_LEVEL, PHP_INI_SYSTEM, OnUpdateLogLevel)
 PHP_INI_END()
 // clang-format on
 
@@ -213,19 +217,22 @@ static void php_driver_log(const CassLogMessage *message, void *data) {
       char *tmp = nullptr;
 
       time(&log_time);
-      php_localtime_r(&log_time, &log_tm);
+      localtime_r(&log_time, &log_tm);
       strftime(log_time_str, sizeof(log_time_str), "%d-%m-%Y %H:%M:%S %Z", &log_tm);
 
-      needed = snprintf(nullptr, 0, "%s [%s] %s (%s:%d)%s", log_time_str,
+      needed = snprintf(nullptr, 0, "%s [%s] %s (%s:%d)\n", log_time_str,
                         cass_log_level_string(message->severity), message->message, message->file,
-                        message->line, PHP_EOL);
+                        message->line);
 
       tmp = (char *)malloc(needed + 1);
-      sprintf(tmp, "%s [%s] %s (%s:%d)%s", log_time_str, cass_log_level_string(message->severity),
-              message->message, message->file, message->line, PHP_EOL);
+      if (tmp) {
+        snprintf(tmp, needed + 1, "%s [%s] %s (%s:%d)\n", log_time_str,
+                 cass_log_level_string(message->severity),
+                 message->message, message->file, message->line);
 
-      fwrite(tmp, 1, needed, fd);
-      free(tmp);
+        fwrite(tmp, 1, needed, fd);
+        free(tmp);
+      }
       fclose(fd);
       return;
     }
@@ -233,11 +240,12 @@ static void php_driver_log(const CassLogMessage *message, void *data) {
 
   /* This defaults to using "stderr" instead of "sapi_module.log_message"
    * because there are no guarantees that all implementations of the SAPI
-   * logging function are thread-safe.
+   * logging function are thread-safe. Also: this callback runs on libuv
+   * worker threads with no TSRM context, so PHP/Zend API access is forbidden.
    */
 
-  fprintf(stderr, PHP_DRIVER_NAME " | [%s] %s (%s:%d)%s", cass_log_level_string(message->severity),
-          message->message, message->file, message->line, PHP_EOL);
+  fprintf(stderr, PHP_DRIVER_NAME " | [%s] %s (%s:%d)\n", cass_log_level_string(message->severity),
+          message->message, message->file, message->line);
 }
 
 zend_class_entry *exception_class(CassError rc) {
@@ -387,8 +395,6 @@ PHP_INI_MH(OnUpdateLog) {
 }
 
 static PHP_GINIT_FUNCTION(php_driver) {
-  uv_once(&log_once, php_driver_log_initialize);
-
   php_driver_globals->uuid_gen = nullptr;
   php_driver_globals->uuid_gen_pid = 0;
   php_driver_globals->persistent_clusters = 0;
@@ -417,11 +423,12 @@ static PHP_GSHUTDOWN_FUNCTION(php_driver) {
   if (php_driver_globals->uuid_gen) {
     cass_uuid_gen_free(php_driver_globals->uuid_gen);
   }
-  php_driver_log_cleanup();
 }
 
 
 PHP_MINIT_FUNCTION(php_driver) {
+  php_driver_log_initialize();
+
   REGISTER_INI_ENTRIES();
 
   le_php_driver_cluster_res = zend_register_list_destructors_ex(
@@ -520,7 +527,15 @@ PHP_MINIT_FUNCTION(php_driver) {
   return SUCCESS;
 }
 
-PHP_MSHUTDOWN_FUNCTION(php_driver) { return SUCCESS; }
+PHP_MSHUTDOWN_FUNCTION(php_driver) {
+  /* Detach the libuv-thread log callback before tearing down the lock so that
+   * a late log message from a worker thread cannot trample on freed memory. */
+  cass_log_set_callback(nullptr, nullptr);
+
+  UNREGISTER_INI_ENTRIES();
+  php_driver_log_cleanup();
+  return SUCCESS;
+}
 
 PHP_RINIT_FUNCTION(php_driver) {
 #define XX_SCALAR(name, value) ZVAL_UNDEF(&PHP_DRIVER_G(type_## name));

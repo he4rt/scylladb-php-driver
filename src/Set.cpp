@@ -283,9 +283,7 @@ php_driver_set_gc(
   zval** table,
   int* n )
 {
-  *table = NULL;
-  *n     = 0;
-  return NULL;
+  return zend_std_get_gc(object, table, n);
 }
 
 static HashTable*
@@ -336,7 +334,7 @@ php_driver_set_compare(zval* obj1, zval* obj2 )
   int result;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   set1 = PHP_DRIVER_GET_SET(obj1);
   set2 = PHP_DRIVER_GET_SET(obj2);

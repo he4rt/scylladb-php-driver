@@ -28,14 +28,15 @@ static zend_object_handlers php_driver_ssl_handlers;
 static int php_driver_ssl_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
+  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+  return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
 static void php_driver_ssl_free(zend_object *object) {
   const auto *self = ZendCPP::ObjectFetch<php_scylladb_ssl>(object);
   cass_ssl_free(self->ssl);
+  zend_object_std_dtor(object);
 }
 
 static zend_object *php_driver_ssl_new(zend_class_entry *ce) {

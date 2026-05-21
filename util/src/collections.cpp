@@ -380,26 +380,31 @@ static int php_driver_collection_append(CassCollection* collection, zval* value,
       coll = PHP_DRIVER_GET_COLLECTION(value);
       if (!php_driver_collection_from_collection(coll, &sub_collection)) return 0;
       CHECK_ERROR(cass_collection_append_collection(collection, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_MAP:
       map = PHP_DRIVER_GET_MAP(value);
       if (!php_driver_collection_from_map(map, &sub_collection)) return 0;
       CHECK_ERROR(cass_collection_append_collection(collection, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_SET:
       set = PHP_DRIVER_GET_SET(value);
       if (!php_driver_collection_from_set(set, &sub_collection)) return 0;
       CHECK_ERROR(cass_collection_append_collection(collection, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_TUPLE:
       tup = PHP_DRIVER_GET_TUPLE(value);
       if (!php_driver_tuple_from_tuple(tup, &sub_tuple)) return 0;
       CHECK_ERROR(cass_collection_append_tuple(collection, sub_tuple));
+      cass_tuple_free(sub_tuple);
       break;
     case CASS_VALUE_TYPE_UDT:
       user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(value);
       if (!php_driver_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
       CHECK_ERROR(cass_collection_append_user_type(collection, sub_ut));
+      cass_user_type_free(sub_ut);
       break;
     default:
       zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
@@ -519,26 +524,31 @@ static int php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value,
       coll = PHP_DRIVER_GET_COLLECTION(value);
       if (!php_driver_collection_from_collection(coll, &sub_collection)) return 0;
       CHECK_ERROR(cass_tuple_set_collection(tuple, index, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_MAP:
       map = PHP_DRIVER_GET_MAP(value);
       if (!php_driver_collection_from_map(map, &sub_collection)) return 0;
       CHECK_ERROR(cass_tuple_set_collection(tuple, index, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_SET:
       set = PHP_DRIVER_GET_SET(value);
       if (!php_driver_collection_from_set(set, &sub_collection)) return 0;
       CHECK_ERROR(cass_tuple_set_collection(tuple, index, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_TUPLE:
       tup = PHP_DRIVER_GET_TUPLE(value);
       if (!php_driver_tuple_from_tuple(tup, &sub_tuple)) return 0;
       CHECK_ERROR(cass_tuple_set_tuple(tuple, index, sub_tuple));
+      cass_tuple_free(sub_tuple);
       break;
     case CASS_VALUE_TYPE_UDT:
       user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(value);
       if (!php_driver_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
       CHECK_ERROR(cass_tuple_set_user_type(tuple, index, sub_ut));
+      cass_user_type_free(sub_ut);
       break;
     default:
       zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
@@ -659,26 +669,31 @@ static int php_driver_user_type_set(CassUserType* ut, const char* name, zval* va
       coll = PHP_DRIVER_GET_COLLECTION(value);
       if (!php_driver_collection_from_collection(coll, &sub_collection)) return 0;
       CHECK_ERROR(cass_user_type_set_collection_by_name(ut, name, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_MAP:
       map = PHP_DRIVER_GET_MAP(value);
       if (!php_driver_collection_from_map(map, &sub_collection)) return 0;
       CHECK_ERROR(cass_user_type_set_collection_by_name(ut, name, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_SET:
       set = PHP_DRIVER_GET_SET(value);
       if (!php_driver_collection_from_set(set, &sub_collection)) return 0;
       CHECK_ERROR(cass_user_type_set_collection_by_name(ut, name, sub_collection));
+      cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_TUPLE:
       tuple = PHP_DRIVER_GET_TUPLE(value);
       if (!php_driver_tuple_from_tuple(tuple, &sub_tup)) return 0;
       CHECK_ERROR(cass_user_type_set_tuple_by_name(ut, name, sub_tup));
+      cass_tuple_free(sub_tup);
       break;
     case CASS_VALUE_TYPE_UDT:
       user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(value);
       if (!php_driver_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
       CHECK_ERROR(cass_user_type_set_user_type_by_name(ut, name, sub_ut));
+      cass_user_type_free(sub_ut);
       break;
     default:
       zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
@@ -698,6 +713,11 @@ int php_driver_collection_from_set(php_driver_set* set, CassCollection** collect
   type = PHP_DRIVER_GET_TYPE(&set->type);
   value_type = PHP_DRIVER_GET_TYPE(&type->data.set.value_type);
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(set->entries));
+  if (collection == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassCollection for set");
+    return 0;
+  }
   HASH_ITER(hh, set->entries, curr, temp) {
     if (!php_driver_collection_append(collection, &curr->value, value_type->type)) {
       result = 0;
@@ -726,6 +746,11 @@ int php_driver_collection_from_collection(php_driver_collection* coll,
   value_type = PHP_DRIVER_GET_TYPE(&(type->data.collection.value_type));
   collection =
       cass_collection_new_from_data_type(type->data_type, zend_hash_num_elements(&coll->values));
+  if (collection == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassCollection for list");
+    return 0;
+  }
 
   ZEND_HASH_FOREACH_VAL(&coll->values, current) {
     if (!php_driver_collection_append(collection, current, value_type->type)) {
@@ -755,6 +780,11 @@ int php_driver_collection_from_map(php_driver_map* map, CassCollection** collect
   value_type = PHP_DRIVER_GET_TYPE(&(type->data.map.value_type));
   key_type = PHP_DRIVER_GET_TYPE(&(type->data.map.key_type));
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(map->entries));
+  if (collection == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassCollection for map");
+    return 0;
+  }
   HASH_ITER(hh, map->entries, curr, temp) {
     if (!php_driver_collection_append(collection, &(curr->key), key_type->type)) {
       result = 0;
@@ -783,6 +813,11 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
 
   type = PHP_DRIVER_GET_TYPE(&(tuple->type));
   tup = cass_tuple_new_from_data_type(type->data_type);
+  if (tup == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassTuple");
+    return 0;
+  }
 
   ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
@@ -818,6 +853,11 @@ int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_t
 
   type = PHP_DRIVER_GET_TYPE(&user_type_value->type);
   ut = cass_user_type_new_from_data_type(type->data_type);
+  if (ut == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassUserType");
+    return 0;
+  }
 
   ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
     zval* zsub_type;

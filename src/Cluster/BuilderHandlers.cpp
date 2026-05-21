@@ -10,9 +10,7 @@ static zend_object_handlers php_driver_cluster_builder_handlers;
 
 static HashTable *php_driver_cluster_builder_gc(zend_object *object, zval **table, int *n)
 {
-    *table = nullptr;
-    *n = 0;
-    return NULL;
+    return zend_std_get_gc(object, table, n);
 }
 static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 {
@@ -228,9 +226,9 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 static int php_driver_cluster_builder_compare(zval *obj1, zval *obj2)
 {
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-        return 1; /* different classes */
+        return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-    return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+    return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 static void php_driver_cluster_builder_free(zend_object *object)
 {
@@ -278,7 +276,7 @@ static void php_driver_cluster_builder_free(zend_object *object)
     if (self->blacklist_dcs)
     {
         zend_string_release(self->blacklist_dcs);
-        self->whitelist_dcs = nullptr;
+        self->blacklist_dcs = nullptr;
     }
 
     if (self->ssl_options != nullptr)

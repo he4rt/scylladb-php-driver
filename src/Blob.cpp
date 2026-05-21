@@ -37,6 +37,9 @@ void php_driver_blob_init(INTERNAL_FUNCTION_PARAMETERS) {
 
   if (ZEND_THIS && instanceof_function(Z_OBJCE_P(ZEND_THIS), php_driver_blob_ce)) {
     php_driver_blob *self = PHP_DRIVER_GET_BLOB(ZEND_THIS);
+    if (self->data) {
+      efree(self->data);
+    }
     self->data = static_cast<cass_byte_t *>(emalloc(string_len * sizeof(cass_byte_t)));
     self->size = string_len;
     memcpy(self->data, string, string_len);
@@ -144,7 +147,7 @@ static int php_driver_blob_compare(zval *obj1, zval *obj2) {
   php_driver_blob *blob1 = NULL;
   php_driver_blob *blob2 = NULL;
 
-  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return 1; /* different classes */
+  if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   blob1 = PHP_DRIVER_GET_BLOB(obj1);
   blob2 = PHP_DRIVER_GET_BLOB(obj2);

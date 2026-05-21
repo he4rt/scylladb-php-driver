@@ -48,6 +48,12 @@ ZEND_METHOD(Cassandra_FutureSession, get)
     RETURN_ZVAL(&self->default_session, 1, 0);
   }
 
+  if (self->session == NULL || self->future == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "FutureSession has no associated session (cached entry expired)");
+    return;
+  }
+
   object_init_ex(return_value, php_driver_default_session_ce);
   session = PHP_DRIVER_GET_SESSION(return_value);
 
@@ -105,9 +111,9 @@ static int php_driver_future_session_compare(zval *obj1, zval *obj2)
 {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
-    return 1; /* different classes */
+    return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  return Z_OBJ_HANDLE_P(obj1) != Z_OBJ_HANDLE_P(obj2);
+  return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
 static void php_driver_future_session_free(zend_object *object)
@@ -126,6 +132,11 @@ static void php_driver_future_session_free(zend_object *object)
 
   if (self->exception_message) {
     efree(self->exception_message);
+  }
+
+  if (self->session_keyspace) {
+    efree(self->session_keyspace);
+    self->session_keyspace = nullptr;
   }
 
   zval_ptr_dtor(&self->default_session);
