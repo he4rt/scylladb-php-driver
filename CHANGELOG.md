@@ -21,10 +21,11 @@
 
 - `Cassandra\Cluster\Builder::withMaxConnectionsPerHost()` is a no-op (removed upstream).
 - Schema introspection of column clustering order, keyspace metadata via name, and
-  table/materialized-view options will return empty values or throw — these helpers
-  (`cass_*_meta_field_by_name`, `cass_iterator_fields_from_*`) are not implemented in
-  the Rust driver yet. Compat stubs in `include/php_driver_rust_compat.h` ensure the
-  extension links; full feature parity tracking is on the cpp-rs-driver roadmap.
+  table/materialized-view options will return empty values or throw — the upstream
+  declarations of `cass_*_meta_field_by_name` and `cass_iterator_fields_from_*` are
+  intentionally no-ops in the Rust driver (see upstream "Functions intentionally not
+  implemented" docs). Our call sites null-check the returned pointer/iterator so the
+  extension keeps working; affected PHP-level operations just yield empty results.
 
 ## [v1.3.17](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2026-04-25)
 
