@@ -30,7 +30,7 @@ if (! function_exists('scyllaDbConnection')) {
             $hosts = explode(',', $hosts);
         }
 
-        return Cassandra::cluster()
+        $cluster = Cassandra::cluster()
             ->withContactPoints(...$hosts)
             ->withPort((int) env('SCYLLADB_PORT', 9042))
             ->withCredentials(
@@ -39,8 +39,13 @@ if (! function_exists('scyllaDbConnection')) {
             )
             ->withPersistentSessions(false)
             ->withTokenAwareRouting(true)
-            ->build()
-            ->connect(env('SCYLLADB_KEYSPACE', $keyspace ?? ''));
+            ->build();
+
+        // cpp-rs-driver rejects empty keyspace strings in `USE KEYSPACE`;
+        // the legacy cpp-driver tolerated them. Only pass a keyspace if we
+        // actually have one to use.
+        $ks = (string) env('SCYLLADB_KEYSPACE', $keyspace ?? '');
+        return $ks !== '' ? $cluster->connect($ks) : $cluster->connect();
     }
 }
 
