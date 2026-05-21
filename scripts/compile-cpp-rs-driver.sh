@@ -41,6 +41,14 @@ EOF
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+# sudo-if-needed wrapper for Linux package managers / installs.
+SUDO=""
+maybe_sudo() {
+    if [[ $EUID -ne 0 ]] && command -v sudo >/dev/null 2>&1; then
+        SUDO="sudo"
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --prefix)     INSTALL_PREFIX="${2:?--prefix requires a value}"; shift 2 ;;
@@ -65,16 +73,18 @@ install_system_deps() {
             brew install cmake pkg-config openssl
             ;;
         Linux)
+            maybe_sudo
             # shellcheck source=/dev/null
             . /etc/os-release 2>/dev/null || return
             case "${ID:-}" in
                 fedora)
                     echo "==> Installing build deps (Fedora)"
-                    dnf install -y cmake pkg-config gcc openssl-devel openssl-devel-engine
+                    $SUDO dnf install -y cmake pkg-config gcc openssl-devel openssl-devel-engine
                     ;;
                 ubuntu|debian)
                     echo "==> Installing build deps (Ubuntu/Debian)"
-                    apt-get install -y pkg-config build-essential libssl-dev cmake
+                    $SUDO apt-get update
+                    $SUDO apt-get install -y pkg-config build-essential libssl-dev cmake
                     ;;
                 *)
                     echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
@@ -139,8 +149,16 @@ cmake -B "$SRC_DIR/build" -S "$SRC_DIR" \
 echo "==> Building (jobs=$NPROC)"
 cmake --build "$SRC_DIR/build" --parallel "$NPROC"
 
+# Use sudo for install if writing under /usr or /opt and we're not root.
+INSTALL_SUDO=""
+if [[ "$(uname -s)" != "Darwin" && $EUID -ne 0 ]]; then
+    case "$INSTALL_PREFIX" in
+        /usr/*|/opt/*) command -v sudo >/dev/null 2>&1 && INSTALL_SUDO="sudo" ;;
+    esac
+fi
+
 echo "==> Installing to $INSTALL_PREFIX"
-cmake --install "$SRC_DIR/build"
+$INSTALL_SUDO cmake --install "$SRC_DIR/build"
 
 echo "==> scylladb/cpp-rs-driver (${GIT_REF}) installed to $INSTALL_PREFIX"
 echo

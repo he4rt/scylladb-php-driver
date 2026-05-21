@@ -230,14 +230,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3ZTS",
-            "displayName": "RelWithDebugInfoPHP8.3ZTS",
+            "name": "RelWithDebInfoPHP8.3ZTS",
+            "displayName": "RelWithDebInfoPHP8.3ZTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTS",
+            "binaryDir": "./out/RelWithDebInfoPHP8.3ZTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3ZTS/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.3ZTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -249,14 +249,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3NTS",
-            "displayName": "RelWithDebugInfoPHP8.3NTS",
+            "name": "RelWithDebInfoPHP8.3NTS",
+            "displayName": "RelWithDebInfoPHP8.3NTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTS",
+            "binaryDir": "./out/RelWithDebInfoPHP8.3NTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3NTS/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.3NTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -268,14 +268,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3ZTSCassandra",
+            "name": "RelWithDebInfoPHP8.3ZTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.3ZTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTSCassandra",
+            "binaryDir": "./out/RelWithDebInfoPHP8.3ZTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3ZTSCassandra/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.3ZTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -287,14 +287,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.3NTSCassandra",
+            "name": "RelWithDebInfoPHP8.3NTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.3NTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTSCassandra",
+            "binaryDir": "./out/RelWithDebInfoPHP8.3NTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3NTSCassandra/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.3NTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -306,14 +306,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3ZTSScyllaRust",
-            "displayName": "RelWithDebugInfoPHP8.3ZTSScyllaRust",
+            "name": "RelWithDebInfoPHP8.3ZTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.3ZTSScyllaRust",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3ZTSScyllaRust",
+            "binaryDir": "./out/RelWithDebInfoPHP8.3ZTSScyllaRust",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3ZTSScyllaRust/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.3ZTSScyllaRust/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -325,14 +325,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.3NTSScyllaRust",
-            "displayName": "RelWithDebugInfoPHP8.3NTSScyllaRust",
+            "name": "RelWithDebInfoPHP8.3NTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.3NTSScyllaRust",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.3NTSScyllaRust",
+            "binaryDir": "./out/RelWithDebInfoPHP8.3NTSScyllaRust",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.3NTSScyllaRust/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.3NTSScyllaRust/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -572,14 +572,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4ZTS",
-            "displayName": "RelWithDebugInfoPHP8.4ZTS",
+            "name": "RelWithDebInfoPHP8.4ZTS",
+            "displayName": "RelWithDebInfoPHP8.4ZTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTS",
+            "binaryDir": "./out/RelWithDebInfoPHP8.4ZTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4ZTS/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.4ZTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -591,14 +591,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4NTS",
-            "displayName": "RelWithDebugInfoPHP8.4NTS",
+            "name": "RelWithDebInfoPHP8.4NTS",
+            "displayName": "RelWithDebInfoPHP8.4NTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4NTS",
+            "binaryDir": "./out/RelWithDebInfoPHP8.4NTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4NTS/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.4NTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -610,14 +610,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.4ZTSCassandra",
+            "name": "RelWithDebInfoPHP8.4ZTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.4ZTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTSCassandra",
+            "binaryDir": "./out/RelWithDebInfoPHP8.4ZTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4ZTSCassandra/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.4ZTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -629,14 +629,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.4NTSCassandra",
+            "name": "RelWithDebInfoPHP8.4NTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.4NTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4NTSCassandra",
+            "binaryDir": "./out/RelWithDebInfoPHP8.4NTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4NTSCassandra/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.4NTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -648,14 +648,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4ZTSScyllaRust",
-            "displayName": "RelWithDebugInfoPHP8.4ZTSScyllaRust",
+            "name": "RelWithDebInfoPHP8.4ZTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.4ZTSScyllaRust",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4ZTSScyllaRust",
+            "binaryDir": "./out/RelWithDebInfoPHP8.4ZTSScyllaRust",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4ZTSScyllaRust/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.4ZTSScyllaRust/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -667,14 +667,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.4NTSScyllaRust",
-            "displayName": "RelWithDebugInfoPHP8.4NTSScyllaRust",
+            "name": "RelWithDebInfoPHP8.4NTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.4NTSScyllaRust",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.4NTSScyllaRust",
+            "binaryDir": "./out/RelWithDebInfoPHP8.4NTSScyllaRust",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.4NTSScyllaRust/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.4NTSScyllaRust/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -914,14 +914,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.5ZTS",
-            "displayName": "RelWithDebugInfoPHP8.5ZTS",
+            "name": "RelWithDebInfoPHP8.5ZTS",
+            "displayName": "RelWithDebInfoPHP8.5ZTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.5ZTS",
+            "binaryDir": "./out/RelWithDebInfoPHP8.5ZTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5ZTS/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.5ZTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -933,14 +933,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.5NTS",
-            "displayName": "RelWithDebugInfoPHP8.5NTS",
+            "name": "RelWithDebInfoPHP8.5NTS",
+            "displayName": "RelWithDebInfoPHP8.5NTS",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.5NTS",
+            "binaryDir": "./out/RelWithDebInfoPHP8.5NTS",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5NTS/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.5NTS/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -952,14 +952,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.5ZTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.5ZTSCassandra",
+            "name": "RelWithDebInfoPHP8.5ZTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.5ZTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.5ZTSCassandra",
+            "binaryDir": "./out/RelWithDebInfoPHP8.5ZTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5ZTSCassandra/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.5ZTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -971,14 +971,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.5NTSCassandra",
-            "displayName": "RelWithDebugInfoPHP8.5NTSCassandra",
+            "name": "RelWithDebInfoPHP8.5NTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.5NTSCassandra",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.5NTSCassandra",
+            "binaryDir": "./out/RelWithDebInfoPHP8.5NTSCassandra",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5NTSCassandra/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.5NTSCassandra/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -990,14 +990,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.5ZTSScyllaRust",
-            "displayName": "RelWithDebugInfoPHP8.5ZTSScyllaRust",
+            "name": "RelWithDebInfoPHP8.5ZTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.5ZTSScyllaRust",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.5ZTSScyllaRust",
+            "binaryDir": "./out/RelWithDebInfoPHP8.5ZTSScyllaRust",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5ZTSScyllaRust/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.5ZTSScyllaRust/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
@@ -1009,14 +1009,14 @@
             }
         },
         {
-            "name": "RelWithDebugInfoPHP8.5NTSScyllaRust",
-            "displayName": "RelWithDebugInfoPHP8.5NTSScyllaRust",
+            "name": "RelWithDebInfoPHP8.5NTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.5NTSScyllaRust",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "./out/RelWithDebugInfoPHP8.5NTSScyllaRust",
+            "binaryDir": "./out/RelWithDebInfoPHP8.5NTSScyllaRust",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebugInfo",
-                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebugInfoPHP8.5NTSScyllaRust/install",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.5NTSScyllaRust/install",
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",

@@ -222,14 +222,14 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     if (self->enable_hostname_resolution)
     {
         php_error_docref(nullptr, E_WARNING,
-                         "The underlying C/C++ driver does not implement hostname resolution it will be disabled");
+                         "The underlying C/C++ driver does not implement hostname resolution; it will be disabled.");
     }
 #else
     rc = cass_cluster_set_use_hostname_resolution(cluster->cluster, self->enable_hostname_resolution);
     if (rc == CASS_ERROR_LIB_NOT_IMPLEMENTED && self->enable_hostname_resolution)
     {
         php_error_docref(nullptr, E_WARNING,
-                         "The underlying C/C++ driver does not implement hostname resolution it will be disabled");
+                         "The underlying C/C++ driver does not implement hostname resolution; it will be disabled.");
     }
     else
     {

@@ -6,7 +6,7 @@ enum BuildType: string
 {
     case Debug = 'Debug';
     case Release = 'Release';
-    case ReleaseWithDebugInfo = 'RelWithDebugInfo';
+    case ReleaseWithDebugInfo = 'RelWithDebInfo';
 }
 
 enum PHPVersion: string
