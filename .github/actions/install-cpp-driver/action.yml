@@ -28,7 +28,7 @@ runs:
         case "${{ inputs.driver }}" in
           cassandra)
             echo "repo=https://github.com/datastax/cpp-driver.git"  >> "$GITHUB_OUTPUT"
-            echo "ref=master"                                       >> "$GITHUB_OUTPUT"
+            echo "ref="                                             >> "$GITHUB_OUTPUT"
             echo "prefix=/opt/cassandra-cpp"                        >> "$GITHUB_OUTPUT"
             echo "backend=cassandra"                                >> "$GITHUB_OUTPUT"
             echo "kind=cpp"                                         >> "$GITHUB_OUTPUT"
@@ -42,7 +42,7 @@ runs:
             ;;
           scylladb|*)
             echo "repo=https://github.com/scylladb/cpp-driver.git"   >> "$GITHUB_OUTPUT"
-            echo "ref=master"                                        >> "$GITHUB_OUTPUT"
+            echo "ref="                                              >> "$GITHUB_OUTPUT"
             echo "prefix=/opt/scylladb-cpp"                          >> "$GITHUB_OUTPUT"
             echo "backend=scylla-cpp"                                >> "$GITHUB_OUTPUT"
             echo "kind=cpp"                                          >> "$GITHUB_OUTPUT"
@@ -82,10 +82,16 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        git clone --depth 1 --branch "${{ steps.meta.outputs.ref }}" \
-          "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src 2>/dev/null \
-          || { git clone "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src; \
-               git -C /tmp/cpp-driver-src checkout "${{ steps.meta.outputs.ref }}"; }
+        REF="${{ steps.meta.outputs.ref }}"
+        if [[ -z "$REF" ]]; then
+          # Use repo default branch (varies: trunk for datastax, master for scylladb)
+          git clone --depth 1 "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src
+        else
+          git clone --depth 1 --branch "$REF" \
+            "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src 2>/dev/null \
+            || { git clone "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src; \
+                 git -C /tmp/cpp-driver-src checkout "$REF"; }
+        fi
 
     - name: Build and install (cpp driver)
       if: steps.cache.outputs.cache-hit != 'true' && steps.meta.outputs.kind == 'cpp'
