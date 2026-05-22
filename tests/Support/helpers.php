@@ -115,32 +115,3 @@ if (! function_exists('persistentScyllaDbBuilder')) {
     }
 }
 
-if (! function_exists('persistentCounters')) {
-    /**
-     * Snapshot of the extension's persistent_list counters
-     * (clusters / sessions / prepared statements). Extracted from phpinfo()
-     * since the extension doesn't expose a userland accessor.
-     *
-     * @return array{clusters:int,sessions:int,prepared:int}
-     */
-    function persistentCounters(): array
-    {
-        ob_start();
-        phpinfo(INFO_MODULES);
-        $info = (string) ob_get_clean();
-
-        $extract = static function (string $label) use ($info): int {
-            // Matches both HTML and plain-text phpinfo layouts.
-            if (preg_match('/' . preg_quote($label, '/') . '\\s*=?>?\\s*<?[^>]*>?\\s*(\\d+)/', $info, $m)) {
-                return (int) $m[1];
-            }
-            return -1;
-        };
-
-        return [
-            'clusters' => $extract('Persistent Clusters'),
-            'sessions' => $extract('Persistent Sessions'),
-            'prepared' => $extract('Persistent Prepared Statements'),
-        ];
-    }
-}
