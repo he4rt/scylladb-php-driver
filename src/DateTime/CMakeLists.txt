@@ -1,12 +1,12 @@
 php_scylladb_module(datetime ext_scylladb::datetime)
 
 target_sources(datetime PRIVATE
-        Date.cpp
-        Time.cpp
-        Timestamp.cpp
-        Timeuuid.cpp
-        DateTimeInternal.cpp
-        Duration.cpp
+        Date.c
+        Time.c
+        Timestamp.c
+        Timeuuid.c
+        DateTimeInternal.c
+        Duration.c
 )
 
 php_scylladb_generate_arginfo(datetime

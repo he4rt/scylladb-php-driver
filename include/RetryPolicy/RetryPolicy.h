@@ -4,7 +4,7 @@
 #include <cassandra.h>
 #include <php.h>
 
-#include <ZendCPP/ZendCPP.hpp>
+#include <php_scylladb_object.h>
 
 BEGIN_EXTERN_C()
 
@@ -25,8 +25,8 @@ PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_downgradin
 PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_fallthrough_instantiate(zval *dst);
 PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_logging_instantiate(zval *dst, php_scylladb_retry_policy *retry_policy);
 
-zend_always_inline php_scylladb_retry_policy *php_scylladb_retry_policy_from_obj(zend_object *obj) {
-  return ZendCPP::ObjectFetch<php_scylladb_retry_policy>(obj);
+static zend_always_inline php_scylladb_retry_policy *php_scylladb_retry_policy_from_obj(zend_object *obj) {
+  return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, obj);
 }
 
 #define Z_SCYLLADB_RETRY_POLICY_P(zv) php_scylladb_retry_policy_from_obj(Z_OBJ_P((zv)))

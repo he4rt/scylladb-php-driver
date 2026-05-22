@@ -108,8 +108,8 @@ endif ()
 # before any sibling gen_stub starts.
 set_property(GLOBAL APPEND PROPERTY JOB_POOLS php_scylladb_gen_stub=1)
 
-# Generator that emits <basename>_descriptor.cpp alongside each <basename>_arginfo.h.
-# The descriptor.cpp wires the class into the self-registering descriptor system
+# Generator that emits <basename>_descriptor.c alongside each <basename>_arginfo.h.
+# The descriptor.c wires the class into the self-registering descriptor system
 # (see src/Registry/) — global ce, handlers struct, register fn (with weakly
 # referenced create_object/free/properties/etc. callbacks), and the
 # PHP_SCYLLADB_REGISTER_CLASS macro invocation.
@@ -152,20 +152,20 @@ function(php_scylladb_generate_arginfo target_name)
     target_sources(${target_name} PRIVATE ${_generated_headers})
 endfunction()
 
-# Opt-in: generate <basename>_descriptor.cpp for each stub passed here.
-# The descriptor.cpp wires the class into the self-registering descriptor
+# Opt-in: generate <basename>_descriptor.c for each stub passed here.
+# The descriptor.c wires the class into the self-registering descriptor
 # system (see src/Registry/) — global ce, handlers struct, register fn (with
 # weakly referenced create_object/free/properties/etc. callbacks), and the
 # PHP_SCYLLADB_REGISTER_CLASS macro invocation.
 #
-# Caller must ensure the companion .cpp does NOT also declare the ce global,
+# Caller must ensure the companion .c does NOT also declare the ce global,
 # the handlers struct, the register fn, or call the descriptor macro — those
 # now come from the generated file.
 function(php_scylladb_generate_descriptor target_name)
     set(_generated_descriptors)
     foreach (_stub IN LISTS ARGN)
         string(REGEX REPLACE "\\.stub\\.php$" "_arginfo.h"      _arginfo    "${_stub}")
-        string(REGEX REPLACE "\\.stub\\.php$" "_descriptor.cpp" _descriptor "${_stub}")
+        string(REGEX REPLACE "\\.stub\\.php$" "_descriptor.c" _descriptor "${_stub}")
         get_filename_component(_arginfo_name "${_arginfo}" NAME)
 
         set(_stub_path       "${CMAKE_CURRENT_SOURCE_DIR}/${_stub}")

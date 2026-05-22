@@ -1,30 +1,30 @@
 php_scylladb_module(src ext_scylladb::src)
 
 target_sources(src PRIVATE
-        BatchStatement.cpp
-        Blob.cpp
-        Collection.cpp
-        Core.cpp
-        Custom.cpp
-        ExecutionOptions.cpp
-        FuturePreparedStatement.cpp
-        FutureRows.cpp
-        FutureSession.cpp
-        FutureClose.cpp
-        FutureUtil.cpp
-        FutureValue.cpp
-        Inet.cpp
-        InetUtil.cpp
-        Map.cpp
-        UuidGen.cpp
-        DefaultSession.cpp
-        PreparedStatement.cpp
-        Set.cpp
-        SimpleStatement.cpp
-        Tuple.cpp
-        Type.cpp
-        UserTypeValue.cpp
-        Uuid.cpp
+        BatchStatement.c
+        Blob.c
+        Collection.c
+        Core.c
+        Custom.c
+        ExecutionOptions.c
+        FuturePreparedStatement.c
+        FutureRows.c
+        FutureSession.c
+        FutureClose.c
+        FutureUtil.c
+        FutureValue.c
+        Inet.c
+        InetUtil.c
+        Map.c
+        UuidGen.c
+        DefaultSession.c
+        PreparedStatement.c
+        Set.c
+        SimpleStatement.c
+        Tuple.c
+        Type.c
+        UserTypeValue.c
+        Uuid.c
 )
 
 

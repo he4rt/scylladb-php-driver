@@ -16,10 +16,11 @@
 
 #pragma once
 
-#include <RetryPolicy/RetryPolicy.h>
 #include <php.h>
 #include <php_scylladb.h>
+#include <php_scylladb_object.h>
 
+#include <RetryPolicy/RetryPolicy.h>
 #include "SSLOptions/SSLOptions.h"
 
 BEGIN_EXTERN_C()

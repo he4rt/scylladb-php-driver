@@ -1,10 +1,10 @@
 php_scylladb_module(retry_policy ext_scylladb::retry_policy)
 
 target_sources(retry_policy PRIVATE
-        DefaultPolicy.cpp
-        DowngradingConsistency.cpp
-        Logging.cpp
-        Fallthrough.cpp
+        DefaultPolicy.c
+        DowngradingConsistency.c
+        Logging.c
+        Fallthrough.c
 )
 
 php_scylladb_generate_arginfo(retry_policy

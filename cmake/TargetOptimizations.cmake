@@ -2,7 +2,6 @@ include_guard(GLOBAL)
 
 include(CheckIPOSupported)
 include(CheckCCompilerFlag)
-include(CheckCXXCompilerFlag)
 
 # ── Pre-check compiler capabilities once at configure time ───────────────────
 # Results are CACHE INTERNAL — subsequent calls are no-ops.
@@ -23,11 +22,8 @@ endif ()
 # Usage: scylladb_php_library(<target>)
 function(scylladb_php_library target)
     # ── Language standards ────────────────────────────────────────────────────
-    target_compile_features(${target} PUBLIC cxx_std_20 c_std_23)
+    target_compile_features(${target} PUBLIC c_std_23)
     set_target_properties(${target} PROPERTIES
-            CXX_STANDARD          20
-            CXX_STANDARD_REQUIRED ON
-            CXX_EXTENSIONS        OFF
             C_STANDARD            23
             C_STANDARD_REQUIRED   ON
             C_EXTENSIONS          ON
@@ -53,7 +49,6 @@ function(scylladb_php_library target)
     # All internal symbols are hidden; PHP's ZEND_DLEXPORT handles get_module.
     target_compile_options(${target} PRIVATE
             -fvisibility=hidden
-            -fvisibility-inlines-hidden
     )
 
     # ── Compiler warnings ─────────────────────────────────────────────────────

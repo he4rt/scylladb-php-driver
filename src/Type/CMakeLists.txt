@@ -1,16 +1,16 @@
 php_scylladb_module(type ext_scylladb::type)
 
 target_sources(type PRIVATE
-        Collection.cpp
-        Conversions.cpp
-        Custom.cpp
-        Map.cpp
-        Scalar.cpp
-        Set.cpp
-        Tuple.cpp
-        TypeFactory.cpp
-        UserType.cpp
-        ValueHash.cpp
+        Collection.c
+        Conversions.c
+        Custom.c
+        Map.c
+        Scalar.c
+        Set.c
+        Tuple.c
+        TypeFactory.c
+        UserType.c
+        ValueHash.c
 )
 
 php_scylladb_generate_arginfo(type
