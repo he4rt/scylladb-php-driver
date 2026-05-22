@@ -53,6 +53,9 @@ php_scylladb_generate_arginfo(src
         UuidInterface.stub.php
         FutureValue.stub.php
         Value.stub.php
+        # Type.cpp at this level #includes "Type/Type_arginfo.h" — needs to
+        # be a generated-file dep of THIS target, not just the `type` target.
+        Type/Type.stub.php
 )
 
 php_scylladb_generate_descriptor(src
