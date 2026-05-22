@@ -155,8 +155,9 @@ ZEND_METHOD(Cassandra_Rows, offsetExists)
     zval *offset;
     php_driver_rows *self = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &offset) == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(offset)
+    ZEND_PARSE_PARAMETERS_END();
 
     if (Z_TYPE_P(offset) != IS_LONG || Z_LVAL_P(offset) < 0)
     {
@@ -174,8 +175,9 @@ ZEND_METHOD(Cassandra_Rows, offsetGet)
     zval *value;
     php_driver_rows *self = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &offset) == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(offset)
+    ZEND_PARSE_PARAMETERS_END();
 
     if (Z_TYPE_P(offset) != IS_LONG || Z_LVAL_P(offset) < 0)
     {
@@ -231,10 +233,10 @@ ZEND_METHOD(Cassandra_Rows, nextPage)
     zval *timeout = NULL;
     php_driver_rows *self = PHP_DRIVER_GET_ROWS(getThis());
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() , "|z", &timeout) == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_START(0, 1)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ZVAL(timeout)
+    ZEND_PARSE_PARAMETERS_END();
 
     if (!self->next_result)
     {
@@ -416,7 +418,7 @@ static int php_driver_rows_compare(zval *obj1, zval *obj2)
 
 static void php_driver_rows_free(zend_object *object)
 {
-    php_driver_rows *self = PHP5TO7_ZEND_OBJECT_GET(rows, object);
+    php_driver_rows *self = php_driver_rows_object_fetch(object);
 
     php_driver_del_ref(&self->result);
     php_driver_del_ref(&self->statement);
@@ -432,7 +434,7 @@ static void php_driver_rows_free(zend_object *object)
 
 static zend_object *php_driver_rows_new(zend_class_entry *ce)
 {
-    php_driver_rows *self = PHP5TO7_ZEND_OBJECT_ECALLOC(rows, ce);
+    php_driver_rows *self = (php_driver_rows *)ecalloc(1, sizeof(php_driver_rows) + zend_object_properties_size(ce));
 
     self->statement = NULL;
     self->session = NULL;
@@ -442,7 +444,11 @@ static zend_object *php_driver_rows_new(zend_class_entry *ce)
     ZVAL_UNDEF(&self->next_rows);
     ZVAL_UNDEF(&self->future_next_page);
 
-    PHP5TO7_ZEND_OBJECT_INIT(rows, self, ce);
+    zend_object_std_init(&self->zendObject, ce);
+  php_driver_rows_handlers.offset = XtOffsetOf(php_driver_rows, zendObject);
+  php_driver_rows_handlers.free_obj = php_driver_rows_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_rows_handlers;
+  return &self->zendObject;
 }
 
 END_EXTERN_C()

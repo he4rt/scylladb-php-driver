@@ -56,24 +56,6 @@ extern "C"
 
 typedef unsigned long ulong;
 
-#define PHP5TO7_ZEND_OBJECT_GET(type_name, object) php_driver_##type_name##_object_fetch(object)
-
-#define PHP5TO7_ZEND_OBJECT_ECALLOC(type_name, ce)                                                                     \
-    (php_driver_##type_name *)ecalloc(1, sizeof(php_driver_##type_name) + zend_object_properties_size(ce))
-
-#define PHP5TO7_ZEND_OBJECT_INIT(type_name, self, ce) PHP5TO7_ZEND_OBJECT_INIT_EX(type_name, type_name, self, ce)
-
-#define PHP5TO7_ZEND_OBJECT_INIT_EX(type_name, name, self, ce)                                                         \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        zend_object_std_init(&self->zendObject, ce);                                                               \
-        ((zend_object_handlers *)&php_driver_##name##_handlers)->offset = XtOffsetOf(php_driver_##type_name, zendObject);    \
-        ((zend_object_handlers *)&php_driver_##name##_handlers)->free_obj = php_driver_##name##_free;                  \
-        self->zendObject.handlers = (zend_object_handlers *)&php_driver_##name##_handlers;                                   \
-        return &self->zendObject;                                                                                            \
-    } while (0)
-
-
     extern zend_module_entry php_driver_module_entry;
 #define phpext_cassandra_ptr &php_driver_module_entry
 

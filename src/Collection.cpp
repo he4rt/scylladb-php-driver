@@ -91,8 +91,9 @@ PHP_METHOD(Cassandra_Collection, __construct)
   php_driver_collection *self;
   zval *type;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &type) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(type)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_COLLECTION(getThis());
 
@@ -139,8 +140,9 @@ PHP_METHOD(Cassandra_Collection, add)
   int argc = 0, i;
   php_driver_type *type;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, -1)
+    Z_PARAM_VARIADIC('+', args, argc)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_COLLECTION(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -172,12 +174,13 @@ PHP_METHOD(Cassandra_Collection, add)
 /* {{{ Collection::get(int) */
 PHP_METHOD(Cassandra_Collection, get)
 {
-  long key;
+  zend_long key;
   php_driver_collection *self = NULL;
   zval value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &key) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_LONG(key)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_COLLECTION(getThis());
 
@@ -193,8 +196,9 @@ PHP_METHOD(Cassandra_Collection, find)
   php_driver_collection *collection = NULL;
   long index;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &object) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(object)
+  ZEND_PARSE_PARAMETERS_END();
 
   collection = PHP_DRIVER_GET_COLLECTION(getThis());
 
@@ -261,12 +265,12 @@ PHP_METHOD(Cassandra_Collection, rewind)
 /* {{{ Collection::remove(key) */
 PHP_METHOD(Cassandra_Collection, remove)
 {
-  long index;
+  zend_long index;
   php_driver_collection *collection = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &index) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_LONG(index)
+  ZEND_PARSE_PARAMETERS_END();
 
   collection = PHP_DRIVER_GET_COLLECTION(getThis());
 
@@ -305,7 +309,7 @@ php_driver_collection_properties(
   zval values;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_collection  *self = PHP5TO7_ZEND_OBJECT_GET(collection, object);
+  php_driver_collection  *self = php_driver_collection_object_fetch(object);
 #else
   php_driver_collection  *self = PHP_DRIVER_GET_COLLECTION(object);
 #endif
@@ -397,7 +401,7 @@ static void
 php_driver_collection_free(zend_object *object)
 {
   php_driver_collection *self =
-      PHP5TO7_ZEND_OBJECT_GET(collection, object);
+      php_driver_collection_object_fetch(object);
 
   zend_hash_destroy(&self->values);
   zval_ptr_dtor(&self->type);
@@ -410,13 +414,17 @@ static zend_object*
 php_driver_collection_new(zend_class_entry *ce)
 {
   php_driver_collection *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(collection, ce);
+      (php_driver_collection *)ecalloc(1, sizeof(php_driver_collection) + zend_object_properties_size(ce));
 
   zend_hash_init(&self->values, 0, NULL, ZVAL_PTR_DTOR, 0);
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  PHP5TO7_ZEND_OBJECT_INIT(collection, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_collection_handlers.std.offset = XtOffsetOf(php_driver_collection, zendObject);
+  php_driver_collection_handlers.std.free_obj = php_driver_collection_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_collection_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_Collection()

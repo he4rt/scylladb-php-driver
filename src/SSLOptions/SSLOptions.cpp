@@ -42,6 +42,10 @@ static void php_driver_ssl_free(zend_object *object) {
 static zend_object *php_driver_ssl_new(zend_class_entry *ce) {
   auto *self = ZendCPP::Allocate<php_scylladb_ssl>(ce, &php_driver_ssl_handlers);
   self->ssl = cass_ssl_new();
+  if (self->ssl == nullptr) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassSsl context");
+  }
 
   return &self->zendObject;
 }

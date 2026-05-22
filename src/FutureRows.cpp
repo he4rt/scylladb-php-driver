@@ -110,7 +110,7 @@ static int php_driver_future_rows_compare(zval *obj1, zval *obj2)
 
 static void php_driver_future_rows_free(zend_object *object)
 {
-  php_driver_future_rows *self = PHP5TO7_ZEND_OBJECT_GET(future_rows, object);
+  php_driver_future_rows *self = php_driver_future_rows_object_fetch(object);
 
   zval_ptr_dtor(&self->rows);
 
@@ -127,7 +127,7 @@ static void php_driver_future_rows_free(zend_object *object)
 
 static zend_object *php_driver_future_rows_new(zend_class_entry *ce)
 {
-  php_driver_future_rows *self = PHP5TO7_ZEND_OBJECT_ECALLOC(future_rows, ce);
+  php_driver_future_rows *self = (php_driver_future_rows *)ecalloc(1, sizeof(php_driver_future_rows) + zend_object_properties_size(ce));
 
   self->future    = NULL;
   self->statement = NULL;
@@ -135,7 +135,11 @@ static zend_object *php_driver_future_rows_new(zend_class_entry *ce)
   self->session   = NULL;
   ZVAL_UNDEF(&self->rows);
 
-  PHP5TO7_ZEND_OBJECT_INIT(future_rows, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_future_rows_handlers.offset = XtOffsetOf(php_driver_future_rows, zendObject);
+  php_driver_future_rows_handlers.free_obj = php_driver_future_rows_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_future_rows_handlers;
+  return &self->zendObject;
 }
 
 END_EXTERN_C()

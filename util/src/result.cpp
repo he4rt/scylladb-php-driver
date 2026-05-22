@@ -189,22 +189,25 @@ int php_driver_value(const CassValue *value, const CassDataType *data_type, zval
 
         iterator = cass_iterator_from_collection(value);
 
-        while (cass_iterator_next(iterator))
+        if (iterator != NULL)
         {
-            zval v;
-
-            if (php_driver_value(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE)
+            while (cass_iterator_next(iterator))
             {
-                cass_iterator_free(iterator);
-                zval_ptr_dtor(out);
-                return FAILURE;
+                zval v;
+
+                if (php_driver_value(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE)
+                {
+                    cass_iterator_free(iterator);
+                    zval_ptr_dtor(out);
+                    return FAILURE;
+                }
+
+                php_driver_collection_add(collection, &v);
+                zval_ptr_dtor(&v);
             }
 
-            php_driver_collection_add(collection, &v);
-            zval_ptr_dtor(&v);
+            cass_iterator_free(iterator);
         }
-
-        cass_iterator_free(iterator);
         break;
     case CASS_VALUE_TYPE_MAP:
         object_init_ex(out, php_driver_map_ce);
@@ -216,25 +219,28 @@ int php_driver_value(const CassValue *value, const CassDataType *data_type, zval
 
         iterator = cass_iterator_from_map(value);
 
-        while (cass_iterator_next(iterator))
+        if (iterator != NULL)
         {
-            zval k;
-            zval v;
-
-            if (php_driver_value(cass_iterator_get_map_key(iterator), primary_type, &k) == FAILURE ||
-                php_driver_value(cass_iterator_get_map_value(iterator), secondary_type, &v) == FAILURE)
+            while (cass_iterator_next(iterator))
             {
-                cass_iterator_free(iterator);
-                zval_ptr_dtor(out);
-                return FAILURE;
+                zval k;
+                zval v;
+
+                if (php_driver_value(cass_iterator_get_map_key(iterator), primary_type, &k) == FAILURE ||
+                    php_driver_value(cass_iterator_get_map_value(iterator), secondary_type, &v) == FAILURE)
+                {
+                    cass_iterator_free(iterator);
+                    zval_ptr_dtor(out);
+                    return FAILURE;
+                }
+
+                php_driver_map_set(map, &k, &v);
+                zval_ptr_dtor(&k);
+                zval_ptr_dtor(&v);
             }
 
-            php_driver_map_set(map, &k, &v);
-            zval_ptr_dtor(&k);
-            zval_ptr_dtor(&v);
+            cass_iterator_free(iterator);
         }
-
-        cass_iterator_free(iterator);
         break;
     case CASS_VALUE_TYPE_SET:
         object_init_ex(out, php_driver_set_ce);
@@ -245,22 +251,25 @@ int php_driver_value(const CassValue *value, const CassDataType *data_type, zval
 
         iterator = cass_iterator_from_collection(value);
 
-        while (cass_iterator_next(iterator))
+        if (iterator != NULL)
         {
-            zval v;
-
-            if (php_driver_value(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE)
+            while (cass_iterator_next(iterator))
             {
-                cass_iterator_free(iterator);
-                zval_ptr_dtor(out);
-                return FAILURE;
+                zval v;
+
+                if (php_driver_value(cass_iterator_get_value(iterator), primary_type, &v) == FAILURE)
+                {
+                    cass_iterator_free(iterator);
+                    zval_ptr_dtor(out);
+                    return FAILURE;
+                }
+
+                php_driver_set_add(set, &v);
+                zval_ptr_dtor(&v);
             }
 
-            php_driver_set_add(set, &v);
-            zval_ptr_dtor(&v);
+            cass_iterator_free(iterator);
         }
-
-        cass_iterator_free(iterator);
         break;
     case CASS_VALUE_TYPE_TUPLE:
         object_init_ex(out, php_driver_tuple_ce);
@@ -270,31 +279,34 @@ int php_driver_value(const CassValue *value, const CassDataType *data_type, zval
 
         iterator = cass_iterator_from_tuple(value);
 
-        index = 0;
-        while (cass_iterator_next(iterator))
+        if (iterator != NULL)
         {
-            const CassValue *value = cass_iterator_get_value(iterator);
-
-            if (!cass_value_is_null(value))
+            index = 0;
+            while (cass_iterator_next(iterator))
             {
-                zval v;
+                const CassValue *value = cass_iterator_get_value(iterator);
 
-                primary_type = cass_data_type_sub_data_type(data_type, index);
-                if (php_driver_value(value, primary_type, &v) == FAILURE)
+                if (!cass_value_is_null(value))
                 {
-                    cass_iterator_free(iterator);
-                    zval_ptr_dtor(out);
-                    return FAILURE;
+                    zval v;
+
+                    primary_type = cass_data_type_sub_data_type(data_type, index);
+                    if (php_driver_value(value, primary_type, &v) == FAILURE)
+                    {
+                        cass_iterator_free(iterator);
+                        zval_ptr_dtor(out);
+                        return FAILURE;
+                    }
+
+                    php_driver_tuple_set(tuple, index, &v);
+                    zval_ptr_dtor(&v);
                 }
 
-                php_driver_tuple_set(tuple, index, &v);
-                zval_ptr_dtor(&v);
+                index++;
             }
 
-            index++;
+            cass_iterator_free(iterator);
         }
-
-        cass_iterator_free(iterator);
         break;
     case CASS_VALUE_TYPE_UDT:
         object_init_ex(out, php_driver_user_type_value_ce);
@@ -304,34 +316,37 @@ int php_driver_value(const CassValue *value, const CassDataType *data_type, zval
 
         iterator = cass_iterator_fields_from_user_type(value);
 
-        index = 0;
-        while (cass_iterator_next(iterator))
+        if (iterator != NULL)
         {
-            const CassValue *value = cass_iterator_get_user_type_field_value(iterator);
-
-            if (!cass_value_is_null(value))
+            index = 0;
+            while (cass_iterator_next(iterator))
             {
-                const char *name;
-                size_t name_length;
-                zval v;
+                const CassValue *value = cass_iterator_get_user_type_field_value(iterator);
 
-                primary_type = cass_data_type_sub_data_type(data_type, index);
-                if (php_driver_value(value, primary_type, &v) == FAILURE)
+                if (!cass_value_is_null(value))
                 {
-                    cass_iterator_free(iterator);
-                    zval_ptr_dtor(out);
-                    return FAILURE;
+                    const char *name;
+                    size_t name_length;
+                    zval v;
+
+                    primary_type = cass_data_type_sub_data_type(data_type, index);
+                    if (php_driver_value(value, primary_type, &v) == FAILURE)
+                    {
+                        cass_iterator_free(iterator);
+                        zval_ptr_dtor(out);
+                        return FAILURE;
+                    }
+
+                    cass_iterator_get_user_type_field_name(iterator, &name, &name_length);
+                    php_driver_user_type_value_set(user_type_value, name, name_length, &v);
+                    zval_ptr_dtor(&v);
                 }
 
-                cass_iterator_get_user_type_field_name(iterator, &name, &name_length);
-                php_driver_user_type_value_set(user_type_value, name, name_length, &v);
-                zval_ptr_dtor(&v);
+                index++;
             }
 
-            index++;
+            cass_iterator_free(iterator);
         }
-
-        cass_iterator_free(iterator);
         break;
     default:
         ZVAL_NULL(out);

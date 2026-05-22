@@ -66,7 +66,7 @@ php_driver_simple_statement_compare(zval *obj1, zval *obj2 )
 static void
 php_driver_simple_statement_free(zend_object *object )
 {
-  php_driver_statement *self = PHP5TO7_ZEND_OBJECT_GET(statement, object);
+  php_driver_statement *self = php_driver_statement_object_fetch(object);
 
   if (self->data.simple.cql) {
     efree(self->data.simple.cql);
@@ -81,12 +81,16 @@ static zend_object*
 php_driver_simple_statement_new(zend_class_entry *ce )
 {
   php_driver_statement *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(statement, ce);
+      (php_driver_statement *)ecalloc(1, sizeof(php_driver_statement) + zend_object_properties_size(ce));
 
   self->type = PHP_DRIVER_SIMPLE_STATEMENT;
   self->data.simple.cql  = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(statement, simple_statement, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_simple_statement_handlers.offset = XtOffsetOf(php_driver_statement, zendObject);
+  php_driver_simple_statement_handlers.free_obj = php_driver_simple_statement_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_simple_statement_handlers;
+  return &self->zendObject;
 }
 
 END_EXTERN_C()

@@ -77,7 +77,7 @@ static HashTable *php_driver_type_scalar_gc(zend_object *object, zval **table,
 
 static HashTable *php_driver_type_scalar_properties(zend_object *object) {
   zval name;
-  php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
+  php_driver_type *self = php_driver_type_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -103,7 +103,7 @@ static int php_driver_type_scalar_compare(zval *obj1, zval *obj2) {
 }
 
 static void php_driver_type_scalar_free(zend_object *object) {
-  php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
+  php_driver_type *self = php_driver_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
 
@@ -112,12 +112,16 @@ static void php_driver_type_scalar_free(zend_object *object) {
 }
 
 static zend_object* php_driver_type_scalar_new(zend_class_entry *ce) {
-  auto self = PHP5TO7_ZEND_OBJECT_ECALLOC(type, ce);
+  auto self = (php_driver_type *)ecalloc(1, sizeof(php_driver_type) + zend_object_properties_size(ce));
 
   self->type = CASS_VALUE_TYPE_UNKNOWN;
   self->data_type = nullptr;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(type, type_scalar, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_type_scalar_handlers.offset = XtOffsetOf(php_driver_type, zendObject);
+  php_driver_type_scalar_handlers.free_obj = php_driver_type_scalar_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_type_scalar_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_TypeScalar() {

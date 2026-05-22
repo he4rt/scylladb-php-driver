@@ -25,26 +25,27 @@ This is the prioritised TODO for the next development wave. Each item links to i
 
 Stage 4.5 in the full plan. Three line-level fixes shipped in v1.3.14; the structural redesign is what's left.
 
-- [ ] Switch the three resource types (cluster, session, prepared statement) to the standard `zend_register_persistent_resource[_ex]` API instead of hand-crafted `pecalloc` + `ZVAL_NEW_PERSISTENT_RES` + manual `EG(persistent_list)` writes.
-- [ ] Replace hash-key `char *` + `size_t` with `zend_string *` (interned where possible).
-- [ ] Audit `session->hash_key` aliasing of `cluster->hash_key` for lifetime correctness when crossing the persistent allocator boundary.
-- [ ] Drop `php_driver_ref` indirection — resources have native refcounting.
+- [ ] Switch the three resource types (cluster, session, prepared statement) to the standard `zend_register_persistent_resource[_ex]` API instead of hand-crafted `pecalloc` + `ZVAL_NEW_PERSISTENT_RES` + manual `EG(persistent_list)` writes. **Deferred** — partial win only; PHP has no `zend_find_persistent_resource_ex`, so the `zend_hash_find` lookup side stays manual either way.
+- [x] **Replace hash-key `char *` + `size_t` with `zend_string *`** (2026-05-22). Cluster, session, and future-session all use `zend_string *hash_key` now; allocation via `zend_strpprintf`, sharing via `zend_string_copy` (refcount bump), cleanup via `zend_string_release` in each `free_obj`. Removed the dead `hash_key_len` field everywhere. Builder/DefaultCluster/DefaultSession/FutureSession migrated; lookups now go through `zend_hash_find` / `zend_hash_update` / `zend_hash_del` instead of the `_str_*` variants.
+- [x] **Audit `session->hash_key` aliasing of `cluster->hash_key`** (2026-05-22). Found and fixed a real UAF: [src/Cluster/DefaultCluster.cpp:65](src/Cluster/DefaultCluster.cpp:65) had `session->hash_key = self->hash_key;` (raw alias). If the user dropped `$cluster` before the session was destroyed, the cluster's `free_obj` (DefaultClusterHandlers.cpp:34) freed the hash_key out from under the session, which then read it in `prepare()`'s spprintf. Now uses `zend_string_copy` (refcount bump). Also removed the dead `future_session->session_hash_key` field which was assigned but never read.
+- [ ] Drop `php_driver_ref` indirection — resources have native refcounting. **Deferred** — touches every Future*/Rows/DefaultSession; warrants its own focused PR.
 - [ ] Pest test for: cache hit, cache miss, broken-future invalidation, keyspace-switch reuse, prepared-statement cache hit/miss, persistent counts (`PHP_DRIVER_G(persistent_*)`) consistent across requests.
 - [ ] Valgrind/ASan run: zero leaks across N=1000 prepare+execute cycles in persistent mode.
+- [x] **Concurrency note** (2026-05-22). Added comment block at the top of [src/php_driver.cpp:130](src/php_driver.cpp:130) clarifying that `EG(persistent_list)` is per PHP-FPM worker (not process-pool shared), so "persistent" cluster/session connection counts scale with worker count.
 
 ### Round C — Pattern foundation + PHP 8.3 modernisation (target: v1.5.0)
 
 Stage 3 in the full plan. Bigger commitment; gates Stage 4.
 
-- [ ] Bump composer.json `require.php` floor to `>= 8.3`. Drop conditional `#if PHP_VERSION_ID < …` for 8.1/8.2.
+- [x] **Bump composer.json `require.php` floor to `>= 8.3`** (2026-05-21). Was `^8.2|^8.3|^8.4|^8.5` → `^8.3|^8.4|^8.5`. Conditional `#if PHP_VERSION_ID < 80300` cleanup is a follow-up — none on the hot paths yet.
 - [ ] Complete `src/Cluster` as the C23 reference: zero C++ headers, `.cpp → .c` rename once `ZendCPP::` is excised.
 - [ ] Build the shared "type module" macro header for the 6 numeric modules' boilerplate (Stage 3.2).
 - [ ] Document the canonical pattern in `docs/MODULE_PATTERN.md`; verify the `/new-module` skill produces matching output.
 - [ ] CI quality gates: clang-tidy + cppcheck against the migrated modules; ASan in CI (currently only local Debug presets).
 - [ ] Decide on enums (`Cassandra\Consistency`, `BatchType`, etc.) and `final readonly` value classes; ship the stub changes once the module is converted (Stage 3.7).
-- [ ] Switch `\DateTime` returns to `\DateTimeImmutable` in `Date`, `Timestamp` stubs.
-- [ ] `#[\SensitiveParameter]` on `Builder::withCredentials($username, #[\SensitiveParameter] string $password)`.
-- [ ] Add `declare(strict_types=1);` to all 14 existing stubs (some already have it; audit).
+- [ ] Switch `\DateTime` returns to `\DateTimeImmutable` in `Date`, `Timestamp` stubs. **Deferred to v2.0.0** — DateTimeImmutable doesn't mutate, so changing the return type is a runtime BC break for any caller doing `$ts->toDateTime()->modify(...)`. Also needs the C side (`zend_call_method_with_*_params` in Date.cpp/Timestamp.cpp/Time.cpp) updated to construct `DateTimeImmutable`.
+- [x] **`#[\SensitiveParameter]` on `Builder::withCredentials`** (2026-05-21). Applied to `$password` parameter in [src/Cluster/Builder.stub.php:62](src/Cluster/Builder.stub.php:62). Arginfo regen pending.
+- [x] **`declare(strict_types=1);` in all stubs** (2026-05-21). The plan said "14 existing stubs; some already have it" but the actual count was 73 stubs with **zero** having it. All now declared. Cosmetic for internal classes (gen_stub's emitted arginfo is what enforces types at runtime) but matches the canonical pattern. Arginfo regen pending across the board.
 
 ### Round D — Universal stub coverage (target: v1.5.0 or v1.6.0)
 
@@ -70,9 +71,10 @@ Stage 3.5 in the full plan. **86 classes total, 27 done, 59 to go.** Order:
 
 Stage 3.6 in the full plan. **107 `zend_parse_parameters` callsites across 37 files**; 7 files already on `Z_PARAM_*` (Cluster, DateTime/*, RetryPolicy/Logging, SSLOptions/Builder).
 
-- [ ] Convert per-module alongside its stub PR. Format-string → macro cheat sheet in [Stage 3.6 below](#stage-36--modern-argument-parsing-z_param_).
-- [ ] CI guard: grep-based check rejecting any new `zend_parse_parameters(` callsite.
+- [x] **Conversion done** (2026-05-21): all 57 remaining `zend_parse_parameters` callsites migrated to `ZEND_PARSE_PARAMETERS_START/END` across DefaultSession, Cluster/DefaultCluster, Database/{Default*, Rows}, Collection, Set, Map, Tuple, UserTypeValue, Type, Type/{Collection, Set, Map, Tuple, UserType}, DateTime/Duration. `grep -rn "zend_parse_parameters\b" src/ --include="*.cpp" --include="*.c"` returns empty (excluding `_none`). Builds clean on PHP 8.4 and 8.5.
+- [x] **CI grep guard** (2026-05-21). [`.github/workflows/test.yml`](.github/workflows/test.yml) now runs a `lint-zpp` job that fails the PR if a new `zend_parse_parameters(` callsite appears.
 - [ ] Pest tests verifying modern `TypeError`/`ArgumentCountError` messages (different from the legacy `Warning: …`).
+- [ ] Follow-up: 412 `getThis()` → `ZEND_THIS` migrations (orthogonal but called out together in Stage 3.6).
 
 ### Round F — Macro purge + util/ removal (target: v1.6.0)
 
@@ -82,7 +84,7 @@ Stage 2 in the full plan. Previously attempted as a flat sweep (PR #122 wave-1) 
 - [x] Round 2 — hashtable iteration: `PHP5TO7_ZEND_HASH_FOREACH_*`, `GET_CURRENT_*` (all variants). Done; STR_KEY_VAL adapted to `zend_string *`.
 - [x] Round 3 — hashtable mutation: `PHP5TO7_ZEND_HASH_FIND/EXISTS/UPDATE/ADD/DEL/INDEX_*`, `ADD_ASSOC_*`, `ZVAL_COPY`. Done.
 - [x] Round 4 — zval lifecycle: `PHP5TO7_ZVAL_MAYBE_DESTROY` → `zval_ptr_dtor`. Done (54 callsites).
-- [ ] Round 5 — load-bearing (4 macros, 163 callsites): `PHP5TO7_ZEND_OBJECT_GET/ECALLOC/INIT/INIT_EX`. Deferred per-module alongside handler refactor (Stage 4). 163 callsites remain in `php_driver.h` macros.
+- [x] **Round 5 — load-bearing (2026-05-21):** all 4 `PHP5TO7_ZEND_OBJECT_GET/ECALLOC/INIT/INIT_EX` macros removed in a single sweep (the plan's "163 callsites" was overstated — actual was ~100 across 29 files). Pure renames `GET` and `ECALLOC` substituted in place; `INIT/INIT_EX` expanded inline (5-line block ending in `return &self->zendObject;`). Value-handler files (Collection/Set/Map/Tuple/UserTypeValue/Blob/Uuid/Inet/Duration/Date/Time/Timestamp/Timeuuid/Numbers/*) switched to `.std.offset` / `.std.free_obj` access. Macro definitions deleted from [include/php_driver.h:59-74](include/php_driver.h:59). Builds clean on PHP 8.4 and 8.5.
 - [ ] **Stage 2.3 — delete `util/`** (12 headers + 10 cpp files): inline thin wrappers into owning modules; replace `uthash.h` with `zend_hash`; replace `php_driver_ref` with native resource refcounting (depends on Round B).
 
 ### Round G — Module ports to C23 (target: v1.6.0–v2.0.0)

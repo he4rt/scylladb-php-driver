@@ -127,6 +127,20 @@ PHP_INI_BEGIN()
 PHP_INI_END()
 // clang-format on
 
+/* Persistent resources.
+ *
+ * Three resource types — cluster, session, prepared statement — are cached in
+ * EG(persistent_list) under a process-keyed hash. The cache is per PHP-FPM
+ * worker (or per CLI invocation): each worker has its own EG(persistent_list),
+ * so a "persistent" CassCluster/CassSession is NOT shared across the worker
+ * pool. Connection counts therefore scale with worker count.
+ *
+ * Entries survive across requests within the same worker. They are released
+ * either when the worker terminates (PHP runs persistent_list_destructors), or
+ * when a connect/prepare attempt observes a broken cached future and
+ * zend_hash_str_del's the stale entry (see DefaultCluster::connect and
+ * DefaultSession::prepare).
+ */
 static int le_php_driver_cluster_res;
 int php_le_php_driver_cluster() { return le_php_driver_cluster_res; }
 static void php_driver_cluster_dtor(zend_resource* rsrc) {

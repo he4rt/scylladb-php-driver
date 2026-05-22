@@ -83,10 +83,9 @@ ZEND_METHOD(Cassandra_Type, tuple)
   zval* args = NULL;
   int argc = 0, i;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "*",
-                            &args, &argc) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(0, -1)
+    Z_PARAM_VARIADIC('*', args, argc)
+  ZEND_PARSE_PARAMETERS_END();
 
   for (i = 0; i < argc; ++i) {
     zval *sub_type = &args[i];
@@ -117,10 +116,9 @@ ZEND_METHOD(Cassandra_Type, userType)
   zval* args = NULL;
   int argc = 0, i;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "*",
-                            &args, &argc) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(0, -1)
+    Z_PARAM_VARIADIC('*', args, argc)
+  ZEND_PARSE_PARAMETERS_END();
 
   if (argc % 2 == 1) {
     zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,

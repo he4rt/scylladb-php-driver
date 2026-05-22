@@ -231,8 +231,7 @@ typedef struct php_driver_cluster_
     uint32_t default_page_size;
     zval default_timeout;
     cass_bool_t persist;
-    char *hash_key;
-    int hash_key_len;
+    zend_string *hash_key;
     zend_object zendObject;
 } php_driver_cluster;
 static zend_always_inline php_driver_cluster *php_driver_cluster_object_fetch(zend_object *obj)
@@ -439,12 +438,10 @@ typedef struct php_driver_future_session_
     php_driver_ref *session;
     zval default_session;
     cass_bool_t persist;
-    char *hash_key;
-    int hash_key_len;
+    zend_string *hash_key;
     char *exception_message;
     CassError exception_code;
     char *session_keyspace;
-    char *session_hash_key;
     zend_object zendObject;
 } php_driver_future_session;
 static zend_always_inline php_driver_future_session *php_driver_future_session_object_fetch(zend_object *obj)
@@ -470,7 +467,7 @@ typedef struct php_driver_session_
     long default_consistency;
     int default_page_size;
     char *keyspace;
-    char *hash_key;
+    zend_string *hash_key;
     zval default_timeout;
     cass_bool_t persist;
     zend_object zendObject;

@@ -34,6 +34,23 @@ permissions:
   contents: read
 
 jobs:
+  lint-zpp:
+    name: "Lint: no legacy zend_parse_parameters"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject zend_parse_parameters() (use ZEND_PARSE_PARAMETERS_START/END)
+        run: |
+          set -e
+          hits=$(grep -rEn 'zend_parse_parameters\b' src/ --include='*.cpp' --include='*.c' \
+            | grep -v 'zend_parse_parameters_none\|zend_parse_parameters_throw' || true)
+          if [ -n "$hits" ]; then
+            echo "Legacy zend_parse_parameters() callsites found. Use ZEND_PARSE_PARAMETERS_START / Z_PARAM_* macros instead:"
+            echo "$hits"
+            exit 1
+          fi
+          echo "OK — no legacy zend_parse_parameters() callsites."
+
   test:
     name: PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
     runs-on: ubuntu-24.04

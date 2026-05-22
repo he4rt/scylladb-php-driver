@@ -42,14 +42,14 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     php_driver_cluster *self;
     php_driver_session *session;
     CassFuture *future = nullptr;
-    char *hash_key;
-    size_t hash_key_len = 0;
+    zend_string *hash_key = nullptr;
     php_driver_psession *psession;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "|sz", &keyspace, &keyspace_len, &timeout) == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_START(0, 2)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_STRING(keyspace, keyspace_len)
+        Z_PARAM_ZVAL(timeout)
+    ZEND_PARSE_PARAMETERS_END();
 
     self = PHP_DRIVER_GET_CLUSTER(getThis());
 
@@ -59,7 +59,8 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     session->default_consistency = self->default_consistency;
     session->default_page_size = self->default_page_size;
     session->persist = self->persist;
-    session->hash_key = self->hash_key;
+    /* Refcounted copy — cluster can be GC'd before this session. */
+    session->hash_key = self->hash_key ? zend_string_copy(self->hash_key) : nullptr;
     session->keyspace = keyspace ? estrndup(keyspace, keyspace_len) : nullptr;
 
     if (!Z_ISUNDEF(session->default_timeout))
@@ -71,9 +72,9 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     {
         zval *le;
 
-        hash_key_len = spprintf(&hash_key, 0, "%s:session:%s", self->hash_key, SAFE_STR(keyspace));
+        hash_key = zend_strpprintf(0, "%s:session:%s", ZSTR_VAL(self->hash_key), SAFE_STR(keyspace));
 
-        if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
+        if ((le = zend_hash_find(&EG(persistent_list), hash_key)) != NULL &&
             Z_RES_P(le)->type == php_le_php_driver_session())
         {
             psession = (php_driver_psession *)Z_RES_P(le)->ptr;
@@ -104,7 +105,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
             psession->future = future;
 
             ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
-            (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
+            (void)zend_hash_update(&EG(persistent_list), hash_key, &resource);
             PHP_DRIVER_G(persistent_sessions)++;
         }
     }
@@ -115,8 +116,8 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
         {
             /* Remove the broken/timed-out session so the next request gets a
                fresh connection attempt instead of reusing a stale future. */
-            (void)(zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len) == SUCCESS);
-            efree(hash_key);
+            (void)(zend_hash_del(&EG(persistent_list), hash_key) == SUCCESS);
+            zend_string_release(hash_key);
         }
         else
         {
@@ -130,8 +131,8 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     {
         if (session->persist)
         {
-            (void)(zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len) == SUCCESS);
-            efree(hash_key);
+            (void)(zend_hash_del(&EG(persistent_list), hash_key) == SUCCESS);
+            zend_string_release(hash_key);
         }
         else
         {
@@ -141,23 +142,21 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
         return;
     }
 
-    if (session->persist)
-        efree(hash_key);
+    if (session->persist && hash_key)
+        zend_string_release(hash_key);
 }
 
 ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
 {
-    char *hash_key = NULL;
-    size_t hash_key_len = 0;
     char *keyspace = NULL;
     size_t keyspace_len;
     php_driver_cluster *self = NULL;
     php_driver_future_session *future = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "|s", &keyspace, &keyspace_len) == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_START(0, 1)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_STRING(keyspace, keyspace_len)
+    ZEND_PARSE_PARAMETERS_END();
 
     self = PHP_DRIVER_GET_CLUSTER(getThis());
 
@@ -170,14 +169,10 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
     {
         zval *le;
 
-        hash_key_len = spprintf(&hash_key, 0, "%s:session:%s", self->hash_key, SAFE_STR(keyspace));
-
-        future->session_hash_key = self->hash_key;
         future->session_keyspace = keyspace ? estrndup(keyspace, keyspace_len) : nullptr;
-        future->hash_key = hash_key;
-        future->hash_key_len = hash_key_len;
+        future->hash_key = zend_strpprintf(0, "%s:session:%s", ZSTR_VAL(self->hash_key), SAFE_STR(keyspace));
 
-        if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
+        if ((le = zend_hash_find(&EG(persistent_list), future->hash_key)) != NULL &&
             Z_RES_P(le)->type == php_le_php_driver_session())
         {
             php_driver_psession *psession = (php_driver_psession *)Z_RES_P(le)->ptr;
@@ -206,7 +201,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         psession->future = future->future;
 
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
-        (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
+        (void)zend_hash_update(&EG(persistent_list), future->hash_key, &resource);
         PHP_DRIVER_G(persistent_sessions)++;
     }
 }

@@ -11,7 +11,7 @@
   "license": "Apache-2.0",
   "description": "ScyllaDB/Cassandra PHP driver",
   "require": {
-    "php": "^8.2|^8.3|^8.4|^8.5",
+    "php": "^8.3|^8.4|^8.5",
     "ext-date": "*"
   },
   "require-dev": {
