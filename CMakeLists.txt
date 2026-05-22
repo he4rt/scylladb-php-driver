@@ -154,7 +154,7 @@ find_package(CPPDriver REQUIRED)
 
 # ── Sub-libraries ─────────────────────────────────────────────────────────────
 add_subdirectory(ZendCPP)
-add_subdirectory(util)
+add_subdirectory(src/Util)
 add_subdirectory(src)
 add_subdirectory(src/Cluster)
 add_subdirectory(src/DateTime)

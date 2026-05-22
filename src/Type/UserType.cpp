@@ -17,8 +17,8 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "src/UserTypeValue.h"
-#include "util/collections.h"
-#include "util/types.h"
+#include "Util/collections.h"
+#include "Util/types.h"
 
 #include <zend_smart_str.h>
 BEGIN_EXTERN_C()

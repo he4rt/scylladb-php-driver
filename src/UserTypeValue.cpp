@@ -16,9 +16,9 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/collections.h"
-#include "util/hash.h"
-#include "util/types.h"
+#include "Util/collections.h"
+#include "Util/hash.h"
+#include "Util/types.h"
 
 #include "src/Type/UserType.h"
 #include "src/UserTypeValue.h"

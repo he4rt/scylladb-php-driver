@@ -46,6 +46,7 @@ function(scylladb_php_library target)
             "${PROJECT_SOURCE_DIR}/include"
             "${PROJECT_BINARY_DIR}"
             "${PROJECT_SOURCE_DIR}"
+            "${PROJECT_SOURCE_DIR}/src"
     )
 
     # ── Symbol visibility — only get_module exported (PHP extension ABI) ────────

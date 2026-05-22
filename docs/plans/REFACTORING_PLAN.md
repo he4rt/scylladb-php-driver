@@ -330,10 +330,19 @@ Goal: delete migration-era cruft before any module-level porting. These macros a
 
 **Note on the remaining files.** The original plan assumed these were "thin wrappers around 1–2 `cass_*` calls" or "Cassandra-specific glue that belongs inside `src/Database` or `src/Type`." In reality each is a substantial (400-1300 LOC) shared library consumed by 5+ modules across multiple subdirectories. Moving any single one into a particular module would force the other consumers to include across module boundaries, which is uglier than the current `util/` namespace.
 
-**Recommended path forward** (next PR):
-- Replace `util/uthash.h` with `zend_hash` / `HashTable` (`uthash.h` is a third-party 969-line header; the actual usage in `util/hash.cpp` is small).
-- Convert all remaining `util/src/*.cpp` to `.c` during the Round G (C23 port) — this removes the C++ dependency without forcing the move.
-- Optionally rename `util/` → `src/Util/` for a visual cleanup; the contents stay shared.
+**Update 2026-05-22**: top-level `util/` directory **deleted**. Contents relocated to `src/Util/` (collapsing `util/src/*.cpp` and `util/*.h` into a single directory) as the pragmatic completion of Stage 2.3.
+
+| File | Final location |
+|---|---|
+| collections.{h,cpp} | `src/Util/collections.{h,cpp}` |
+| hash.{h,cpp} + uthash.h | `src/Util/hash.{h,cpp}`, `src/Util/uthash.h` |
+| math.{h,cpp} | `src/Util/math.{h,cpp}` |
+| result.{h,cpp} | `src/Util/result.{h,cpp}` |
+| types.{h,cpp} | `src/Util/types.{h,cpp}` |
+
+CMake: `add_subdirectory(util)` → `add_subdirectory(src/Util)`. Added `${PROJECT_SOURCE_DIR}/src` to the include path so any consumer can write `#include "Util/X.h"` regardless of its own subdirectory depth. All consumer includes rewritten via mechanical sweep.
+
+Stage 2 is now functionally complete. Further work on the contents (e.g. replacing `uthash.h` with `zend_hash`, converting `.cpp` → `.c` for the C23 port) is naturally absorbed by Round G (module C23 ports) rather than a separate Stage 2 pass.
 
 **Exit criteria for Stage 2:**
 - Zero `PHP5TO7_*` references in the repo (`grep` shows nothing).

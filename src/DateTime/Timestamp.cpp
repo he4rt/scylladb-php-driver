@@ -16,8 +16,8 @@
 
 #include <ZendCPP/String/Builder.h>
 #include <php_driver_types.h>
-#include <util/hash.h>
-#include <util/types.h>
+#include "Util/hash.h"
+#include "Util/types.h"
 
 #include <ZendCPP/ZendCPP.hpp>
 

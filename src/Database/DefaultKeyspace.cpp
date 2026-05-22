@@ -19,8 +19,8 @@
 #include "DefaultTable.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/result.h"
-#include "util/types.h"
+#include "Util/result.h"
+#include "Util/types.h"
 
 BEGIN_EXTERN_C()
 #include "Zend/zend_smart_str.h"

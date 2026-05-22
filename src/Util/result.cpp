@@ -16,9 +16,9 @@
 
 #include <php_driver.h>
 #include <php_driver_types.h>
-#include <util/math.h>
-#include <util/result.h>
-#include <util/types.h>
+#include "math.h"
+#include "result.h"
+#include "types.h"
 
 #include "DateTime/Date.h"
 #include "src/Collection.h"

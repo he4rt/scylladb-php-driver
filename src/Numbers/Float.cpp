@@ -16,8 +16,8 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/math.h"
-#include "util/types.h"
+#include "Util/math.h"
+#include "Util/types.h"
 #include <float.h>
 BEGIN_EXTERN_C()
 #include "Float_arginfo.h"
