@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class Rows implements \Iterator, \Countable, \ArrayAccess {
+ * @scylladb-struct php_scylladb_rows
+ */    final class Rows implements \Iterator, \Countable, \ArrayAccess {
         public function __construct() {}
         public function count(): int {}
         public function rewind(): void {}

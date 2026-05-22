@@ -1,8 +1,8 @@
-#ifndef PHP_DRIVER_GLOBALS_H
-#define PHP_DRIVER_GLOBALS_H
+#ifndef PHP_SCYLLADB_GLOBALS_H
+#define PHP_SCYLLADB_GLOBALS_H
 
 BEGIN_EXTERN_C()
-ZEND_BEGIN_MODULE_GLOBALS(php_driver)
+ZEND_BEGIN_MODULE_GLOBALS(php_scylladb)
   CassUuidGen  *uuid_gen;
   pid_t         uuid_gen_pid;
   unsigned int  persistent_clusters;
@@ -30,10 +30,10 @@ ZEND_BEGIN_MODULE_GLOBALS(php_driver)
   zval  type_tinyint;
   zval  type_duration;
   zend_resource stmt;
-ZEND_END_MODULE_GLOBALS(php_driver)
+ZEND_END_MODULE_GLOBALS(php_scylladb)
 
-ZEND_EXTERN_MODULE_GLOBALS(php_driver)
+ZEND_EXTERN_MODULE_GLOBALS(php_scylladb)
 END_EXTERN_C()
 
-#endif /* PHP_DRIVER_GLOBALS_H */
+#endif /* PHP_SCYLLADB_GLOBALS_H */
 

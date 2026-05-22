@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 #include "Type/TypeFactory.h"
 
 #include "src/Type/Tuple.h"
 #include "src/Type/UserType.h"
+
 BEGIN_EXTERN_C()
 #include "Type/Type_arginfo.h"
-#define PHP_DRIVER_SCALAR_TYPES_MAP(XX)    \
+#define PHP_SCYLLADB_SCALAR_TYPES_MAP(XX)    \
   XX(ascii, CASS_VALUE_TYPE_ASCII)         \
   XX(bigint, CASS_VALUE_TYPE_BIGINT)       \
   XX(smallint, CASS_VALUE_TYPE_SMALL_INT)  \
@@ -45,17 +46,15 @@ BEGIN_EXTERN_C()
   XX(timeuuid, CASS_VALUE_TYPE_TIMEUUID)   \
   XX(inet, CASS_VALUE_TYPE_INET)
 
-zend_class_entry *php_driver_type_ce = NULL;
-
 #define XX_SCALAR_METHOD(name, value) ZEND_METHOD(Cassandra_Type, name) \
 { \
   zval ztype; \
   ZEND_PARSE_PARAMETERS_NONE(); \
-  ztype = php_driver_type_scalar(value ); \
+  ztype = php_scylladb_type_scalar(value ); \
   RETURN_ZVAL(&ztype, 1, 1); \
 }
 
-PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR_METHOD)
+PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR_METHOD)
 #undef XX_SCALAR_METHOD
 
 ZEND_METHOD(Cassandra_Type, collection)
@@ -64,14 +63,14 @@ ZEND_METHOD(Cassandra_Type, collection)
   zval *value_type;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_OBJECT_OF_CLASS(value_type, php_driver_type_ce)
+    Z_PARAM_OBJECT_OF_CLASS(value_type, php_scylladb_type_ce)
   ZEND_PARSE_PARAMETERS_END();
 
-  if (!php_driver_type_validate(value_type, "type" )) {
+  if (!php_scylladb_type_validate(value_type, "type" )) {
     return;
   }
 
-  ztype  = php_driver_type_collection(value_type );
+  ztype  = php_scylladb_type_collection(value_type );
   Z_ADDREF_P(value_type);
   RETURN_ZVAL(&ztype, 0, 1);
 }
@@ -79,7 +78,7 @@ ZEND_METHOD(Cassandra_Type, collection)
 ZEND_METHOD(Cassandra_Type, tuple)
 {
   zval ztype;
-  php_driver_type *type;
+  php_scylladb_type *type;
   zval* args = NULL;
   int argc = 0, i;
 
@@ -89,17 +88,17 @@ ZEND_METHOD(Cassandra_Type, tuple)
 
   for (i = 0; i < argc; ++i) {
     zval *sub_type = &args[i];
-    if (!php_driver_type_validate(sub_type, "type" )) {
+    if (!php_scylladb_type_validate(sub_type, "type" )) {
       return;
     }
   }
 
-  ztype = php_driver_type_tuple();
-  type = PHP_DRIVER_GET_TYPE(&ztype);
+  ztype = php_scylladb_type_tuple();
+  type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   for (i = 0; i < argc; ++i) {
     zval *sub_type = &args[i];
-    if (php_driver_type_tuple_add(type, sub_type )) {
+    if (php_scylladb_type_tuple_add(type, sub_type )) {
       Z_ADDREF_P(sub_type);
     } else {
       break;
@@ -112,7 +111,7 @@ ZEND_METHOD(Cassandra_Type, tuple)
 ZEND_METHOD(Cassandra_Type, userType)
 {
   zval ztype;
-  php_driver_type *type;
+  php_scylladb_type *type;
   zval* args = NULL;
   int argc = 0, i;
 
@@ -121,7 +120,7 @@ ZEND_METHOD(Cassandra_Type, userType)
   ZEND_PARSE_PARAMETERS_END();
 
   if (argc % 2 == 1) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
                             "Not enough name/type pairs, user types can only be created " \
                             "from an even number of name/type pairs, where each odd " \
                             "argument is a name and each even argument is a type, " \
@@ -133,22 +132,22 @@ ZEND_METHOD(Cassandra_Type, userType)
     zval *name = &args[i];
     zval *sub_type = &args[i + 1];
     if (Z_TYPE_P(name) != IS_STRING) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
                               "Argument %d is not a string", i + 1);
       return;
     }
-    if (!php_driver_type_validate(sub_type, "type" )) {
+    if (!php_scylladb_type_validate(sub_type, "type" )) {
       return;
     }
   }
 
-  ztype = php_driver_type_user_type();
-  type = PHP_DRIVER_GET_TYPE(&ztype);
+  ztype = php_scylladb_type_user_type();
+  type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   for (i = 0; i < argc; i += 2) {
     zval *name = &args[i];
     zval *sub_type = &args[i + 1];
-    if (php_driver_type_user_type_add(type,
+    if (php_scylladb_type_user_type_add(type,
                                          Z_STRVAL_P(name), Z_STRLEN_P(name),
                                          sub_type )) {
       Z_ADDREF_P(sub_type);
@@ -166,14 +165,14 @@ ZEND_METHOD(Cassandra_Type, set)
   zval *value_type;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_OBJECT_OF_CLASS(value_type, php_driver_type_ce)
+    Z_PARAM_OBJECT_OF_CLASS(value_type, php_scylladb_type_ce)
   ZEND_PARSE_PARAMETERS_END();
 
-  if (!php_driver_type_validate(value_type, "type" )) {
+  if (!php_scylladb_type_validate(value_type, "type" )) {
     return;
   }
 
-  ztype = php_driver_type_set(value_type );
+  ztype = php_scylladb_type_set(value_type );
   Z_ADDREF_P(value_type);
   RETURN_ZVAL(&ztype, 0, 1);
 }
@@ -185,26 +184,23 @@ ZEND_METHOD(Cassandra_Type, map)
   zval *value_type;
 
   ZEND_PARSE_PARAMETERS_START(2, 2)
-    Z_PARAM_OBJECT_OF_CLASS(key_type, php_driver_type_ce)
-    Z_PARAM_OBJECT_OF_CLASS(value_type, php_driver_type_ce)
+    Z_PARAM_OBJECT_OF_CLASS(key_type, php_scylladb_type_ce)
+    Z_PARAM_OBJECT_OF_CLASS(value_type, php_scylladb_type_ce)
   ZEND_PARSE_PARAMETERS_END();
 
-  if (!php_driver_type_validate(key_type, "keyType" )) {
+  if (!php_scylladb_type_validate(key_type, "keyType" )) {
     return;
   }
 
-  if (!php_driver_type_validate(value_type, "valueType" )) {
+  if (!php_scylladb_type_validate(value_type, "valueType" )) {
     return;
   }
 
-  ztype = php_driver_type_map(key_type, value_type );
+  ztype = php_scylladb_type_map(key_type, value_type );
   Z_ADDREF_P(key_type);
   Z_ADDREF_P(value_type);
   RETURN_ZVAL(&ztype, 0, 1);
 }
 
-void php_driver_define_Type()
-{
-  php_driver_type_ce = register_class_Cassandra_Type();
-}
 END_EXTERN_C()
+

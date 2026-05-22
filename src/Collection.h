@@ -16,8 +16,8 @@
 
 #pragma once
 #include <php.h>
-#include <php_driver_types.h>
+#include <php_scylladb_types.h>
 
 BEGIN_EXTERN_C()
-void php_driver_collection_add(php_driver_collection* collection, zval* object);
+void php_scylladb_collection_add(php_scylladb_collection* collection, zval* object);
 END_EXTERN_C()

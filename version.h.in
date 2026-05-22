@@ -1,7 +1,7 @@
 #pragma once
 
-#define PHP_DRIVER_NAME "cassandra"
-#define PHP_DRIVER_VERSION "@PHP_SCYLLADB_DRIVER_VERSION@"
+#define PHP_SCYLLADB_NAME "cassandra"
+#define PHP_SCYLLADB_VERSION "@PHP_SCYLLADB_DRIVER_VERSION@"
 
 #define PACKAGE_NAME "scylladb"
 #define PACKAGE_STRING "scylladb-@PHP_SCYLLADB_DRIVER_VERSION@"

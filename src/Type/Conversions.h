@@ -17,15 +17,15 @@
 
 #include <cassandra.h>
 #include <php.h>
-#include <php_driver_types.h>
+#include <php_scylladb_types.h>
 
-int php_driver_validate_object(zval* object, zval* ztype);
-int php_driver_value_type(char* type, CassValueType* value_type);
+int php_scylladb_validate_object(zval* object, zval* ztype);
+int php_scylladb_value_type(char* type, CassValueType* value_type);
 
-int php_driver_collection_from_set(php_driver_set* set, CassCollection** collection_ptr);
-int php_driver_collection_from_collection(php_driver_collection* coll, CassCollection** collection_ptr);
-int php_driver_collection_from_map(php_driver_map* map, CassCollection** collection_ptr);
+int php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** collection_ptr);
+int php_scylladb_collection_from_collection(php_scylladb_collection* coll, CassCollection** collection_ptr);
+int php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** collection_ptr);
 
-int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output);
+int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output);
 
-int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_type_value, CassUserType** output);
+int php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* user_type_value, CassUserType** output);

@@ -14,48 +14,41 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 
 BEGIN_EXTERN_C()
 #include "ServerSide_arginfo.h"
 
-zend_class_entry *php_driver_timestamp_gen_server_side_ce = NULL;
+extern zend_object_handlers php_scylladb_timestamp_generator_server_side_handlers;
 
-static zend_object_handlers php_driver_timestamp_gen_server_side_handlers;
-
-static void
-php_driver_timestamp_gen_server_side_free(zend_object *object)
+void
+php_scylladb_timestamp_generator_server_side_free(zend_object *object)
 {
-    php_driver_timestamp_gen *self = php_driver_timestamp_gen_object_fetch(object);
+    php_scylladb_timestamp_gen *self = php_scylladb_timestamp_gen_object_fetch(object);
 
     cass_timestamp_gen_free(self->gen);
 
     zend_object_std_dtor(&self->zendObject);
 }
 
-static zend_object *
-php_driver_timestamp_gen_server_side_new(zend_class_entry *ce)
+zend_object *
+php_scylladb_timestamp_generator_server_side_new(zend_class_entry *ce)
 {
-    php_driver_timestamp_gen *self =
-        (php_driver_timestamp_gen *)ecalloc(1, sizeof(php_driver_timestamp_gen) + zend_object_properties_size(ce));
+    php_scylladb_timestamp_gen *self =
+        (php_scylladb_timestamp_gen *)ecalloc(1, sizeof(php_scylladb_timestamp_gen) + zend_object_properties_size(ce));
 
     self->gen = cass_timestamp_gen_server_side_new();
 
     zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_driver_timestamp_gen_server_side_handlers;
+    self->zendObject.handlers = &php_scylladb_timestamp_generator_server_side_handlers;
 
     return &self->zendObject;
 }
 
-void php_driver_define_TimestampGeneratorServerSide()
+void php_scylladb_timestamp_generator_server_side_post_register(zend_class_entry *ce)
 {
-    php_driver_timestamp_gen_server_side_ce =
-        register_class_Cassandra_TimestampGenerator_ServerSide(php_driver_timestamp_gen_ce);
-    php_driver_timestamp_gen_server_side_ce->create_object = php_driver_timestamp_gen_server_side_new;
-
-    memcpy(&php_driver_timestamp_gen_server_side_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-    php_driver_timestamp_gen_server_side_handlers.offset   = XtOffsetOf(php_driver_timestamp_gen, zendObject);
-    php_driver_timestamp_gen_server_side_handlers.free_obj = php_driver_timestamp_gen_server_side_free;
+    (void)ce;
+    php_scylladb_timestamp_generator_server_side_handlers.offset = XtOffsetOf(php_scylladb_timestamp_gen, zendObject);
 }
 END_EXTERN_C()

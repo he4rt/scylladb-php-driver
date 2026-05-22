@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 #include "Type/TypeFactory.h"
 #include "src/Set.h"
+
 BEGIN_EXTERN_C()
 #include <zend_smart_str.h>
 #include "Set_arginfo.h"
 
-zend_class_entry *php_driver_type_set_ce = NULL;
+extern zend_object_handlers php_scylladb_type_set_handlers;
 
 ZEND_METHOD(Cassandra_Type_Set, __construct)
 {
-  zend_throw_exception_ex(php_driver_logic_exception_ce, 0 ,
-    "Instantiation of a " PHP_DRIVER_NAMESPACE "\\Type\\Set type is not supported."
+  zend_throw_exception_ex(php_scylladb_logic_exception_ce, 0 ,
+    "Instantiation of a " PHP_SCYLLADB_NAMESPACE "\\Type\\Set type is not supported."
   );
   return;
 }
@@ -43,28 +44,28 @@ ZEND_METHOD(Cassandra_Type_Set, name)
 
 ZEND_METHOD(Cassandra_Type_Set, valueType)
 {
-  php_driver_type *self;
+  php_scylladb_type *self;
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
   }
 
-  self = PHP_DRIVER_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(getThis());
   RETURN_ZVAL(&self->data.set.value_type, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_Type_Set, __toString)
 {
-  php_driver_type *self;
+  php_scylladb_type *self;
   smart_str string = {NULL,0};
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
   }
 
-  self = PHP_DRIVER_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(getThis());
 
-  php_driver_type_string(self, &string );
+  php_scylladb_type_string(self, &string );
   smart_str_0(&string);
 
   RETVAL_STRING(ZSTR_VAL(string.s));
@@ -73,7 +74,7 @@ ZEND_METHOD(Cassandra_Type_Set, __toString)
 
 ZEND_METHOD(Cassandra_Type_Set, create)
 {
-  php_driver_set *set;
+  php_scylladb_set *set;
   zval* args = NULL;
   int argc = 0, i;
 
@@ -81,14 +82,14 @@ ZEND_METHOD(Cassandra_Type_Set, create)
     Z_PARAM_VARIADIC('*', args, argc)
   ZEND_PARSE_PARAMETERS_END();
 
-  object_init_ex(return_value, php_driver_set_ce);
-  set = PHP_DRIVER_GET_SET(return_value);
+  object_init_ex(return_value, php_scylladb_set_ce);
+  set = PHP_SCYLLADB_GET_SET(return_value);
 
   ZVAL_COPY(&set->type, getThis());
 
   if (argc > 0) {
     for (i = 0; i < argc; i++) {
-      if (!php_driver_set_add(set, &args[i] )) {
+      if (!php_scylladb_set_add(set, &args[i] )) {
 
         return;
       }
@@ -99,10 +100,8 @@ ZEND_METHOD(Cassandra_Type_Set, create)
 }
 
 
-static zend_object_handlers php_driver_type_set_handlers;
-
-static HashTable *
-php_driver_type_set_gc(
+HashTable *
+php_scylladb_type_set_gc(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object,
 #else
@@ -116,8 +115,8 @@ php_driver_type_set_gc(
   return NULL;
 }
 
-static HashTable *
-php_driver_type_set_properties(
+HashTable *
+php_scylladb_type_set_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
@@ -126,9 +125,9 @@ php_driver_type_set_properties(
 )
 {
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_type *self  = php_driver_type_object_fetch(object);
+  php_scylladb_type *self  = php_scylladb_type_object_fetch(object);
 #else
-  php_driver_type *self  = PHP_DRIVER_GET_TYPE(object);
+  php_scylladb_type *self  = PHP_SCYLLADB_GET_TYPE(object);
 #endif
   if (object->properties) {
     zend_array_release(object->properties);
@@ -142,22 +141,22 @@ php_driver_type_set_properties(
   return props;
 }
 
-static int
-php_driver_type_set_compare(zval *obj1, zval *obj2 )
+int
+php_scylladb_type_set_compare(zval *obj1, zval *obj2 )
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
-  php_driver_type* type1 = PHP_DRIVER_GET_TYPE(obj1);
-  php_driver_type* type2 = PHP_DRIVER_GET_TYPE(obj2);
+  php_scylladb_type* type1 = PHP_SCYLLADB_GET_TYPE(obj1);
+  php_scylladb_type* type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
-  return php_driver_type_compare(type1, type2 );
+  return php_scylladb_type_compare(type1, type2 );
 }
 
-static void
-php_driver_type_set_free(zend_object *object )
+void
+php_scylladb_type_set_free(zend_object *object )
 {
-  php_driver_type *self = php_driver_type_object_fetch(object);
+  php_scylladb_type *self = php_scylladb_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
   zval_ptr_dtor(&self->data.set.value_type);
@@ -166,30 +165,21 @@ php_driver_type_set_free(zend_object *object )
 
 }
 
-static zend_object*
-php_driver_type_set_new(zend_class_entry *ce )
+zend_object*
+php_scylladb_type_set_new(zend_class_entry *ce )
 {
-  php_driver_type *self =
-      (php_driver_type *)ecalloc(1, sizeof(php_driver_type) + zend_object_properties_size(ce));
+  php_scylladb_type *self =
+      (php_scylladb_type *)ecalloc(1, sizeof(php_scylladb_type) + zend_object_properties_size(ce));
 
   self->type = CASS_VALUE_TYPE_SET;
   self->data_type = cass_data_type_new(self->type);
   ZVAL_UNDEF(&self->data.set.value_type);
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_type_set_handlers.offset = XtOffsetOf(php_driver_type, zendObject);
-  php_driver_type_set_handlers.free_obj = php_driver_type_set_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_type_set_handlers;
+  php_scylladb_type_set_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
+  php_scylladb_type_set_handlers.free_obj = php_scylladb_type_set_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_type_set_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_TypeSet()
-{
-  php_driver_type_set_ce = register_class_Cassandra_Type_Set(php_driver_type_ce);
-  memcpy(&php_driver_type_set_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_type_set_handlers.get_properties  = php_driver_type_set_properties;
-  php_driver_type_set_handlers.get_gc          = php_driver_type_set_gc;
-  php_driver_type_set_handlers.compare = php_driver_type_set_compare;
-  php_driver_type_set_ce->create_object = php_driver_type_set_new;
-}
 END_EXTERN_C()

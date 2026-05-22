@@ -14,23 +14,34 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-BEGIN_EXTERN_C()
-zend_class_entry* php_driver_custom_ce = NULL;
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 
-static zend_function_entry php_driver_custom_methods[] = {
+#include <Registry/Registry.h>
+
+BEGIN_EXTERN_C()
+zend_class_entry* php_scylladb_custom_ce = NULL;
+
+static zend_function_entry php_scylladb_custom_methods[] = {
   PHP_FE_END
 };
 
-void
-php_driver_define_Custom()
+static zend_class_entry *php_scylladb_register_custom(zend_class_entry *const *deps)
 {
   zend_class_entry ce;
 
-  INIT_CLASS_ENTRY(ce, PHP_DRIVER_NAMESPACE "\\Custom", php_driver_custom_methods);
-  php_driver_custom_ce = zend_register_internal_class(&ce);
-  zend_class_implements(php_driver_custom_ce, 1, php_driver_value_ce);
-  php_driver_custom_ce->ce_flags |= ZEND_ACC_ABSTRACT;
+  INIT_CLASS_ENTRY(ce, PHP_SCYLLADB_NAMESPACE "\\Custom", php_scylladb_custom_methods);
+  zend_class_entry *out = zend_register_internal_class(&ce);
+  zend_class_implements(out, 1, deps[0]);
+  out->ce_flags |= ZEND_ACC_ABSTRACT;
+  return out;
 }
 END_EXTERN_C()
+
+PHP_SCYLLADB_REGISTER_CLASS(
+    custom,
+    "Cassandra\\Custom",
+    &php_scylladb_custom_ce,
+    "Cassandra\\Value",
+    php_scylladb_register_custom
+)

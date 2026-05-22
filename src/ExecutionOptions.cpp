@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
-#include "php_driver_consistency.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
+#include "php_scylladb_consistency.h"
 #include "Numbers/NumberParser.h"
+
 BEGIN_EXTERN_C()
 #include "ExecutionOptions_arginfo.h"
 
-zend_class_entry *php_driver_execution_options_ce = NULL;
+extern zend_object_handlers php_scylladb_execution_options_handlers;
 
-static void init_execution_options(php_driver_execution_options *self)
+static void init_execution_options(php_scylladb_execution_options *self)
 {
     self->consistency = -1;
     self->serial_consistency = -1;
@@ -36,7 +37,7 @@ static void init_execution_options(php_driver_execution_options *self)
     ZVAL_UNDEF(&self->retry_policy);
 }
 
-static zend_result build_from_array(php_driver_execution_options *self, zval *options, int copy)
+static zend_result build_from_array(php_scylladb_execution_options *self, zval *options, int copy)
 {
     zval *consistency = NULL;
     zval *serial_consistency = NULL;
@@ -51,15 +52,15 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
     {
         if (Z_TYPE_P(consistency) != IS_LONG)
         {
-            throw_invalid_argument(consistency, "consistency", "one of " PHP_DRIVER_NAMESPACE "::CONSISTENCY_*");
+            throw_invalid_argument(consistency, "consistency", "one of " PHP_SCYLLADB_NAMESPACE "::CONSISTENCY_*");
             return FAILURE;
         }
 
         zend_long val = Z_LVAL_P(consistency);
 
-        if (php_driver_validate_consistency(val) == -1)
+        if (php_scylladb_validate_consistency(val) == -1)
         {
-            throw_invalid_argument(consistency, "consistency", "one of " PHP_DRIVER_NAMESPACE "::CONSISTENCY_*");
+            throw_invalid_argument(consistency, "consistency", "one of " PHP_SCYLLADB_NAMESPACE "::CONSISTENCY_*");
 
             return FAILURE;
         }
@@ -72,17 +73,17 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         if (Z_TYPE_P(serial_consistency) != IS_LONG)
         {
             throw_invalid_argument(serial_consistency, "serial_consistency",
-                                   "either " PHP_DRIVER_NAMESPACE
+                                   "either " PHP_SCYLLADB_NAMESPACE
                                    "::CONSISTENCY_SERIAL or Cassandra::CASS_CONSISTENCY_LOCAL_SERIAL");
             return FAILURE;
         }
 
         zend_long val = Z_LVAL_P(serial_consistency);
 
-        if (php_driver_validate_serial_consistency(val) == -1)
+        if (php_scylladb_validate_serial_consistency(val) == -1)
         {
             throw_invalid_argument(serial_consistency, "serial_consistency",
-                                   "either " PHP_DRIVER_NAMESPACE
+                                   "either " PHP_SCYLLADB_NAMESPACE
                                    "::CONSISTENCY_SERIAL or Cassandra::CASS_CONSISTENCY_LOCAL_SERIAL");
             return FAILURE;
         }
@@ -167,7 +168,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
             !instanceof_function(Z_OBJCE_P(retry_policy), php_scylladb_retry_policy_ce))
         {
             throw_invalid_argument(retry_policy, "retry_policy",
-                                   "an instance of " PHP_DRIVER_NAMESPACE "\\RetryPolicy");
+                                   "an instance of " PHP_SCYLLADB_NAMESPACE "\\RetryPolicy");
             return FAILURE;
         }
 
@@ -189,7 +190,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
         }
         else if (Z_TYPE_P(timestamp) == IS_STRING)
         {
-            if (!php_driver_parse_bigint(Z_STRVAL_P(timestamp),
+            if (!php_scylladb_parse_bigint(Z_STRVAL_P(timestamp),
                                          Z_STRLEN_P(timestamp), &self->timestamp))
             {
                 return FAILURE;
@@ -204,7 +205,7 @@ static zend_result build_from_array(php_driver_execution_options *self, zval *op
     return SUCCESS;
 }
 
-int php_driver_execution_options_build_local_from_array(php_driver_execution_options *self, zval *options)
+int php_scylladb_execution_options_build_local_from_array(php_scylladb_execution_options *self, zval *options)
 {
     init_execution_options(self);
     return build_from_array(self, options, 0);
@@ -213,13 +214,13 @@ int php_driver_execution_options_build_local_from_array(php_driver_execution_opt
 ZEND_METHOD(Cassandra_ExecutionOptions, __construct)
 {
     zval *options = NULL;
-    php_driver_execution_options *self = NULL;
+    php_scylladb_execution_options *self = NULL;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_DRIVER_GET_EXECUTION_OPTIONS(getThis());
+    self = PHP_SCYLLADB_GET_EXECUTION_OPTIONS(getThis());
 
     build_from_array(self, options, 1);
 }
@@ -227,13 +228,13 @@ ZEND_METHOD(Cassandra_ExecutionOptions, __construct)
 ZEND_METHOD(Cassandra_ExecutionOptions, __get)
 {
     zend_string *name;
-    php_driver_execution_options *self = NULL;
+    php_scylladb_execution_options *self = NULL;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STR(name)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_DRIVER_GET_EXECUTION_OPTIONS(getThis());
+    self = PHP_SCYLLADB_GET_EXECUTION_OPTIONS(getThis());
 
     if (zend_string_equals_literal(name, "consistency"))
     {
@@ -304,16 +305,14 @@ ZEND_METHOD(Cassandra_ExecutionOptions, __get)
     }
 }
 
-static zend_object_handlers php_driver_execution_options_handlers;
-
-static HashTable *php_driver_execution_options_properties(zend_object *object)
+HashTable *php_scylladb_execution_options_properties(zend_object *object)
 {
     HashTable *props = zend_std_get_properties(object);
 
     return props;
 }
 
-static int php_driver_execution_options_compare(zval *obj1, zval *obj2)
+int php_scylladb_execution_options_compare(zval *obj1, zval *obj2)
 {
     ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
@@ -322,9 +321,9 @@ static int php_driver_execution_options_compare(zval *obj1, zval *obj2)
     return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void php_driver_execution_options_free(zend_object *object)
+void php_scylladb_execution_options_free(zend_object *object)
 {
-    php_driver_execution_options *self = php_driver_execution_options_object_fetch(object);
+    php_scylladb_execution_options *self = php_scylladb_execution_options_object_fetch(object);
 
     if (self->paging_state_token)
     {
@@ -337,28 +336,15 @@ static void php_driver_execution_options_free(zend_object *object)
     zend_object_std_dtor(&self->zendObject);
 }
 
-static zend_object* php_driver_execution_options_new(zend_class_entry *ce)
+zend_object* php_scylladb_execution_options_new(zend_class_entry *ce)
 {
-    php_driver_execution_options *self = (php_driver_execution_options *)ecalloc(1, sizeof(php_driver_execution_options) + zend_object_properties_size(ce));
+    php_scylladb_execution_options *self = (php_scylladb_execution_options *)ecalloc(1, sizeof(php_scylladb_execution_options) + zend_object_properties_size(ce));
 
     init_execution_options(self);
 
     zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_driver_execution_options_handlers;
+    self->zendObject.handlers = &php_scylladb_execution_options_handlers;
     return &self->zendObject;
 }
 
 END_EXTERN_C()
-
-void php_driver_define_ExecutionOptions()
-{
-    php_driver_execution_options_ce = register_class_Cassandra_ExecutionOptions();
-    php_driver_execution_options_ce->create_object = php_driver_execution_options_new;
-
-    memcpy(&php_driver_execution_options_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-    php_driver_execution_options_handlers.offset = XtOffsetOf(php_driver_execution_options, zendObject);
-    php_driver_execution_options_handlers.free_obj = php_driver_execution_options_free;
-    php_driver_execution_options_handlers.get_properties = php_driver_execution_options_properties;
-    php_driver_execution_options_handlers.compare = php_driver_execution_options_compare;
-    php_driver_execution_options_handlers.clone_obj = NULL;
-}

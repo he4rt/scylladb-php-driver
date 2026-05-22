@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @scylladb-value-handlers
      */
     final class Timestamp implements Value {
         public function __construct(int $seconds = UNKNOWN, int $microseconds = UNKNOWN) {}

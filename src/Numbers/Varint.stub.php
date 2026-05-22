@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @scylladb-value-handlers
      */
     final class Varint implements Value, Numeric {
         public function __construct(int|float|string|Varint $value) {}

@@ -17,5 +17,5 @@
 #pragma once
 
 BEGIN_EXTERN_C()
-int php_driver_type_user_type_add(php_driver_type *type, const char *name, size_t name_length, zval *zsub_type);
+int php_scylladb_type_user_type_add(php_scylladb_type *type, const char *name, size_t name_length, zval *zsub_type);
 END_EXTERN_C()

@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra\Cluster {
     /**
      * @strict-properties
-     */
-    final class Builder
+ * @scylladb-struct php_scylladb_cluster_builder
+ */    final class Builder
     {
         public function withDefaultConsistency(int $consistency): static
         {

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @scylladb-value-handlers
      */
     final class Decimal implements Value, Numeric {
         public function __construct(int|float|string|Decimal $value) {}

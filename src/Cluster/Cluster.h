@@ -1,5 +1,4 @@
 #pragma once
 
-void php_driver_define_ClusterBuilder();
-void php_driver_define_Cluster();
-void php_driver_define_DefaultCluster();
+/* Cluster module class entries are now registered via the self-registering
+ * descriptor system in Registry/Registry.h — no public define_*() to call. */

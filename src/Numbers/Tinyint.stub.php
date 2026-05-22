@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @scylladb-value-handlers
      */
     final class Tinyint implements Value, Numeric {
         public function __construct(int|float|string|Tinyint $value) {}

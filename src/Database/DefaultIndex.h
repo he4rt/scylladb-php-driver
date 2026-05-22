@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "php_driver.h"
+#include "php_scylladb.h"
 BEGIN_EXTERN_C()
-zval php_driver_create_index(zval *schema, const CassIndexMeta *meta);
+zval php_scylladb_create_index(zval *schema, const CassIndexMeta *meta);
 END_EXTERN_C()

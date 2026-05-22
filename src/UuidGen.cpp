@@ -15,8 +15,8 @@
  */
 
 #include <cassandra.h>
-#include <php_driver.h>
-#include <php_driver_globals.h>
+#include <php_scylladb.h>
+#include <php_scylladb_globals.h>
 
 #include "UuidGen.h"
 
@@ -26,18 +26,18 @@ get_uuid_gen()
   /* Create a new uuid generator if our PID has changed. This prevents the same
    * UUIDs from being generated in forked processes.
    */
-  if (PHP_DRIVER_G(uuid_gen_pid) != getpid()) {
-    if (PHP_DRIVER_G(uuid_gen)) {
-      cass_uuid_gen_free(PHP_DRIVER_G(uuid_gen));
+  if (PHP_SCYLLADB_G(uuid_gen_pid) != getpid()) {
+    if (PHP_SCYLLADB_G(uuid_gen)) {
+      cass_uuid_gen_free(PHP_SCYLLADB_G(uuid_gen));
     }
-    PHP_DRIVER_G(uuid_gen)     = cass_uuid_gen_new();
-    PHP_DRIVER_G(uuid_gen_pid) = getpid();
+    PHP_SCYLLADB_G(uuid_gen)     = cass_uuid_gen_new();
+    PHP_SCYLLADB_G(uuid_gen_pid) = getpid();
   }
-  return PHP_DRIVER_G(uuid_gen);
+  return PHP_SCYLLADB_G(uuid_gen);
 }
 
 void
-php_driver_uuid_generate_random(CassUuid* out)
+php_scylladb_uuid_generate_random(CassUuid* out)
 {
   CassUuidGen* uuid_gen = get_uuid_gen();
   if (!uuid_gen)
@@ -46,7 +46,7 @@ php_driver_uuid_generate_random(CassUuid* out)
 }
 
 void
-php_driver_uuid_generate_time(CassUuid* out)
+php_scylladb_uuid_generate_time(CassUuid* out)
 {
   CassUuidGen* uuid_gen = get_uuid_gen();
   if (!uuid_gen)
@@ -55,7 +55,7 @@ php_driver_uuid_generate_time(CassUuid* out)
 }
 
 void
-php_driver_uuid_generate_from_time(long timestamp, CassUuid* out)
+php_scylladb_uuid_generate_from_time(long timestamp, CassUuid* out)
 {
   CassUuidGen* uuid_gen = get_uuid_gen();
   if (!uuid_gen)

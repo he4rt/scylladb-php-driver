@@ -17,8 +17,8 @@
 #include "DefaultFunction.h"
 #include "DefaultMaterializedView.h"
 #include "DefaultTable.h"
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 #include "Database/ResultDecoder.h"
 #include "Type/TypeFactory.h"
 
@@ -26,60 +26,59 @@ BEGIN_EXTERN_C()
 #include "Zend/zend_smart_str.h"
 #include "DefaultKeyspace_arginfo.h"
 
-zend_class_entry *php_driver_default_keyspace_ce = NULL;
-
+extern zend_object_handlers php_scylladb_default_keyspace_handlers;
 ZEND_METHOD(Cassandra_DefaultKeyspace, name) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   zval value;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
 
-  php_driver_get_keyspace_field(self->meta, "keyspace_name", &value);
+  php_scylladb_get_keyspace_field(self->meta, "keyspace_name", &value);
   RETURN_ZVAL(&value, 0, 1);
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, replicationClassName) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   zval value;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
 
-  php_driver_get_keyspace_field(self->meta, "strategy_class", &value);
+  php_scylladb_get_keyspace_field(self->meta, "strategy_class", &value);
   RETURN_ZVAL(&value, 0, 1);
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, replicationOptions) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   zval value;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
 
-  php_driver_get_keyspace_field(self->meta, "strategy_options", &value);
+  php_scylladb_get_keyspace_field(self->meta, "strategy_options", &value);
   RETURN_ZVAL(&value, 0, 1);
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, hasDurableWrites) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   zval value;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
 
-  php_driver_get_keyspace_field(self->meta, "durable_writes", &value);
+  php_scylladb_get_keyspace_field(self->meta, "durable_writes", &value);
   RETURN_ZVAL(&value, 0, 1);
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, table) {
   char *name;
   size_t name_len;
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   zval ztable;
   const CassTableMeta *meta;
 
@@ -87,13 +86,13 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, table) {
     Z_PARAM_STRING(name, name_len)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   meta = cass_keyspace_meta_table_by_name_n(self->meta, name, name_len);
   if (meta == NULL) {
     RETURN_FALSE;
   }
 
-  ztable = php_driver_create_table(&self->schema, meta);
+  ztable = php_scylladb_create_table(&self->schema, meta);
   if (Z_ISUNDEF(ztable)) {
     return;
   }
@@ -102,29 +101,29 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, table) {
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, tables) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   CassIterator *iterator;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   iterator = cass_iterator_tables_from_keyspace_meta(self->meta);
 
   array_init(return_value);
   while (cass_iterator_next(iterator)) {
     const CassTableMeta *meta;
     zval ztable;
-    php_driver_table *table;
+    php_scylladb_table *table;
 
     meta = cass_iterator_get_table_meta(iterator);
-    ztable = php_driver_create_table(&self->schema, meta);
+    ztable = php_scylladb_create_table(&self->schema, meta);
 
     if (Z_ISUNDEF(ztable)) {
       zval_ptr_dtor(return_value);
       cass_iterator_free(iterator);
       return;
     } else {
-      table = PHP_DRIVER_GET_TABLE(&ztable);
+      table = PHP_SCYLLADB_GET_TABLE(&ztable);
 
       if (Z_TYPE(table->name) == IS_STRING) {
         add_assoc_zval_ex(return_value, Z_STRVAL(table->name), Z_STRLEN(table->name), &ztable);
@@ -140,7 +139,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, tables) {
 ZEND_METHOD(Cassandra_DefaultKeyspace, userType) {
   char *name;
   size_t name_len;
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   zval ztype;
   const CassDataType *user_type;
 
@@ -148,24 +147,24 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, userType) {
     Z_PARAM_STRING(name, name_len)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   user_type = cass_keyspace_meta_user_type_by_name_n(self->meta, name, name_len);
 
   if (user_type == NULL) {
     return;
   }
 
-  ztype = php_driver_type_from_data_type(user_type);
+  ztype = php_scylladb_type_from_data_type(user_type);
   RETURN_ZVAL(&ztype, 0, 1);
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, userTypes) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   CassIterator *iterator;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   iterator = cass_iterator_user_types_from_keyspace_meta(self->meta);
 
   array_init(return_value);
@@ -176,7 +175,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, userTypes) {
     size_t type_name_len;
 
     user_type = cass_iterator_get_user_type(iterator);
-    ztype = php_driver_type_from_data_type(user_type);
+    ztype = php_scylladb_type_from_data_type(user_type);
 
     cass_data_type_type_name(user_type, &type_name, &type_name_len);
     add_assoc_zval_ex(return_value, type_name, type_name_len, &ztype);
@@ -186,7 +185,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, userTypes) {
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, materializedView) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   char *name;
   size_t name_len;
   zval zview;
@@ -196,13 +195,13 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, materializedView) {
     Z_PARAM_STRING(name, name_len)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   meta = cass_keyspace_meta_materialized_view_by_name_n(self->meta, name, name_len);
   if (meta == NULL) {
     RETURN_FALSE;
   }
 
-  zview = php_driver_create_materialized_view(&self->schema, meta);
+  zview = php_scylladb_create_materialized_view(&self->schema, meta);
   if (Z_ISUNDEF(zview)) {
     return;
   }
@@ -211,29 +210,29 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, materializedView) {
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, materializedViews) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   CassIterator *iterator;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   iterator = cass_iterator_materialized_views_from_keyspace_meta(self->meta);
 
   array_init(return_value);
   while (cass_iterator_next(iterator)) {
     const CassMaterializedViewMeta *meta;
     zval zview;
-    php_driver_materialized_view *view;
+    php_scylladb_materialized_view *view;
 
     meta = cass_iterator_get_materialized_view_meta(iterator);
-    zview = php_driver_create_materialized_view(&self->schema, meta);
+    zview = php_scylladb_create_materialized_view(&self->schema, meta);
 
     if (Z_ISUNDEF(zview)) {
       zval_ptr_dtor(return_value);
       cass_iterator_free(iterator);
       return;
     } else {
-      view = PHP_DRIVER_GET_MATERIALIZED_VIEW(&zview);
+      view = PHP_SCYLLADB_GET_MATERIALIZED_VIEW(&zview);
 
       if (Z_TYPE(view->name) == IS_STRING) {
         add_assoc_zval_ex(return_value, Z_STRVAL(view->name), Z_STRLEN(view->name), &zview);
@@ -246,7 +245,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, materializedViews) {
   cass_iterator_free(iterator);
 }
 
-int php_driver_arguments_string(zval* args, int argc, smart_str *arguments) {
+int php_scylladb_arguments_string(zval* args, int argc, smart_str *arguments) {
   int i;
 
   for (i = 0; i < argc; ++i) {
@@ -259,13 +258,13 @@ int php_driver_arguments_string(zval* args, int argc, smart_str *arguments) {
     if (Z_TYPE_P(argument_type) == IS_STRING) {
       smart_str_appendl_ex(arguments, Z_STRVAL_P(argument_type), Z_STRLEN_P(argument_type), 0);
     } else if (Z_TYPE_P(argument_type) == IS_OBJECT &&
-               instanceof_function(Z_OBJCE_P(argument_type), php_driver_type_ce)) {
-      php_driver_type *type = PHP_DRIVER_GET_TYPE(argument_type);
-      php_driver_type_string(type, arguments);
+               instanceof_function(Z_OBJCE_P(argument_type), php_scylladb_type_ce)) {
+      php_scylladb_type *type = PHP_SCYLLADB_GET_TYPE(argument_type);
+      php_scylladb_type_string(type, arguments);
     } else {
       zend_throw_exception_ex(
-          php_driver_invalid_argument_exception_ce, 0,
-          "Argument types must be either a string or an instance of " PHP_DRIVER_NAMESPACE
+          php_scylladb_invalid_argument_exception_ce, 0,
+          "Argument types must be either a string or an instance of " PHP_SCYLLADB_NAMESPACE
           "\\Type");
       return FAILURE;
     }
@@ -277,7 +276,7 @@ int php_driver_arguments_string(zval* args, int argc, smart_str *arguments) {
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, function) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   char *name;
   size_t name_len;
   zval* args = NULL;
@@ -291,10 +290,10 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, function) {
     Z_PARAM_VARIADIC('*', args, argc)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
 
   if (argc > 0) {
-    if (php_driver_arguments_string(args, argc, &arguments) == FAILURE) {
+    if (php_scylladb_arguments_string(args, argc, &arguments) == FAILURE) {
 
       return;
     }
@@ -304,7 +303,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, function) {
                                                (arguments.s ? arguments.s->val : NULL),
                                                (arguments.s ? arguments.s->len : 0));
   if (meta) {
-    zval zfunction = php_driver_create_function(&self->schema, meta);
+    zval zfunction = php_scylladb_create_function(&self->schema, meta);
     RETVAL_ZVAL(&zfunction, 1, 1);
   } else {
     RETVAL_FALSE;
@@ -315,21 +314,21 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, function) {
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, functions) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   CassIterator *iterator;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   iterator = cass_iterator_functions_from_keyspace_meta(self->meta);
 
   array_init(return_value);
   while (cass_iterator_next(iterator)) {
     const CassFunctionMeta *meta = cass_iterator_get_function_meta(iterator);
-    zval zfunction = php_driver_create_function(&self->schema, meta);
+    zval zfunction = php_scylladb_create_function(&self->schema, meta);
 
     if (!Z_ISUNDEF(zfunction)) {
-      php_driver_function *function = PHP_DRIVER_GET_FUNCTION(&zfunction);
+      php_scylladb_function *function = PHP_SCYLLADB_GET_FUNCTION(&zfunction);
 
       if (Z_TYPE(function->signature) == IS_STRING) {
         add_assoc_zval_ex(return_value, Z_STRVAL(function->signature), Z_STRLEN(function->signature), &zfunction);
@@ -342,19 +341,18 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, functions) {
   cass_iterator_free(iterator);
 }
 
-static zval php_driver_create_aggregate(zval *schema,
+static zval php_scylladb_create_aggregate(zval *schema,
                                                 const CassAggregateMeta *meta) {
   zval result;
-  php_driver_aggregate *aggregate;
+  php_scylladb_aggregate *aggregate;
   const char *full_name;
   size_t full_name_length;
 
   ZVAL_UNDEF(&result);
 
+  object_init_ex(&result, php_scylladb_default_aggregate_ce);
 
-  object_init_ex(&result, php_driver_default_aggregate_ce);
-
-  aggregate = PHP_DRIVER_GET_AGGREGATE(&result);
+  aggregate = PHP_SCYLLADB_GET_AGGREGATE(&result);
   ZVAL_COPY(&aggregate->schema, schema);
   aggregate->meta = meta;
 
@@ -366,7 +364,7 @@ static zval php_driver_create_aggregate(zval *schema,
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, aggregate) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   char *name;
   size_t name_len;
   zval *args;
@@ -381,10 +379,10 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, aggregate) {
     Z_PARAM_VARIADIC('*', args, argc)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
 
   if (argc > 0) {
-    if (php_driver_arguments_string(args, argc, &arguments) == FAILURE) {
+    if (php_scylladb_arguments_string(args, argc, &arguments) == FAILURE) {
 
       return;
     }
@@ -394,7 +392,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, aggregate) {
                                                 (arguments.s ? arguments.s->val : NULL),
                                                 (arguments.s ? arguments.s->len : 0));
   if (meta) {
-    zval zaggregate = php_driver_create_aggregate(&self->schema, meta);
+    zval zaggregate = php_scylladb_create_aggregate(&self->schema, meta);
     RETVAL_ZVAL(&zaggregate, 1, 1);
   } else {
     RETVAL_FALSE;
@@ -405,21 +403,21 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, aggregate) {
 }
 
 ZEND_METHOD(Cassandra_DefaultKeyspace, aggregates) {
-  php_driver_keyspace *self;
+  php_scylladb_keyspace *self;
   CassIterator *iterator;
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  self = PHP_DRIVER_GET_KEYSPACE(getThis());
+  self = PHP_SCYLLADB_GET_KEYSPACE(getThis());
   iterator = cass_iterator_aggregates_from_keyspace_meta(self->meta);
 
   array_init(return_value);
   while (cass_iterator_next(iterator)) {
     const CassAggregateMeta *meta = cass_iterator_get_aggregate_meta(iterator);
-    zval zaggregate = php_driver_create_aggregate(&self->schema, meta);
+    zval zaggregate = php_scylladb_create_aggregate(&self->schema, meta);
 
     if (!Z_ISUNDEF(zaggregate)) {
-      php_driver_aggregate *aggregate = PHP_DRIVER_GET_AGGREGATE(&zaggregate);
+      php_scylladb_aggregate *aggregate = PHP_SCYLLADB_GET_AGGREGATE(&zaggregate);
 
       if (Z_TYPE(aggregate->signature) == IS_STRING) {
         add_assoc_zval_ex(return_value, Z_STRVAL(aggregate->signature), Z_STRLEN(aggregate->signature), &zaggregate);
@@ -432,9 +430,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, aggregates) {
   cass_iterator_free(iterator);
 }
 
-static zend_object_handlers php_driver_default_keyspace_handlers;
-
-static HashTable *php_driver_type_default_keyspace_gc(
+HashTable *php_scylladb_default_keyspace_gc(
 #if PHP_MAJOR_VERSION >= 8
     zend_object *object,
 #else
@@ -446,7 +442,7 @@ static HashTable *php_driver_type_default_keyspace_gc(
   return NULL;
 }
 
-static HashTable *php_driver_default_keyspace_properties(
+HashTable *php_scylladb_default_keyspace_properties(
 #if PHP_MAJOR_VERSION >= 8
     zend_object *object
 #else
@@ -458,7 +454,7 @@ static HashTable *php_driver_default_keyspace_properties(
   return props;
 }
 
-static int php_driver_default_keyspace_compare(zval *obj1, zval *obj2) {
+int php_scylladb_default_keyspace_compare(zval *obj1, zval *obj2) {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
@@ -467,8 +463,8 @@ static int php_driver_default_keyspace_compare(zval *obj1, zval *obj2) {
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void php_driver_default_keyspace_free(zend_object *object) {
-  php_driver_keyspace *self = php_driver_keyspace_object_fetch(object);
+void php_scylladb_default_keyspace_free(zend_object *object) {
+  php_scylladb_keyspace *self = php_scylladb_keyspace_object_fetch(object);
 
   if (!Z_ISUNDEF(self->schema)) {
     zval_ptr_dtor(&self->schema);
@@ -480,34 +476,18 @@ static void php_driver_default_keyspace_free(zend_object *object) {
 
 }
 
-static zend_object* php_driver_default_keyspace_new(zend_class_entry *ce) {
-  php_driver_keyspace *self = (php_driver_keyspace *)ecalloc(1, sizeof(php_driver_keyspace) + zend_object_properties_size(ce));
+zend_object* php_scylladb_default_keyspace_new(zend_class_entry *ce) {
+  php_scylladb_keyspace *self = (php_scylladb_keyspace *)ecalloc(1, sizeof(php_scylladb_keyspace) + zend_object_properties_size(ce));
 
   self->meta = NULL;
   ZVAL_UNDEF(&self->schema);
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_default_keyspace_handlers.offset = XtOffsetOf(php_driver_keyspace, zendObject);
-  php_driver_default_keyspace_handlers.free_obj = php_driver_default_keyspace_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_keyspace_handlers;
+  php_scylladb_default_keyspace_handlers.offset = XtOffsetOf(php_scylladb_keyspace, zendObject);
+  php_scylladb_default_keyspace_handlers.free_obj = php_scylladb_default_keyspace_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_keyspace_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_DefaultKeyspace() {
-  php_driver_default_keyspace_ce = register_class_Cassandra_DefaultKeyspace(php_driver_keyspace_ce);
-  php_driver_default_keyspace_ce->create_object = php_driver_default_keyspace_new;
-
-  memcpy(&php_driver_default_keyspace_handlers, zend_get_std_object_handlers(),
-         sizeof(zend_object_handlers));
-  php_driver_default_keyspace_handlers.get_properties = php_driver_default_keyspace_properties;
-#if PHP_VERSION_ID >= 50400
-  php_driver_default_keyspace_handlers.get_gc = php_driver_type_default_keyspace_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_default_keyspace_handlers.compare = php_driver_default_keyspace_compare;
-#else
-  php_driver_default_keyspace_handlers.compare_objects = php_driver_default_keyspace_compare;
-#endif
-  php_driver_default_keyspace_handlers.clone_obj = NULL;
-}
 END_EXTERN_C()
+

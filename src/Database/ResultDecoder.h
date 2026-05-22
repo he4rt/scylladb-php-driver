@@ -16,12 +16,12 @@
 
 #pragma once
 #include <cassandra.h>
-#include <php_driver_types.h>
+#include <php_scylladb_types.h>
 
-int php_driver_value(const CassValue* value, const CassDataType* data_type, zval* out);
+int php_scylladb_value(const CassValue* value, const CassDataType* data_type, zval* out);
 
-int php_driver_get_keyspace_field(const CassKeyspaceMeta* metadata, const char* field_name, zval* out);
-int php_driver_get_table_field(const CassTableMeta* metadata, const char* field_name, zval* out);
-int php_driver_get_column_field(const CassColumnMeta* metadata, const char* field_name, zval* out);
+int php_scylladb_get_keyspace_field(const CassKeyspaceMeta* metadata, const char* field_name, zval* out);
+int php_scylladb_get_table_field(const CassTableMeta* metadata, const char* field_name, zval* out);
+int php_scylladb_get_column_field(const CassColumnMeta* metadata, const char* field_name, zval* out);
 
-int php_driver_get_result(const CassResult* result, zval* out);
+int php_scylladb_get_result(const CassResult* result, zval* out);

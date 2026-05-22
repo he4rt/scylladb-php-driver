@@ -21,8 +21,8 @@
 #include <ZendCPP/ZendCPP.hpp>
 
 #include "DateTime/Date.h"
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <sys/time.h>
@@ -50,13 +50,15 @@ static cass_int64_t php_scylladb_time_now_ns() {
   return cass_time_from_epoch(seconds) + nanoseconds;
 }
 
+
 BEGIN_EXTERN_C()
 #include <ext/date/lib/timelib.h>
 #include <ext/date/php_date.h>
 
 #include "Time_arginfo.h"
 
-zend_class_entry *php_scylladb_time_ce = nullptr;
+extern php_scylladb_value_handlers php_scylladb_time_handlers;
+
 
 static int to_string(zval *result, php_scylladb_time *time) {
   char *string;
@@ -87,7 +89,7 @@ PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *sel
   }
 
   if (nanosecondsStr != nullptr) {
-    if (php_driver_parse_bigint(ZSTR_VAL(nanosecondsStr), ZSTR_LEN(nanosecondsStr), &self->time)) {
+    if (php_scylladb_parse_bigint(ZSTR_VAL(nanosecondsStr), ZSTR_LEN(nanosecondsStr), &self->time)) {
       return SUCCESS;
     }
 
@@ -124,14 +126,14 @@ ZEND_METHOD(Cassandra_Time, __construct) {
   auto self = ZendCPP::ObjectFetch<php_scylladb_time>(getThis());
 
   if (php_scylladb_time_initialize(self, nanosecondsStr, nanoseconds) == FAILURE) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                             "Cannot create Cassandra\\Time from invalid value");
     RETURN_THROWS();
   }
 }
 
 ZEND_METHOD(Cassandra_Time, type) {
-  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIME);
+  zval type = php_scylladb_type_scalar(CASS_VALUE_TYPE_TIME);
   RETURN_ZVAL(&type, 1, 1);
 }
 
@@ -152,7 +154,7 @@ ZEND_METHOD(Cassandra_Time, fromDateTime) {
   zval getTimeStampResult;
   if (zend_call_method_with_0_params(Z_OBJ_P(datetime), Z_OBJCE_P(datetime), nullptr,
                                      "getTimestamp", &getTimeStampResult) == nullptr) {
-    zend_throw_exception(php_driver_runtime_exception_ce, "Failed to get timestamp from DateTime",
+    zend_throw_exception(php_scylladb_runtime_exception_ce, "Failed to get timestamp from DateTime",
                          0);
     RETURN_THROWS();
   }
@@ -161,7 +163,7 @@ ZEND_METHOD(Cassandra_Time, fromDateTime) {
 
   if (self == nullptr) {
     zval_ptr_dtor(&getTimeStampResult);
-    zend_throw_exception(php_driver_runtime_exception_ce, "Failed to create Cassandra\\Time", 0);
+    zend_throw_exception(php_scylladb_runtime_exception_ce, "Failed to create Cassandra\\Time", 0);
     RETURN_THROWS();
   }
 
@@ -179,22 +181,21 @@ ZEND_METHOD(Cassandra_Time, __toString) {
   to_string(return_value, self);
 }
 
-static php_driver_value_handlers php_driver_time_handlers;
 
-static HashTable *php_driver_time_gc(zend_object *object, zval **table, int *n) {
+HashTable *php_scylladb_time_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
   return NULL;
 }
 
-static HashTable *php_driver_time_properties(zend_object *object) {
+HashTable *php_scylladb_time_properties(zend_object *object) {
   if (object->properties) {
     zend_array_release(object->properties);
   }
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
-  auto type = php_driver_type_scalar(CASS_VALUE_TYPE_TIME);
+  auto type = php_scylladb_type_scalar(CASS_VALUE_TYPE_TIME);
   zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
   zval nanoseconds;
@@ -204,7 +205,7 @@ static HashTable *php_driver_time_properties(zend_object *object) {
   return props;
 }
 
-static int php_driver_time_compare(zval *obj1, zval *obj2) {
+int php_scylladb_time_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
@@ -212,29 +213,25 @@ static int php_driver_time_compare(zval *obj1, zval *obj2) {
   auto time1 = ZendCPP::ObjectFetch<php_scylladb_time>(obj1);
   auto time2 = ZendCPP::ObjectFetch<php_scylladb_time>(obj2);
 
-  return PHP_DRIVER_COMPARE(time1->time, time2->time);
+  return PHP_SCYLLADB_COMPARE(time1->time, time2->time);
 }
 
-static unsigned php_driver_time_hash_value(zval *obj) {
+unsigned php_scylladb_time_hash_value(zval *obj) {
   auto self = ZendCPP::ObjectFetch<php_scylladb_time>(obj);
-  return php_driver_bigint_hash(self->time);
+  return php_scylladb_bigint_hash(self->time);
 }
 
-static zend_object *php_driver_time_new(zend_class_entry *ce) {
-  auto *self = ZendCPP::Allocate<php_scylladb_time>(ce, &php_driver_time_handlers);
+zend_object *php_scylladb_time_new(zend_class_entry *ce) {
+  auto *self = ZendCPP::Allocate<php_scylladb_time>(ce, &php_scylladb_time_handlers);
   self->time = -1;
   return &self->zendObject;
 }
 
-void php_driver_define_Time() {
-  php_scylladb_time_ce = register_class_Cassandra_Time(php_driver_value_ce);
-  php_scylladb_time_ce->create_object = php_driver_time_new;
 
-  ZendCPP::InitHandlers<php_scylladb_time>(&php_driver_time_handlers);
-  php_driver_time_handlers.std.get_properties = php_driver_time_properties;
-  php_driver_time_handlers.std.get_gc = php_driver_time_gc;
-  php_driver_time_handlers.std.compare = php_driver_time_compare;
-  php_driver_time_handlers.hash_value = php_driver_time_hash_value;
+
+void php_scylladb_time_post_register(zend_class_entry *ce)
+{
+    (void)ce;
+    php_scylladb_time_handlers.std.offset = XtOffsetOf(php_scylladb_time, zendObject);
 }
-
 END_EXTERN_C()

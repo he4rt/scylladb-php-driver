@@ -14,31 +14,32 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 #include "FutureUtil.h"
 #include "Database/ResultDecoder.h"
+
 BEGIN_EXTERN_C()
 #include "FutureRows_arginfo.h"
 
-zend_class_entry *php_driver_future_rows_ce = NULL;
+extern zend_object_handlers php_scylladb_future_rows_handlers;
 
-int php_driver_future_rows_get_result(php_driver_future_rows *future_rows, zval *timeout)
+int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, zval *timeout)
 {
   if (!future_rows->result) {
     const CassResult *result = NULL;
 
-    if (php_driver_future_wait_timed(future_rows->future, timeout) == FAILURE) {
+    if (php_scylladb_future_wait_timed(future_rows->future, timeout) == FAILURE) {
       return FAILURE;
     }
 
-    if (php_driver_future_is_error(future_rows->future) == FAILURE) {
+    if (php_scylladb_future_is_error(future_rows->future) == FAILURE) {
       return FAILURE;
     }
 
     result = cass_future_get_result(future_rows->future);
     if (!result) {
-      zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                               "Future doesn't contain a result.");
       return FAILURE;
     }
@@ -52,28 +53,28 @@ int php_driver_future_rows_get_result(php_driver_future_rows *future_rows, zval 
 ZEND_METHOD(Cassandra_FutureRows, get)
 {
   zval *timeout = NULL;
-  php_driver_rows *rows = NULL;
+  php_scylladb_rows *rows = NULL;
 
-  php_driver_future_rows *self = PHP_DRIVER_GET_FUTURE_ROWS(getThis());
+  php_scylladb_future_rows *self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
 
   ZEND_PARSE_PARAMETERS_START(0, 1)
     Z_PARAM_OPTIONAL
     Z_PARAM_ZVAL(timeout)
   ZEND_PARSE_PARAMETERS_END();
 
-  if (php_driver_future_rows_get_result(self, timeout) == FAILURE) {
+  if (php_scylladb_future_rows_get_result(self, timeout) == FAILURE) {
     return;
   }
 
   if (Z_ISUNDEF(self->rows)) {
-    if (php_driver_get_result(self->result, &self->rows) == FAILURE) {
+    if (php_scylladb_get_result(self->result, &self->rows) == FAILURE) {
       zval_ptr_dtor(&self->rows);
       return;
     }
   }
 
-  object_init_ex(return_value, php_driver_rows_ce);
-  rows = PHP_DRIVER_GET_ROWS(return_value);
+  object_init_ex(return_value, php_scylladb_rows_ce);
+  rows = PHP_SCYLLADB_GET_ROWS(return_value);
 
   ZVAL_COPY(&rows->rows, &self->rows);
 
@@ -88,16 +89,14 @@ ZEND_METHOD(Cassandra_FutureRows, get)
   }
 }
 
-static zend_object_handlers php_driver_future_rows_handlers;
-
-static HashTable *php_driver_future_rows_properties(zend_object *object)
+HashTable *php_scylladb_future_rows_properties(zend_object *object)
 {
   HashTable *props = zend_std_get_properties(object);
 
   return props;
 }
 
-static int php_driver_future_rows_compare(zval *obj1, zval *obj2)
+int php_scylladb_future_rows_compare(zval *obj1, zval *obj2)
 {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
@@ -106,9 +105,9 @@ static int php_driver_future_rows_compare(zval *obj1, zval *obj2)
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void php_driver_future_rows_free(zend_object *object)
+void php_scylladb_future_rows_free(zend_object *object)
 {
-  php_driver_future_rows *self = php_driver_future_rows_object_fetch(object);
+  php_scylladb_future_rows *self = php_scylladb_future_rows_object_fetch(object);
 
   zval_ptr_dtor(&self->rows);
 
@@ -132,9 +131,9 @@ static void php_driver_future_rows_free(zend_object *object)
   zend_object_std_dtor(&self->zendObject);
 }
 
-static zend_object *php_driver_future_rows_new(zend_class_entry *ce)
+zend_object *php_scylladb_future_rows_new(zend_class_entry *ce)
 {
-  php_driver_future_rows *self = (php_driver_future_rows *)ecalloc(1, sizeof(php_driver_future_rows) + zend_object_properties_size(ce));
+  php_scylladb_future_rows *self = (php_scylladb_future_rows *)ecalloc(1, sizeof(php_scylladb_future_rows) + zend_object_properties_size(ce));
 
   self->future    = NULL;
   self->statement = NULL;
@@ -143,21 +142,8 @@ static zend_object *php_driver_future_rows_new(zend_class_entry *ce)
   ZVAL_UNDEF(&self->rows);
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_future_rows_handlers.offset = XtOffsetOf(php_driver_future_rows, zendObject);
-  php_driver_future_rows_handlers.free_obj = php_driver_future_rows_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_future_rows_handlers;
+  self->zendObject.handlers = &php_scylladb_future_rows_handlers;
   return &self->zendObject;
 }
 
 END_EXTERN_C()
-
-void php_driver_define_FutureRows()
-{
-  php_driver_future_rows_ce = register_class_Cassandra_FutureRows(php_driver_future_ce);
-  php_driver_future_rows_ce->create_object = php_driver_future_rows_new;
-
-  memcpy(&php_driver_future_rows_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_future_rows_handlers.get_properties = php_driver_future_rows_properties;
-  php_driver_future_rows_handlers.compare = php_driver_future_rows_compare;
-  php_driver_future_rows_handlers.clone_obj = NULL;
-}

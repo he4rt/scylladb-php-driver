@@ -38,14 +38,14 @@ static zend_always_inline zend_class_entry *zend_register_internal_class_with_fl
 #endif
 
 
-#define PHP_DRIVER_NAMESPACE "Cassandra"
+#define PHP_SCYLLADB_NAMESPACE "Cassandra"
 
-#define PHP_DRIVER_NAMESPACE_ZEND_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null)                               \
+#define PHP_SCYLLADB_NAMESPACE_ZEND_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null)                               \
     ZEND_ARG_OBJ_INFO(pass_by_ref, name, Cassandra\\classname, allow_null)
 
-#define PHP_DRIVER_CORE_METHOD(name) PHP_METHOD(Cassandra, name)
+#define PHP_SCYLLADB_CORE_METHOD(name) PHP_METHOD(Cassandra, name)
 
-#define PHP_DRIVER_CORE_ME(name, arg_info, flags) PHP_ME(Cassandra, name, arg_info, flags)
+#define PHP_SCYLLADB_CORE_ME(name, arg_info, flags) PHP_ME(Cassandra, name, arg_info, flags)
 
 #define SAFE_STR(a) ((a) ? a : "")
 
@@ -56,9 +56,9 @@ static zend_always_inline zend_class_entry *zend_register_internal_class_with_fl
 #endif
 
 #ifdef ZTS
-#define PHP_DRIVER_G(v) TSRMG(php_driver_globals_id, zend_php_driver_globals *, v)
+#define PHP_SCYLLADB_G(v) TSRMG(php_scylladb_globals_id, zend_php_scylladb_globals *, v)
 #else
-#define PHP_DRIVER_G(v) (php_driver_globals.v)
+#define PHP_SCYLLADB_G(v) (php_scylladb_globals.v)
 #endif
 
 #define CPP_DRIVER_VERSION(major, minor, patch) (((major) << 16) + ((minor) << 8) + (patch))
@@ -67,14 +67,14 @@ static zend_always_inline zend_class_entry *zend_register_internal_class_with_fl
 
 typedef unsigned long ulong;
 
-    extern zend_module_entry php_driver_module_entry;
-#define phpext_cassandra_ptr &php_driver_module_entry
+    extern zend_module_entry php_scylladb_module_entry;
+#define phpext_cassandra_ptr &php_scylladb_module_entry
 
-    PHP_MINIT_FUNCTION(php_driver);
-    PHP_MSHUTDOWN_FUNCTION(php_driver);
-    PHP_RINIT_FUNCTION(php_driver);
-    PHP_RSHUTDOWN_FUNCTION(php_driver);
-    PHP_MINFO_FUNCTION(php_driver);
+    PHP_MINIT_FUNCTION(php_scylladb);
+    PHP_MSHUTDOWN_FUNCTION(php_scylladb);
+    PHP_RINIT_FUNCTION(php_scylladb);
+    PHP_RSHUTDOWN_FUNCTION(php_scylladb);
+    PHP_MINFO_FUNCTION(php_scylladb);
     PHP_INI_MH(OnUpdateLogLevel);
     PHP_INI_MH(OnUpdateLog);
 
@@ -110,10 +110,10 @@ typedef unsigned long ulong;
 
 #define ASSERT_SUCCESS_VALUE(rc, value) ASSERT_SUCCESS_BLOCK(rc, return value;)
 
-#define PHP_DRIVER_DEFAULT_CONSISTENCY CASS_CONSISTENCY_LOCAL_ONE
+#define PHP_SCYLLADB_DEFAULT_CONSISTENCY CASS_CONSISTENCY_LOCAL_ONE
 
-#define PHP_DRIVER_DEFAULT_LOG PHP_DRIVER_NAME ".log"
-#define PHP_DRIVER_DEFAULT_LOG_LEVEL "ERROR"
+#define PHP_SCYLLADB_DEFAULT_LOG PHP_SCYLLADB_NAME ".log"
+#define PHP_SCYLLADB_DEFAULT_LOG_LEVEL "ERROR"
 
 
 #ifdef __cplusplus

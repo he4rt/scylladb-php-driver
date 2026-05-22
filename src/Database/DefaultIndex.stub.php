@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class DefaultIndex implements \Cassandra\Index {
+ * @scylladb-struct php_scylladb_index
+ */    final class DefaultIndex implements \Cassandra\Index {
         public function name(): string {}
 
         public function kind(): string {}

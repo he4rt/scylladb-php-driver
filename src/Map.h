@@ -17,8 +17,8 @@
 #pragma once
 
 #include "main/php.h"
-#include "php_driver_types.h"
+#include "php_scylladb_types.h"
 
 BEGIN_EXTERN_C()
-int php_driver_map_set(php_driver_map* map, zval* zkey, zval* zvalue);
+int php_scylladb_map_set(php_scylladb_map* map, zval* zkey, zval* zvalue);
 END_EXTERN_C()

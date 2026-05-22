@@ -1,4 +1,4 @@
-php_driver_module(src ext_scylladb::src)
+php_scylladb_module(src ext_scylladb::src)
 
 target_sources(src PRIVATE
         BatchStatement.cpp
@@ -7,7 +7,6 @@ target_sources(src PRIVATE
         Core.cpp
         Custom.cpp
         ExecutionOptions.cpp
-        Future.cpp
         FuturePreparedStatement.cpp
         FutureRows.cpp
         FutureSession.cpp
@@ -20,20 +19,16 @@ target_sources(src PRIVATE
         UuidGen.cpp
         DefaultSession.cpp
         PreparedStatement.cpp
-        Session.cpp
         Set.cpp
         SimpleStatement.cpp
-        Statement.cpp
         Tuple.cpp
         Type.cpp
         UserTypeValue.cpp
         Uuid.cpp
-        UuidInterface.cpp
-        Value.cpp
 )
 
 
-php_driver_generate_arginfo(src
+php_scylladb_generate_arginfo(src
         BatchStatement.stub.php
         Inet.stub.php
         Blob.stub.php
@@ -58,4 +53,35 @@ php_driver_generate_arginfo(src
         UuidInterface.stub.php
         FutureValue.stub.php
         Value.stub.php
+        # Type.cpp at this level #includes "Type/Type_arginfo.h" — needs to
+        # be a generated-file dep of THIS target, not just the `type` target.
+        Type/Type.stub.php
+)
+
+php_scylladb_generate_descriptor(src
+        Type/Type.stub.php
+        Value.stub.php
+        UuidInterface.stub.php
+        Blob.stub.php
+        Inet.stub.php
+        Uuid.stub.php
+        Set.stub.php
+        Map.stub.php
+        Collection.stub.php
+        Tuple.stub.php
+        UserTypeValue.stub.php
+        Cassandra.stub.php
+        Future.stub.php
+        FuturePreparedStatement.stub.php
+        FutureRows.stub.php
+        FutureSession.stub.php
+        FutureValue.stub.php
+        FutureClose.stub.php
+        Session.stub.php
+        DefaultSession.stub.php
+        Statement.stub.php
+        SimpleStatement.stub.php
+        PreparedStatement.stub.php
+        BatchStatement.stub.php
+        ExecutionOptions.stub.php
 )

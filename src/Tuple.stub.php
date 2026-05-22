@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @scylladb-value-handlers
      */
     final class Tuple implements Value, \Countable, \Iterator
     {

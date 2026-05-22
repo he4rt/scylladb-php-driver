@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class DefaultAggregate implements \Cassandra\Aggregate {
+ * @scylladb-struct php_scylladb_aggregate
+ */    final class DefaultAggregate implements \Cassandra\Aggregate {
         public function name(): string {}
 
         public function simpleName(): string {}

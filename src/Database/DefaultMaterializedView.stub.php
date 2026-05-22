@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class DefaultMaterializedView extends \Cassandra\MaterializedView {
+ * @scylladb-struct php_scylladb_materialized_view
+ */    final class DefaultMaterializedView extends \Cassandra\MaterializedView {
         public function name(): string {}
 
         /** @return mixed */

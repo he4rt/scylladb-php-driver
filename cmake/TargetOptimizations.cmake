@@ -7,13 +7,13 @@ include(CheckCXXCompilerFlag)
 # ── Pre-check compiler capabilities once at configure time ───────────────────
 # Results are CACHE INTERNAL — subsequent calls are no-ops.
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    check_c_compiler_flag(-mavx  _PHP_DRIVER_CC_SUPPORTS_AVX)
-    check_c_compiler_flag(-mavx2 _PHP_DRIVER_CC_SUPPORTS_AVX2)
+    check_c_compiler_flag(-mavx  _PHP_SCYLLADB_CC_SUPPORTS_AVX)
+    check_c_compiler_flag(-mavx2 _PHP_SCYLLADB_CC_SUPPORTS_AVX2)
 endif ()
 
-check_ipo_supported(RESULT _PHP_DRIVER_LTO_SUPPORTED OUTPUT _PHP_DRIVER_LTO_MSG)
-if (NOT _PHP_DRIVER_LTO_SUPPORTED)
-    message(STATUS "LTO not available: ${_PHP_DRIVER_LTO_MSG}")
+check_ipo_supported(RESULT _PHP_SCYLLADB_LTO_SUPPORTED OUTPUT _PHP_SCYLLADB_LTO_MSG)
+if (NOT _PHP_SCYLLADB_LTO_SUPPORTED)
+    message(STATUS "LTO not available: ${_PHP_SCYLLADB_LTO_MSG}")
 endif ()
 
 # ── scylladb_php_library ──────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ function(scylladb_php_library target)
     endif ()
 
     # ── LTO ───────────────────────────────────────────────────────────────────
-    if (ENABLE_LTO AND _PHP_DRIVER_LTO_SUPPORTED)
+    if (ENABLE_LTO AND _PHP_SCYLLADB_LTO_SUPPORTED)
         set_property(TARGET ${target} PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     endif ()
 
@@ -109,15 +109,15 @@ function(scylladb_php_library target)
     if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
         target_compile_options(${target} PRIVATE -msse2 -msse3 -msse4.1 -msse4.2)
 
-        if (ENABLE_AVX AND _PHP_DRIVER_CC_SUPPORTS_AVX)
+        if (ENABLE_AVX AND _PHP_SCYLLADB_CC_SUPPORTS_AVX)
             target_compile_options(${target} PRIVATE -mavx)
-        elseif (ENABLE_AVX AND NOT _PHP_DRIVER_CC_SUPPORTS_AVX)
+        elseif (ENABLE_AVX AND NOT _PHP_SCYLLADB_CC_SUPPORTS_AVX)
             message(WARNING "${target}: ENABLE_AVX requested but compiler lacks -mavx")
         endif ()
 
-        if (ENABLE_AVX2 AND _PHP_DRIVER_CC_SUPPORTS_AVX2)
+        if (ENABLE_AVX2 AND _PHP_SCYLLADB_CC_SUPPORTS_AVX2)
             target_compile_options(${target} PRIVATE -mavx2)
-        elseif (ENABLE_AVX2 AND NOT _PHP_DRIVER_CC_SUPPORTS_AVX2)
+        elseif (ENABLE_AVX2 AND NOT _PHP_SCYLLADB_CC_SUPPORTS_AVX2)
             message(WARNING "${target}: ENABLE_AVX2 requested but compiler lacks -mavx2")
         endif ()
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
@@ -134,8 +134,8 @@ function(scylladb_php_library target)
                     "-march=native produces binaries that may not run on other CPUs")
         endif ()
 
-        check_c_compiler_flag("-march=${CPU_TYPE}" _PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
-        if (_PHP_DRIVER_CC_SUPPORTS_MARCH_${CPU_TYPE})
+        check_c_compiler_flag("-march=${CPU_TYPE}" _PHP_SCYLLADB_CC_SUPPORTS_MARCH_${CPU_TYPE})
+        if (_PHP_SCYLLADB_CC_SUPPORTS_MARCH_${CPU_TYPE})
             target_compile_options(${target} PRIVATE "-march=${CPU_TYPE}")
         else ()
             message(WARNING "${target}: compiler does not support -march=${CPU_TYPE}")
@@ -143,13 +143,13 @@ function(scylladb_php_library target)
     endif ()
 endfunction()
 
-# ── php_driver_module ─────────────────────────────────────────────────────────
+# ── php_scylladb_module ─────────────────────────────────────────────────────────
 # Declare a static sub-library with its namespace alias and apply standard
 # compiler settings. Add sources with target_sources() after this call.
 #
-# Usage: php_driver_module(<target> <namespace::alias>)
-# Example: php_driver_module(datetime ext_scylladb::datetime)
-macro(php_driver_module _target _alias)
+# Usage: php_scylladb_module(<target> <namespace::alias>)
+# Example: php_scylladb_module(datetime ext_scylladb::datetime)
+macro(php_scylladb_module _target _alias)
     add_library(${_target} STATIC)
     add_library(${_alias} ALIAS ${_target})
     scylladb_php_library(${_target})

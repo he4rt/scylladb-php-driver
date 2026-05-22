@@ -21,47 +21,37 @@ BEGIN_EXTERN_C()
 
 #include "DefaultPolicy_arginfo.h"
 
-zend_class_entry *php_scylladb_retry_policy_default_ce = nullptr;
+extern zend_object_handlers php_scylladb_retry_policy_default_policy_handlers;
 
-static zend_object_handlers php_scylladb_retry_policy_default_handlers;
-
-PHP_SCYLLADB_API php_driver_retry_policy *php_scylladb_retry_policy_default_instantiate(zval *dst)
+PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_policy_instantiate(zval *dst)
 {
   zval val;
 
-  if (object_init_ex(&val, php_scylladb_retry_policy_default_ce) == FAILURE) {
+  if (object_init_ex(&val, php_scylladb_retry_policy_default_policy_ce) == FAILURE) {
     return nullptr;
   }
 
   ZVAL_OBJ(dst, Z_OBJ(val));
 
-  auto* obj = ZendCPP::ObjectFetch<php_driver_retry_policy>(dst);
+  auto* obj = ZendCPP::ObjectFetch<php_scylladb_retry_policy>(dst);
   obj->policy = cass_retry_policy_default_new();
   return obj;
 }
 
 
-static void php_scylladb_retry_policy_default_free(zend_object *object)
+void php_scylladb_retry_policy_default_policy_free(zend_object *object)
 {
-  auto *self = ZendCPP::ObjectFetch<php_driver_retry_policy>(object);
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_retry_policy>(object);
 
   cass_retry_policy_free(self->policy);
   zend_object_std_dtor(object);
 }
 
-static zend_object*php_scylladb_retry_policy_default_new(zend_class_entry *ce)
+zend_object *php_scylladb_retry_policy_default_policy_new(zend_class_entry *ce)
 {
-  auto *self = ZendCPP::Allocate<php_driver_retry_policy>(ce, &php_scylladb_retry_policy_default_handlers);
+  auto *self = ZendCPP::Allocate<php_scylladb_retry_policy>(ce, &php_scylladb_retry_policy_default_policy_handlers);
   self->policy = cass_retry_policy_default_new();
   return &self->zendObject;
 }
 
-void php_scylladb_define_RetryPolicyDefault(zend_class_entry* retry_policy_interface)
-{
-  php_scylladb_retry_policy_default_ce = register_class_Cassandra_RetryPolicy_DefaultPolicy(retry_policy_interface);
-  php_scylladb_retry_policy_default_ce->create_object = php_scylladb_retry_policy_default_new;
-
-  ZendCPP::InitHandlers<php_driver_retry_policy>(&php_scylladb_retry_policy_default_handlers);
-  php_scylladb_retry_policy_default_handlers.free_obj = php_scylladb_retry_policy_default_free;
-}
 END_EXTERN_C()

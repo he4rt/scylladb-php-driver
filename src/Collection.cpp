@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 
 #include "Type/Conversions.h"
 #include "Type/ValueHash.h"
 #include "Type/TypeFactory.h"
 
 #include "Collection.h"
+
+
 BEGIN_EXTERN_C()
 #include "Collection_arginfo.h"
-zend_class_entry *php_driver_collection_ce = NULL;
+
+extern php_scylladb_value_handlers php_scylladb_collection_handlers;
 
 void
-php_driver_collection_add(php_driver_collection *collection, zval *object)
+php_scylladb_collection_add(php_scylladb_collection *collection, zval *object)
 {
   (void)zend_hash_next_index_insert(&collection->values, object);
   Z_TRY_ADDREF_P(object);
@@ -35,7 +38,7 @@ php_driver_collection_add(php_driver_collection *collection, zval *object)
 }
 
 static int
-php_driver_collection_del(php_driver_collection *collection, ulong index)
+php_scylladb_collection_del(php_scylladb_collection *collection, ulong index)
 {
   if (zend_hash_index_del(&collection->values, index) == SUCCESS) {
     collection->dirty = 1;
@@ -46,7 +49,7 @@ php_driver_collection_del(php_driver_collection *collection, ulong index)
 }
 
 static int
-php_driver_collection_get(php_driver_collection *collection, ulong index, zval *zvalue)
+php_scylladb_collection_get(php_scylladb_collection *collection, ulong index, zval *zvalue)
 {
   zval *value;
   if ((value = zend_hash_index_find(&collection->values, (zend_ulong)(index))) != NULL) {
@@ -57,7 +60,7 @@ php_driver_collection_get(php_driver_collection *collection, ulong index, zval *
 }
 
 static int
-php_driver_collection_find(php_driver_collection *collection, zval *object, long *index)
+php_scylladb_collection_find(php_scylladb_collection *collection, zval *object, long *index)
 {
   zend_ulong num_key;
   zval *current;
@@ -74,7 +77,7 @@ php_driver_collection_find(php_driver_collection *collection, zval *object, long
 }
 
 static void
-php_driver_collection_populate(php_driver_collection *collection, zval *array)
+php_scylladb_collection_populate(php_scylladb_collection *collection, zval *array)
 {
   zval *current;
   ZEND_HASH_FOREACH_VAL(&collection->values, current) {
@@ -88,29 +91,29 @@ php_driver_collection_populate(php_driver_collection *collection, zval *array)
 /* {{{ Collection::__construct(type) */
 PHP_METHOD(Cassandra_Collection, __construct)
 {
-  php_driver_collection *self;
+  php_scylladb_collection *self;
   zval *type;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(type)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_COLLECTION(getThis());
+  self = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
   if (Z_TYPE_P(type) == IS_STRING) {
     CassValueType value_type;
-    if (!php_driver_value_type(Z_STRVAL_P(type), &value_type))
+    if (!php_scylladb_value_type(Z_STRVAL_P(type), &value_type))
       return;
-    self->type = php_driver_type_collection_from_value_type(value_type);
+    self->type = php_scylladb_type_collection_from_value_type(value_type);
   } else if (Z_TYPE_P(type) == IS_OBJECT &&
-             instanceof_function(Z_OBJCE_P(type), php_driver_type_ce)) {
-    if (!php_driver_type_validate(type, "type")) {
+             instanceof_function(Z_OBJCE_P(type), php_scylladb_type_ce)) {
+    if (!php_scylladb_type_validate(type, "type")) {
       return;
     }
-    self->type = php_driver_type_collection(type);
+    self->type = php_scylladb_type_collection(type);
     Z_ADDREF_P(type);
   } else {
-    INVALID_ARGUMENT(type, "a string or an instance of " PHP_DRIVER_NAMESPACE "\\Type");
+    INVALID_ARGUMENT(type, "a string or an instance of " PHP_SCYLLADB_NAMESPACE "\\Type");
   }
 }
 /* }}} */
@@ -118,44 +121,44 @@ PHP_METHOD(Cassandra_Collection, __construct)
 /* {{{ Collection::type() */
 PHP_METHOD(Cassandra_Collection, type)
 {
-  php_driver_collection *self = PHP_DRIVER_GET_COLLECTION(getThis());
+  php_scylladb_collection *self = PHP_SCYLLADB_GET_COLLECTION(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 
 /* {{{ Collection::values() */
 PHP_METHOD(Cassandra_Collection, values)
 {
-  php_driver_collection *collection = NULL;
+  php_scylladb_collection *collection = NULL;
   array_init(return_value);
-  collection = PHP_DRIVER_GET_COLLECTION(getThis());
-  php_driver_collection_populate(collection, return_value);
+  collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  php_scylladb_collection_populate(collection, return_value);
 }
 /* }}} */
 
 /* {{{ Collection::add(mixed) */
 PHP_METHOD(Cassandra_Collection, add)
 {
-  php_driver_collection *self = NULL;
+  php_scylladb_collection *self = NULL;
   zval* args = NULL;
   int argc = 0, i;
-  php_driver_type *type;
+  php_scylladb_type *type;
 
   ZEND_PARSE_PARAMETERS_START(1, -1)
     Z_PARAM_VARIADIC('+', args, argc)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_COLLECTION(getThis());
-  type = PHP_DRIVER_GET_TYPE(&self->type);
+  self = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  type = PHP_SCYLLADB_GET_TYPE(&self->type);
 
   for (i = 0; i < argc; i++) {
     if (Z_TYPE_P(&args[i]) == IS_NULL) {
 
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Invalid value: null is not supported inside collections");
       RETURN_FALSE;
     }
 
-    if (!php_driver_validate_object(&args[i],
+    if (!php_scylladb_validate_object(&args[i],
                                     &type->data.collection.value_type)) {
 
       RETURN_FALSE;
@@ -163,7 +166,7 @@ PHP_METHOD(Cassandra_Collection, add)
   }
 
   for (i = 0; i < argc; i++) {
-    php_driver_collection_add(self, &args[i]);
+    php_scylladb_collection_add(self, &args[i]);
   }
 
 
@@ -175,16 +178,16 @@ PHP_METHOD(Cassandra_Collection, add)
 PHP_METHOD(Cassandra_Collection, get)
 {
   zend_long key;
-  php_driver_collection *self = NULL;
+  php_scylladb_collection *self = NULL;
   zval value;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_LONG(key)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_COLLECTION(getThis());
+  self = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
-  if (php_driver_collection_get(self, (ulong) key, &value))
+  if (php_scylladb_collection_get(self, (ulong) key, &value))
     RETURN_ZVAL(&value, 1, 0);
 }
 /* }}} */
@@ -193,16 +196,16 @@ PHP_METHOD(Cassandra_Collection, get)
 PHP_METHOD(Cassandra_Collection, find)
 {
   zval *object;
-  php_driver_collection *collection = NULL;
+  php_scylladb_collection *collection = NULL;
   long index;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(object)
   ZEND_PARSE_PARAMETERS_END();
 
-  collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
-  if (php_driver_collection_find(collection, object, &index))
+  if (php_scylladb_collection_find(collection, object, &index))
     RETURN_LONG(index);
 }
 /* }}} */
@@ -210,7 +213,7 @@ PHP_METHOD(Cassandra_Collection, find)
 /* {{{ Collection::count() */
 PHP_METHOD(Cassandra_Collection, count)
 {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   RETURN_LONG(zend_hash_num_elements(&collection->values));
 }
 /* }}} */
@@ -219,7 +222,7 @@ PHP_METHOD(Cassandra_Collection, count)
 PHP_METHOD(Cassandra_Collection, current)
 {
   zval *current;
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
   if ((current = zend_hash_get_current_data(&collection->values)) != NULL) {
     RETURN_ZVAL(current, 1, 0);
@@ -231,7 +234,7 @@ PHP_METHOD(Cassandra_Collection, current)
 PHP_METHOD(Cassandra_Collection, key)
 {
   zend_ulong num_key;
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   if (zend_hash_get_current_key(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
     RETURN_LONG(num_key);
   }
@@ -241,7 +244,7 @@ PHP_METHOD(Cassandra_Collection, key)
 /* {{{ Collection::next() */
 PHP_METHOD(Cassandra_Collection, next)
 {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   zend_hash_move_forward(&collection->values);
 }
 /* }}} */
@@ -249,7 +252,7 @@ PHP_METHOD(Cassandra_Collection, next)
 /* {{{ Collection::valid() */
 PHP_METHOD(Cassandra_Collection, valid)
 {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   RETURN_BOOL(zend_hash_has_more_elements(&collection->values) == SUCCESS);
 }
 /* }}} */
@@ -257,7 +260,7 @@ PHP_METHOD(Cassandra_Collection, valid)
 /* {{{ Collection::rewind() */
 PHP_METHOD(Cassandra_Collection, rewind)
 {
-  php_driver_collection *collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   zend_hash_internal_pointer_reset(&collection->values);
 }
 /* }}} */
@@ -266,15 +269,15 @@ PHP_METHOD(Cassandra_Collection, rewind)
 PHP_METHOD(Cassandra_Collection, remove)
 {
   zend_long index;
-  php_driver_collection *collection = NULL;
+  php_scylladb_collection *collection = NULL;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_LONG(index)
   ZEND_PARSE_PARAMETERS_END();
 
-  collection = PHP_DRIVER_GET_COLLECTION(getThis());
+  collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
-  if (php_driver_collection_del(collection, (ulong) index)) {
+  if (php_scylladb_collection_del(collection, (ulong) index)) {
     RETURN_TRUE;
   }
 
@@ -283,10 +286,9 @@ PHP_METHOD(Cassandra_Collection, remove)
 /* }}} */
 
 
-static php_driver_value_handlers php_driver_collection_handlers;
 
-static HashTable *
-php_driver_collection_gc(
+HashTable *
+php_scylladb_collection_gc(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object,
 #else
@@ -297,8 +299,8 @@ php_driver_collection_gc(
   return zend_std_get_gc(object, table, n);
 }
 
-static HashTable *
-php_driver_collection_properties(
+HashTable *
+php_scylladb_collection_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
@@ -309,9 +311,9 @@ php_driver_collection_properties(
   zval values;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_collection  *self = php_driver_collection_object_fetch(object);
+  php_scylladb_collection  *self = php_scylladb_collection_object_fetch(object);
 #else
-  php_driver_collection  *self = PHP_DRIVER_GET_COLLECTION(object);
+  php_scylladb_collection  *self = PHP_SCYLLADB_GET_COLLECTION(object);
 #endif
   if (object->properties) {
     zend_array_release(object->properties);
@@ -324,14 +326,14 @@ php_driver_collection_properties(
 
 
   array_init(&values);
-  php_driver_collection_populate(self, &values);
+  php_scylladb_collection_populate(self, &values);
   (void)zend_hash_str_update(props, ZEND_STRL("values"), &values);
 
   return props;
 }
 
-static int
-php_driver_collection_compare(zval *obj1, zval *obj2)
+int
+php_scylladb_collection_compare(zval *obj1, zval *obj2)
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -340,22 +342,22 @@ php_driver_collection_compare(zval *obj1, zval *obj2)
   HashPosition pos2;
   zval *current1;
   zval *current2;
-  php_driver_collection *collection1;
-  php_driver_collection *collection2;
-  php_driver_type *type1;
-  php_driver_type *type2;
+  php_scylladb_collection *collection1;
+  php_scylladb_collection *collection2;
+  php_scylladb_type *type1;
+  php_scylladb_type *type2;
   int result;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  collection1 = PHP_DRIVER_GET_COLLECTION(obj1);
-  collection2 = PHP_DRIVER_GET_COLLECTION(obj2);
+  collection1 = PHP_SCYLLADB_GET_COLLECTION(obj1);
+  collection2 = PHP_SCYLLADB_GET_COLLECTION(obj2);
 
-  type1 = PHP_DRIVER_GET_TYPE(&collection1->type);
-  type2 = PHP_DRIVER_GET_TYPE(&collection2->type);
+  type1 = PHP_SCYLLADB_GET_TYPE(&collection1->type);
+  type2 = PHP_SCYLLADB_GET_TYPE(&collection2->type);
 
-  result = php_driver_type_compare(type1, type2);
+  result = php_scylladb_type_compare(type1, type2);
   if (result != 0) return result;
 
   if (zend_hash_num_elements(&collection1->values) != zend_hash_num_elements(&collection2->values)) {
@@ -367,7 +369,7 @@ php_driver_collection_compare(zval *obj1, zval *obj2)
 
   while ((current1 = zend_hash_get_current_data_ex(&collection1->values, &pos1)) != NULL &&
          (current2 = zend_hash_get_current_data_ex(&collection2->values, &pos2)) != NULL) {
-    result = php_driver_value_compare(current1,
+    result = php_scylladb_value_compare(current1,
                                          current2);
     if (result != 0) return result;
     zend_hash_move_forward_ex(&collection1->values, &pos1);
@@ -377,18 +379,18 @@ php_driver_collection_compare(zval *obj1, zval *obj2)
   return 0;
 }
 
-static unsigned
-php_driver_collection_hash_value(zval *obj)
+unsigned
+php_scylladb_collection_hash_value(zval *obj)
 {
   zval *current;
   unsigned hashv = 0;
-  php_driver_collection *self = PHP_DRIVER_GET_COLLECTION(obj);
+  php_scylladb_collection *self = PHP_SCYLLADB_GET_COLLECTION(obj);
 
   if (!self->dirty) return self->hashv;
 
   ZEND_HASH_FOREACH_VAL(&self->values, current) {
-    hashv = php_driver_combine_hash(hashv,
-                                       php_driver_value_hash(current));
+    hashv = php_scylladb_combine_hash(hashv,
+                                       php_scylladb_value_hash(current));
   } ZEND_HASH_FOREACH_END();
 
   self->hashv = hashv;
@@ -397,11 +399,11 @@ php_driver_collection_hash_value(zval *obj)
   return hashv;
 }
 
-static void
-php_driver_collection_free(zend_object *object)
+void
+php_scylladb_collection_free(zend_object *object)
 {
-  php_driver_collection *self =
-      php_driver_collection_object_fetch(object);
+  php_scylladb_collection *self =
+      php_scylladb_collection_object_fetch(object);
 
   zend_hash_destroy(&self->values);
   zval_ptr_dtor(&self->type);
@@ -410,33 +412,27 @@ php_driver_collection_free(zend_object *object)
 
 }
 
-static zend_object*
-php_driver_collection_new(zend_class_entry *ce)
+zend_object*
+php_scylladb_collection_new(zend_class_entry *ce)
 {
-  php_driver_collection *self =
-      (php_driver_collection *)ecalloc(1, sizeof(php_driver_collection) + zend_object_properties_size(ce));
+  php_scylladb_collection *self =
+      (php_scylladb_collection *)ecalloc(1, sizeof(php_scylladb_collection) + zend_object_properties_size(ce));
 
   zend_hash_init(&self->values, 0, NULL, ZVAL_PTR_DTOR, 0);
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_collection_handlers.std.offset = XtOffsetOf(php_driver_collection, zendObject);
-  php_driver_collection_handlers.std.free_obj = php_driver_collection_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_collection_handlers;
+  php_scylladb_collection_handlers.std.offset = XtOffsetOf(php_scylladb_collection, zendObject);
+  php_scylladb_collection_handlers.std.free_obj = php_scylladb_collection_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_collection_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_Collection()
-{
-  php_driver_collection_ce = register_class_Cassandra_Collection(php_driver_value_ce, zend_ce_countable, zend_ce_iterator);
-  memcpy(&php_driver_collection_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_collection_handlers.std.get_properties  = php_driver_collection_properties;
-  php_driver_collection_handlers.std.get_gc          = php_driver_collection_gc;
-  php_driver_collection_handlers.std.compare = php_driver_collection_compare;
-  php_driver_collection_ce->create_object = php_driver_collection_new;
 
-  php_driver_collection_handlers.hash_value = php_driver_collection_hash_value;
-  php_driver_collection_handlers.std.clone_obj = NULL;
+void php_scylladb_collection_post_register(zend_class_entry *ce)
+{
+    (void)ce;
+    php_scylladb_collection_handlers.std.offset = XtOffsetOf(php_scylladb_collection, zendObject);
 }
 END_EXTERN_C()

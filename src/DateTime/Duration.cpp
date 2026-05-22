@@ -1,7 +1,7 @@
 #include "Duration.h"
 
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 #include "Type/ValueHash.h"
 #include "Numbers/NumberParser.h"
 #include "Type/TypeFactory.h"
@@ -10,7 +10,8 @@ BEGIN_EXTERN_C()
 #include <spl/spl_exceptions.h>
 #include "Duration_arginfo.h"
 
-zend_class_entry *php_driver_duration_ce = nullptr;
+extern php_scylladb_value_handlers php_scylladb_duration_handlers;
+
 
 static void to_string(zval *result, cass_int64_t value)
 {
@@ -30,7 +31,7 @@ static int get_param(zval* value,
     zend_long long_value = Z_LVAL_P(value);
 
     if (long_value > max || long_value < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
         "%s must be between %" PRId64 " and %" PRId64 ", %" PRId64 " given",
         param_name, min, max, long_value);
       return 0;
@@ -41,7 +42,7 @@ static int get_param(zval* value,
     double double_value = Z_DVAL_P(value);
 
     if (double_value > max || double_value < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
         "%s must be between %" PRId64 " and %" PRId64 ", %g given",
         param_name, min, max, double_value);
       return 0;
@@ -49,24 +50,24 @@ static int get_param(zval* value,
     *destination = (cass_int64_t) double_value;
   } else if (Z_TYPE_P(value) == IS_STRING) {
     cass_int64_t parsed_big_int;
-    if (!php_driver_parse_bigint(Z_STRVAL_P(value), Z_STRLEN_P(value), &parsed_big_int )) {
+    if (!php_scylladb_parse_bigint(Z_STRVAL_P(value), Z_STRLEN_P(value), &parsed_big_int )) {
       return 0;
     }
 
     if (parsed_big_int > max || parsed_big_int < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
         "%s must be between " "%" PRId64 " and " "%" PRId64 ", " "%" PRId64 " given",
         param_name, min, max, parsed_big_int);
       return 0;
     }
     *destination = parsed_big_int;
   } else if (Z_TYPE_P(value) == IS_OBJECT &&
-             instanceof_function(Z_OBJCE_P(value), php_driver_bigint_ce )) {
-    php_driver_numeric *bigint = PHP_DRIVER_GET_NUMERIC(value);
+             instanceof_function(Z_OBJCE_P(value), php_scylladb_bigint_ce )) {
+    php_scylladb_numeric *bigint = PHP_SCYLLADB_GET_NUMERIC(value);
     cass_int64_t bigint_value = bigint->data.bigint.value;
 
     if (bigint_value > max || bigint_value < min) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
         "%s must be between " "%" PRId64 " and " "%" PRId64 ", " "%" PRId64 " given",
         param_name, min, max, bigint_value);
       return 0;
@@ -75,13 +76,13 @@ static int get_param(zval* value,
     *destination = bigint_value;
   } else {
     throw_invalid_argument(value, param_name, "a long, a double, a numeric string or a " \
-                            PHP_DRIVER_NAMESPACE "\\Bigint" );
+                            PHP_SCYLLADB_NAMESPACE "\\Bigint" );
     return 0;
   }
   return 1;
 }
 
-char *php_driver_duration_to_string(php_driver_duration *duration)
+char *php_scylladb_duration_to_string(php_scylladb_duration *duration)
 {
   // String representation of Duration is of the form -?MmoDdNns, for int M, D, N.
   // Negative durations lead with a minus sign. So (-3, -2, -1) results in
@@ -106,11 +107,11 @@ char *php_driver_duration_to_string(php_driver_duration *duration)
 }
 
 void
-php_driver_duration_init(INTERNAL_FUNCTION_PARAMETERS)
+php_scylladb_duration_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   zval *months, *days, *nanos;
   cass_int64_t param;
-  php_driver_duration *self = nullptr;
+  php_scylladb_duration *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(3, 3)
     Z_PARAM_ZVAL(months)
@@ -118,7 +119,7 @@ php_driver_duration_init(INTERNAL_FUNCTION_PARAMETERS)
     Z_PARAM_ZVAL(nanos)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(getThis());
 
   if (!get_param(months, "months", INT32_MIN, INT32_MAX, &param  )) {
     return;
@@ -145,75 +146,74 @@ php_driver_duration_init(INTERNAL_FUNCTION_PARAMETERS)
 
 ZEND_METHOD(Cassandra_Duration, __construct)
 {
-  php_driver_duration_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+  php_scylladb_duration_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 ZEND_METHOD(Cassandra_Duration, __toString)
 {
   char* rep;
-  php_driver_duration *self = nullptr;
+  php_scylladb_duration *self = nullptr;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(getThis());
 
   // Build up string representation of this duration.
-  rep = php_driver_duration_to_string(self);
+  rep = php_scylladb_duration_to_string(self);
   RETVAL_STRING(rep);
   efree(rep);
 }
 
 ZEND_METHOD(Cassandra_Duration, type)
 {
-  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DURATION );
+  zval type = php_scylladb_type_scalar(CASS_VALUE_TYPE_DURATION );
   RETURN_ZVAL(&type, 1, 1);
 }
 
 ZEND_METHOD(Cassandra_Duration, months)
 {
-  php_driver_duration *self = nullptr;
+  php_scylladb_duration *self = nullptr;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(getThis());
   to_string(return_value, self->months);
 }
 
 ZEND_METHOD(Cassandra_Duration, days)
 {
-  php_driver_duration *self = nullptr;
+  php_scylladb_duration *self = nullptr;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(getThis());
   to_string(return_value, self->days);
 }
 
 ZEND_METHOD(Cassandra_Duration, nanos)
 {
-  php_driver_duration *self = NULL;
+  php_scylladb_duration *self = NULL;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(getThis());
   to_string(return_value, self->nanos);
 }
 
-static php_driver_value_handlers php_driver_duration_handlers;
 
-static HashTable *php_driver_duration_gc(zend_object *object, zval **table, int *n)
+HashTable *php_scylladb_duration_gc(zend_object *object, zval **table, int *n)
 {
   *table = NULL;
   *n = 0;
   return NULL;
 }
 
-static HashTable *
-php_driver_duration_properties(zend_object *object)
+HashTable *
+php_scylladb_duration_properties(zend_object *object)
 {
   if (object->properties) {
     zend_array_release(object->properties);
@@ -221,7 +221,7 @@ php_driver_duration_properties(zend_object *object)
   object->properties = zend_new_array(3);
   HashTable *props = object->properties;
 
-  php_driver_duration  *self = php_driver_duration_object_fetch(object);
+  php_scylladb_duration  *self = php_scylladb_duration_object_fetch(object);
   zval wrapped_months, wrapped_days, wrapped_nanos;
 
   ZVAL_LONG(&wrapped_months, self->months);
@@ -234,17 +234,17 @@ php_driver_duration_properties(zend_object *object)
   return props;
 }
 
-static int
-php_driver_duration_compare(zval *obj1, zval *obj2 )
+int
+php_scylladb_duration_compare(zval *obj1, zval *obj2 )
 {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-  php_driver_duration *left, *right;
+  php_scylladb_duration *left, *right;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  left = PHP_DRIVER_GET_DURATION(obj1);
-  right = PHP_DRIVER_GET_DURATION(obj2);
+  left = PHP_SCYLLADB_GET_DURATION(obj1);
+  right = PHP_SCYLLADB_GET_DURATION(obj2);
 
   // Comparisons compare months, then days, then nanos.
 
@@ -268,23 +268,23 @@ php_driver_duration_compare(zval *obj1, zval *obj2 )
   return (left->nanos == right->nanos) ? 0 : 1;
 }
 
-static unsigned
-php_driver_duration_hash_value(zval *obj )
+unsigned
+php_scylladb_duration_hash_value(zval *obj )
 {
-  php_driver_duration *self = PHP_DRIVER_GET_DURATION(obj);
+  php_scylladb_duration *self = PHP_SCYLLADB_GET_DURATION(obj);
   unsigned hashv = 0;
 
-  hashv = php_driver_combine_hash(hashv, (unsigned) self->months);
-  hashv = php_driver_combine_hash(hashv, (unsigned) self->days);
-  hashv = php_driver_combine_hash(hashv, (unsigned) self->nanos);
+  hashv = php_scylladb_combine_hash(hashv, (unsigned) self->months);
+  hashv = php_scylladb_combine_hash(hashv, (unsigned) self->days);
+  hashv = php_scylladb_combine_hash(hashv, (unsigned) self->nanos);
 
   return hashv;
 }
 
-static void
-php_driver_duration_free(zend_object *object )
+void
+php_scylladb_duration_free(zend_object *object )
 {
-  php_driver_duration *self = php_driver_duration_object_fetch(object);
+  php_scylladb_duration *self = php_scylladb_duration_object_fetch(object);
 
   /* Clean up */
 
@@ -292,29 +292,20 @@ php_driver_duration_free(zend_object *object )
 
 }
 
-static zend_object*
-php_driver_duration_new(zend_class_entry *ce )
+zend_object*
+php_scylladb_duration_new(zend_class_entry *ce )
 {
-  php_driver_duration *self = (php_driver_duration *)ecalloc(1, sizeof(php_driver_duration) + zend_object_properties_size(ce));
+  php_scylladb_duration *self = (php_scylladb_duration *)ecalloc(1, sizeof(php_scylladb_duration) + zend_object_properties_size(ce));
 
   zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_duration_handlers;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_duration_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_Duration()
+
+void php_scylladb_duration_post_register(zend_class_entry *ce)
 {
-  php_driver_duration_ce = register_class_Cassandra_Duration(php_driver_value_ce);
-  php_driver_duration_ce->create_object = php_driver_duration_new;
-
-  memcpy(&php_driver_duration_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_duration_handlers.std.offset = XtOffsetOf(php_driver_duration, zendObject);
-  php_driver_duration_handlers.std.free_obj = php_driver_duration_free;
-  php_driver_duration_handlers.std.get_properties  = php_driver_duration_properties;
-  php_driver_duration_handlers.std.get_gc          = php_driver_duration_gc;
-  php_driver_duration_handlers.std.compare = php_driver_duration_compare;
-
-  php_driver_duration_handlers.hash_value = php_driver_duration_hash_value;
-  php_driver_duration_handlers.std.clone_obj = NULL;
+    (void)ce;
+    php_scylladb_duration_handlers.std.offset = XtOffsetOf(php_scylladb_duration, zendObject);
 }
 END_EXTERN_C()

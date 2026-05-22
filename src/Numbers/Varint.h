@@ -18,5 +18,5 @@
 #include "main/php.h"
 
 BEGIN_EXTERN_C()
-void php_driver_varint_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_scylladb_varint_init(INTERNAL_FUNCTION_PARAMETERS);
 END_EXTERN_C()

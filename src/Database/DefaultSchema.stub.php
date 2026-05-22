@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class DefaultSchema implements \Cassandra\Schema {
+ * @scylladb-struct php_scylladb_schema
+ */    final class DefaultSchema implements \Cassandra\Schema {
         /** @return Keyspace|false */
         public function keyspace(string $name): Keyspace|false {}
 

@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class DefaultFunction implements \Cassandra\Function_ {
+ * @scylladb-struct php_scylladb_function
+ */    final class DefaultFunction implements \Cassandra\Function_ {
         public function name(): string {}
 
         public function simpleName(): string {}

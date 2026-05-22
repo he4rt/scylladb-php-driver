@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
+
 BEGIN_EXTERN_C()
 #include "BatchStatement_arginfo.h"
 
-zend_class_entry *php_driver_batch_statement_ce = NULL;
+extern zend_object_handlers php_scylladb_batch_statement_handlers;
 
-void php_driver_batch_statement_entry_dtor(zval* dest)
+void php_scylladb_batch_statement_entry_dtor(zval* dest)
 {
-    auto *batch_statement_entry = static_cast<php_driver_batch_statement_entry *>(Z_PTR_P(dest));
+    auto *batch_statement_entry = static_cast<php_scylladb_batch_statement_entry *>(Z_PTR_P(dest));
 
     zval_ptr_dtor(&batch_statement_entry->statement);
     zval_ptr_dtor(&batch_statement_entry->arguments);
@@ -34,14 +35,14 @@ void php_driver_batch_statement_entry_dtor(zval* dest)
 ZEND_METHOD(Cassandra_BatchStatement, __construct)
 {
     zend_long type = CASS_BATCH_TYPE_LOGGED;
-    php_driver_statement *self = NULL;
+    php_scylladb_statement *self = NULL;
 
     ZEND_PARSE_PARAMETERS_START(0, 1)
         Z_PARAM_OPTIONAL
         Z_PARAM_LONG(type)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_DRIVER_GET_STATEMENT(getThis());
+    self = PHP_SCYLLADB_GET_STATEMENT(getThis());
 
     switch (type)
     {
@@ -51,9 +52,9 @@ ZEND_METHOD(Cassandra_BatchStatement, __construct)
         self->data.batch.type = (CassBatchType)type;
         break;
     default:
-        zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
-            "type must be one of " PHP_DRIVER_NAMESPACE "::BATCH_LOGGED, "
-            PHP_DRIVER_NAMESPACE "::BATCH_UNLOGGED or " PHP_DRIVER_NAMESPACE "::BATCH_COUNTER");
+        zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
+            "type must be one of " PHP_SCYLLADB_NAMESPACE "::BATCH_LOGGED, "
+            PHP_SCYLLADB_NAMESPACE "::BATCH_UNLOGGED or " PHP_SCYLLADB_NAMESPACE "::BATCH_COUNTER");
         return;
     }
 }
@@ -62,8 +63,8 @@ ZEND_METHOD(Cassandra_BatchStatement, add)
 {
     zval *statement = NULL;
     zval *arguments = NULL;
-    php_driver_batch_statement_entry *batch_statement_entry = NULL;
-    php_driver_statement *self = NULL;
+    php_scylladb_batch_statement_entry *batch_statement_entry = NULL;
+    php_scylladb_statement *self = NULL;
     zval entry;
 
     ZEND_PARSE_PARAMETERS_START(1, 2)
@@ -74,16 +75,16 @@ ZEND_METHOD(Cassandra_BatchStatement, add)
 
     if (Z_TYPE_P(statement) != IS_STRING &&
         (Z_TYPE_P(statement) != IS_OBJECT ||
-         (!instanceof_function(Z_OBJCE_P(statement), php_driver_simple_statement_ce) &&
-          !instanceof_function(Z_OBJCE_P(statement), php_driver_prepared_statement_ce))))
+         (!instanceof_function(Z_OBJCE_P(statement), php_scylladb_simple_statement_ce) &&
+          !instanceof_function(Z_OBJCE_P(statement), php_scylladb_prepared_statement_ce))))
     {
-        INVALID_ARGUMENT(statement, "a string, an instance of " PHP_DRIVER_NAMESPACE
-                                    "\\SimpleStatement or an instance of " PHP_DRIVER_NAMESPACE "\\PreparedStatement");
+        INVALID_ARGUMENT(statement, "a string, an instance of " PHP_SCYLLADB_NAMESPACE
+                                    "\\SimpleStatement or an instance of " PHP_SCYLLADB_NAMESPACE "\\PreparedStatement");
     }
 
-    self = PHP_DRIVER_GET_STATEMENT(getThis());
+    self = PHP_SCYLLADB_GET_STATEMENT(getThis());
 
-    batch_statement_entry = (php_driver_batch_statement_entry *)ecalloc(1, sizeof(php_driver_batch_statement_entry));
+    batch_statement_entry = (php_scylladb_batch_statement_entry *)ecalloc(1, sizeof(php_scylladb_batch_statement_entry));
 
     ZVAL_COPY(&batch_statement_entry->statement, statement);
 
@@ -98,16 +99,14 @@ ZEND_METHOD(Cassandra_BatchStatement, add)
     RETURN_ZVAL(getThis(), 1, 0);
 }
 
-static zend_object_handlers php_driver_batch_statement_handlers;
-
-static HashTable *php_driver_batch_statement_properties(zend_object *object)
+HashTable *php_scylladb_batch_statement_properties(zend_object *object)
 {
     HashTable *props = zend_std_get_properties(object);
 
     return props;
 }
 
-static int php_driver_batch_statement_compare(zval *obj1, zval *obj2)
+int php_scylladb_batch_statement_compare(zval *obj1, zval *obj2)
 {
     ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
@@ -116,39 +115,26 @@ static int php_driver_batch_statement_compare(zval *obj1, zval *obj2)
     return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void php_driver_batch_statement_free(zend_object *object)
+void php_scylladb_batch_statement_free(zend_object *object)
 {
-    php_driver_statement *self = php_driver_statement_object_fetch(object);
+    php_scylladb_statement *self = php_scylladb_statement_object_fetch(object);
 
     zend_hash_destroy(&self->data.batch.statements);
 
     zend_object_std_dtor(&self->zendObject);
 }
 
-static zend_object* php_driver_batch_statement_new(zend_class_entry *ce)
+zend_object* php_scylladb_batch_statement_new(zend_class_entry *ce)
 {
-    php_driver_statement *self = (php_driver_statement *)ecalloc(1, sizeof(php_driver_statement) + zend_object_properties_size(ce));
+    php_scylladb_statement *self = (php_scylladb_statement *)ecalloc(1, sizeof(php_scylladb_statement) + zend_object_properties_size(ce));
 
-    self->type = PHP_DRIVER_BATCH_STATEMENT;
+    self->type = PHP_SCYLLADB_BATCH_STATEMENT;
     self->data.batch.type = CASS_BATCH_TYPE_LOGGED;
-    zend_hash_init(&self->data.batch.statements, 0, NULL, (dtor_func_t)php_driver_batch_statement_entry_dtor, 0);
+    zend_hash_init(&self->data.batch.statements, 0, NULL, (dtor_func_t)php_scylladb_batch_statement_entry_dtor, 0);
 
     zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_driver_batch_statement_handlers;
+    self->zendObject.handlers = &php_scylladb_batch_statement_handlers;
     return &self->zendObject;
-}
-
-void php_driver_define_BatchStatement()
-{
-    php_driver_batch_statement_ce = register_class_Cassandra_BatchStatement(php_driver_statement_ce);
-    php_driver_batch_statement_ce->create_object = php_driver_batch_statement_new;
-
-    memcpy(&php_driver_batch_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-    php_driver_batch_statement_handlers.offset = XtOffsetOf(php_driver_statement, zendObject);
-    php_driver_batch_statement_handlers.free_obj = php_driver_batch_statement_free;
-    php_driver_batch_statement_handlers.get_properties = php_driver_batch_statement_properties;
-    php_driver_batch_statement_handlers.compare = php_driver_batch_statement_compare;
-    php_driver_batch_statement_handlers.clone_obj = NULL;
 }
 
 END_EXTERN_C()

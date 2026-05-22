@@ -12,7 +12,7 @@
 #include <cassandra.h>
 #include <stdint.h>
 
-static inline int32_t php_driver_validate_consistency(uint32_t consistency)
+static inline int32_t php_scylladb_validate_consistency(uint32_t consistency)
 {
     switch (consistency)
     {
@@ -33,7 +33,7 @@ static inline int32_t php_driver_validate_consistency(uint32_t consistency)
     }
 }
 
-static inline int32_t php_driver_validate_serial_consistency(uint32_t serial_consistency)
+static inline int32_t php_scylladb_validate_serial_consistency(uint32_t serial_consistency)
 {
     switch (serial_consistency)
     {

@@ -2,8 +2,7 @@
 
 #include <php.h>
 
-void php_driver_initialize_cluster_builder_handlers();
-
-BEGIN_EXTERN_C()
-zend_object *php_driver_cluster_builder_new(zend_class_entry *ce);
-END_EXTERN_C()
+/* Class registration is now generated into Builder_descriptor.cpp from
+ * Builder.stub.php — see tools/gen_descriptor/gen_class_descriptor.php.
+ * The descriptor binds to convention-named weak callbacks defined in
+ * BuilderHandlers.cpp. */
