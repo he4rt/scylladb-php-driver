@@ -23,10 +23,8 @@
 
 #include "Numbers/NumberParser.h"
 
-extern zend_class_entry* php_scylladb_invalid_argument_exception_ce;
-
 static int
-prepare_string_conversion(char* in, int* pos, int* negative)
+prepare_string_conversion(const char* in, int* pos, int* negative)
 {
   int base  = 0;
   int point = 0;

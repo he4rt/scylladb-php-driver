@@ -30,9 +30,9 @@
                           ip_address_describe_token(type), ((int)(in_ptr - in) - 1), in);       \
   return 0;
 
-enum ip_address_token_type { TOKEN_END = 0, TOKEN_COLON, TOKEN_DOT, TOKEN_HEX, TOKEN_DEC, TOKEN_ILLEGAL };
+enum ip_address_token_type : uint8_t { TOKEN_END = 0, TOKEN_COLON, TOKEN_DOT, TOKEN_HEX, TOKEN_DEC, TOKEN_ILLEGAL };
 
-enum inet_parser_state {
+enum inet_parser_state : uint8_t {
   STATE_START = 0,
   STATE_FIELD = 1,
   STATE_COMPRESSED = 2,

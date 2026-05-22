@@ -872,7 +872,7 @@ zval php_scylladb_type_custom(const char* name, size_t name_length) {
                           describe_token(token), ((int)(str - validator) - 1), validator);     \
   return FAILURE;
 
-enum describe_token_type {
+enum describe_token_type : uint8_t {
   TOKEN_ILLEGAL = 0,
   TOKEN_PAREN_OPEN,
   TOKEN_PAREN_CLOSE,
@@ -882,7 +882,7 @@ enum describe_token_type {
   TOKEN_END
 };
 
-enum types_parser_state { STATE_CLASS = 0, STATE_AFTER_CLASS, STATE_AFTER_PARENS, STATE_END };
+enum types_parser_state : uint8_t { STATE_CLASS = 0, STATE_AFTER_CLASS, STATE_AFTER_PARENS, STATE_END };
 
 static const char* describe_token(enum describe_token_type token) {
   switch (token) {
@@ -1266,29 +1266,26 @@ static zval php_scylladb_create_type(struct node_s* node) {
   } else if (type == CASS_VALUE_TYPE_MAP) {
     zval key_type;
     zval value_type;
+    ZVAL_UNDEF(&key_type);
+    ZVAL_UNDEF(&value_type);
 
     if (node->first_child) {
       key_type = php_scylladb_create_type(node->first_child);
       value_type = php_scylladb_create_type(node->first_child->next_sibling);
-    } else {
-      ZVAL_UNDEF(&key_type);
-      ZVAL_UNDEF(&value_type);
     }
     return php_scylladb_type_map(&key_type, &value_type);
   } else if (type == CASS_VALUE_TYPE_LIST) {
     zval value_type;
+    ZVAL_UNDEF(&value_type);
     if (node->first_child) {
       value_type = php_scylladb_create_type(node->first_child);
-    } else {
-      ZVAL_UNDEF(&value_type);
     }
     return php_scylladb_type_collection(&value_type);
   } else if (type == CASS_VALUE_TYPE_SET) {
     zval value_type;
+    ZVAL_UNDEF(&value_type);
     if (node->first_child) {
       value_type = php_scylladb_create_type(node->first_child);
-    } else {
-      ZVAL_UNDEF(&value_type);
     }
     return php_scylladb_type_set(&value_type);
   } else if (type == CASS_VALUE_TYPE_TUPLE) {
