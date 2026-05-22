@@ -335,7 +335,13 @@ EOF;
 
 #include <php.h>
 #include <Zend/zend_attributes.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "$arginfoHeader"
+#ifdef __cplusplus
+}
+#endif
 #include <Registry/Registry.h>
 $extraIncBlock
 
