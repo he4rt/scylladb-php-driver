@@ -100,6 +100,14 @@ if (NOT EXISTS "${PHP_SCYLLADB_GEN_STUB_WRAPPER}")
     message(FATAL_ERROR "wrapper not found: ${PHP_SCYLLADB_GEN_STUB_WRAPPER}")
 endif ()
 
+# Serialize gen_stub invocations through a single-slot job pool (Ninja).
+# gen_stub.php downloads PHP-Parser on first run; with parallel ninja builds,
+# multiple gen_stub instances race on that download and one of them fails with
+# "PHP-Parser-5.6.1/lib/PhpParser/Parser/Php7.php: No such file or directory".
+# A 1-slot pool makes the first invocation finish (and complete the download)
+# before any sibling gen_stub starts.
+set_property(GLOBAL APPEND PROPERTY JOB_POOLS php_scylladb_gen_stub=1)
+
 # Generator that emits <basename>_descriptor.cpp alongside each <basename>_arginfo.h.
 # The descriptor.cpp wires the class into the self-registering descriptor system
 # (see src/Registry/) — global ce, handlers struct, register fn (with weakly
@@ -134,6 +142,7 @@ function(php_scylladb_generate_arginfo target_name)
                         "${PHP_SCYLLADB_GEN_STUB_WRAPPER}"
                 COMMENT "Generating ${_arginfo} from ${_stub}"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                JOB_POOL php_scylladb_gen_stub
                 VERBATIM
         )
 
