@@ -21,7 +21,7 @@
 #include "php_driver_types.h"
 #include "src/ExecutionOptions.h"
 #include "util/collections.h"
-#include "util/future.h"
+#include "FutureUtil.h"
 #include "util/math.h"
 #include "util/result.h"
 BEGIN_EXTERN_C()

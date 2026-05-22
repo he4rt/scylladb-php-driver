@@ -17,7 +17,7 @@
 #include "php_driver.h"
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
-#include "util/future.h"
+#include "FutureUtil.h"
 BEGIN_EXTERN_C()
 #include "FutureSession_arginfo.h"
 

@@ -17,7 +17,7 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "src/FutureRows.h"
-#include "util/future.h"
+#include "../FutureUtil.h"
 #include "util/result.h"
 BEGIN_EXTERN_C()
 #include "Rows_arginfo.h"

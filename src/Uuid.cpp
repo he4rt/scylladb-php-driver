@@ -18,7 +18,7 @@
 #include <php_driver_types.h>
 #include <util/hash.h>
 #include <util/types.h>
-#include <util/uuid_gen.h>
+#include "UuidGen.h"
 BEGIN_EXTERN_C()
 
 #include "Uuid_arginfo.h"

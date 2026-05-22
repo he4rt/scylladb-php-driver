@@ -16,13 +16,30 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/bytes.h"
 #include "util/types.h"
 BEGIN_EXTERN_C()
 
 #include "Blob_arginfo.h"
 
 zend_class_entry *php_driver_blob_ce = NULL;
+
+static void php_driver_bytes_to_hex(const char *bin, size_t len, char **out, size_t *out_len) {
+  static const char hex_str[] = "0123456789abcdef";
+  const size_t size = len * 2 + 2;
+  char *value = (char *)emalloc(size + 1);
+
+  value[0] = '0';
+  value[1] = 'x';
+  value[size] = '\0';
+
+  for (size_t i = 0; i < len; i++) {
+    value[i * 2 + 2] = hex_str[(bin[i] >> 4) & 0x0F];
+    value[i * 2 + 3] = hex_str[(bin[i]) & 0x0F];
+  }
+
+  *out = value;
+  *out_len = size;
+}
 
 /* Legacy init helper used by util/src/types.cpp php_driver_scalar_init() */
 void php_driver_blob_init(INTERNAL_FUNCTION_PARAMETERS) {

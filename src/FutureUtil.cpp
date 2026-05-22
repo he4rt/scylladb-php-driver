@@ -17,7 +17,7 @@
 #include <php_driver.h>
 #include <php_driver_types.h>
 
-#include <util/future.h>
+#include "FutureUtil.h"
 
 int
 php_driver_future_wait_timed(CassFuture* future, zval* timeout)

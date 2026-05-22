@@ -12,9 +12,12 @@ target_sources(src PRIVATE
         FutureRows.cpp
         FutureSession.cpp
         FutureClose.cpp
+        FutureUtil.cpp
         FutureValue.cpp
         Inet.cpp
+        InetUtil.cpp
         Map.cpp
+        UuidGen.cpp
         DefaultSession.cpp
         PreparedStatement.cpp
         Session.cpp
