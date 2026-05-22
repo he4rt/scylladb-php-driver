@@ -118,6 +118,10 @@ find_package(PHP      REQUIRED)
 # Must come after find_package(PHP) — reads PHP_PREFIX, PHP_EXTENSION_DIR etc.
 include(cmake/PhpExtensionHelpers.cmake)
 
+# Build-time arginfo generation: .stub.php → _arginfo.h via vendored
+# tools/gen_stub/gen_stub.php using the PHP that's being built against.
+include(cmake/GenStubs.cmake)
+
 if (ENABLE_SANITIZERS)
     set(_sanitizers_cmake_dir "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake")
     if (NOT EXISTS "${_sanitizers_cmake_dir}/FindSanitizers.cmake")

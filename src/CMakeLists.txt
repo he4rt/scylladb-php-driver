@@ -31,3 +31,31 @@ target_sources(src PRIVATE
         UuidInterface.cpp
         Value.cpp
 )
+
+
+php_driver_generate_arginfo(src
+        BatchStatement.stub.php
+        Inet.stub.php
+        Blob.stub.php
+        Map.stub.php
+        Cassandra.stub.php
+        PreparedStatement.stub.php
+        Collection.stub.php
+        Session.stub.php
+        DefaultSession.stub.php
+        Set.stub.php
+        ExecutionOptions.stub.php
+        SimpleStatement.stub.php
+        Future.stub.php
+        Statement.stub.php
+        FutureClose.stub.php
+        Tuple.stub.php
+        FuturePreparedStatement.stub.php
+        UserTypeValue.stub.php
+        FutureRows.stub.php
+        Uuid.stub.php
+        FutureSession.stub.php
+        UuidInterface.stub.php
+        FutureValue.stub.php
+        Value.stub.php
+)

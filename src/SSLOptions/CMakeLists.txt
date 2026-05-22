@@ -4,3 +4,8 @@ target_sources(ssl_options PRIVATE
         Builder.cpp
         SSLOptions.cpp
 )
+
+php_driver_generate_arginfo(ssl_options
+        Builder.stub.php
+        SSLOptions.stub.php
+)

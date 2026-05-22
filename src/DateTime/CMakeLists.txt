@@ -8,3 +8,11 @@ target_sources(datetime PRIVATE
         DateTimeInternal.cpp
         Duration.cpp
 )
+
+php_driver_generate_arginfo(datetime
+        Date.stub.php
+        Timestamp.stub.php
+        Duration.stub.php
+        Timeuuid.stub.php
+        Time.stub.php
+)
