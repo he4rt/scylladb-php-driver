@@ -10,3 +10,13 @@ target_sources(numbers PRIVATE
         Tinyint.cpp
         Varint.cpp
 )
+
+php_driver_generate_arginfo(numbers
+        Bigint.stub.php
+        Smallint.stub.php
+        Decimal.stub.php
+        Tinyint.stub.php
+        Float.stub.php
+        Varint.stub.php
+        Numeric.stub.php
+)

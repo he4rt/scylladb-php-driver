@@ -60,3 +60,8 @@ cassandra.log
 php-old/
 target/
 docker/scylladb/certs/
+
+# Generated at build time by tools/gen_stub/gen_stub.php from *.stub.php
+src/**/*_arginfo.h
+src/*_arginfo.h
+tools/gen_stub/PHP-Parser-*/

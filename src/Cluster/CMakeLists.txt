@@ -7,3 +7,9 @@ target_sources(cluster_builder PRIVATE
         DefaultCluster.cpp
         DefaultClusterHandlers.cpp
 )
+
+php_driver_generate_arginfo(cluster_builder
+        Builder.stub.php
+        ClusterInterface.stub.php
+        DefaultCluster.stub.php
+)

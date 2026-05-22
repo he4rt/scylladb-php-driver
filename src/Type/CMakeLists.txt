@@ -12,3 +12,14 @@ target_sources(type PRIVATE
         UserType.cpp
         ValueHash.cpp
 )
+
+php_driver_generate_arginfo(type
+        Collection.stub.php
+        Set.stub.php
+        Custom.stub.php
+        Tuple.stub.php
+        Map.stub.php
+        Type.stub.php
+        Scalar.stub.php
+        UserType.stub.php
+)

@@ -5,3 +5,9 @@ target_sources(timestamp_generator PRIVATE
         ServerSide.cpp
         TimestampGenerator.cpp
 )
+
+php_driver_generate_arginfo(timestamp_generator
+        Monotonic.stub.php
+        ServerSide.stub.php
+        TimestampGenerator.stub.php
+)
