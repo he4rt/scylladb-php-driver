@@ -21,13 +21,13 @@ BEGIN_EXTERN_C()
 
 #include "DefaultPolicy_arginfo.h"
 
-extern zend_object_handlers php_scylladb_retry_policy_default_handlers;
+extern zend_object_handlers php_scylladb_retry_policy_default_policy_handlers;
 
-PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_instantiate(zval *dst)
+PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_policy_instantiate(zval *dst)
 {
   zval val;
 
-  if (object_init_ex(&val, php_scylladb_retry_policy_default_ce) == FAILURE) {
+  if (object_init_ex(&val, php_scylladb_retry_policy_default_policy_ce) == FAILURE) {
     return nullptr;
   }
 
@@ -39,7 +39,7 @@ PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_in
 }
 
 
-void php_scylladb_retry_policy_default_free(zend_object *object)
+void php_scylladb_retry_policy_default_policy_free(zend_object *object)
 {
   auto *self = ZendCPP::ObjectFetch<php_scylladb_retry_policy>(object);
 
@@ -47,9 +47,9 @@ void php_scylladb_retry_policy_default_free(zend_object *object)
   zend_object_std_dtor(object);
 }
 
-zend_object *php_scylladb_retry_policy_default_new(zend_class_entry *ce)
+zend_object *php_scylladb_retry_policy_default_policy_new(zend_class_entry *ce)
 {
-  auto *self = ZendCPP::Allocate<php_scylladb_retry_policy>(ce, &php_scylladb_retry_policy_default_handlers);
+  auto *self = ZendCPP::Allocate<php_scylladb_retry_policy>(ce, &php_scylladb_retry_policy_default_policy_handlers);
   self->policy = cass_retry_policy_default_new();
   return &self->zendObject;
 }

@@ -14,13 +14,13 @@ typedef struct
   zend_object zendObject;
 } php_scylladb_retry_policy;
 
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_default_ce;
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_default_policy_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_downgrading_consistency_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_fallthrough_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_logging_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_ce;
 
-PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_instantiate(zval *dst);
+PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_policy_instantiate(zval *dst);
 PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_downgrading_consistency_instantiate(zval *dst);
 PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_fallthrough_instantiate(zval *dst);
 PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_logging_instantiate(zval *dst, php_scylladb_retry_policy *retry_policy);

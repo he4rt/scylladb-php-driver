@@ -36,7 +36,7 @@ PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_fallthroug
 {
   zval val;
 
-  if (object_init_ex(&val, php_scylladb_retry_policy_default_ce) == FAILURE) {
+  if (object_init_ex(&val, php_scylladb_retry_policy_default_policy_ce) == FAILURE) {
     return nullptr;
   }
 
