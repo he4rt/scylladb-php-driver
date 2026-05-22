@@ -51,6 +51,91 @@ jobs:
           fi
           echo "OK — no legacy zend_parse_parameters() callsites."
 
+  lint-clang-tidy:
+    name: "Lint: clang-tidy (DebugPHP8.5NTS)"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev \
+            clang-tidy-19
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-19 100
+          clang-tidy --version
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          ini-file: development
+          coverage: none
+          tools: php-config, phpize
+          extensions: mbstring, curl, intl
+        env:
+          phpts: nts
+          debug: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: clang-tidy-${{ runner.os }}-8.5-nts
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - name: Configure (DebugPHP8.5NTS, sanitizers off, export compile commands)
+        run: |
+          export PKG_CONFIG_PATH="${{ steps.driver.outputs.pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
+          cmake --preset DebugPHP8.5NTS \
+            -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
+            -DENABLE_SANITIZERS=OFF \
+            -DSANITIZE_ADDRESS=OFF \
+            -DSANITIZE_UNDEFINED=OFF \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Build generated headers
+        # clang-tidy needs *_arginfo.h and any other generated sources to
+        # exist before it can parse translation units.
+        run: |
+          cmake --build out/DebugPHP8.5NTS --target ZendCPP || true
+
+      - name: Determine files to lint
+        id: files
+        run: |
+          set -e
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+            git diff --name-only --diff-filter=AM "$BASE" "$HEAD" \
+              | grep -E '^src/.*\.(c|cc|cpp)$' > changed.txt || true
+          else
+            find src -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) > changed.txt
+          fi
+          echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "Files to lint:"
+          cat changed.txt || true
+
+      - name: Run clang-tidy
+        if: steps.files.outputs.count != '0'
+        run: |
+          set -e
+          xargs -a changed.txt -r -n1 -P"$(nproc)" \
+            clang-tidy -p out/DebugPHP8.5NTS --quiet
+
   test:
     name: PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
     runs-on: ubuntu-24.04

@@ -1,0 +1,70 @@
+# clang-tidy configuration for scylladb-php-driver.
+#
+# Scope: catch real bugs and unsafe API usage. Style/readability checks are
+# intentionally kept narrow so day-one CI is enforceable without a large
+# triage. Tighten over time as modules get ported from C++ to C23.
+#
+# Excluded by design:
+#   Style / cosmetic (re-enable selectively when triaged):
+#     - readability-identifier-length / readability-magic-numbers
+#     - readability-function-cognitive-complexity      (Zend macros inflate it)
+#     - readability-redundant-control-flow             (cosmetic)
+#     - readability-inconsistent-declaration-parameter-name (handler ABI)
+#     - misc-unused-parameters                         (Zend handler ABI)
+#     - misc-include-cleaner                           (PHP umbrella headers)
+#     - modernize-*                                    (we're moving C++ → C23, not the other way)
+#
+#   False positives from third-party / Zend macros (re-enable per-module
+#   as code is ported to C23):
+#     - bugprone-narrowing-conversions    (Zend long↔int conversions)
+#     - bugprone-casting-through-void     (uthash HASH_FIND_ZVAL)
+#     - bugprone-signed-char-misuse / cert-str34-c (Cassandra tinyint is signed by spec)
+#     - bugprone-exception-escape         (last C++ files; dissolves with migration)
+#     - performance-no-int-to-ptr         (uthash HASH_DEL)
+#     - cert-err33-c                      (cass_* return codes deliberately ignored on cleanup)
+#     - bugprone-easily-swappable-parameters / bugprone-macro-parentheses (Zend ABI shape)
+
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-macro-parentheses,
+  -bugprone-branch-clone,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-narrowing-conversions,
+  -bugprone-casting-through-void,
+  -bugprone-signed-char-misuse,
+  -bugprone-exception-escape,
+  clang-analyzer-*,
+  -clang-analyzer-security.ArrayBound,
+  -clang-analyzer-core.NullDereference,
+  -clang-analyzer-deadcode.DeadStores,
+  cert-*,
+  -cert-err33-c,
+  -cert-dcl37-c,
+  -cert-dcl51-cpp,
+  -cert-str34-c,
+  performance-*,
+  -performance-no-int-to-ptr,
+  portability-*,
+  readability-misleading-indentation,
+  readability-redundant-declaration,
+  readability-redundant-string-init,
+  readability-non-const-parameter,
+  misc-redundant-expression,
+  misc-misplaced-const,
+  misc-static-assert
+
+# Treat the curated set as errors — we only enabled checks we expect to pass.
+WarningsAsErrors: '*'
+
+# Only lint our own headers — skip system, PHP SDK, vendored cpp-driver, and
+# generated arginfo files.
+HeaderFilterRegex: '^.*/src/.*(?<!_arginfo)\.h$'
+
+FormatStyle: file
+
+CheckOptions:
+  - key: readability-non-const-parameter.IgnoreMacros
+    value: 'true'
+  - key: misc-unused-parameters.StrictMode
+    value: 'false'
