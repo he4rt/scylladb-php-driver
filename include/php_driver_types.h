@@ -302,23 +302,14 @@ typedef enum /* : uint8_t */
     LOAD_BALANCING_DC_AWARE_ROUND_ROBIN
 } php_driver_load_balancing;
 
-typedef void (*php_driver_free_function)(void *data);
-
-typedef struct
-{
-    size_t count;
-    php_driver_free_function destruct;
-    void *data;
-} php_driver_ref;
-
 typedef struct php_driver_rows_
 {
-    php_driver_ref *statement;
-    php_driver_ref *session;
+    zend_resource *statement;       /* le_cass_statement; refcounted */
+    zval session;                   /* zval to DefaultSession PHP object */
     zval rows;
     zval next_rows;
-    php_driver_ref *result;
-    php_driver_ref *next_result;
+    const CassResult *result;       /* owned; freed in free_obj */
+    const CassResult *next_result;  /* owned; freed in free_obj */
     zval future_next_page;
     zend_object zendObject;
 } php_driver_rows;
@@ -329,10 +320,10 @@ static zend_always_inline php_driver_rows *php_driver_rows_object_fetch(zend_obj
 
 typedef struct php_driver_future_rows_
 {
-    php_driver_ref *statement;
-    php_driver_ref *session;
+    zend_resource *statement;       /* le_cass_statement; refcounted */
+    zval session;                   /* zval to DefaultSession PHP object */
     zval rows;
-    php_driver_ref *result;
+    const CassResult *result;       /* owned; freed in free_obj */
     CassFuture *future;
     zend_object zendObject;
 } php_driver_future_rows;
@@ -435,7 +426,7 @@ static zend_always_inline php_driver_future_close *php_driver_future_close_objec
 typedef struct php_driver_future_session_
 {
     CassFuture *future;
-    php_driver_ref *session;
+    CassSession *session;     /* owned until get() transfers to DefaultSession */
     zval default_session;
     cass_bool_t persist;
     zend_ulong cache_key;
@@ -452,18 +443,20 @@ static zend_always_inline php_driver_future_session *php_driver_future_session_o
 typedef struct
 {
     CassFuture *future;
-    php_driver_ref *session;
+    CassSession *session;   /* owns CassSession across requests (persistent_list) */
 } php_driver_psession;
 
 typedef struct
 {
     CassFuture *future;
-    php_driver_ref *ref;
+    /* No back-ref to session: persistent_list cleanup is LIFO so the
+       prepared-statement entry is destroyed before the psession it
+       depends on; CassFuture holds an internal CassSession ref. */
 } php_driver_pprepared_statement;
 
 typedef struct php_driver_session_
 {
-    php_driver_ref *session;
+    CassSession *session;        /* owned if !persist; borrowed (psession owns) otherwise */
     long default_consistency;
     int default_page_size;
     char *keyspace;
@@ -829,4 +822,5 @@ void php_driver_define_TimestampGeneratorServerSide();
 extern int php_le_php_driver_cluster();
 extern int php_le_php_driver_session();
 extern int php_le_php_driver_prepared_statement();
+extern int php_le_cass_statement();
 END_EXTERN_C()

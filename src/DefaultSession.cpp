@@ -23,7 +23,6 @@
 #include "util/collections.h"
 #include "util/future.h"
 #include "util/math.h"
-#include "util/ref.h"
 #include "util/result.h"
 BEGIN_EXTERN_C()
 #include "DefaultSession_arginfo.h"
@@ -35,12 +34,6 @@ zend_class_entry* php_driver_default_session_ce = NULL;
     ASSERT_SUCCESS_VALUE(rc, FAILURE); \
     return SUCCESS;                    \
   } while (0)
-
-static void free_result(void* result) { cass_result_free((CassResult*)result); }
-
-static void free_statement(void* statement) { cass_statement_free((CassStatement*)statement); }
-
-static void free_schema(void* schema) { cass_schema_meta_free((CassSchemaMeta*)schema); }
 
 static int bind_argument_by_index(CassStatement* statement, size_t index, zval* value) {
   if (Z_TYPE_P(value) == IS_NULL) CHECK_RESULT(cass_statement_bind_null(statement, index));
@@ -603,14 +596,14 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
 
       if (!single) return;
 
-      future = cass_session_execute((CassSession*)self->session->data, single);
+      future = cass_session_execute(self->session, single);
       break;
     case PHP_DRIVER_BATCH_STATEMENT:
       batch = create_batch(stmt, consistency, retry_policy, timestamp);
 
       if (!batch) return;
 
-      future = cass_session_execute_batch((CassSession*)self->session->data, batch);
+      future = cass_session_execute_batch(self->session, batch);
       break;
     default:
       INVALID_ARGUMENT(statement,
@@ -648,9 +641,11 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
     }
 
     if (single && cass_result_has_more_pages(result)) {
-      rows->statement = php_driver_new_ref(single, free_statement);
-      rows->result = php_driver_new_ref((void*)result, free_result);
-      rows->session = php_driver_add_ref(self->session);
+      /* Transfer statement and result ownership to Rows for paging. */
+      rows->statement = zend_register_resource(single, php_le_cass_statement());
+      rows->result    = result;
+      ZVAL_COPY(&rows->session, getThis());
+      single = NULL;   /* ownership transferred via resource */
       return;
     }
 
@@ -751,16 +746,16 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
 
       if (!single) return;
 
-      future_rows->statement = php_driver_new_ref(single, free_statement);
-      future_rows->future = cass_session_execute((CassSession*)self->session->data, single);
-      future_rows->session = php_driver_add_ref(self->session);
+      future_rows->statement = zend_register_resource(single, php_le_cass_statement());
+      future_rows->future = cass_session_execute(self->session, single);
+      ZVAL_COPY(&future_rows->session, getThis());
       break;
     case PHP_DRIVER_BATCH_STATEMENT:
       batch = create_batch(stmt, consistency, retry_policy, timestamp);
 
       if (!batch) return;
 
-      future_rows->future = cass_session_execute_batch((CassSession*)self->session->data, batch);
+      future_rows->future = cass_session_execute_batch(self->session, batch);
       cass_batch_free(batch);
       break;
     default:
@@ -843,7 +838,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   }
 
   future =
-      cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
+      cass_session_prepare_n(self->session, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
   if (future == NULL) {
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
@@ -869,7 +864,9 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
     zval resource;
     pprepared_statement =
         (php_driver_pprepared_statement*)pecalloc(1, sizeof(php_driver_pprepared_statement), 1);
-    pprepared_statement->ref    = php_driver_add_ref(self->session);
+    /* No back-ref to the session: persistent_list cleanup is LIFO,
+       so this entry is destroyed before the psession it depends on,
+       and CassFuture holds an internal CassSession ref for safety. */
     pprepared_statement->future = future;
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
@@ -898,7 +895,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepareAsync) {
   self = PHP_DRIVER_GET_SESSION(getThis());
 
   future =
-      cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
+      cass_session_prepare_n(self->session, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
   object_init_ex(return_value, php_driver_future_prepared_statement_ce);
   future_prepared = PHP_DRIVER_GET_FUTURE_PREPARED_STATEMENT(return_value);
@@ -920,7 +917,7 @@ ZEND_METHOD(Cassandra_DefaultSession, close) {
 
   if (self->persist) return;
 
-  future = cass_session_close((CassSession*)self->session->data);
+  future = cass_session_close(self->session);
 
   if (php_driver_future_wait_timed(future, timeout) == SUCCESS) php_driver_future_is_error(future);
 
@@ -945,7 +942,7 @@ ZEND_METHOD(Cassandra_DefaultSession, closeAsync) {
   object_init_ex(return_value, php_driver_future_close_ce);
   future = PHP_DRIVER_GET_FUTURE_CLOSE(return_value);
 
-  future->future = cass_session_close((CassSession*)self->session->data);
+  future->future = cass_session_close(self->session);
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, metrics) {
@@ -957,7 +954,7 @@ ZEND_METHOD(Cassandra_DefaultSession, metrics) {
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
-  cass_session_get_metrics((CassSession*)self->session->data, &metrics);
+  cass_session_get_metrics(self->session, &metrics);
 
   array_init(&requests);
   add_assoc_long(&requests, "min", metrics.requests.min);
@@ -1005,7 +1002,7 @@ ZEND_METHOD(Cassandra_DefaultSession, schema) {
   object_init_ex(return_value, php_driver_default_schema_ce);
   schema = PHP_DRIVER_GET_SCHEMA(return_value);
 
-  schema->schema_meta = cass_session_get_schema_meta((CassSession*)self->session->data);
+  schema->schema_meta = cass_session_get_schema_meta(self->session);
 }
 
 static zend_object_handlers php_driver_default_session_handlers;
@@ -1026,7 +1023,12 @@ static int php_driver_default_session_compare(zval* obj1, zval* obj2) {
 static void php_driver_default_session_free(zend_object* object) {
   php_driver_session* self = php_driver_session_object_fetch(object);
 
-  php_driver_del_peref(&self->session, 1);
+  /* Persistent: the psession entry in EG(persistent_list) owns the
+     CassSession; we just borrowed the pointer. */
+  if (!self->persist && self->session) {
+    cass_session_free(self->session);
+    self->session = NULL;
+  }
   zval_ptr_dtor(&self->default_timeout);
 
   if (self->keyspace) {

@@ -17,17 +17,11 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "util/future.h"
-#include "util/ref.h"
 #include "util/result.h"
 BEGIN_EXTERN_C()
 #include "FutureRows_arginfo.h"
 
 zend_class_entry *php_driver_future_rows_ce = NULL;
-
-static void free_result(void *result)
-{
-  cass_result_free((CassResult *) result);
-}
 
 int php_driver_future_rows_get_result(php_driver_future_rows *future_rows, zval *timeout)
 {
@@ -49,7 +43,7 @@ int php_driver_future_rows_get_result(php_driver_future_rows *future_rows, zval 
       return FAILURE;
     }
 
-    future_rows->result = php_driver_new_ref((void *)result, free_result);
+    future_rows->result = result;
   }
 
   return SUCCESS;
@@ -72,7 +66,7 @@ ZEND_METHOD(Cassandra_FutureRows, get)
   }
 
   if (Z_ISUNDEF(self->rows)) {
-    if (php_driver_get_result((const CassResult *) self->result->data, &self->rows) == FAILURE) {
+    if (php_driver_get_result(self->result, &self->rows) == FAILURE) {
       zval_ptr_dtor(&self->rows);
       return;
     }
@@ -83,10 +77,14 @@ ZEND_METHOD(Cassandra_FutureRows, get)
 
   ZVAL_COPY(&rows->rows, &self->rows);
 
-  if (cass_result_has_more_pages((const CassResult *)self->result->data)) {
-    rows->session   = php_driver_add_ref(self->session);
-    rows->statement = php_driver_add_ref(self->statement);
-    rows->result    = php_driver_add_ref(self->result);
+  if (cass_result_has_more_pages(self->result)) {
+    /* Share statement (refcounted resource) and transfer result
+       ownership to the new Rows. session is a zval — refcount via copy. */
+    ZVAL_COPY(&rows->session, &self->session);
+    GC_ADDREF(self->statement);
+    rows->statement = self->statement;
+    rows->result    = self->result;
+    self->result    = NULL;   /* transferred to Rows */
   }
 }
 
@@ -114,9 +112,18 @@ static void php_driver_future_rows_free(zend_object *object)
 
   zval_ptr_dtor(&self->rows);
 
-  php_driver_del_ref(&self->statement);
-  php_driver_del_peref(&self->session, 1);
-  php_driver_del_ref(&self->result);
+  if (self->statement) {
+    zend_list_delete(self->statement);
+    self->statement = NULL;
+  }
+  if (self->result) {
+    cass_result_free((CassResult *)self->result);
+    self->result = NULL;
+  }
+  if (!Z_ISUNDEF(self->session)) {
+    zval_ptr_dtor(&self->session);
+    ZVAL_UNDEF(&self->session);
+  }
 
   if (self->future) {
     cass_future_free(self->future);
@@ -132,7 +139,7 @@ static zend_object *php_driver_future_rows_new(zend_class_entry *ce)
   self->future    = NULL;
   self->statement = NULL;
   self->result    = NULL;
-  self->session   = NULL;
+  ZVAL_UNDEF(&self->session);
   ZVAL_UNDEF(&self->rows);
 
   zend_object_std_init(&self->zendObject, ce);

@@ -19,7 +19,6 @@
 #include <php_driver_globals.h>
 #include <php_driver_types.h>
 #include <util/future.h>
-#include <util/ref.h>
 
 #include "Cluster.h"
 #include "DefaultClusterHandlers.h"
@@ -29,11 +28,6 @@ BEGIN_EXTERN_C()
 #include "DefaultCluster_arginfo.h"
 
 zend_class_entry *php_driver_default_cluster_ce = nullptr;
-
-static void free_session(void *session)
-{
-    cass_session_free((CassSession *)session);
-}
 
 ZEND_METHOD(Cassandra_DefaultCluster, connect)
 {
@@ -84,7 +78,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
         if (le != NULL && Z_RES_P(le)->type == php_le_php_driver_session())
         {
             psession = (php_driver_psession *)Z_RES_P(le)->ptr;
-            session->session = php_driver_add_ref(psession->session);
+            session->session = psession->session;   /* borrowed; psession owns */
             future = psession->future;
         }
     }
@@ -93,21 +87,21 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     {
         zval resource;
 
-        session->session = php_driver_new_peref(cass_session_new(), free_session, 1);
+        session->session = cass_session_new();
 
         if (keyspace)
         {
-            future = cass_session_connect_keyspace((CassSession *)session->session->data, self->cluster, keyspace);
+            future = cass_session_connect_keyspace(session->session, self->cluster, keyspace);
         }
         else
         {
-            future = cass_session_connect((CassSession *)session->session->data, self->cluster);
+            future = cass_session_connect(session->session, self->cluster);
         }
 
         if (session->persist)
         {
             psession = (php_driver_psession *)pecalloc(1, sizeof(php_driver_psession), 1);
-            psession->session = php_driver_add_ref(session->session);
+            psession->session = session->session;   /* psession becomes the owner */
             psession->future = future;
 
             ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());
@@ -177,28 +171,28 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         if (le != NULL && Z_RES_P(le)->type == php_le_php_driver_session())
         {
             php_driver_psession *psession = (php_driver_psession *)Z_RES_P(le)->ptr;
-            future->session = php_driver_add_ref(psession->session);
+            future->session = psession->session;   /* borrowed; psession owns */
             future->future = psession->future;
             return;
         }
     }
 
-    future->session = php_driver_new_peref(cass_session_new(), free_session, 1);
+    future->session = cass_session_new();
 
     if (keyspace)
     {
-        future->future = cass_session_connect_keyspace((CassSession *)future->session->data, self->cluster, keyspace);
+        future->future = cass_session_connect_keyspace(future->session, self->cluster, keyspace);
     }
     else
     {
-        future->future = cass_session_connect((CassSession *)future->session->data, self->cluster);
+        future->future = cass_session_connect(future->session, self->cluster);
     }
 
     if (self->persist)
     {
         zval resource;
         auto *psession = (php_driver_psession *)pecalloc(1, sizeof(php_driver_psession), 1);
-        psession->session = php_driver_add_ref(future->session);
+        psession->session = future->session;   /* psession becomes the owner */
         psession->future = future->future;
 
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, psession, php_le_php_driver_session());

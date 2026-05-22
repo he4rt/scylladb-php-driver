@@ -18,7 +18,6 @@
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
 #include "util/future.h"
-#include "util/ref.h"
 BEGIN_EXTERN_C()
 #include "FutureSession_arginfo.h"
 
@@ -57,8 +56,14 @@ ZEND_METHOD(Cassandra_FutureSession, get)
   object_init_ex(return_value, php_driver_default_session_ce);
   session = PHP_DRIVER_GET_SESSION(return_value);
 
-  session->session = php_driver_add_ref(self->session);
+  /* Transfer CassSession ownership: persistent path's psession owns it
+     so the future was borrowing; non-persistent path's future owned it
+     until now and the DefaultSession takes over. */
+  session->session = self->session;
   session->persist = self->persist;
+  if (!self->persist) {
+    self->session = nullptr;   /* ownership transferred to DefaultSession */
+  }
 
   if (php_driver_future_wait_timed(self->future, timeout) == FAILURE) {
     if (self->persist && self->cache_key) {
@@ -124,7 +129,11 @@ static void php_driver_future_session_free(zend_object *object)
     cass_future_free(self->future);
   }
 
-  php_driver_del_peref(&self->session, 1);
+  /* Free CassSession only if non-persistent AND not transferred via get(). */
+  if (!self->persist && self->session) {
+    cass_session_free(self->session);
+    self->session = nullptr;
+  }
 
   if (self->exception_message) {
     efree(self->exception_message);

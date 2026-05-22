@@ -22,7 +22,6 @@
 #include <php_driver_globals.h>
 #include <php_driver_types.h>
 #include <php_ini.h>
-#include <util/ref.h>
 #include <uv.h>
 #include <version.h>
 
@@ -162,7 +161,10 @@ static void php_driver_session_dtor(zend_resource* rsrc) {
 
   if (psession) {
     cass_future_free(psession->future);
-    php_driver_del_peref(&psession->session, 1);
+    if (psession->session) {
+      cass_session_free(psession->session);
+      psession->session = nullptr;
+    }
     pefree(psession, 1);
     // clang-format off
     PHP_DRIVER_G(persistent_sessions)--;
@@ -179,13 +181,25 @@ static void php_driver_prepared_statement_dtor(zend_resource* rsrc) {
 
   if (preparedStmt) {
     cass_future_free(preparedStmt->future);
-    php_driver_del_peref(&preparedStmt->ref, 1);
     pefree(preparedStmt, 1);
 
     // clang-format off
     PHP_DRIVER_G(persistent_prepared_statements)--;
     // clang-format on
 
+    rsrc->ptr = nullptr;
+  }
+}
+
+/* Per-request refcounted CassStatement* wrapper. Needed because a Rows
+   object can outlive the FutureRows that produced it AND can itself
+   spawn child FutureRows via nextPageAsync — all of which need to share
+   the same CassStatement* for paging. */
+static int le_cass_statement_res;
+int php_le_cass_statement() { return le_cass_statement_res; }
+static void php_driver_cass_statement_dtor(zend_resource* rsrc) {
+  if (rsrc->ptr) {
+    cass_statement_free((CassStatement *)rsrc->ptr);
     rsrc->ptr = nullptr;
   }
 }
@@ -453,6 +467,9 @@ PHP_MINIT_FUNCTION(php_driver) {
   le_php_driver_prepared_statement_res =
       zend_register_list_destructors_ex(nullptr, php_driver_prepared_statement_dtor,
                                         PHP_DRIVER_PREPARED_STATEMENT_RES_NAME, module_number);
+
+  le_cass_statement_res = zend_register_list_destructors_ex(
+      php_driver_cass_statement_dtor, nullptr, "CassStatement", module_number);
 
   php_driver_define_Exceptions();
 

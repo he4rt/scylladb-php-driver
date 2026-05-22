@@ -7,7 +7,6 @@ target_sources(util PRIVATE
         src/hash.cpp
         src/inet.cpp
         src/math.cpp
-        src/ref.cpp
         src/result.cpp
         src/types.cpp
         src/uuid_gen.cpp
