@@ -304,36 +304,36 @@ Goal: delete migration-era cruft before any module-level porting. These macros a
 - `PHP_DRIVER_NAMESPACE_ZEND_ARG_OBJ_INFO` — replaced by stub-generated arginfo. Delete after the last manual `ZEND_BEGIN_ARG_INFO_EX` is gone.
 - `PHP_DRIVER_G(v)` — keep (not legacy; this is the canonical TSRM/global accessor).
 
-### 2.3 Delete `util/` [TODO]
+### 2.3 Delete `util/` [PARTIAL — see status]
 
-**Scope.** 12 headers + 10 `.cpp` files: `bytes`, `collections`, `consistency`, `future`, `hash`, `inet`, `inline`, `math`, `ref`, `result`, `types`, `uthash`, `uuid_gen`.
+**Done so far (2026-05-22):**
 
-**Strategy.** None of these warrant a shared utility layer; they're either:
-- (a) thin wrappers around 1–2 `cass_*` calls — inline at the callsite or move into the owning module,
-- (b) duplicates of Zend/PHP stdlib (`hash`, `inline`),
-- (c) header-only macro grab-bags (`uthash.h` — replace with `zend_hash` if used, otherwise delete),
-- (d) Cassandra-specific glue that belongs inside `src/Database` or `src/Type` (`bytes`, `collections`, `result`, `future`).
+| File | Action taken | Commit |
+|---|---|---|
+| `util/ref.{h,cpp}` | Deleted; refcounting redesigned (Round B). | `62c5c403` |
+| `util/inline.h` | Deleted; `PHP_DRIVER_ALWAYS_INLINE` macro replaced with plain `static inline`. | `1f1db056` |
+| `util/consistency.h` | Moved to `include/php_driver_consistency.h`. | `1f1db056` |
+| `util/bytes.{h,cpp}` | Folded into `src/Blob.cpp` (sole consumer). | `0807dcc4` |
+| `util/inet.{h,cpp}` | Moved to `src/InetUtil.{h,cpp}` (sole consumer: `src/Inet.cpp`). | `0807dcc4` |
+| `util/uuid_gen.{h,cpp}` | Moved to `src/UuidGen.{h,cpp}` (used by Uuid + Timeuuid). | `0807dcc4` |
+| `util/future.{h,cpp}` | Moved to `src/FutureUtil.{h,cpp}`. | `0807dcc4` |
 
-**Per-file plan:**
+**Remaining in `util/` (deferred — see note):**
 
-| File | Action |
+| File | Consumers |
 |---|---|
-| `util/bytes.{h,cpp}` | Move into `src/Type/Blob.c` and `src/Numbers/Varint.c` (only callers). |
-| `util/collections.{h,cpp}` | Move into `src/Type/Collection.c` / `Set.c` / `Map.c`. |
-| `util/consistency.h` | Inline the `php_driver_get_consistency()` switch into `src/Database/ExecutionOptions.c`. |
-| `util/future.{h,cpp}` | Becomes the unified `php_driver_await_future()` helper from Stage 5.1; move to `src/Database/Future.c`. |
-| `util/hash.{h,cpp}` | Audit — most likely replaceable with bare `zend_hash_*`. Delete file. |
-| `util/inet.{h,cpp}` | Move into `src/Type/Inet.c` (single owner). |
-| `util/inline.h` | Audit each inline; either move to the owning module's private header or delete. |
-| `util/math.{h,cpp}` | Move into `src/Numbers/` (single domain). |
-| `util/ref.{h,cpp}` | Audit refcounting helpers; replace with `zend_object_addref`/`zend_object_release` directly. Delete file. |
-| `util/result.{h,cpp}` | Move into `src/Database/Rows.c`. |
-| `util/types.{h,cpp}` | Move into `src/Type/Type.c`. |
-| `util/uthash.h` | Verify any callers; replace with `zend_hash`/`HashTable`. Delete. |
-| `util/uuid_gen.{h,cpp}` | Move into `src/Type/Uuid.c` and `src/Type/Timeuuid.c`. |
-| `util/CMakeLists.txt`, `util/src/` | Delete the directories once empty. |
+| `util/collections.{h,cpp}` (885 LOC) | Collection, Set, Map, Tuple, UserTypeValue, DefaultSession |
+| `util/hash.{h,cpp}` + `util/uthash.h` (135 + 969 LOC) | Collection, Set, Map, Tuple, UserTypeValue, Uuid |
+| `util/math.{h,cpp}` (607 LOC) | All 6 Numbers, DateTime/Time, DateTime/Duration, DefaultSession, ExecutionOptions |
+| `util/result.{h,cpp}` (487 LOC) | DefaultSession, FutureRows, Rows, Database/Table, Database/DefaultIndex |
+| `util/types.{h,cpp}` (1353 LOC) | Collection, Set, Map, Tuple, UserTypeValue, Blob, Uuid, more |
 
-**Build wiring.** Remove `add_subdirectory(util)` and `target_link_libraries(... ext_scylladb::util ...)` from root [CMakeLists.txt](../../CMakeLists.txt); update each receiving module's `target_sources`.
+**Note on the remaining files.** The original plan assumed these were "thin wrappers around 1–2 `cass_*` calls" or "Cassandra-specific glue that belongs inside `src/Database` or `src/Type`." In reality each is a substantial (400-1300 LOC) shared library consumed by 5+ modules across multiple subdirectories. Moving any single one into a particular module would force the other consumers to include across module boundaries, which is uglier than the current `util/` namespace.
+
+**Recommended path forward** (next PR):
+- Replace `util/uthash.h` with `zend_hash` / `HashTable` (`uthash.h` is a third-party 969-line header; the actual usage in `util/hash.cpp` is small).
+- Convert all remaining `util/src/*.cpp` to `.c` during the Round G (C23 port) — this removes the C++ dependency without forcing the move.
+- Optionally rename `util/` → `src/Util/` for a visual cleanup; the contents stay shared.
 
 **Exit criteria for Stage 2:**
 - Zero `PHP5TO7_*` references in the repo (`grep` shows nothing).
