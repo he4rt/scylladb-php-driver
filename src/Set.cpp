@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 
 #include "Type/Conversions.h"
 #include "Type/ValueHash.h"
@@ -24,30 +24,31 @@
 #include "src/Set.h"
 BEGIN_EXTERN_C()
 #include "Set_arginfo.h"
-zend_class_entry* php_driver_set_ce = NULL;
+
+extern php_scylladb_value_handlers php_scylladb_set_handlers;
 
 int
-php_driver_set_add(php_driver_set* set, zval* object )
+php_scylladb_set_add(php_scylladb_set* set, zval* object )
 {
-  php_driver_set_entry* entry;
-  php_driver_type* type;
+  php_scylladb_set_entry* entry;
+  php_scylladb_type* type;
 
   if (Z_TYPE_P(object) == IS_NULL) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0 ,
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
                             "Invalid value: null is not supported inside sets");
     return 0;
   }
 
-  type = PHP_DRIVER_GET_TYPE(&set->type);
+  type = PHP_SCYLLADB_GET_TYPE(&set->type);
 
-  if (!php_driver_validate_object(object, &type->data.set.value_type )) {
+  if (!php_scylladb_validate_object(object, &type->data.set.value_type )) {
     return 0;
   }
 
   HASH_FIND_ZVAL(set->entries, object, entry);
   if (entry == NULL) {
     set->dirty = 1;
-    entry      = (php_driver_set_entry*) emalloc(sizeof(php_driver_set_entry));
+    entry      = (php_scylladb_set_entry*) emalloc(sizeof(php_scylladb_set_entry));
     ZVAL_COPY(&entry->value, object);
     HASH_ADD_ZVAL(set->entries, value, entry);
   }
@@ -56,15 +57,15 @@ php_driver_set_add(php_driver_set* set, zval* object )
 }
 
 static int
-php_driver_set_del(php_driver_set* set, zval* object )
+php_scylladb_set_del(php_scylladb_set* set, zval* object )
 {
-  php_driver_set_entry* entry;
-  php_driver_type* type;
+  php_scylladb_set_entry* entry;
+  php_scylladb_type* type;
   int result = 0;
 
-  type = PHP_DRIVER_GET_TYPE(&set->type);
+  type = PHP_SCYLLADB_GET_TYPE(&set->type);
 
-  if (!php_driver_validate_object(object, &type->data.set.value_type )) {
+  if (!php_scylladb_validate_object(object, &type->data.set.value_type )) {
     return 0;
   }
 
@@ -72,7 +73,7 @@ php_driver_set_del(php_driver_set* set, zval* object )
   if (entry != NULL) {
     set->dirty = 1;
     if (entry == set->iter_temp) {
-      set->iter_temp = (php_driver_set_entry*) set->iter_temp->hh.next;
+      set->iter_temp = (php_scylladb_set_entry*) set->iter_temp->hh.next;
     }
     HASH_DEL(set->entries, entry);
     zval_ptr_dtor(&entry->value);
@@ -84,15 +85,15 @@ php_driver_set_del(php_driver_set* set, zval* object )
 }
 
 static int
-php_driver_set_has(php_driver_set* set, zval* object )
+php_scylladb_set_has(php_scylladb_set* set, zval* object )
 {
-  php_driver_set_entry* entry;
-  php_driver_type* type;
+  php_scylladb_set_entry* entry;
+  php_scylladb_type* type;
   int result = 0;
 
-  type = PHP_DRIVER_GET_TYPE(&set->type);
+  type = PHP_SCYLLADB_GET_TYPE(&set->type);
 
-  if (!php_driver_validate_object(object, &type->data.set.value_type )) {
+  if (!php_scylladb_validate_object(object, &type->data.set.value_type )) {
     return 0;
   }
 
@@ -105,9 +106,9 @@ php_driver_set_has(php_driver_set* set, zval* object )
 }
 
 static void
-php_driver_set_populate(php_driver_set* set, zval* array )
+php_scylladb_set_populate(php_scylladb_set* set, zval* array )
 {
-  php_driver_set_entry *curr, *temp;
+  php_scylladb_set_entry *curr, *temp;
   HASH_ITER(hh, set->entries, curr, temp)
   {
     if (add_next_index_zval(array, &curr->value) != SUCCESS) {
@@ -120,28 +121,28 @@ php_driver_set_populate(php_driver_set* set, zval* array )
 /* {{{ Set::__construct(type) */
 PHP_METHOD(Cassandra_Set, __construct)
 {
-  php_driver_set* self;
+  php_scylladb_set* self;
   zval* type;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(type)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(getThis());
 
   if (Z_TYPE_P(type) == IS_STRING) {
     CassValueType value_type;
-    if (!php_driver_value_type(Z_STRVAL_P(type), &value_type ))
+    if (!php_scylladb_value_type(Z_STRVAL_P(type), &value_type ))
       return;
-    self->type = php_driver_type_set_from_value_type(value_type );
-  } else if (Z_TYPE_P(type) == IS_OBJECT && instanceof_function(Z_OBJCE_P(type), php_driver_type_ce )) {
-    if (!php_driver_type_validate(type, "type" )) {
+    self->type = php_scylladb_type_set_from_value_type(value_type );
+  } else if (Z_TYPE_P(type) == IS_OBJECT && instanceof_function(Z_OBJCE_P(type), php_scylladb_type_ce )) {
+    if (!php_scylladb_type_validate(type, "type" )) {
       return;
     }
-    self->type = php_driver_type_set(type );
+    self->type = php_scylladb_type_set(type );
     Z_ADDREF_P(type);
   } else {
-    INVALID_ARGUMENT(type, "a string or an instance of " PHP_DRIVER_NAMESPACE "\\Type");
+    INVALID_ARGUMENT(type, "a string or an instance of " PHP_SCYLLADB_NAMESPACE "\\Type");
   }
 }
 /* }}} */
@@ -149,7 +150,7 @@ PHP_METHOD(Cassandra_Set, __construct)
 /* {{{ Set::type() */
 PHP_METHOD(Cassandra_Set, type)
 {
-  php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 /* }}} */
@@ -157,26 +158,26 @@ PHP_METHOD(Cassandra_Set, type)
 /* {{{ Set::values() */
 PHP_METHOD(Cassandra_Set, values)
 {
-  php_driver_set* set = NULL;
+  php_scylladb_set* set = NULL;
   array_init(return_value);
-  set = PHP_DRIVER_GET_SET(getThis());
-  php_driver_set_populate(set, return_value );
+  set = PHP_SCYLLADB_GET_SET(getThis());
+  php_scylladb_set_populate(set, return_value );
 }
 /* }}} */
 
 /* {{{ Set::add(value) */
 PHP_METHOD(Cassandra_Set, add)
 {
-  php_driver_set* self = NULL;
+  php_scylladb_set* self = NULL;
 
   zval* object;
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(object)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(getThis());
 
-  if (php_driver_set_add(self, object ))
+  if (php_scylladb_set_add(self, object ))
     RETURN_TRUE;
 
   RETURN_FALSE;
@@ -186,16 +187,16 @@ PHP_METHOD(Cassandra_Set, add)
 /* {{{ Set::remove(value) */
 PHP_METHOD(Cassandra_Set, remove)
 {
-  php_driver_set* self = NULL;
+  php_scylladb_set* self = NULL;
 
   zval* object;
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(object)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(getThis());
 
-  if (php_driver_set_del(self, object ))
+  if (php_scylladb_set_del(self, object ))
     RETURN_TRUE;
 
   RETURN_FALSE;
@@ -205,16 +206,16 @@ PHP_METHOD(Cassandra_Set, remove)
 /* {{{ Set::has(value) */
 PHP_METHOD(Cassandra_Set, has)
 {
-  php_driver_set* self = NULL;
+  php_scylladb_set* self = NULL;
 
   zval* object;
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(object)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(getThis());
 
-  if (php_driver_set_has(self, object ))
+  if (php_scylladb_set_has(self, object ))
     RETURN_TRUE;
 
   RETURN_FALSE;
@@ -224,7 +225,7 @@ PHP_METHOD(Cassandra_Set, has)
 /* {{{ Set::count() */
 PHP_METHOD(Cassandra_Set, count)
 {
-  php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(getThis());
   RETURN_LONG((long) HASH_COUNT(self->entries));
 }
 /* }}} */
@@ -232,7 +233,7 @@ PHP_METHOD(Cassandra_Set, count)
 /* {{{ Set::current() */
 PHP_METHOD(Cassandra_Set, current)
 {
-  php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(getThis());
   if (self->iter_curr != NULL)
     RETURN_ZVAL(&self->iter_curr->value, 1, 0);
 }
@@ -241,7 +242,7 @@ PHP_METHOD(Cassandra_Set, current)
 /* {{{ Set::key() */
 PHP_METHOD(Cassandra_Set, key)
 {
-  php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(getThis());
   RETURN_LONG(self->iter_index);
 }
 /* }}} */
@@ -249,9 +250,9 @@ PHP_METHOD(Cassandra_Set, key)
 /* {{{ Set::next() */
 PHP_METHOD(Cassandra_Set, next)
 {
-  php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(getThis());
   self->iter_curr      = self->iter_temp;
-  self->iter_temp      = self->iter_temp != NULL ? (php_driver_set_entry*) self->iter_temp->hh.next : NULL;
+  self->iter_temp      = self->iter_temp != NULL ? (php_scylladb_set_entry*) self->iter_temp->hh.next : NULL;
   self->iter_index++;
 }
 /* }}} */
@@ -259,7 +260,7 @@ PHP_METHOD(Cassandra_Set, next)
 /* {{{ Set::valid() */
 PHP_METHOD(Cassandra_Set, valid)
 {
-  php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(getThis());
   RETURN_BOOL(self->iter_curr != NULL);
 }
 /* }}} */
@@ -267,18 +268,17 @@ PHP_METHOD(Cassandra_Set, valid)
 /* {{{ Set::rewind() */
 PHP_METHOD(Cassandra_Set, rewind)
 {
-  php_driver_set* self = PHP_DRIVER_GET_SET(getThis());
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(getThis());
   self->iter_curr      = self->entries;
-  self->iter_temp      = self->entries != NULL ? (php_driver_set_entry*) self->entries->hh.next : NULL;
+  self->iter_temp      = self->entries != NULL ? (php_scylladb_set_entry*) self->entries->hh.next : NULL;
   self->iter_index     = 0;
 }
 /* }}} */
 
 
-static php_driver_value_handlers php_driver_set_handlers;
 
-static HashTable*
-php_driver_set_gc(
+HashTable*
+php_scylladb_set_gc(
 #if PHP_MAJOR_VERSION >= 8
   zend_object* object,
 #else
@@ -290,8 +290,8 @@ php_driver_set_gc(
   return zend_std_get_gc(object, table, n);
 }
 
-static HashTable*
-php_driver_set_properties(
+HashTable*
+php_scylladb_set_properties(
 #if PHP_MAJOR_VERSION >= 8
   zend_object* object
 #else
@@ -302,9 +302,9 @@ php_driver_set_properties(
   zval values;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_set* self = php_driver_set_object_fetch(object);
+  php_scylladb_set* self = php_scylladb_set_object_fetch(object);
 #else
-  php_driver_set* self                        = PHP_DRIVER_GET_SET(object);
+  php_scylladb_set* self                        = PHP_SCYLLADB_GET_SET(object);
 #endif
   if (object->properties) {
     zend_array_release(object->properties);
@@ -317,36 +317,36 @@ php_driver_set_properties(
 
 
   array_init(&values);
-  php_driver_set_populate(self, &values );
-  zend_hash_sort(Z_ARRVAL_P(&values), php_driver_data_compare, 1);
+  php_scylladb_set_populate(self, &values );
+  zend_hash_sort(Z_ARRVAL_P(&values), php_scylladb_data_compare, 1);
   (void)zend_hash_str_update(props, ZEND_STRL("values"), &values);
 
   return props;
 }
 
-static int
-php_driver_set_compare(zval* obj1, zval* obj2 )
+int
+php_scylladb_set_compare(zval* obj1, zval* obj2 )
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
-  php_driver_set_entry *curr, *temp;
-  php_driver_set* set1;
-  php_driver_set* set2;
-  php_driver_type* type1;
-  php_driver_type* type2;
+  php_scylladb_set_entry *curr, *temp;
+  php_scylladb_set* set1;
+  php_scylladb_set* set2;
+  php_scylladb_type* type1;
+  php_scylladb_type* type2;
   int result;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  set1 = PHP_DRIVER_GET_SET(obj1);
-  set2 = PHP_DRIVER_GET_SET(obj2);
+  set1 = PHP_SCYLLADB_GET_SET(obj1);
+  set2 = PHP_SCYLLADB_GET_SET(obj2);
 
-  type1 = PHP_DRIVER_GET_TYPE(&set1->type);
-  type2 = PHP_DRIVER_GET_TYPE(&set2->type);
+  type1 = PHP_SCYLLADB_GET_TYPE(&set1->type);
+  type2 = PHP_SCYLLADB_GET_TYPE(&set2->type);
 
-  result = php_driver_type_compare(type1, type2 );
+  result = php_scylladb_type_compare(type1, type2 );
   if (result != 0)
     return result;
 
@@ -356,7 +356,7 @@ php_driver_set_compare(zval* obj1, zval* obj2 )
 
   HASH_ITER(hh, set1->entries, curr, temp)
   {
-    php_driver_set_entry* entry;
+    php_scylladb_set_entry* entry;
     HASH_FIND_ZVAL(set2->entries, &curr->value, entry);
     if (entry == NULL) {
       return 1;
@@ -366,19 +366,19 @@ php_driver_set_compare(zval* obj1, zval* obj2 )
   return 0;
 }
 
-static unsigned
-php_driver_set_hash_value(zval* obj )
+unsigned
+php_scylladb_set_hash_value(zval* obj )
 {
   unsigned hashv = 0;
-  php_driver_set_entry *curr, *temp;
-  php_driver_set* self = PHP_DRIVER_GET_SET(obj);
+  php_scylladb_set_entry *curr, *temp;
+  php_scylladb_set* self = PHP_SCYLLADB_GET_SET(obj);
 
   if (!self->dirty)
     return self->hashv;
 
   HASH_ITER(hh, self->entries, curr, temp)
   {
-    hashv = php_driver_combine_hash(hashv, php_driver_value_hash(&curr->value ));
+    hashv = php_scylladb_combine_hash(hashv, php_scylladb_value_hash(&curr->value ));
   }
 
   self->hashv = hashv;
@@ -387,11 +387,11 @@ php_driver_set_hash_value(zval* obj )
   return hashv;
 }
 
-static void
-php_driver_set_free(zend_object* object )
+void
+php_scylladb_set_free(zend_object* object )
 {
-  php_driver_set* self = php_driver_set_object_fetch(object);
-  php_driver_set_entry *curr, *temp;
+  php_scylladb_set* self = php_scylladb_set_object_fetch(object);
+  php_scylladb_set_entry *curr, *temp;
 
   HASH_ITER(hh, self->entries, curr, temp)
   {
@@ -406,11 +406,11 @@ php_driver_set_free(zend_object* object )
 
 }
 
-static zend_object*
-php_driver_set_new(zend_class_entry* ce )
+zend_object*
+php_scylladb_set_new(zend_class_entry* ce )
 {
-  php_driver_set* self =
-    (php_driver_set *)ecalloc(1, sizeof(php_driver_set) + zend_object_properties_size(ce));
+  php_scylladb_set* self =
+    (php_scylladb_set *)ecalloc(1, sizeof(php_scylladb_set) + zend_object_properties_size(ce));
 
   self->entries = self->iter_curr = self->iter_temp = NULL;
   self->iter_index                                  = 0;
@@ -418,24 +418,15 @@ php_driver_set_new(zend_class_entry* ce )
   ZVAL_UNDEF(&self->type);
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_set_handlers.std.offset = XtOffsetOf(php_driver_set, zendObject);
-  php_driver_set_handlers.std.free_obj = php_driver_set_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_set_handlers;
+  php_scylladb_set_handlers.std.offset = XtOffsetOf(php_scylladb_set, zendObject);
+  php_scylladb_set_handlers.std.free_obj = php_scylladb_set_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_set_handlers;
   return &self->zendObject;
 }
 
-void
-php_driver_define_Set()
+void php_scylladb_set_post_register(zend_class_entry *ce)
 {
-  php_driver_set_ce = register_class_Cassandra_Set(php_driver_value_ce, zend_ce_countable, zend_ce_iterator);
-  memcpy(&php_driver_set_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_set_handlers.std.get_properties = php_driver_set_properties;
-  php_driver_set_handlers.std.get_gc = php_driver_set_gc;
-  php_driver_set_handlers.std.compare = php_driver_set_compare;
-  php_driver_set_ce->create_object = php_driver_set_new;
-
-  php_driver_set_handlers.hash_value    = php_driver_set_hash_value;
-  php_driver_set_handlers.std.clone_obj = NULL;
+    (void)ce;
+    php_scylladb_set_handlers.std.offset = XtOffsetOf(php_scylladb_set, zendObject);
 }
-
 END_EXTERN_C()

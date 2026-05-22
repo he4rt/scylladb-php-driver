@@ -14,45 +14,46 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
+
 BEGIN_EXTERN_C()
 #include "DefaultSchema_arginfo.h"
-zend_class_entry *php_driver_default_schema_ce = NULL;
 
+extern zend_object_handlers php_scylladb_default_schema_handlers;
 ZEND_METHOD(Cassandra_DefaultSchema, keyspace)
 {
   char *name;
   size_t name_len;
-  php_driver_schema *self;
-  php_driver_keyspace *keyspace;
+  php_scylladb_schema *self;
+  php_scylladb_keyspace *keyspace;
   const CassKeyspaceMeta *meta;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_STRING(name, name_len)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_SCHEMA(getThis());
+  self = PHP_SCYLLADB_GET_SCHEMA(getThis());
   meta = cass_schema_meta_keyspace_by_name_n(self->schema_meta, name, name_len);
   if (meta == NULL) {
     RETURN_FALSE;
   }
 
-  object_init_ex(return_value, php_driver_default_keyspace_ce);
-  keyspace = PHP_DRIVER_GET_KEYSPACE(return_value);
+  object_init_ex(return_value, php_scylladb_default_keyspace_ce);
+  keyspace = PHP_SCYLLADB_GET_KEYSPACE(return_value);
   ZVAL_COPY(&keyspace->schema, getThis());
   keyspace->meta   = meta;
 }
 
 ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
 {
-  php_driver_schema *self;
+  php_scylladb_schema *self;
   CassIterator     *iterator;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self     = PHP_DRIVER_GET_SCHEMA(getThis());
+  self     = PHP_SCYLLADB_GET_SCHEMA(getThis());
   iterator = cass_iterator_keyspaces_from_schema_meta(self->schema_meta);
 
   array_init(return_value);
@@ -62,7 +63,7 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
     const char              *keyspace_name;
     size_t                   keyspace_name_len;
     zval             zkeyspace;
-    php_driver_keyspace      *keyspace;
+    php_scylladb_keyspace      *keyspace;
 
     meta = cass_iterator_get_keyspace_meta(iterator);
     value = cass_keyspace_meta_field_by_name(meta, "keyspace_name");
@@ -72,9 +73,8 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
       return;
     );
 
-
-    object_init_ex(&zkeyspace, php_driver_default_keyspace_ce);
-    keyspace = PHP_DRIVER_GET_KEYSPACE(&zkeyspace);
+    object_init_ex(&zkeyspace, php_scylladb_default_keyspace_ce);
+    keyspace = PHP_SCYLLADB_GET_KEYSPACE(&zkeyspace);
     ZVAL_COPY(&keyspace->schema, getThis());
     keyspace->meta   = meta;
     add_assoc_zval_ex(return_value, keyspace_name, keyspace_name_len, &zkeyspace);
@@ -85,19 +85,17 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
 
 ZEND_METHOD(Cassandra_DefaultSchema, version)
 {
-  php_driver_schema *self;
+  php_scylladb_schema *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_SCHEMA(getThis());
+  self = PHP_SCYLLADB_GET_SCHEMA(getThis());
   RETURN_LONG(cass_schema_meta_snapshot_version(self->schema_meta));
 }
 
-static zend_object_handlers php_driver_default_schema_handlers;
-
-static HashTable *
-php_driver_default_schema_properties(
+HashTable *
+php_scylladb_default_schema_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
@@ -110,8 +108,8 @@ php_driver_default_schema_properties(
   return props;
 }
 
-static int
-php_driver_default_schema_compare(zval *obj1, zval *obj2 )
+int
+php_scylladb_default_schema_compare(zval *obj1, zval *obj2 )
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -122,10 +120,10 @@ php_driver_default_schema_compare(zval *obj1, zval *obj2 )
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void
-php_driver_default_schema_free(zend_object *object )
+void
+php_scylladb_default_schema_free(zend_object *object )
 {
-  php_driver_schema *self = php_driver_schema_object_fetch(object);
+  php_scylladb_schema *self = php_scylladb_schema_object_fetch(object);
 
   if (self->schema_meta) {
     cass_schema_meta_free(self->schema_meta);
@@ -136,33 +134,20 @@ php_driver_default_schema_free(zend_object *object )
 
 }
 
-static zend_object*
-php_driver_default_schema_new(zend_class_entry *ce )
+zend_object*
+php_scylladb_default_schema_new(zend_class_entry *ce )
 {
-  php_driver_schema *self =
-      (php_driver_schema *)ecalloc(1, sizeof(php_driver_schema) + zend_object_properties_size(ce));
+  php_scylladb_schema *self =
+      (php_scylladb_schema *)ecalloc(1, sizeof(php_scylladb_schema) + zend_object_properties_size(ce));
 
   self->schema_meta = NULL;
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_default_schema_handlers.offset = XtOffsetOf(php_driver_schema, zendObject);
-  php_driver_default_schema_handlers.free_obj = php_driver_default_schema_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_schema_handlers;
+  php_scylladb_default_schema_handlers.offset = XtOffsetOf(php_scylladb_schema, zendObject);
+  php_scylladb_default_schema_handlers.free_obj = php_scylladb_default_schema_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_schema_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_DefaultSchema()
-{
-  php_driver_default_schema_ce = register_class_Cassandra_DefaultSchema(php_driver_schema_ce);
-  php_driver_default_schema_ce->create_object = php_driver_default_schema_new;
-
-  memcpy(&php_driver_default_schema_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_default_schema_handlers.get_properties  = php_driver_default_schema_properties;
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_default_schema_handlers.compare = php_driver_default_schema_compare;
-#else
-  php_driver_default_schema_handlers.compare_objects = php_driver_default_schema_compare;
-#endif
-  php_driver_default_schema_handlers.clone_obj = NULL;
-}
 END_EXTERN_C()
+

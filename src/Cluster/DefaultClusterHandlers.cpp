@@ -1,21 +1,21 @@
 #include <php.h>
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 
 #include "DefaultClusterHandlers.h"
 
 BEGIN_EXTERN_C()
 
-static zend_object_handlers php_driver_default_cluster_handlers;
+extern zend_object_handlers php_scylladb_default_cluster_handlers;
 
-static HashTable *php_driver_default_cluster_properties(zend_object *object)
+HashTable *php_scylladb_default_cluster_properties(zend_object *object)
 {
     HashTable *props = zend_std_get_properties(object);
 
     return props;
 }
 
-static int php_driver_default_cluster_compare(zval *obj1, zval *obj2)
+int php_scylladb_default_cluster_compare(zval *obj1, zval *obj2)
 {
     ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
@@ -25,9 +25,9 @@ static int php_driver_default_cluster_compare(zval *obj1, zval *obj2)
     return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void php_driver_default_cluster_free(zend_object *object)
+void php_scylladb_default_cluster_free(zend_object *object)
 {
-    php_driver_cluster *self = php_driver_cluster_object_fetch(object);
+    php_scylladb_cluster *self = php_scylladb_cluster_object_fetch(object);
 
     if (!self->persist && self->cluster)
     {
@@ -43,12 +43,12 @@ static void php_driver_default_cluster_free(zend_object *object)
     zend_object_std_dtor(object);
 }
 
-zend_object *php_driver_default_cluster_new(zend_class_entry *ce)
+zend_object *php_scylladb_default_cluster_new(zend_class_entry *ce)
 {
-    auto *self = (php_driver_cluster *)ecalloc(1, sizeof(php_driver_cluster) + zend_object_properties_size(ce));
+    auto *self = (php_scylladb_cluster *)ecalloc(1, sizeof(php_scylladb_cluster) + zend_object_properties_size(ce));
 
     self->cluster = nullptr;
-    self->default_consistency = PHP_DRIVER_DEFAULT_CONSISTENCY;
+    self->default_consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
     self->default_page_size = 5000;
     self->persist = cass_false;
     self->cache_key = 0;
@@ -56,18 +56,9 @@ zend_object *php_driver_default_cluster_new(zend_class_entry *ce)
     ZVAL_UNDEF(&self->default_timeout);
 
     zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_driver_default_cluster_handlers;
+    self->zendObject.handlers = &php_scylladb_default_cluster_handlers;
 
     return &self->zendObject;
 }
 
 END_EXTERN_C()
-
-void php_driver_initialize_default_cluster_handlers()
-{
-    memcpy(&php_driver_default_cluster_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-    php_driver_default_cluster_handlers.get_properties = php_driver_default_cluster_properties;
-    php_driver_default_cluster_handlers.compare = php_driver_default_cluster_compare;
-    php_driver_default_cluster_handlers.free_obj = php_driver_default_cluster_free;
-    php_driver_default_cluster_handlers.offset = offsetof(php_driver_cluster, zendObject);
-}

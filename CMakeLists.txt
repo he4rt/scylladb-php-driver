@@ -105,11 +105,11 @@ option(PHP_THREAD_SAFE "Target a ZTS (thread-safe) PHP build" OFF)
 # ── Dependency options ────────────────────────────────────────────────────────
 option(LINK_LIBUV_STATIC  "Link libuv statically"                         OFF)
 option(BUILD_LIBUV_FROM_SRC "Fetch and build libuv via CPM instead of system" OFF)
-option(PHP_DRIVER_STATIC  "Link the C++ driver statically"                OFF)
+option(PHP_SCYLLADB_STATIC  "Link the C++ driver statically"                OFF)
 
 # Backend selection — see cmake/FindCPPDriver.cmake. USE_LIBCASSANDRA is kept
 # for backwards compatibility and is consumed there.
-option(USE_LIBCASSANDRA   "(deprecated) Alias: ON → PHP_DRIVER_BACKEND=cassandra" OFF)
+option(USE_LIBCASSANDRA   "(deprecated) Alias: ON → PHP_SCYLLADB_BACKEND=cassandra" OFF)
 
 # ── Dependencies ──────────────────────────────────────────────────────────────
 find_package(PHPConfig REQUIRED)
@@ -158,6 +158,7 @@ find_package(CPPDriver REQUIRED)
 
 # ── Sub-libraries ─────────────────────────────────────────────────────────────
 add_subdirectory(ZendCPP)
+add_subdirectory(src/Registry)
 add_subdirectory(src)
 add_subdirectory(src/Cluster)
 add_subdirectory(src/DateTime)
@@ -176,22 +177,28 @@ scylladb_php_library(ext_scylladb)
 
 target_sources(ext_scylladb
         PUBLIC  FILE_SET headers TYPE HEADERS FILES "${HEADERS_LIST}"
-        PRIVATE src/php_driver.cpp
+        PRIVATE src/php_scylladb.cpp
 )
 
 target_link_libraries(ext_scylladb PRIVATE
         Zend
         Libuv::Libuv
-        ext_scylladb::src
-        ext_scylladb::type
-        ext_scylladb::datetime
-        ext_scylladb::database
-        ext_scylladb::numbers
-        ext_scylladb::ssl_options
-        ext_scylladb::exceptions
-        ext_scylladb::cluster::builder
-        ext_scylladb::retry_policy
-        ext_scylladb::timestamp_generator
+        # Self-registering class descriptors live in these static libs. Their
+        # .o files have no externally-referenced symbols once the legacy
+        # define_*() functions are gone — without WHOLE_ARCHIVE the linker
+        # would drop them and the __attribute__((constructor)) registrations
+        # would never run.
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::src>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::type>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::datetime>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::database>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::numbers>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::ssl_options>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::exceptions>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::cluster::builder>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::retry_policy>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::timestamp_generator>"
+        ext_scylladb::registry
 )
 
 configure_file(version.h.in version.h USE_SOURCE_PERMISSIONS NEWLINE_STYLE UNIX)

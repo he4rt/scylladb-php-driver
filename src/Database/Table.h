@@ -15,8 +15,8 @@
  */
 
 #pragma once
-#include "php_driver.h"
+#include "php_scylladb.h"
 
 BEGIN_EXTERN_C()
-zval php_driver_table_build_options(CassIterator *iterator );
+zval php_scylladb_table_build_options(CassIterator *iterator );
 END_EXTERN_C()

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @scylladb-value-handlers
      */
     final class Uuid implements Value, UuidInterface {
         public function __construct(string $uuid = UNKNOWN) {}

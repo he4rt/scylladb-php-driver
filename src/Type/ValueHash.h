@@ -15,15 +15,15 @@
  */
 #pragma once
 
-#include <php_driver.h>
+#include <php_scylladb.h>
 
 #define uthash_malloc(sz) emalloc(sz)
 #define uthash_free(ptr, sz) efree(ptr)
 
 #define HASH_FUNCTION(key, keylen, num_bkts, hashv, bkt)                                                               \
-    hashv = php_driver_value_hash((zval *)key);                                                                        \
+    hashv = php_scylladb_value_hash((zval *)key);                                                                        \
     bkt = (hashv) & (num_bkts - 1U)
-#define HASH_KEYCOMPARE(a, b, len) php_driver_value_compare((zval *)a, (zval *)b)
+#define HASH_KEYCOMPARE(a, b, len) php_scylladb_value_compare((zval *)a, (zval *)b)
 
 #undef HASH_ADD /* Previously defined in Zend/zend_hash.h */
 
@@ -33,32 +33,32 @@
 
 #define HASH_ADD_ZVAL(head, fieldname, add) HASH_ADD_KEYPTR(hh, head, &((add->fieldname)), 0, add)
 
-struct php_driver_map_entry_
+struct php_scylladb_map_entry_
 {
     zval key;
     zval value;
     UT_hash_handle hh;
 };
 
-struct php_driver_set_entry_
+struct php_scylladb_set_entry_
 {
     zval value;
     UT_hash_handle hh;
 };
 
-#define PHP_DRIVER_COMPARE(a, b) ((a) < (b) ? -1 : (a) > (b))
+#define PHP_SCYLLADB_COMPARE(a, b) ((a) < (b) ? -1 : (a) > (b))
 
-uint32_t php_driver_value_hash(zval *zvalue);
-int32_t php_driver_value_compare(zval *zvalue1, zval *zvalue2);
-int32_t php_driver_data_compare(Bucket *a, Bucket *b);
-uint32_t php_driver_mpz_hash(unsigned seed, mpz_t n);
+uint32_t php_scylladb_value_hash(zval *zvalue);
+int32_t php_scylladb_value_compare(zval *zvalue1, zval *zvalue2);
+int32_t php_scylladb_data_compare(Bucket *a, Bucket *b);
+uint32_t php_scylladb_mpz_hash(unsigned seed, mpz_t n);
 
-static inline uint32_t php_driver_bigint_hash(cass_int64_t value)
+static inline uint32_t php_scylladb_bigint_hash(cass_int64_t value)
 {
     return (uint32_t)(value ^ (value >> 32));
 }
 
-static inline uint32_t php_driver_combine_hash(unsigned seed, unsigned hashv)
+static inline uint32_t php_scylladb_combine_hash(unsigned seed, unsigned hashv)
 {
     return seed ^ (hashv + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 }

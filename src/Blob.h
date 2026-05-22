@@ -18,7 +18,7 @@
 
 BEGIN_EXTERN_C()
 
-void php_driver_blob_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_scylladb_blob_init(INTERNAL_FUNCTION_PARAMETERS);
 
 END_EXTERN_C()
 

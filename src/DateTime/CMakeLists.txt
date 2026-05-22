@@ -1,4 +1,4 @@
-php_driver_module(datetime ext_scylladb::datetime)
+php_scylladb_module(datetime ext_scylladb::datetime)
 
 target_sources(datetime PRIVATE
         Date.cpp
@@ -9,7 +9,15 @@ target_sources(datetime PRIVATE
         Duration.cpp
 )
 
-php_driver_generate_arginfo(datetime
+php_scylladb_generate_arginfo(datetime
+        Date.stub.php
+        Timestamp.stub.php
+        Duration.stub.php
+        Timeuuid.stub.php
+        Time.stub.php
+)
+
+php_scylladb_generate_descriptor(datetime
         Date.stub.php
         Timestamp.stub.php
         Duration.stub.php

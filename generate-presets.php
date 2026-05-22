@@ -59,10 +59,10 @@ function preset(
             "ENABLE_SANITIZERS" => $buildType === BuildType::Debug ? 'ON' : 'OFF',
             'SANITIZE_UNDEFINED' => $buildType === BuildType::Debug ? 'ON' : 'OFF',
             'SANITIZE_ADDRESS' => $buildType === BuildType::Debug ? 'ON' : 'OFF',
-            'PHP_DRIVER_BACKEND' => $backend->value,
+            'PHP_SCYLLADB_BACKEND' => $backend->value,
             'PHP_VERSION_FOR_PHP_CONFIG' => $phpVersion->value,
             'LINK_LIBUV_STATIC' => 'ON',
-            'PHP_DRIVER_STATIC' => 'ON',
+            'PHP_SCYLLADB_STATIC' => 'ON',
             'PHP_THREAD_SAFE' => $phpTS === PHPTS::ZTS ? 'ON' : 'OFF',
         ],
     ];

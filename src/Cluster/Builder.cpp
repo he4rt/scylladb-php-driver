@@ -18,15 +18,14 @@
 
 #include <cassandra.h>
 
-#include <php_driver.h>
-#include <php_driver_cache_key.h>
+#include <php_scylladb.h>
+#include <php_scylladb_cache_key.h>
 #include <SSLOptions/SSLOptions.h>
-#include <php_driver_globals.h>
-#include <php_driver_types.h>
+#include <php_scylladb_globals.h>
+#include <php_scylladb_types.h>
 #include <ZendCPP/ZendCPP.hpp>
-#include <php_driver_consistency.h>
+#include <php_scylladb_consistency.h>
 
-#include "BuilderHandlers.h"
 #include "Cluster.h"
 #include "zend_portability.h"
 
@@ -34,9 +33,9 @@ BEGIN_EXTERN_C()
 
 #include "Builder_arginfo.h"
 
-zend_class_entry *php_driver_cluster_builder_ce = nullptr;
+extern zend_object_handlers php_scylladb_cluster_builder_handlers;
 
-static zend_always_inline zend_string *php_driver_build_hosts_str(const zval *args,
+static zend_always_inline zend_string *php_scylladb_build_hosts_str(const zval *args,
                                                                   const size_t argc)
 {
     smart_str hosts{nullptr, 0};
@@ -62,7 +61,7 @@ static zend_always_inline zend_string *php_driver_build_hosts_str(const zval *ar
     return smart_str_extract(&hosts);
 }
 
-static zend_always_inline void php_driver_parse_hosts(INTERNAL_FUNCTION_PARAMETERS, zend_string **out_hosts)
+static zend_always_inline void php_scylladb_parse_hosts(INTERNAL_FUNCTION_PARAMETERS, zend_string **out_hosts)
 {
     zval *args = nullptr;
     int argc = 0;
@@ -71,7 +70,7 @@ static zend_always_inline void php_driver_parse_hosts(INTERNAL_FUNCTION_PARAMETE
     Z_PARAM_VARIADIC('+', args, argc)
     ZEND_PARSE_PARAMETERS_END();
 
-    zend_string *hosts = php_driver_build_hosts_str(args, argc);
+    zend_string *hosts = php_scylladb_build_hosts_str(args, argc);
 
     if (hosts == nullptr)
     {
@@ -89,7 +88,7 @@ static zend_always_inline void php_driver_parse_hosts(INTERNAL_FUNCTION_PARAMETE
     RETURN_ZVAL(getThis(), 1, 0);
 }
 
-static zend_always_inline void php_driver_set_timeout(INTERNAL_FUNCTION_PARAMETERS, uint32_t *out_timeout)
+static zend_always_inline void php_scylladb_set_timeout(INTERNAL_FUNCTION_PARAMETERS, uint32_t *out_timeout)
 {
     double timeout = 0;
 
@@ -112,13 +111,13 @@ static zend_always_inline void php_driver_set_timeout(INTERNAL_FUNCTION_PARAMETE
 
 ZEND_METHOD(Cassandra_Cluster_Builder, build)
 {
-#ifndef PHP_DRIVER_BACKEND_SCYLLA_RUST
+#ifndef PHP_SCYLLADB_BACKEND_SCYLLA_RUST
     CassError rc;
 #endif
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
-    object_init_ex(return_value, php_driver_default_cluster_ce);
-    php_driver_cluster *cluster = PHP_DRIVER_GET_CLUSTER(return_value);
+    object_init_ex(return_value, php_scylladb_default_cluster_ce);
+    php_scylladb_cluster *cluster = PHP_SCYLLADB_GET_CLUSTER(return_value);
 
     cluster->persist = self->persist;
     cluster->default_consistency = self->default_consistency;
@@ -131,41 +130,41 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
         /* FNV-1a fingerprint of every field that affects the CassCluster
            identity. Persistent_list is integer-keyed → zero per-call
            allocation, even on cache hit. */
-        zend_ulong h = php_driver_cache_key_init();
-        h = php_driver_cache_key_mix_cstr(h, PHP_DRIVER_NAME);
-        h = php_driver_cache_key_mix_zstr(h, self->contact_points);
-        h = php_driver_cache_key_mix_int(h, self->port);
-        h = php_driver_cache_key_mix_int(h, self->load_balancing_policy);
-        h = php_driver_cache_key_mix_zstr(h, self->local_dc);
-        h = php_driver_cache_key_mix_int(h, self->used_hosts_per_remote_dc);
-        h = php_driver_cache_key_mix_int(h, self->allow_remote_dcs_for_local_cl);
-        h = php_driver_cache_key_mix_int(h, self->use_token_aware_routing);
-        h = php_driver_cache_key_mix_zstr(h, self->username);
-        h = php_driver_cache_key_mix_zstr(h, self->password);
-        h = php_driver_cache_key_mix_int(h, self->connect_timeout);
-        h = php_driver_cache_key_mix_int(h, self->request_timeout);
-        h = php_driver_cache_key_mix_int(h, self->protocol_version);
-        h = php_driver_cache_key_mix_int(h, self->io_threads);
-        h = php_driver_cache_key_mix_int(h, self->core_connections_per_host);
-        h = php_driver_cache_key_mix_int(h, self->max_connections_per_host);
-        h = php_driver_cache_key_mix_int(h, self->reconnect_interval);
-        h = php_driver_cache_key_mix_int(h, self->enable_latency_aware_routing);
-        h = php_driver_cache_key_mix_int(h, self->enable_tcp_nodelay);
-        h = php_driver_cache_key_mix_int(h, self->enable_tcp_keepalive);
-        h = php_driver_cache_key_mix_int(h, self->tcp_keepalive_delay);
-        h = php_driver_cache_key_mix_int(h, self->enable_schema);
-        h = php_driver_cache_key_mix_int(h, self->enable_hostname_resolution);
-        h = php_driver_cache_key_mix_int(h, self->enable_randomized_contact_points);
-        h = php_driver_cache_key_mix_int(h, self->connection_heartbeat_interval);
-        h = php_driver_cache_key_mix_zstr(h, self->whitelist_hosts);
-        h = php_driver_cache_key_mix_zstr(h, self->whitelist_dcs);
-        h = php_driver_cache_key_mix_zstr(h, self->blacklist_hosts);
-        h = php_driver_cache_key_mix_zstr(h, self->blacklist_dcs);
+        zend_ulong h = php_scylladb_cache_key_init();
+        h = php_scylladb_cache_key_mix_cstr(h, PHP_SCYLLADB_NAME);
+        h = php_scylladb_cache_key_mix_zstr(h, self->contact_points);
+        h = php_scylladb_cache_key_mix_int(h, self->port);
+        h = php_scylladb_cache_key_mix_int(h, self->load_balancing_policy);
+        h = php_scylladb_cache_key_mix_zstr(h, self->local_dc);
+        h = php_scylladb_cache_key_mix_int(h, self->used_hosts_per_remote_dc);
+        h = php_scylladb_cache_key_mix_int(h, self->allow_remote_dcs_for_local_cl);
+        h = php_scylladb_cache_key_mix_int(h, self->use_token_aware_routing);
+        h = php_scylladb_cache_key_mix_zstr(h, self->username);
+        h = php_scylladb_cache_key_mix_zstr(h, self->password);
+        h = php_scylladb_cache_key_mix_int(h, self->connect_timeout);
+        h = php_scylladb_cache_key_mix_int(h, self->request_timeout);
+        h = php_scylladb_cache_key_mix_int(h, self->protocol_version);
+        h = php_scylladb_cache_key_mix_int(h, self->io_threads);
+        h = php_scylladb_cache_key_mix_int(h, self->core_connections_per_host);
+        h = php_scylladb_cache_key_mix_int(h, self->max_connections_per_host);
+        h = php_scylladb_cache_key_mix_int(h, self->reconnect_interval);
+        h = php_scylladb_cache_key_mix_int(h, self->enable_latency_aware_routing);
+        h = php_scylladb_cache_key_mix_int(h, self->enable_tcp_nodelay);
+        h = php_scylladb_cache_key_mix_int(h, self->enable_tcp_keepalive);
+        h = php_scylladb_cache_key_mix_int(h, self->tcp_keepalive_delay);
+        h = php_scylladb_cache_key_mix_int(h, self->enable_schema);
+        h = php_scylladb_cache_key_mix_int(h, self->enable_hostname_resolution);
+        h = php_scylladb_cache_key_mix_int(h, self->enable_randomized_contact_points);
+        h = php_scylladb_cache_key_mix_int(h, self->connection_heartbeat_interval);
+        h = php_scylladb_cache_key_mix_zstr(h, self->whitelist_hosts);
+        h = php_scylladb_cache_key_mix_zstr(h, self->whitelist_dcs);
+        h = php_scylladb_cache_key_mix_zstr(h, self->blacklist_hosts);
+        h = php_scylladb_cache_key_mix_zstr(h, self->blacklist_dcs);
         cluster->cache_key = h;
 
         zval *le = zend_hash_index_find(&EG(persistent_list), h);
         if (le != NULL && Z_TYPE_P(le) == IS_RESOURCE &&
-            Z_RES_P(le)->type == php_le_php_driver_cluster())
+            Z_RES_P(le)->type == php_le_php_scylladb_cluster())
         {
             cluster->cluster = (CassCluster *)Z_RES_P(le)->ptr;
             return; /* Return cached version */
@@ -229,7 +228,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     ASSERT_SUCCESS(cass_cluster_set_protocol_version(cluster->cluster, self->protocol_version));
     ASSERT_SUCCESS(cass_cluster_set_num_threads_io(cluster->cluster, self->io_threads));
     ASSERT_SUCCESS(cass_cluster_set_core_connections_per_host(cluster->cluster, self->core_connections_per_host));
-#ifndef PHP_DRIVER_BACKEND_SCYLLA_RUST
+#ifndef PHP_SCYLLADB_BACKEND_SCYLLA_RUST
     ASSERT_SUCCESS(cass_cluster_set_max_connections_per_host(cluster->cluster, self->max_connections_per_host));
 #endif
     cass_cluster_set_constant_reconnect(cluster->cluster, self->reconnect_interval);
@@ -238,7 +237,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     cass_cluster_set_tcp_keepalive(cluster->cluster, self->enable_tcp_keepalive, self->tcp_keepalive_delay);
     cass_cluster_set_use_schema(cluster->cluster, self->enable_schema);
 
-#ifdef PHP_DRIVER_BACKEND_SCYLLA_RUST
+#ifdef PHP_SCYLLADB_BACKEND_SCYLLA_RUST
     if (self->enable_hostname_resolution)
     {
         php_error_docref(nullptr, E_WARNING,
@@ -262,7 +261,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
     if (self->timestamp_gen != nullptr)
     {
-        php_driver_timestamp_gen *timestamp_gen = self->timestamp_gen;
+        php_scylladb_timestamp_gen *timestamp_gen = self->timestamp_gen;
         cass_cluster_set_timestamp_gen(cluster->cluster, timestamp_gen->gen);
     }
 
@@ -275,10 +274,10 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     {
         zval resource;
 
-        ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_driver_cluster());
+        ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_scylladb_cluster());
 
         (void)zend_hash_index_update(&EG(persistent_list), cluster->cache_key, &resource);
-        PHP_DRIVER_G(persistent_clusters)++;
+        PHP_SCYLLADB_G(persistent_clusters)++;
     }
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultConsistency)
@@ -289,16 +288,16 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultConsistency)
     Z_PARAM_LONG(consistency)
     ZEND_PARSE_PARAMETERS_END();
 
-    if (php_driver_validate_consistency((uint32_t)consistency) == -1)
+    if (php_scylladb_validate_consistency((uint32_t)consistency) == -1)
     {
         zval consistency_val;
         ZVAL_LONG(&consistency_val, consistency);
 
-        throw_invalid_argument(&consistency_val, "consistency", "one of " PHP_DRIVER_NAMESPACE "::CONSISTENCY_*");
+        throw_invalid_argument(&consistency_val, "consistency", "one of " PHP_SCYLLADB_NAMESPACE "::CONSISTENCY_*");
         return;
     }
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->default_consistency = consistency;
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -319,14 +318,14 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultPageSize)
         return;
     }
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->default_page_size = (int)pageSize;
     RETURN_ZVAL(getThis(), 1, 0);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout)
 {
     double timeout = 0.0;
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_DOUBLE(timeout)
@@ -352,8 +351,8 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDefaultTimeout)
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withContactPoints)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->contact_points);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->contact_points);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withPort)
 {
@@ -371,7 +370,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withPort)
         return;
     }
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->port = (int)port;
     RETURN_ZVAL(getThis(), 1, 0);
 }
@@ -379,7 +378,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRoundRobinLoadBalancingPolicy)
 {
     ZEND_PARSE_PARAMETERS_NONE();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
     if (self->local_dc)
     {
@@ -403,7 +402,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDatacenterAwareRoundRobinLoadBalancin
     Z_PARAM_BOOL(allow_remote_dcs_for_local_cl)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
     if (hostPerRemoteDatacenter < 0)
     {
@@ -428,23 +427,23 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withDatacenterAwareRoundRobinLoadBalancin
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListHosts)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->blacklist_hosts);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->blacklist_hosts);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListHosts)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->whitelist_hosts);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->whitelist_hosts);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withBlackListDCs)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->blacklist_dcs);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->blacklist_dcs);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withWhiteListDCs)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->whitelist_dcs);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_parse_hosts(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->whitelist_dcs);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withTokenAwareRouting)
 {
@@ -455,7 +454,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTokenAwareRouting)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->use_token_aware_routing = static_cast<cass_bool_t>(enabled);
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -470,7 +469,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withCredentials)
     Z_PARAM_STR(password)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
     if (self->username != nullptr)
     {
@@ -488,24 +487,24 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withCredentials)
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withConnectTimeout)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->connect_timeout);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->connect_timeout);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withRequestTimeout)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->request_timeout);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->request_timeout);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withSSL)
 {
     zval *ssl_options = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_OBJECT_OF_CLASS(ssl_options, php_driver_ssl_ce)
+    Z_PARAM_OBJECT_OF_CLASS(ssl_options, php_scylladb_ssloptions_ce)
     ZEND_PARSE_PARAMETERS_END();
 
     php_scylladb_ssl *ssl = Z_SCYLLADB_SSL_P(ssl_options);
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(ZEND_THIS);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(ZEND_THIS);
 
     if (self->ssl_options != nullptr)
     {
@@ -525,7 +524,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withPersistentSessions)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->persist = static_cast<cass_bool_t>(enabled);
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -546,7 +545,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withProtocolVersion)
         return;
     }
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->protocol_version = version;
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -567,7 +566,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withIOThreads)
         return;
     }
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->io_threads = (uint32_t)count;
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -606,7 +605,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withConnectionsPerHost)
         return;
     }
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->core_connections_per_host = core;
     self->max_connections_per_host = max;
 
@@ -614,8 +613,8 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withConnectionsPerHost)
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withReconnectInterval)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->reconnect_interval);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->reconnect_interval);
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withLatencyAwareRouting)
 {
@@ -626,7 +625,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withLatencyAwareRouting)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->enable_latency_aware_routing = static_cast<cass_bool_t>(enabled);
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -640,7 +639,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTCPNodelay)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->enable_tcp_nodelay = static_cast<cass_bool_t>(enabled);
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -654,7 +653,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTCPKeepalive)
     Z_PARAM_DOUBLE_OR_NULL(delay, is_null)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
     if (is_null)
     {
@@ -684,8 +683,8 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRetryPolicy)
     Z_PARAM_OBJECT_OF_CLASS(retry_policy, php_scylladb_retry_policy_ce)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    auto *policy = ZendCPP::ObjectFetch<php_driver_retry_policy>(retry_policy);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    auto *policy = ZendCPP::ObjectFetch<php_scylladb_retry_policy>(retry_policy);
 
     if (self->retry_policy != nullptr)
     {
@@ -702,17 +701,17 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withTimestampGenerator)
     zval *timestamp_gen = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_OBJECT_OF_CLASS(timestamp_gen, php_driver_timestamp_gen_ce)
+    Z_PARAM_OBJECT_OF_CLASS(timestamp_gen, php_scylladb_timestamp_generator_ce)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
     if (self->timestamp_gen != nullptr)
     {
         zend_object_release(&self->timestamp_gen->zendObject);
     }
 
-    php_driver_timestamp_gen *timestamp_generator = php_driver_timestamp_gen_object_fetch(Z_OBJ_P(timestamp_gen));
+    php_scylladb_timestamp_gen *timestamp_generator = php_scylladb_timestamp_gen_object_fetch(Z_OBJ_P(timestamp_gen));
     self->timestamp_gen = timestamp_generator;
     GC_ADDREF(&timestamp_generator->zendObject);
 
@@ -727,7 +726,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withSchemaMetadata)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->enable_schema = static_cast<cass_bool_t>(enabled);
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -741,7 +740,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withHostnameResolution)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
     self->enable_hostname_resolution = static_cast<cass_bool_t>(enabled);
 
     RETURN_ZVAL(getThis(), 1, 0);
@@ -755,7 +754,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRandomizedContactPoints)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
 
     self->enable_randomized_contact_points = static_cast<cass_bool_t>(enabled);
 
@@ -763,16 +762,8 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withRandomizedContactPoints)
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withConnectionHeartbeatInterval)
 {
-    php_driver_cluster_builder *self = PHP_DRIVER_GET_CLUSTER_BUILDER(getThis());
-    php_driver_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->connection_heartbeat_interval);
+    php_scylladb_cluster_builder *self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
+    php_scylladb_set_timeout(INTERNAL_FUNCTION_PARAM_PASSTHRU, &self->connection_heartbeat_interval);
 }
 
 END_EXTERN_C()
-
-void php_driver_define_ClusterBuilder()
-{
-    php_driver_cluster_builder_ce = register_class_Cassandra_Cluster_Builder();
-    php_driver_initialize_cluster_builder_handlers();
-
-    php_driver_cluster_builder_ce->create_object = php_driver_cluster_builder_new;
-}

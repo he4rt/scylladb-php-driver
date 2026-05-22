@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <php_driver.h>
-#include <php_driver_globals.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_globals.h>
+#include <php_scylladb_types.h>
 #include "Type/TypeFactory.h"
 #include <zend_smart_str.h>
 
@@ -37,7 +37,7 @@
 #include "src/Type/UserType.h"
 #include "src/Uuid.h"
 
-#define PHP_DRIVER_SCALAR_TYPES_MAP(XX)    \
+#define PHP_SCYLLADB_SCALAR_TYPES_MAP(XX)    \
   XX(ascii, CASS_VALUE_TYPE_ASCII)         \
   XX(bigint, CASS_VALUE_TYPE_BIGINT)       \
   XX(smallint, CASS_VALUE_TYPE_SMALL_INT)  \
@@ -80,7 +80,7 @@ static int hex_value(int c) {
   return -1;
 }
 
-static char* php_driver_from_hex(const char* hex, size_t hex_length) {
+static char* php_scylladb_from_hex(const char* hex, size_t hex_length) {
   size_t i, c = 0;
   size_t size = hex_length / 2;
   char* result;
@@ -101,50 +101,50 @@ static char* php_driver_from_hex(const char* hex, size_t hex_length) {
   return result;
 }
 
-static zval php_driver_create_type(struct node_s* node);
+static zval php_scylladb_create_type(struct node_s* node);
 
-static zval php_driver_tuple_from_data_type(const CassDataType* data_type) {
+static zval php_scylladb_tuple_from_data_type(const CassDataType* data_type) {
   zval ztype;
-  php_driver_type* type;
+  php_scylladb_type* type;
   size_t i, count;
 
   count = cass_data_type_sub_type_count(data_type);
-  ztype = php_driver_type_tuple();
-  type = PHP_DRIVER_GET_TYPE(&ztype);
+  ztype = php_scylladb_type_tuple();
+  type = PHP_SCYLLADB_GET_TYPE(&ztype);
   for (i = 0; i < count; ++i) {
-    zval sub_type = php_driver_type_from_data_type(cass_data_type_sub_data_type(data_type, i));
-    php_driver_type_tuple_add(type, &sub_type);
+    zval sub_type = php_scylladb_type_from_data_type(cass_data_type_sub_data_type(data_type, i));
+    php_scylladb_type_tuple_add(type, &sub_type);
   }
 
   return ztype;
 }
 
-static zval php_driver_tuple_from_node(struct node_s* node) {
+static zval php_scylladb_tuple_from_node(struct node_s* node) {
   zval ztype;
-  php_driver_type* type;
+  php_scylladb_type* type;
   struct node_s* current;
 
-  ztype = php_driver_type_tuple();
-  type = PHP_DRIVER_GET_TYPE(&ztype);
+  ztype = php_scylladb_type_tuple();
+  type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   for (current = node->first_child; current != NULL; current = current->next_sibling) {
-    zval sub_type = php_driver_create_type(current);
-    php_driver_type_tuple_add(type, &sub_type);
+    zval sub_type = php_scylladb_create_type(current);
+    php_scylladb_type_tuple_add(type, &sub_type);
   }
 
   return ztype;
 }
 
-static zval php_driver_user_type_from_data_type(const CassDataType* data_type) {
+static zval php_scylladb_user_type_from_data_type(const CassDataType* data_type) {
   zval ztype;
-  php_driver_type* type;
+  php_scylladb_type* type;
   const char *type_name, *keyspace;
   size_t type_name_len, keyspace_len;
   size_t i, count;
 
   count = cass_data_type_sub_type_count(data_type);
-  ztype = php_driver_type_user_type();
-  type = PHP_DRIVER_GET_TYPE(&ztype);
+  ztype = php_scylladb_type_user_type();
+  type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   cass_data_type_type_name(data_type, &type_name, &type_name_len);
   type->data.udt.type_name = estrndup(type_name, type_name_len);
@@ -154,21 +154,21 @@ static zval php_driver_user_type_from_data_type(const CassDataType* data_type) {
   for (i = 0; i < count; ++i) {
     const char* name;
     size_t name_length;
-    zval sub_type = php_driver_type_from_data_type(cass_data_type_sub_data_type(data_type, i));
+    zval sub_type = php_scylladb_type_from_data_type(cass_data_type_sub_data_type(data_type, i));
     cass_data_type_sub_type_name(data_type, i, &name, &name_length);
-    php_driver_type_user_type_add(type, name, name_length, &sub_type);
+    php_scylladb_type_user_type_add(type, name, name_length, &sub_type);
   }
 
   return ztype;
 }
 
-static zval php_driver_user_type_from_node(struct node_s* node) {
+static zval php_scylladb_user_type_from_node(struct node_s* node) {
   zval ztype;
-  php_driver_type* type;
+  php_scylladb_type* type;
   struct node_s* current = node->first_child;
 
-  ztype = php_driver_type_user_type();
-  type = PHP_DRIVER_GET_TYPE(&ztype);
+  ztype = php_scylladb_type_user_type();
+  type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   if (current) {
     type->data.udt.keyspace = estrndup(current->name, current->name_length);
@@ -176,20 +176,20 @@ static zval php_driver_user_type_from_node(struct node_s* node) {
   }
 
   if (current) {
-    type->data.udt.type_name = php_driver_from_hex(current->name, current->name_length);
+    type->data.udt.type_name = php_scylladb_from_hex(current->name, current->name_length);
     current = current->next_sibling;
   }
 
   for (; current; current = current->next_sibling) {
     zval sub_type;
-    char* name = php_driver_from_hex(current->name, current->name_length);
+    char* name = php_scylladb_from_hex(current->name, current->name_length);
     current = current->next_sibling;
     if (!current) {
       efree(name);
       break;
     }
-    sub_type = php_driver_create_type(current);
-    php_driver_type_user_type_add(type, name, strlen(name), &sub_type);
+    sub_type = php_scylladb_create_type(current);
+    php_scylladb_type_user_type_add(type, name, strlen(name), &sub_type);
     efree(name);
   }
 
@@ -203,7 +203,7 @@ static inline int php5to7_string_compare(zend_string* s1, zend_string* s2) {
   return memcmp(s1->val, s2->val, s1->len);
 }
 
-zval php_driver_type_from_data_type(const CassDataType* data_type) {
+zval php_scylladb_type_from_data_type(const CassDataType* data_type) {
   zval ztype;
   zval key_type;
   zval value_type;
@@ -216,38 +216,38 @@ zval php_driver_type_from_data_type(const CassDataType* data_type) {
   switch (type) {
 #define XX_SCALAR(name, value)             \
   case value:                              \
-    ztype = php_driver_type_scalar(value); \
+    ztype = php_scylladb_type_scalar(value); \
     break;
-    PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
+    PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
 
     case CASS_VALUE_TYPE_CUSTOM:
       cass_data_type_class_name(data_type, &class_name, &class_name_length);
-      ztype = php_driver_type_custom(class_name, class_name_length);
+      ztype = php_scylladb_type_custom(class_name, class_name_length);
       break;
 
     case CASS_VALUE_TYPE_LIST:
-      value_type = php_driver_type_from_data_type(cass_data_type_sub_data_type(data_type, 0));
-      ztype = php_driver_type_collection(&value_type);
+      value_type = php_scylladb_type_from_data_type(cass_data_type_sub_data_type(data_type, 0));
+      ztype = php_scylladb_type_collection(&value_type);
       break;
 
     case CASS_VALUE_TYPE_MAP:
-      key_type = php_driver_type_from_data_type(cass_data_type_sub_data_type(data_type, 0));
-      value_type = php_driver_type_from_data_type(cass_data_type_sub_data_type(data_type, 1));
-      ztype = php_driver_type_map(&key_type, &value_type);
+      key_type = php_scylladb_type_from_data_type(cass_data_type_sub_data_type(data_type, 0));
+      value_type = php_scylladb_type_from_data_type(cass_data_type_sub_data_type(data_type, 1));
+      ztype = php_scylladb_type_map(&key_type, &value_type);
       break;
 
     case CASS_VALUE_TYPE_SET:
-      value_type = php_driver_type_from_data_type(cass_data_type_sub_data_type(data_type, 0));
-      ztype = php_driver_type_set(&value_type);
+      value_type = php_scylladb_type_from_data_type(cass_data_type_sub_data_type(data_type, 0));
+      ztype = php_scylladb_type_set(&value_type);
       break;
 
     case CASS_VALUE_TYPE_TUPLE:
-      ztype = php_driver_tuple_from_data_type(data_type);
+      ztype = php_scylladb_tuple_from_data_type(data_type);
       break;
 
     case CASS_VALUE_TYPE_UDT:
-      ztype = php_driver_user_type_from_data_type(data_type);
+      ztype = php_scylladb_user_type_from_data_type(data_type);
       break;
 
     default:
@@ -257,41 +257,41 @@ zval php_driver_type_from_data_type(const CassDataType* data_type) {
   return ztype;
 }
 
-int php_driver_type_validate(zval* object, const char* object_name) {
-  if (!instanceof_function(Z_OBJCE_P(object), php_driver_type_scalar_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_collection_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_map_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_set_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_tuple_ce) &&
-      !instanceof_function(Z_OBJCE_P(object), php_driver_type_user_type_ce)) {
-    throw_invalid_argument(object, object_name, "a valid " PHP_DRIVER_NAMESPACE "\\Type");
+int php_scylladb_type_validate(zval* object, const char* object_name) {
+  if (!instanceof_function(Z_OBJCE_P(object), php_scylladb_type_scalar_ce) &&
+      !instanceof_function(Z_OBJCE_P(object), php_scylladb_type_collection_ce) &&
+      !instanceof_function(Z_OBJCE_P(object), php_scylladb_type_map_ce) &&
+      !instanceof_function(Z_OBJCE_P(object), php_scylladb_type_set_ce) &&
+      !instanceof_function(Z_OBJCE_P(object), php_scylladb_type_tuple_ce) &&
+      !instanceof_function(Z_OBJCE_P(object), php_scylladb_type_user_type_ce)) {
+    throw_invalid_argument(object, object_name, "a valid " PHP_SCYLLADB_NAMESPACE "\\Type");
     return 0;
   }
   return 1;
 }
 
-static inline int collection_compare(php_driver_type* type1, php_driver_type* type2) {
-  return php_driver_type_compare(PHP_DRIVER_GET_TYPE(&type1->data.collection.value_type),
-                                 PHP_DRIVER_GET_TYPE(&type2->data.collection.value_type));
+static inline int collection_compare(php_scylladb_type* type1, php_scylladb_type* type2) {
+  return php_scylladb_type_compare(PHP_SCYLLADB_GET_TYPE(&type1->data.collection.value_type),
+                                 PHP_SCYLLADB_GET_TYPE(&type2->data.collection.value_type));
 }
 
-static inline int map_compare(php_driver_type* type1, php_driver_type* type2) {
+static inline int map_compare(php_scylladb_type* type1, php_scylladb_type* type2) {
   int result;
-  result = php_driver_type_compare(PHP_DRIVER_GET_TYPE(&type1->data.map.key_type),
-                                   PHP_DRIVER_GET_TYPE(&type2->data.map.key_type));
+  result = php_scylladb_type_compare(PHP_SCYLLADB_GET_TYPE(&type1->data.map.key_type),
+                                   PHP_SCYLLADB_GET_TYPE(&type2->data.map.key_type));
   if (result != 0) return result;
-  result = php_driver_type_compare(PHP_DRIVER_GET_TYPE(&type1->data.map.value_type),
-                                   PHP_DRIVER_GET_TYPE(&type2->data.map.value_type));
+  result = php_scylladb_type_compare(PHP_SCYLLADB_GET_TYPE(&type1->data.map.value_type),
+                                   PHP_SCYLLADB_GET_TYPE(&type2->data.map.value_type));
   if (result != 0) return result;
   return 0;
 }
 
-static inline int set_compare(php_driver_type* type1, php_driver_type* type2) {
-  return php_driver_type_compare(PHP_DRIVER_GET_TYPE(&type1->data.set.value_type),
-                                 PHP_DRIVER_GET_TYPE(&type2->data.set.value_type));
+static inline int set_compare(php_scylladb_type* type1, php_scylladb_type* type2) {
+  return php_scylladb_type_compare(PHP_SCYLLADB_GET_TYPE(&type1->data.set.value_type),
+                                 PHP_SCYLLADB_GET_TYPE(&type2->data.set.value_type));
 }
 
-static inline int tuple_compare(php_driver_type* type1, php_driver_type* type2) {
+static inline int tuple_compare(php_scylladb_type* type1, php_scylladb_type* type2) {
   HashPosition pos1;
   HashPosition pos2;
   zval* current1;
@@ -310,9 +310,9 @@ static inline int tuple_compare(php_driver_type* type1, php_driver_type* type2) 
 
   while ((current1 = zend_hash_get_current_data_ex(&type1->data.tuple.types, &pos1)) != NULL &&
          (current2 = zend_hash_get_current_data_ex(&type2->data.tuple.types, &pos2)) != NULL) {
-    php_driver_type* sub_type1 = PHP_DRIVER_GET_TYPE(current1);
-    php_driver_type* sub_type2 = PHP_DRIVER_GET_TYPE(current2);
-    int result = php_driver_type_compare(sub_type1, sub_type2);
+    php_scylladb_type* sub_type1 = PHP_SCYLLADB_GET_TYPE(current1);
+    php_scylladb_type* sub_type2 = PHP_SCYLLADB_GET_TYPE(current2);
+    int result = php_scylladb_type_compare(sub_type1, sub_type2);
     if (result != 0) return result;
     zend_hash_move_forward_ex(&type1->data.tuple.types, &pos1);
     zend_hash_move_forward_ex(&type2->data.tuple.types, &pos2);
@@ -321,7 +321,7 @@ static inline int tuple_compare(php_driver_type* type1, php_driver_type* type2) 
   return 0;
 }
 
-static inline int user_type_compare(php_driver_type* type1, php_driver_type* type2) {
+static inline int user_type_compare(php_scylladb_type* type1, php_scylladb_type* type2) {
   HashPosition pos1;
   HashPosition pos2;
   zend_string* key1;
@@ -347,11 +347,11 @@ static inline int user_type_compare(php_driver_type* type1, php_driver_type* typ
          (current1 = zend_hash_get_current_data_ex(&type1->data.udt.types, &pos1)) != NULL &&
          (current2 = zend_hash_get_current_data_ex(&type2->data.udt.types, &pos2)) != NULL) {
     int result;
-    php_driver_type* sub_type1 = PHP_DRIVER_GET_TYPE(current1);
-    php_driver_type* sub_type2 = PHP_DRIVER_GET_TYPE(current2);
+    php_scylladb_type* sub_type1 = PHP_SCYLLADB_GET_TYPE(current1);
+    php_scylladb_type* sub_type2 = PHP_SCYLLADB_GET_TYPE(current2);
     result = php5to7_string_compare(key1, key2);
     if (result != 0) return result;
-    result = php_driver_type_compare(sub_type1, sub_type2);
+    result = php_scylladb_type_compare(sub_type1, sub_type2);
     if (result != 0) return result;
     zend_hash_move_forward_ex(&type1->data.udt.types, &pos1);
     zend_hash_move_forward_ex(&type2->data.udt.types, &pos2);
@@ -364,7 +364,7 @@ static inline int is_string_type(CassValueType type) {
   return type == CASS_VALUE_TYPE_VARCHAR || type == CASS_VALUE_TYPE_TEXT;
 }
 
-int php_driver_type_compare(php_driver_type* type1, php_driver_type* type2) {
+int php_scylladb_type_compare(php_scylladb_type* type1, php_scylladb_type* type2) {
   if (type1->type != type2->type) {
     if (is_string_type(type1->type) &&
         is_string_type(type2->type)) { /* varchar and text are aliases */
@@ -395,42 +395,42 @@ int php_driver_type_compare(php_driver_type* type1, php_driver_type* type2) {
   }
 }
 
-static inline void collection_string(php_driver_type* type, smart_str* string) {
+static inline void collection_string(php_scylladb_type* type, smart_str* string) {
   smart_str_appendl(string, "list<", 5);
-  php_driver_type_string(PHP_DRIVER_GET_TYPE(&type->data.collection.value_type), string);
+  php_scylladb_type_string(PHP_SCYLLADB_GET_TYPE(&type->data.collection.value_type), string);
   smart_str_appendl(string, ">", 1);
 }
 
-static inline void map_string(php_driver_type* type, smart_str* string) {
+static inline void map_string(php_scylladb_type* type, smart_str* string) {
   smart_str_appendl(string, "map<", 4);
-  php_driver_type_string(PHP_DRIVER_GET_TYPE(&type->data.map.key_type), string);
+  php_scylladb_type_string(PHP_SCYLLADB_GET_TYPE(&type->data.map.key_type), string);
   smart_str_appendl(string, ", ", 2);
-  php_driver_type_string(PHP_DRIVER_GET_TYPE(&type->data.map.value_type), string);
+  php_scylladb_type_string(PHP_SCYLLADB_GET_TYPE(&type->data.map.value_type), string);
   smart_str_appendl(string, ">", 1);
 }
 
-static inline void set_string(php_driver_type* type, smart_str* string) {
+static inline void set_string(php_scylladb_type* type, smart_str* string) {
   smart_str_appendl(string, "set<", 4);
-  php_driver_type_string(PHP_DRIVER_GET_TYPE(&type->data.set.value_type), string);
+  php_scylladb_type_string(PHP_SCYLLADB_GET_TYPE(&type->data.set.value_type), string);
   smart_str_appendl(string, ">", 1);
 }
 
-static inline void tuple_string(php_driver_type* type, smart_str* string) {
+static inline void tuple_string(php_scylladb_type* type, smart_str* string) {
   zval* current;
   int first = 1;
 
   smart_str_appendl(string, "tuple<", 6);
   ZEND_HASH_FOREACH_VAL(&type->data.tuple.types, current) {
-    php_driver_type* sub_type = PHP_DRIVER_GET_TYPE(current);
+    php_scylladb_type* sub_type = PHP_SCYLLADB_GET_TYPE(current);
     if (!first) smart_str_appendl(string, ", ", 2);
     first = 0;
-    php_driver_type_string(sub_type, string);
+    php_scylladb_type_string(sub_type, string);
   }
   ZEND_HASH_FOREACH_END();
   smart_str_appendl(string, ">", 1);
 }
 
-static inline void user_type_string(php_driver_type* type, smart_str* string) {
+static inline void user_type_string(php_scylladb_type* type, smart_str* string) {
   zend_string* name;
   zval* current;
   int first = 1;
@@ -444,25 +444,25 @@ static inline void user_type_string(php_driver_type* type, smart_str* string) {
   } else {
     smart_str_appendl(string, "userType<", 9);
     ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
-      php_driver_type* sub_type = PHP_DRIVER_GET_TYPE(current);
+      php_scylladb_type* sub_type = PHP_SCYLLADB_GET_TYPE(current);
       if (!first) smart_str_appendl(string, ", ", 2);
       first = 0;
       smart_str_appendl(string, ZSTR_VAL(name), ZSTR_LEN(name));
       smart_str_appendl(string, ":", 1);
-      php_driver_type_string(sub_type, string);
+      php_scylladb_type_string(sub_type, string);
     }
     ZEND_HASH_FOREACH_END();
     smart_str_appendl(string, ">", 1);
   }
 }
 
-void php_driver_type_string(php_driver_type* type, smart_str* string) {
+void php_scylladb_type_string(php_scylladb_type* type, smart_str* string) {
   switch (type->type) {
 #define XX_SCALAR(name, value)                       \
   case value:                                        \
     smart_str_appendl(string, #name, strlen(#name)); \
     break;
-    PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
+    PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
 
     case CASS_VALUE_TYPE_LIST:
@@ -491,29 +491,29 @@ void php_driver_type_string(php_driver_type* type, smart_str* string) {
   }
 }
 
-static zval php_driver_type_scalar_new(CassValueType type) {
+static zval php_scylladb_type_scalar_new(CassValueType type) {
   zval ztype;
-  object_init_ex(&ztype, php_driver_type_scalar_ce);
-  php_driver_type* scalar = PHP_DRIVER_GET_TYPE(&ztype);
+  object_init_ex(&ztype, php_scylladb_type_scalar_ce);
+  php_scylladb_type* scalar = PHP_SCYLLADB_GET_TYPE(&ztype);
   scalar->type = type;
   scalar->data_type = cass_data_type_new(type);
 
   return ztype;
 }
 
-const char* php_driver_scalar_type_name(CassValueType type) {
+const char* php_scylladb_scalar_type_name(CassValueType type) {
   switch (type) {
 #define XX_SCALAR(name, value) \
   case value:                  \
     return #name;
-    PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
+    PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
     default:
       return "invalid";
   }
 }
 
-static void php_driver_varchar_init(INTERNAL_FUNCTION_PARAMETERS) {
+static void php_scylladb_varchar_init(INTERNAL_FUNCTION_PARAMETERS) {
   zend_string* string;
 
   // clang-format off
@@ -525,11 +525,11 @@ static void php_driver_varchar_init(INTERNAL_FUNCTION_PARAMETERS) {
   RETURN_STR(string);
 }
 
-static void php_driver_ascii_init(INTERNAL_FUNCTION_PARAMETERS) {
-  php_driver_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+static void php_scylladb_ascii_init(INTERNAL_FUNCTION_PARAMETERS) {
+  php_scylladb_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-static void php_driver_boolean_init(INTERNAL_FUNCTION_PARAMETERS) {
+static void php_scylladb_boolean_init(INTERNAL_FUNCTION_PARAMETERS) {
   zend_bool value;
 
   // clang-format off
@@ -541,11 +541,11 @@ static void php_driver_boolean_init(INTERNAL_FUNCTION_PARAMETERS) {
   RETURN_BOOL(value);
 }
 
-static void php_driver_counter_init(INTERNAL_FUNCTION_PARAMETERS) {
-  php_driver_bigint_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+static void php_scylladb_counter_init(INTERNAL_FUNCTION_PARAMETERS) {
+  php_scylladb_bigint_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-static void php_driver_double_init(INTERNAL_FUNCTION_PARAMETERS) {
+static void php_scylladb_double_init(INTERNAL_FUNCTION_PARAMETERS) {
   double value;
 
   // clang-format off
@@ -557,7 +557,7 @@ static void php_driver_double_init(INTERNAL_FUNCTION_PARAMETERS) {
   RETURN_DOUBLE(value);
 }
 
-static void php_driver_int_init(INTERNAL_FUNCTION_PARAMETERS) {
+static void php_scylladb_int_init(INTERNAL_FUNCTION_PARAMETERS) {
   zend_long value;
 
   // clang-format off
@@ -569,11 +569,11 @@ static void php_driver_int_init(INTERNAL_FUNCTION_PARAMETERS) {
   RETURN_LONG(value);
 }
 
-static void php_driver_text_init(INTERNAL_FUNCTION_PARAMETERS) {
-  php_driver_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+static void php_scylladb_text_init(INTERNAL_FUNCTION_PARAMETERS) {
+  php_scylladb_varchar_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-#define TYPE_INIT_METHOD(t) php_driver_##t##_init
+#define TYPE_INIT_METHOD(t) php_scylladb_##t##_init
 
 #define TYPES_MAP(XX)                     \
   XX(ascii, CASS_VALUE_TYPE_ASCII)        \
@@ -594,8 +594,8 @@ static void php_driver_text_init(INTERNAL_FUNCTION_PARAMETERS) {
   XX(varint, CASS_VALUE_TYPE_VARINT)      \
   XX(inet, CASS_VALUE_TYPE_INET)
 
-void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
-  php_driver_type* self = PHP_DRIVER_GET_TYPE(getThis());
+void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
+  php_scylladb_type* self = PHP_SCYLLADB_GET_TYPE(getThis());
 
 #define XX_SCALAR(name, value)          \
   if (self->type == value) {            \
@@ -622,13 +622,13 @@ void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     auto timestamp = php_scylladb_timestamp_instantiate(return_value);
 
     if (timestamp == nullptr) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Failed to create Cassandra\\Timestamp");
       return;
     }
 
     if (php_scylladb_timestamp_initialize(timestamp, seconds, microseconds) != SUCCESS) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Failed to create Timestamp: seconds(%ld) microseconds(%ld)", seconds,
                               microseconds);
     }
@@ -650,13 +650,13 @@ void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     auto time = php_scylladb_time_instantiate(return_value);
 
     if (time == nullptr) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Failed to create Cassandra\\Time");
       return;
     }
 
     if (php_scylladb_time_initialize(time, nanosecondsStr, nanoseconds) == FAILURE) {
-      zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                               "Cannot create Cassandra\\Time from invalid value");
     }
 
@@ -677,13 +677,13 @@ void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     auto date = php_scylladb_date_instantiate(return_value);
 
     if (date == nullptr) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Cannot allocate Cassandra\\Date");
       return;
     }
 
     if (php_scylladb_date_initialize(date, secondsStr, seconds) == FAILURE) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Cannot create Cassandra\\Date from invalid value");
     }
     return;
@@ -700,8 +700,8 @@ void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     ZEND_PARSE_PARAMETERS_END();
     // clang-format on
 
-    if (php_driver_timeuuid_init(return_value, str, timestamp) != SUCCESS) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    if (php_scylladb_timeuuid_init(return_value, str, timestamp) != SUCCESS) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Cannot create Timeuuid from invalid value");
     }
   }
@@ -709,40 +709,40 @@ void php_driver_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
 
 #define TYPE_CODE(m) type_##m
 
-zval php_driver_type_scalar(CassValueType type) {
+zval php_scylladb_type_scalar(CassValueType type) {
   zval result;
   ZVAL_UNDEF(&result);
 
 #define XX_SCALAR(name, value)                                          \
   if (value == type) {                                                  \
-    if (Z_ISUNDEF(PHP_DRIVER_G(TYPE_CODE(name)))) {                     \
-      PHP_DRIVER_G(TYPE_CODE(name)) = php_driver_type_scalar_new(type); \
+    if (Z_ISUNDEF(PHP_SCYLLADB_G(TYPE_CODE(name)))) {                     \
+      PHP_SCYLLADB_G(TYPE_CODE(name)) = php_scylladb_type_scalar_new(type); \
     }                                                                   \
-    Z_ADDREF_P(&PHP_DRIVER_G(TYPE_CODE(name)));                         \
-    return PHP_DRIVER_G(TYPE_CODE(name));                               \
+    Z_ADDREF_P(&PHP_SCYLLADB_G(TYPE_CODE(name)));                         \
+    return PHP_SCYLLADB_G(TYPE_CODE(name));                               \
   }
-  PHP_DRIVER_SCALAR_TYPES_MAP(XX_SCALAR)
+  PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
-  zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "Invalid type");
+  zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "Invalid type");
   return result;
 }
 #undef TYPE_CODE
 
-zval php_driver_type_map(zval* key_type, zval* value_type) {
+zval php_scylladb_type_map(zval* key_type, zval* value_type) {
   zval ztype;
-  php_driver_type* map;
-  php_driver_type* sub_type;
+  php_scylladb_type* map;
+  php_scylladb_type* sub_type;
 
-  object_init_ex(&ztype, php_driver_type_map_ce);
-  map = PHP_DRIVER_GET_TYPE(&ztype);
+  object_init_ex(&ztype, php_scylladb_type_map_ce);
+  map = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   if (!Z_ISUNDEF_P(key_type)) {
-    sub_type = PHP_DRIVER_GET_TYPE(key_type);
+    sub_type = PHP_SCYLLADB_GET_TYPE(key_type);
     cass_data_type_add_sub_type(map->data_type, sub_type->data_type);
   }
 
   if (!Z_ISUNDEF_P(value_type)) {
-    sub_type = PHP_DRIVER_GET_TYPE(value_type);
+    sub_type = PHP_SCYLLADB_GET_TYPE(value_type);
     cass_data_type_add_sub_type(map->data_type, sub_type->data_type);
   }
 
@@ -752,34 +752,34 @@ zval php_driver_type_map(zval* key_type, zval* value_type) {
   return ztype;
 }
 
-zval php_driver_type_map_from_value_types(CassValueType key_type, CassValueType value_type) {
+zval php_scylladb_type_map_from_value_types(CassValueType key_type, CassValueType value_type) {
   zval ztype;
-  php_driver_type* map;
-  php_driver_type* sub_type;
+  php_scylladb_type* map;
+  php_scylladb_type* sub_type;
 
-  object_init_ex(&ztype, php_driver_type_map_ce);
-  map = PHP_DRIVER_GET_TYPE(&ztype);
-  map->data.map.key_type = php_driver_type_scalar(key_type);
-  map->data.map.value_type = php_driver_type_scalar(value_type);
+  object_init_ex(&ztype, php_scylladb_type_map_ce);
+  map = PHP_SCYLLADB_GET_TYPE(&ztype);
+  map->data.map.key_type = php_scylladb_type_scalar(key_type);
+  map->data.map.value_type = php_scylladb_type_scalar(value_type);
 
-  sub_type = PHP_DRIVER_GET_TYPE(&map->data.map.key_type);
+  sub_type = PHP_SCYLLADB_GET_TYPE(&map->data.map.key_type);
   cass_data_type_add_sub_type(map->data_type, sub_type->data_type);
-  sub_type = PHP_DRIVER_GET_TYPE(&map->data.map.value_type);
+  sub_type = PHP_SCYLLADB_GET_TYPE(&map->data.map.value_type);
   cass_data_type_add_sub_type(map->data_type, sub_type->data_type);
 
   return ztype;
 }
 
-zval php_driver_type_set(zval* value_type) {
+zval php_scylladb_type_set(zval* value_type) {
   zval ztype;
-  php_driver_type* set;
-  php_driver_type* sub_type;
+  php_scylladb_type* set;
+  php_scylladb_type* sub_type;
 
-  object_init_ex(&(ztype), php_driver_type_set_ce);
-  set = PHP_DRIVER_GET_TYPE(&(ztype));
+  object_init_ex(&(ztype), php_scylladb_type_set_ce);
+  set = PHP_SCYLLADB_GET_TYPE(&(ztype));
 
   if (!Z_ISUNDEF_P(value_type)) {
-    sub_type = PHP_DRIVER_GET_TYPE(value_type);
+    sub_type = PHP_SCYLLADB_GET_TYPE(value_type);
     cass_data_type_add_sub_type(set->data_type, sub_type->data_type);
   }
 
@@ -788,31 +788,31 @@ zval php_driver_type_set(zval* value_type) {
   return ztype;
 }
 
-zval php_driver_type_set_from_value_type(CassValueType type) {
+zval php_scylladb_type_set_from_value_type(CassValueType type) {
   zval ztype;
-  php_driver_type* set;
-  php_driver_type* sub_type;
+  php_scylladb_type* set;
+  php_scylladb_type* sub_type;
 
-  object_init_ex(&(ztype), php_driver_type_set_ce);
-  set = PHP_DRIVER_GET_TYPE(&ztype);
-  set->data.set.value_type = php_driver_type_scalar(type);
+  object_init_ex(&(ztype), php_scylladb_type_set_ce);
+  set = PHP_SCYLLADB_GET_TYPE(&ztype);
+  set->data.set.value_type = php_scylladb_type_scalar(type);
 
-  sub_type = PHP_DRIVER_GET_TYPE(&set->data.set.value_type);
+  sub_type = PHP_SCYLLADB_GET_TYPE(&set->data.set.value_type);
   cass_data_type_add_sub_type(set->data_type, sub_type->data_type);
 
   return ztype;
 }
 
-zval php_driver_type_collection(zval* value_type) {
+zval php_scylladb_type_collection(zval* value_type) {
   zval ztype;
-  php_driver_type* collection;
-  php_driver_type* sub_type;
+  php_scylladb_type* collection;
+  php_scylladb_type* sub_type;
 
-  object_init_ex(&ztype, php_driver_type_collection_ce);
-  collection = PHP_DRIVER_GET_TYPE(&ztype);
+  object_init_ex(&ztype, php_scylladb_type_collection_ce);
+  collection = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   if (!Z_ISUNDEF_P(value_type)) {
-    sub_type = PHP_DRIVER_GET_TYPE(value_type);
+    sub_type = PHP_SCYLLADB_GET_TYPE(value_type);
     cass_data_type_add_sub_type(collection->data_type, sub_type->data_type);
   }
 
@@ -821,53 +821,53 @@ zval php_driver_type_collection(zval* value_type) {
   return ztype;
 }
 
-zval php_driver_type_collection_from_value_type(CassValueType type) {
+zval php_scylladb_type_collection_from_value_type(CassValueType type) {
   zval ztype;
-  php_driver_type* collection;
-  php_driver_type* sub_type;
+  php_scylladb_type* collection;
+  php_scylladb_type* sub_type;
 
-  object_init_ex(&ztype, php_driver_type_collection_ce);
-  collection = PHP_DRIVER_GET_TYPE(&ztype);
-  collection->data.collection.value_type = php_driver_type_scalar(type);
+  object_init_ex(&ztype, php_scylladb_type_collection_ce);
+  collection = PHP_SCYLLADB_GET_TYPE(&ztype);
+  collection->data.collection.value_type = php_scylladb_type_scalar(type);
 
-  sub_type = PHP_DRIVER_GET_TYPE(&collection->data.collection.value_type);
+  sub_type = PHP_SCYLLADB_GET_TYPE(&collection->data.collection.value_type);
   cass_data_type_add_sub_type(collection->data_type, sub_type->data_type);
 
   return ztype;
 }
 
-zval php_driver_type_tuple() {
+zval php_scylladb_type_tuple() {
   zval ztype;
 
-  object_init_ex(&ztype, php_driver_type_tuple_ce);
+  object_init_ex(&ztype, php_scylladb_type_tuple_ce);
 
   return ztype;
 }
 
-zval php_driver_type_user_type() {
+zval php_scylladb_type_user_type() {
   zval ztype;
-  php_driver_type* user_type;
+  php_scylladb_type* user_type;
 
-  object_init_ex(&ztype, php_driver_type_user_type_ce);
-  user_type = PHP_DRIVER_GET_TYPE(&ztype);
+  object_init_ex(&ztype, php_scylladb_type_user_type_ce);
+  user_type = PHP_SCYLLADB_GET_TYPE(&ztype);
   user_type->data_type = cass_data_type_new(CASS_VALUE_TYPE_UDT);
 
   return ztype;
 }
 
-zval php_driver_type_custom(const char* name, size_t name_length) {
+zval php_scylladb_type_custom(const char* name, size_t name_length) {
   zval ztype;
-  php_driver_type* custom;
+  php_scylladb_type* custom;
 
-  object_init_ex(&ztype, php_driver_type_custom_ce);
-  custom = PHP_DRIVER_GET_TYPE(&ztype);
+  object_init_ex(&ztype, php_scylladb_type_custom_ce);
+  custom = PHP_SCYLLADB_GET_TYPE(&ztype);
   custom->data.custom.class_name = estrndup(name, name_length);
 
   return ztype;
 }
 
 #define EXPECTING_TOKEN(expected)                                                              \
-  zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,                         \
+  zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,                         \
                           "Unexpected %s at position %d in string \"%s\", expected " expected, \
                           describe_token(token), ((int)(str - validator) - 1), validator);     \
   return FAILURE;
@@ -959,7 +959,7 @@ static enum describe_token_type next_token(const char* str, size_t len, const ch
   return type;
 }
 
-static struct node_s* php_driver_parse_node_new() {
+static struct node_s* php_scylladb_parse_node_new() {
   struct node_s* node;
   node = static_cast<node_s*>(emalloc(sizeof(struct node_s)));
   node->parent = nullptr;
@@ -973,22 +973,22 @@ static struct node_s* php_driver_parse_node_new() {
   return node;
 }
 
-static void php_driver_parse_node_free(struct node_s* node) {
+static void php_scylladb_parse_node_free(struct node_s* node) {
   if (node->first_child) {
-    php_driver_parse_node_free(node->first_child);
+    php_scylladb_parse_node_free(node->first_child);
     node->first_child = nullptr;
   }
   node->last_child = nullptr;
 
   if (node->next_sibling) {
-    php_driver_parse_node_free(node->next_sibling);
+    php_scylladb_parse_node_free(node->next_sibling);
     node->next_sibling = nullptr;
   }
 
   efree(node);
 }
 
-static int php_driver_parse_class_name(const char* validator, size_t validator_len,
+static int php_scylladb_parse_class_name(const char* validator, size_t validator_len,
                                        struct node_s** result) {
   const char* str;
   size_t len;
@@ -1005,17 +1005,17 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
   state = STATE_CLASS;
   str = validator;
   len = validator_len;
-  root = php_driver_parse_node_new();
+  root = php_scylladb_parse_node_new();
   node = root;
 
   while (1) {
     token = next_token(str, len, &token_str, &token_len, &str, &len);
 
     if (token == TOKEN_ILLEGAL) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Illegal character \"%c\" at position %d in \"%s\"", *token_str,
                               ((int)(str - validator) - 1), validator);
-      php_driver_parse_node_free(root);
+      php_scylladb_parse_node_free(root);
       return FAILURE;
     }
 
@@ -1026,7 +1026,7 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
         }
         state = STATE_CLASS;
 
-        child = php_driver_parse_node_new();
+        child = php_scylladb_parse_node_new();
         child->parent = node->parent;
         child->prev_sibling = node;
         node->next_sibling = child;
@@ -1052,7 +1052,7 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
       if (token == TOKEN_PAREN_OPEN) {
         state = STATE_CLASS;
 
-        child = php_driver_parse_node_new();
+        child = php_scylladb_parse_node_new();
         child->parent = node;
 
         if (node->first_child == NULL) {
@@ -1071,7 +1071,7 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
       } else if (token == TOKEN_COMMA || token == TOKEN_COLON) {
         state = STATE_CLASS;
 
-        child = php_driver_parse_node_new();
+        child = php_scylladb_parse_node_new();
         child->parent = node->parent;
         child->prev_sibling = node;
         node->next_sibling = child;
@@ -1087,14 +1087,14 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
       } else if (token == TOKEN_END) {
         break;
       } else {
-        php_driver_parse_node_free(root);
+        php_scylladb_parse_node_free(root);
         EXPECTING_TOKEN("opening/closing parenthesis or comma");
       }
     }
 
     if (state == STATE_CLASS) {
       if (token != TOKEN_NAME) {
-        php_driver_parse_node_free(root);
+        php_scylladb_parse_node_free(root);
         EXPECTING_TOKEN("fully qualified class name");
       }
       state = STATE_AFTER_CLASS;
@@ -1108,7 +1108,7 @@ static int php_driver_parse_class_name(const char* validator, size_t validator_l
   return SUCCESS;
 }
 
-static CassValueType php_driver_lookup_type(struct node_s* node) {
+static CassValueType php_scylladb_lookup_type(struct node_s* node) {
   if (strncmp("org.apache.cassandra.db.marshal.AsciiType", node->name, node->name_length) == 0) {
     return CASS_VALUE_TYPE_ASCII;
   }
@@ -1217,22 +1217,22 @@ static CassValueType php_driver_lookup_type(struct node_s* node) {
   return CASS_VALUE_TYPE_CUSTOM;
 }
 
-static void php_driver_node_dump_to(struct node_s* node, smart_str* text) {
+static void php_scylladb_node_dump_to(struct node_s* node, smart_str* text) {
   smart_str_appendl(text, node->name, node->name_length);
 
   if (node->first_child) {
     smart_str_appendl(text, "(", 1);
-    php_driver_node_dump_to(node->first_child, text);
+    php_scylladb_node_dump_to(node->first_child, text);
     smart_str_appendl(text, ")", 1);
   }
 
   if (node->next_sibling) {
     smart_str_appendl(text, ", ", 2);
-    php_driver_node_dump_to(node->next_sibling, text);
+    php_scylladb_node_dump_to(node->next_sibling, text);
   }
 }
 
-static zval php_driver_create_type(struct node_s* node) {
+static zval php_scylladb_create_type(struct node_s* node) {
   CassValueType type = CASS_VALUE_TYPE_UNKNOWN;
 
   /* Skip wrapper types */
@@ -1246,7 +1246,7 @@ static zval php_driver_create_type(struct node_s* node) {
   }
 
   if (node) {
-    type = php_driver_lookup_type(node);
+    type = php_scylladb_lookup_type(node);
   }
 
   if (type == CASS_VALUE_TYPE_UNKNOWN) {
@@ -1258,8 +1258,8 @@ static zval php_driver_create_type(struct node_s* node) {
   if (type == CASS_VALUE_TYPE_CUSTOM) {
     zval ztype;
     smart_str class_name = {NULL, 0};
-    php_driver_node_dump_to(node, &class_name);
-    ztype = php_driver_type_custom((class_name.s ? class_name.s->val : NULL),
+    php_scylladb_node_dump_to(node, &class_name);
+    ztype = php_scylladb_type_custom((class_name.s ? class_name.s->val : NULL),
                                    (class_name.s ? class_name.s->len : 0));
     smart_str_free(&class_name);
     return ztype;
@@ -1268,46 +1268,46 @@ static zval php_driver_create_type(struct node_s* node) {
     zval value_type;
 
     if (node->first_child) {
-      key_type = php_driver_create_type(node->first_child);
-      value_type = php_driver_create_type(node->first_child->next_sibling);
+      key_type = php_scylladb_create_type(node->first_child);
+      value_type = php_scylladb_create_type(node->first_child->next_sibling);
     } else {
       ZVAL_UNDEF(&key_type);
       ZVAL_UNDEF(&value_type);
     }
-    return php_driver_type_map(&key_type, &value_type);
+    return php_scylladb_type_map(&key_type, &value_type);
   } else if (type == CASS_VALUE_TYPE_LIST) {
     zval value_type;
     if (node->first_child) {
-      value_type = php_driver_create_type(node->first_child);
+      value_type = php_scylladb_create_type(node->first_child);
     } else {
       ZVAL_UNDEF(&value_type);
     }
-    return php_driver_type_collection(&value_type);
+    return php_scylladb_type_collection(&value_type);
   } else if (type == CASS_VALUE_TYPE_SET) {
     zval value_type;
     if (node->first_child) {
-      value_type = php_driver_create_type(node->first_child);
+      value_type = php_scylladb_create_type(node->first_child);
     } else {
       ZVAL_UNDEF(&value_type);
     }
-    return php_driver_type_set(&value_type);
+    return php_scylladb_type_set(&value_type);
   } else if (type == CASS_VALUE_TYPE_TUPLE) {
-    return php_driver_tuple_from_node(node);
+    return php_scylladb_tuple_from_node(node);
   } else if (type == CASS_VALUE_TYPE_UDT) {
-    return php_driver_user_type_from_node(node);
+    return php_scylladb_user_type_from_node(node);
   }
 
-  return php_driver_type_scalar(type);
+  return php_scylladb_type_scalar(type);
 }
 
-int php_driver_parse_column_type(const char* validator, size_t validator_len, int* reversed_out,
+int php_scylladb_parse_column_type(const char* validator, size_t validator_len, int* reversed_out,
                                  int* frozen_out, zval* type_out) {
   struct node_s* root;
   struct node_s* node = nullptr;
   cass_bool_t reversed = cass_false;
   cass_bool_t frozen = cass_false;
 
-  if (php_driver_parse_class_name(validator, validator_len, &root) == FAILURE) {
+  if (php_scylladb_parse_class_name(validator, validator_len, &root) == FAILURE) {
     return FAILURE;
   }
 
@@ -1337,16 +1337,16 @@ int php_driver_parse_column_type(const char* validator, size_t validator_len, in
   }
 
   if (node == nullptr) {
-    php_driver_parse_node_free(root);
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "Invalid type");
+    php_scylladb_parse_node_free(root);
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "Invalid type");
     return FAILURE;
   }
 
   *reversed_out = reversed;
   *frozen_out = frozen;
-  *type_out = php_driver_create_type(node);
+  *type_out = php_scylladb_create_type(node);
 
-  php_driver_parse_node_free(root);
+  php_scylladb_parse_node_free(root);
 
   return SUCCESS;
 }

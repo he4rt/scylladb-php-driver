@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
+#include "php_scylladb.h"
 
 #include "Database/ResultDecoder.h"
+
 BEGIN_EXTERN_C()
 #include "Table_arginfo.h"
-zend_class_entry *php_driver_table_ce = NULL;
 
 zval
-php_driver_table_build_options(CassIterator* iterator ) {
+php_scylladb_table_build_options(CassIterator* iterator ) {
   const char *name;
   size_t name_length;
   zval zoptions;
-
 
   array_init(&zoptions);
   if (!iterator) {
@@ -49,7 +48,7 @@ php_driver_table_build_options(CassIterator* iterator ) {
         if (data_type) {
           zval zvalue;
           ZVAL_UNDEF(&zvalue);
-          if (php_driver_value(value,
+          if (php_scylladb_value(value,
                                   data_type,
                                   &zvalue ) == SUCCESS) {
             add_assoc_zval_ex(&zoptions, name, name_length, &zvalue);
@@ -62,8 +61,5 @@ php_driver_table_build_options(CassIterator* iterator ) {
   return zoptions;
 }
 
-void php_driver_define_Table()
-{
-  php_driver_table_ce = register_class_Cassandra_Table();
-}
 END_EXTERN_C()
+

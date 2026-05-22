@@ -15,8 +15,8 @@
  */
 
 #pragma once
-#include "php_driver.h"
+#include "php_scylladb.h"
 BEGIN_EXTERN_C()
-zval php_driver_create_materialized_view(zval *schema,
+zval php_scylladb_create_materialized_view(zval *schema,
                                                  const CassMaterializedViewMeta *meta );
 END_EXTERN_C()

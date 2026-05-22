@@ -23,8 +23,8 @@ typedef struct {
   zend_object zendObject;
 } php_scylladb_ssl;
 
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssl_builder_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_driver_ssl_ce;
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssloptions_builder_ce;
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssloptions_ce;
 
 zend_always_inline php_scylladb_ssl_builder *php_scylladb_ssl_builder_from_obj(zend_object *obj) {
   return ZendCPP::ObjectFetch<php_scylladb_ssl_builder>(obj);

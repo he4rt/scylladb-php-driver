@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 #include <SSLOptions/SSLOptions.h>
 
 BEGIN_EXTERN_C()
 #include "SSLOptions_arginfo.h"
 
-zend_class_entry *php_driver_ssl_ce = nullptr;
+extern zend_object_handlers php_scylladb_ssloptions_handlers;
 
-static zend_object_handlers php_driver_ssl_handlers;
-
-static int php_driver_ssl_compare(zval *obj1, zval *obj2) {
+int php_scylladb_ssloptions_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
@@ -33,36 +31,31 @@ static int php_driver_ssl_compare(zval *obj1, zval *obj2) {
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void php_driver_ssl_free(zend_object *object) {
+void php_scylladb_ssloptions_free(zend_object *object) {
   const auto *self = ZendCPP::ObjectFetch<php_scylladb_ssl>(object);
   cass_ssl_free(self->ssl);
   zend_object_std_dtor(object);
 }
 
-static zend_object *php_driver_ssl_new(zend_class_entry *ce) {
-  auto *self = ZendCPP::Allocate<php_scylladb_ssl>(ce, &php_driver_ssl_handlers);
+zend_object *php_scylladb_ssloptions_new(zend_class_entry *ce) {
+  auto *self = ZendCPP::Allocate<php_scylladb_ssl>(ce, &php_scylladb_ssloptions_handlers);
   self->ssl = cass_ssl_new();
   if (self->ssl == nullptr) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassSsl context");
   }
 
   return &self->zendObject;
 }
 
-void php_driver_define_SSLOptions() {
-  php_driver_ssl_ce = register_class_Cassandra_SSLOptions();
-  php_driver_ssl_ce->create_object = php_driver_ssl_new;
-
-  ZendCPP::InitHandlers<php_scylladb_ssl>(&php_driver_ssl_handlers);
-  php_driver_ssl_handlers.compare = php_driver_ssl_compare;
-  php_driver_ssl_handlers.free_obj = php_driver_ssl_free;
-  php_driver_ssl_handlers.clone_obj = nullptr;
+void php_scylladb_ssloptions_post_register(zend_class_entry *ce) {
+  (void)ce;
+  php_scylladb_ssloptions_handlers.clone_obj = nullptr;
 }
 
 PHP_SCYLLADB_API php_scylladb_ssl *php_scylladb_ssl_instantiate(zval *object) {
   zval val;
-  if (object_init_ex(&val, php_driver_ssl_ce) != SUCCESS) {
+  if (object_init_ex(&val, php_scylladb_ssloptions_ce) != SUCCESS) {
     return nullptr;
   }
 

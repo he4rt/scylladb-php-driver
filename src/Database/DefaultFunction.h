@@ -18,8 +18,8 @@
 #include <cassandra.h>
 #include <php.h>
 
-#include <php_driver_types.h>
+#include <php_scylladb_types.h>
 
 BEGIN_EXTERN_C()
-zval php_driver_create_function(zval *schema, const CassFunctionMeta *meta );
+zval php_scylladb_create_function(zval *schema, const CassFunctionMeta *meta );
 END_EXTERN_C()

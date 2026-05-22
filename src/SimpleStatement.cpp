@@ -14,31 +14,30 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
+
 BEGIN_EXTERN_C()
 #include "SimpleStatement_arginfo.h"
 
-zend_class_entry *php_driver_simple_statement_ce = NULL;
+extern zend_object_handlers php_scylladb_simple_statement_handlers;
 
 ZEND_METHOD(Cassandra_SimpleStatement, __construct)
 {
   zend_string *cql = NULL;
-  php_driver_statement *self = NULL;
+  php_scylladb_statement *self = NULL;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_STR(cql)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_STATEMENT(getThis());
+  self = PHP_SCYLLADB_GET_STATEMENT(getThis());
 
   self->data.simple.cql = estrndup(ZSTR_VAL(cql), ZSTR_LEN(cql));
 }
 
-static zend_object_handlers php_driver_simple_statement_handlers;
-
-static HashTable *
-php_driver_simple_statement_properties(
+HashTable *
+php_scylladb_simple_statement_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
@@ -51,8 +50,8 @@ php_driver_simple_statement_properties(
   return props;
 }
 
-static int
-php_driver_simple_statement_compare(zval *obj1, zval *obj2 )
+int
+php_scylladb_simple_statement_compare(zval *obj1, zval *obj2 )
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -63,10 +62,10 @@ php_driver_simple_statement_compare(zval *obj1, zval *obj2 )
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void
-php_driver_simple_statement_free(zend_object *object )
+void
+php_scylladb_simple_statement_free(zend_object *object )
 {
-  php_driver_statement *self = php_driver_statement_object_fetch(object);
+  php_scylladb_statement *self = php_scylladb_statement_object_fetch(object);
 
   if (self->data.simple.cql) {
     efree(self->data.simple.cql);
@@ -77,31 +76,18 @@ php_driver_simple_statement_free(zend_object *object )
 
 }
 
-static zend_object*
-php_driver_simple_statement_new(zend_class_entry *ce )
+zend_object*
+php_scylladb_simple_statement_new(zend_class_entry *ce )
 {
-  php_driver_statement *self =
-      (php_driver_statement *)ecalloc(1, sizeof(php_driver_statement) + zend_object_properties_size(ce));
+  php_scylladb_statement *self =
+      (php_scylladb_statement *)ecalloc(1, sizeof(php_scylladb_statement) + zend_object_properties_size(ce));
 
-  self->type = PHP_DRIVER_SIMPLE_STATEMENT;
+  self->type = PHP_SCYLLADB_SIMPLE_STATEMENT;
   self->data.simple.cql  = NULL;
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_simple_statement_handlers.offset = XtOffsetOf(php_driver_statement, zendObject);
-  php_driver_simple_statement_handlers.free_obj = php_driver_simple_statement_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_simple_statement_handlers;
+  self->zendObject.handlers = &php_scylladb_simple_statement_handlers;
   return &self->zendObject;
 }
 
 END_EXTERN_C()
-
-void php_driver_define_SimpleStatement()
-{
-  php_driver_simple_statement_ce = register_class_Cassandra_SimpleStatement(php_driver_statement_ce);
-  php_driver_simple_statement_ce->create_object = php_driver_simple_statement_new;
-
-  memcpy(&php_driver_simple_statement_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_simple_statement_handlers.get_properties  = php_driver_simple_statement_properties;
-  php_driver_simple_statement_handlers.compare = php_driver_simple_statement_compare;
-  php_driver_simple_statement_handlers.clone_obj = NULL;
-}

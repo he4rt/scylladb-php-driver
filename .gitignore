@@ -64,4 +64,7 @@ docker/scylladb/certs/
 # Generated at build time by tools/gen_stub/gen_stub.php from *.stub.php
 src/**/*_arginfo.h
 src/*_arginfo.h
+# Generated at build time by tools/gen_descriptor/gen_class_descriptor.php
+src/**/*_descriptor.cpp
+src/*_descriptor.cpp
 tools/gen_stub/PHP-Parser-*/

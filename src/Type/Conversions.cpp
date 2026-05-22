@@ -15,8 +15,8 @@
  */
 
 #include <DateTime/Date.h>
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 #include "Type/Conversions.h"
 #include "Type/ValueHash.h"
 #include "Numbers/NumberParser.h"
@@ -35,12 +35,12 @@
 
 #define CHECK_ERROR(rc) ASSERT_SUCCESS_BLOCK(rc, result = 0;)
 
-int php_driver_validate_object(zval* object, zval* ztype) {
-  php_driver_type* type;
+int php_scylladb_validate_object(zval* object, zval* ztype) {
+  php_scylladb_type* type;
 
   if (Z_TYPE_P(object) == IS_NULL) return 1;
 
-  type = PHP_DRIVER_GET_TYPE(ztype);
+  type = PHP_SCYLLADB_GET_TYPE(ztype);
 
   switch (type->type) {
     case CASS_VALUE_TYPE_VARCHAR:
@@ -70,158 +70,158 @@ int php_driver_validate_object(zval* object, zval* ztype) {
 
       return 1;
     case CASS_VALUE_TYPE_FLOAT:
-      if (!INSTANCE_OF(php_driver_float_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Float");
+      if (!INSTANCE_OF(php_scylladb_float_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Float");
       }
 
       return 1;
     case CASS_VALUE_TYPE_COUNTER:
     case CASS_VALUE_TYPE_BIGINT:
-      if (!INSTANCE_OF(php_driver_bigint_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Bigint");
+      if (!INSTANCE_OF(php_scylladb_bigint_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Bigint");
       }
 
       return 1;
     case CASS_VALUE_TYPE_SMALL_INT:
-      if (!INSTANCE_OF(php_driver_smallint_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Smallint");
+      if (!INSTANCE_OF(php_scylladb_smallint_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Smallint");
       }
 
       return 1;
     case CASS_VALUE_TYPE_TINY_INT:
-      if (!INSTANCE_OF(php_driver_tinyint_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Tinyint");
+      if (!INSTANCE_OF(php_scylladb_tinyint_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Tinyint");
       }
 
       return 1;
     case CASS_VALUE_TYPE_BLOB:
-      if (!INSTANCE_OF(php_driver_blob_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Blob");
+      if (!INSTANCE_OF(php_scylladb_blob_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Blob");
       }
 
       return 1;
     case CASS_VALUE_TYPE_DECIMAL:
-      if (!INSTANCE_OF(php_driver_decimal_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Decimal");
+      if (!INSTANCE_OF(php_scylladb_decimal_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Decimal");
       }
 
       return 1;
     case CASS_VALUE_TYPE_DURATION:
-      if (!INSTANCE_OF(php_driver_duration_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Duration");
+      if (!INSTANCE_OF(php_scylladb_duration_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Duration");
       }
 
       return 1;
     case CASS_VALUE_TYPE_TIMESTAMP:
       if (!INSTANCE_OF(php_scylladb_timestamp_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Timestamp");
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Timestamp");
       }
 
       return 1;
     case CASS_VALUE_TYPE_DATE:
       if (!INSTANCE_OF(php_scylladb_date_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Date");
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Date");
       }
 
       return 1;
     case CASS_VALUE_TYPE_TIME:
       if (!INSTANCE_OF(php_scylladb_time_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Time");
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Time");
       }
 
       return 1;
     case CASS_VALUE_TYPE_UUID:
-      if (!INSTANCE_OF(php_driver_uuid_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Uuid");
+      if (!INSTANCE_OF(php_scylladb_uuid_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Uuid");
       }
 
       return 1;
     case CASS_VALUE_TYPE_VARINT:
-      if (!INSTANCE_OF(php_driver_varint_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Varint");
+      if (!INSTANCE_OF(php_scylladb_varint_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Varint");
       }
 
       return 1;
     case CASS_VALUE_TYPE_TIMEUUID:
-      if (!INSTANCE_OF(php_driver_timeuuid_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Timeuuid");
+      if (!INSTANCE_OF(php_scylladb_timeuuid_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Timeuuid");
       }
 
       return 1;
     case CASS_VALUE_TYPE_INET:
-      if (!INSTANCE_OF(php_driver_inet_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Inet");
+      if (!INSTANCE_OF(php_scylladb_inet_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Inet");
       }
 
       return 1;
     case CASS_VALUE_TYPE_MAP:
-      if (!INSTANCE_OF(php_driver_map_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Map");
+      if (!INSTANCE_OF(php_scylladb_map_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Map");
       } else {
-        php_driver_map* map = PHP_DRIVER_GET_MAP(object);
-        php_driver_type* map_type = PHP_DRIVER_GET_TYPE(&(map->type));
-        if (php_driver_type_compare(map_type, type) != 0) {
+        php_scylladb_map* map = PHP_SCYLLADB_GET_MAP(object);
+        php_scylladb_type* map_type = PHP_SCYLLADB_GET_TYPE(&(map->type));
+        if (php_scylladb_type_compare(map_type, type) != 0) {
           return 0;
         }
       }
 
       return 1;
     case CASS_VALUE_TYPE_SET:
-      if (!INSTANCE_OF(php_driver_set_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Set");
+      if (!INSTANCE_OF(php_scylladb_set_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Set");
       } else {
-        php_driver_set* set = PHP_DRIVER_GET_SET(object);
-        php_driver_type* set_type = PHP_DRIVER_GET_TYPE(&(set->type));
-        if (php_driver_type_compare(set_type, type) != 0) {
+        php_scylladb_set* set = PHP_SCYLLADB_GET_SET(object);
+        php_scylladb_type* set_type = PHP_SCYLLADB_GET_TYPE(&(set->type));
+        if (php_scylladb_type_compare(set_type, type) != 0) {
           return 0;
         }
       }
 
       return 1;
     case CASS_VALUE_TYPE_LIST:
-      if (!INSTANCE_OF(php_driver_collection_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Collection");
+      if (!INSTANCE_OF(php_scylladb_collection_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Collection");
       } else {
-        php_driver_collection* collection = PHP_DRIVER_GET_COLLECTION(object);
-        php_driver_type* collection_type = PHP_DRIVER_GET_TYPE(&(collection->type));
-        if (php_driver_type_compare(collection_type, type) != 0) {
+        php_scylladb_collection* collection = PHP_SCYLLADB_GET_COLLECTION(object);
+        php_scylladb_type* collection_type = PHP_SCYLLADB_GET_TYPE(&(collection->type));
+        if (php_scylladb_type_compare(collection_type, type) != 0) {
           return 0;
         }
       }
 
       return 1;
     case CASS_VALUE_TYPE_TUPLE:
-      if (!INSTANCE_OF(php_driver_tuple_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\Tuple");
+      if (!INSTANCE_OF(php_scylladb_tuple_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Tuple");
       } else {
-        php_driver_tuple* tuple = PHP_DRIVER_GET_TUPLE(object);
-        php_driver_type* tuple_type = PHP_DRIVER_GET_TYPE(&(tuple->type));
-        if (php_driver_type_compare(tuple_type, type) != 0) {
+        php_scylladb_tuple* tuple = PHP_SCYLLADB_GET_TUPLE(object);
+        php_scylladb_type* tuple_type = PHP_SCYLLADB_GET_TYPE(&(tuple->type));
+        if (php_scylladb_type_compare(tuple_type, type) != 0) {
           return 0;
         }
       }
 
       return 1;
     case CASS_VALUE_TYPE_UDT:
-      if (!INSTANCE_OF(php_driver_user_type_value_ce)) {
-        EXPECTING_VALUE("an instance of " PHP_DRIVER_NAMESPACE "\\UserTypeValue");
+      if (!INSTANCE_OF(php_scylladb_user_type_value_ce)) {
+        EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\UserTypeValue");
       } else {
-        php_driver_user_type_value* user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(object);
-        php_driver_type* user_type = PHP_DRIVER_GET_TYPE(&(user_type_value->type));
-        if (php_driver_type_compare(user_type, type) != 0) {
+        php_scylladb_user_type_value* user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(object);
+        php_scylladb_type* user_type = PHP_SCYLLADB_GET_TYPE(&(user_type_value->type));
+        if (php_scylladb_type_compare(user_type, type) != 0) {
           return 0;
         }
       }
 
       return 1;
     default:
-      EXPECTING_VALUE("a simple " PHP_DRIVER_NAMESPACE " value");
+      EXPECTING_VALUE("a simple " PHP_SCYLLADB_NAMESPACE " value");
 
       return 0;
   }
 }
 
-int php_driver_value_type(char* type, CassValueType* value_type) {
+int php_scylladb_value_type(char* type, CassValueType* value_type) {
   if (strcmp("ascii", type) == 0) {
     *value_type = CASS_VALUE_TYPE_ASCII;
   } else if (strcmp("bigint", type) == 0) {
@@ -265,7 +265,7 @@ int php_driver_value_type(char* type, CassValueType* value_type) {
   } else if (strcmp("inet", type) == 0) {
     *value_type = CASS_VALUE_TYPE_INET;
   } else {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "Unsupported type '%s'",
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "Unsupported type '%s'",
                             type);
     return 0;
   }
@@ -273,24 +273,24 @@ int php_driver_value_type(char* type, CassValueType* value_type) {
   return 1;
 }
 
-static int php_driver_collection_append(CassCollection* collection, zval* value,
+static int php_scylladb_collection_append(CassCollection* collection, zval* value,
                                         CassValueType type) {
   int result = 1;
-  php_driver_blob* blob;
-  php_driver_numeric* numeric;
+  php_scylladb_blob* blob;
+  php_scylladb_numeric* numeric;
   php_scylladb_timestamp* timestamp;
   php_scylladb_date* date;
   php_scylladb_time* time;
-  php_driver_uuid* uuid;
-  php_driver_inet* inet;
-  php_driver_duration* duration;
+  php_scylladb_uuid* uuid;
+  php_scylladb_inet* inet;
+  php_scylladb_duration* duration;
   size_t size;
   cass_byte_t* data;
-  php_driver_collection* coll;
-  php_driver_map* map;
-  php_driver_set* set;
-  php_driver_tuple* tup;
-  php_driver_user_type_value* user_type_value;
+  php_scylladb_collection* coll;
+  php_scylladb_map* map;
+  php_scylladb_set* set;
+  php_scylladb_tuple* tup;
+  php_scylladb_user_type_value* user_type_value;
   CassCollection* sub_collection;
   CassTuple* sub_tuple;
   CassUserType* sub_ut;
@@ -304,19 +304,19 @@ static int php_driver_collection_append(CassCollection* collection, zval* value,
       break;
     case CASS_VALUE_TYPE_BIGINT:
     case CASS_VALUE_TYPE_COUNTER:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_collection_append_int64(collection, numeric->data.bigint.value));
       break;
     case CASS_VALUE_TYPE_SMALL_INT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_collection_append_int16(collection, numeric->data.smallint.value));
       break;
     case CASS_VALUE_TYPE_TINY_INT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_collection_append_int8(collection, numeric->data.tinyint.value));
       break;
     case CASS_VALUE_TYPE_BLOB:
-      blob = PHP_DRIVER_GET_BLOB(value);
+      blob = PHP_SCYLLADB_GET_BLOB(value);
       CHECK_ERROR(cass_collection_append_bytes(collection, blob->data, blob->size));
       break;
     case CASS_VALUE_TYPE_BOOLEAN:
@@ -331,7 +331,7 @@ static int php_driver_collection_append(CassCollection* collection, zval* value,
       CHECK_ERROR(cass_collection_append_double(collection, Z_DVAL_P(value)));
       break;
     case CASS_VALUE_TYPE_FLOAT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_collection_append_float(collection, numeric->data.floating.value));
       break;
     case CASS_VALUE_TYPE_INT:
@@ -351,87 +351,87 @@ static int php_driver_collection_append(CassCollection* collection, zval* value,
       break;
     case CASS_VALUE_TYPE_UUID:
     case CASS_VALUE_TYPE_TIMEUUID:
-      uuid = PHP_DRIVER_GET_UUID(value);
+      uuid = PHP_SCYLLADB_GET_UUID(value);
       CHECK_ERROR(cass_collection_append_uuid(collection, uuid->uuid));
       break;
     case CASS_VALUE_TYPE_VARINT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
       CHECK_ERROR(cass_collection_append_bytes(collection, data, size));
       free(data);
       break;
     case CASS_VALUE_TYPE_DECIMAL:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(
           cass_collection_append_decimal(collection, data, size, numeric->data.decimal.scale));
       free(data);
       break;
     case CASS_VALUE_TYPE_DURATION:
-      duration = PHP_DRIVER_GET_DURATION(value);
+      duration = PHP_SCYLLADB_GET_DURATION(value);
       CHECK_ERROR(cass_collection_append_duration(collection, duration->months, duration->days,
                                                   duration->nanos));
       break;
     case CASS_VALUE_TYPE_INET:
-      inet = PHP_DRIVER_GET_INET(value);
+      inet = PHP_SCYLLADB_GET_INET(value);
       CHECK_ERROR(cass_collection_append_inet(collection, inet->inet));
       break;
     case CASS_VALUE_TYPE_LIST:
-      coll = PHP_DRIVER_GET_COLLECTION(value);
-      if (!php_driver_collection_from_collection(coll, &sub_collection)) return 0;
+      coll = PHP_SCYLLADB_GET_COLLECTION(value);
+      if (!php_scylladb_collection_from_collection(coll, &sub_collection)) return 0;
       CHECK_ERROR(cass_collection_append_collection(collection, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_MAP:
-      map = PHP_DRIVER_GET_MAP(value);
-      if (!php_driver_collection_from_map(map, &sub_collection)) return 0;
+      map = PHP_SCYLLADB_GET_MAP(value);
+      if (!php_scylladb_collection_from_map(map, &sub_collection)) return 0;
       CHECK_ERROR(cass_collection_append_collection(collection, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_SET:
-      set = PHP_DRIVER_GET_SET(value);
-      if (!php_driver_collection_from_set(set, &sub_collection)) return 0;
+      set = PHP_SCYLLADB_GET_SET(value);
+      if (!php_scylladb_collection_from_set(set, &sub_collection)) return 0;
       CHECK_ERROR(cass_collection_append_collection(collection, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_TUPLE:
-      tup = PHP_DRIVER_GET_TUPLE(value);
-      if (!php_driver_tuple_from_tuple(tup, &sub_tuple)) return 0;
+      tup = PHP_SCYLLADB_GET_TUPLE(value);
+      if (!php_scylladb_tuple_from_tuple(tup, &sub_tuple)) return 0;
       CHECK_ERROR(cass_collection_append_tuple(collection, sub_tuple));
       cass_tuple_free(sub_tuple);
       break;
     case CASS_VALUE_TYPE_UDT:
-      user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(value);
-      if (!php_driver_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
+      user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(value);
+      if (!php_scylladb_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
       CHECK_ERROR(cass_collection_append_user_type(collection, sub_ut));
       cass_user_type_free(sub_ut);
       break;
     default:
-      zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
+      zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported collection type");
       return 0;
   }
 
   return result;
 }
 
-static int php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value,
+static int php_scylladb_tuple_set(CassTuple* tuple, zend_ulong index, zval* value,
                                 CassValueType type) {
   int result = 1;
-  php_driver_blob* blob;
-  php_driver_numeric* numeric;
+  php_scylladb_blob* blob;
+  php_scylladb_numeric* numeric;
   php_scylladb_timestamp* timestamp;
   php_scylladb_date* date;
   php_scylladb_time* time;
-  php_driver_uuid* uuid;
-  php_driver_inet* inet;
-  php_driver_duration* duration;
+  php_scylladb_uuid* uuid;
+  php_scylladb_inet* inet;
+  php_scylladb_duration* duration;
   size_t size;
   cass_byte_t* data;
-  php_driver_collection* coll;
-  php_driver_map* map;
-  php_driver_set* set;
-  php_driver_tuple* tup;
-  php_driver_user_type_value* user_type_value;
+  php_scylladb_collection* coll;
+  php_scylladb_map* map;
+  php_scylladb_set* set;
+  php_scylladb_tuple* tup;
+  php_scylladb_user_type_value* user_type_value;
   CassCollection* sub_collection;
   CassTuple* sub_tuple;
   CassUserType* sub_ut;
@@ -449,19 +449,19 @@ static int php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value,
       break;
     case CASS_VALUE_TYPE_BIGINT:
     case CASS_VALUE_TYPE_COUNTER:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_tuple_set_int64(tuple, index, numeric->data.bigint.value));
       break;
     case CASS_VALUE_TYPE_SMALL_INT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_tuple_set_int16(tuple, index, numeric->data.smallint.value));
       break;
     case CASS_VALUE_TYPE_TINY_INT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_tuple_set_int8(tuple, index, numeric->data.tinyint.value));
       break;
     case CASS_VALUE_TYPE_BLOB:
-      blob = PHP_DRIVER_GET_BLOB(value);
+      blob = PHP_SCYLLADB_GET_BLOB(value);
       CHECK_ERROR(cass_tuple_set_bytes(tuple, index, blob->data, blob->size));
       break;
     case CASS_VALUE_TYPE_BOOLEAN:
@@ -476,7 +476,7 @@ static int php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value,
       CHECK_ERROR(cass_tuple_set_double(tuple, index, Z_DVAL_P(value)));
       break;
     case CASS_VALUE_TYPE_FLOAT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_tuple_set_float(tuple, index, numeric->data.floating.value));
       break;
     case CASS_VALUE_TYPE_INT:
@@ -496,86 +496,86 @@ static int php_driver_tuple_set(CassTuple* tuple, zend_ulong index, zval* value,
       break;
     case CASS_VALUE_TYPE_UUID:
     case CASS_VALUE_TYPE_TIMEUUID:
-      uuid = PHP_DRIVER_GET_UUID(value);
+      uuid = PHP_SCYLLADB_GET_UUID(value);
       CHECK_ERROR(cass_tuple_set_uuid(tuple, index, uuid->uuid));
       break;
     case CASS_VALUE_TYPE_VARINT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
       CHECK_ERROR(cass_tuple_set_bytes(tuple, index, data, size));
       free(data);
       break;
     case CASS_VALUE_TYPE_DECIMAL:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(cass_tuple_set_decimal(tuple, index, data, size, numeric->data.decimal.scale));
       free(data);
       break;
     case CASS_VALUE_TYPE_DURATION:
-      duration = PHP_DRIVER_GET_DURATION(value);
+      duration = PHP_SCYLLADB_GET_DURATION(value);
       CHECK_ERROR(
           cass_tuple_set_duration(tuple, index, duration->months, duration->days, duration->nanos));
       break;
     case CASS_VALUE_TYPE_INET:
-      inet = PHP_DRIVER_GET_INET(value);
+      inet = PHP_SCYLLADB_GET_INET(value);
       CHECK_ERROR(cass_tuple_set_inet(tuple, index, inet->inet));
       break;
     case CASS_VALUE_TYPE_LIST:
-      coll = PHP_DRIVER_GET_COLLECTION(value);
-      if (!php_driver_collection_from_collection(coll, &sub_collection)) return 0;
+      coll = PHP_SCYLLADB_GET_COLLECTION(value);
+      if (!php_scylladb_collection_from_collection(coll, &sub_collection)) return 0;
       CHECK_ERROR(cass_tuple_set_collection(tuple, index, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_MAP:
-      map = PHP_DRIVER_GET_MAP(value);
-      if (!php_driver_collection_from_map(map, &sub_collection)) return 0;
+      map = PHP_SCYLLADB_GET_MAP(value);
+      if (!php_scylladb_collection_from_map(map, &sub_collection)) return 0;
       CHECK_ERROR(cass_tuple_set_collection(tuple, index, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_SET:
-      set = PHP_DRIVER_GET_SET(value);
-      if (!php_driver_collection_from_set(set, &sub_collection)) return 0;
+      set = PHP_SCYLLADB_GET_SET(value);
+      if (!php_scylladb_collection_from_set(set, &sub_collection)) return 0;
       CHECK_ERROR(cass_tuple_set_collection(tuple, index, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_TUPLE:
-      tup = PHP_DRIVER_GET_TUPLE(value);
-      if (!php_driver_tuple_from_tuple(tup, &sub_tuple)) return 0;
+      tup = PHP_SCYLLADB_GET_TUPLE(value);
+      if (!php_scylladb_tuple_from_tuple(tup, &sub_tuple)) return 0;
       CHECK_ERROR(cass_tuple_set_tuple(tuple, index, sub_tuple));
       cass_tuple_free(sub_tuple);
       break;
     case CASS_VALUE_TYPE_UDT:
-      user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(value);
-      if (!php_driver_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
+      user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(value);
+      if (!php_scylladb_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
       CHECK_ERROR(cass_tuple_set_user_type(tuple, index, sub_ut));
       cass_user_type_free(sub_ut);
       break;
     default:
-      zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
+      zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported collection type");
       return 0;
   }
 
   return result;
 }
 
-static int php_driver_user_type_set(CassUserType* ut, const char* name, zval* value,
+static int php_scylladb_user_type_set(CassUserType* ut, const char* name, zval* value,
                                     CassValueType type) {
   int result = 1;
-  php_driver_blob* blob;
-  php_driver_numeric* numeric;
+  php_scylladb_blob* blob;
+  php_scylladb_numeric* numeric;
   php_scylladb_timestamp* timestamp;
   php_scylladb_date* date;
   php_scylladb_time* time;
-  php_driver_uuid* uuid;
-  php_driver_inet* inet;
-  php_driver_duration* duration;
+  php_scylladb_uuid* uuid;
+  php_scylladb_inet* inet;
+  php_scylladb_duration* duration;
   size_t size;
   cass_byte_t* data;
-  php_driver_collection* coll;
-  php_driver_map* map;
-  php_driver_set* set;
-  php_driver_tuple* tuple;
-  php_driver_user_type_value* user_type_value;
+  php_scylladb_collection* coll;
+  php_scylladb_map* map;
+  php_scylladb_set* set;
+  php_scylladb_tuple* tuple;
+  php_scylladb_user_type_value* user_type_value;
   CassCollection* sub_collection;
   CassTuple* sub_tup;
   CassUserType* sub_ut;
@@ -593,19 +593,19 @@ static int php_driver_user_type_set(CassUserType* ut, const char* name, zval* va
       break;
     case CASS_VALUE_TYPE_BIGINT:
     case CASS_VALUE_TYPE_COUNTER:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_user_type_set_int64_by_name(ut, name, numeric->data.bigint.value));
       break;
     case CASS_VALUE_TYPE_SMALL_INT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_user_type_set_int16_by_name(ut, name, numeric->data.smallint.value));
       break;
     case CASS_VALUE_TYPE_TINY_INT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_user_type_set_int8_by_name(ut, name, numeric->data.tinyint.value));
       break;
     case CASS_VALUE_TYPE_BLOB:
-      blob = PHP_DRIVER_GET_BLOB(value);
+      blob = PHP_SCYLLADB_GET_BLOB(value);
       CHECK_ERROR(cass_user_type_set_bytes_by_name(ut, name, blob->data, blob->size));
       break;
     case CASS_VALUE_TYPE_BOOLEAN:
@@ -620,7 +620,7 @@ static int php_driver_user_type_set(CassUserType* ut, const char* name, zval* va
       CHECK_ERROR(cass_user_type_set_double_by_name(ut, name, Z_DVAL_P(value)));
       break;
     case CASS_VALUE_TYPE_FLOAT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_ERROR(cass_user_type_set_float_by_name(ut, name, numeric->data.floating.value));
       break;
     case CASS_VALUE_TYPE_INT:
@@ -640,86 +640,86 @@ static int php_driver_user_type_set(CassUserType* ut, const char* name, zval* va
       break;
     case CASS_VALUE_TYPE_UUID:
     case CASS_VALUE_TYPE_TIMEUUID:
-      uuid = PHP_DRIVER_GET_UUID(value);
+      uuid = PHP_SCYLLADB_GET_UUID(value);
       CHECK_ERROR(cass_user_type_set_uuid_by_name(ut, name, uuid->uuid));
       break;
     case CASS_VALUE_TYPE_VARINT:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
       CHECK_ERROR(cass_user_type_set_bytes_by_name(ut, name, data, size));
       free(data);
       break;
     case CASS_VALUE_TYPE_DECIMAL:
-      numeric = PHP_DRIVER_GET_NUMERIC(value);
+      numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(
           cass_user_type_set_decimal_by_name(ut, name, data, size, numeric->data.decimal.scale));
       free(data);
       break;
     case CASS_VALUE_TYPE_DURATION:
-      duration = PHP_DRIVER_GET_DURATION(value);
+      duration = PHP_SCYLLADB_GET_DURATION(value);
       CHECK_ERROR(cass_user_type_set_duration_by_name(ut, name, duration->months, duration->days,
                                                       duration->nanos));
       break;
     case CASS_VALUE_TYPE_INET:
-      inet = PHP_DRIVER_GET_INET(value);
+      inet = PHP_SCYLLADB_GET_INET(value);
       CHECK_ERROR(cass_user_type_set_inet_by_name(ut, name, inet->inet));
       break;
     case CASS_VALUE_TYPE_LIST:
-      coll = PHP_DRIVER_GET_COLLECTION(value);
-      if (!php_driver_collection_from_collection(coll, &sub_collection)) return 0;
+      coll = PHP_SCYLLADB_GET_COLLECTION(value);
+      if (!php_scylladb_collection_from_collection(coll, &sub_collection)) return 0;
       CHECK_ERROR(cass_user_type_set_collection_by_name(ut, name, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_MAP:
-      map = PHP_DRIVER_GET_MAP(value);
-      if (!php_driver_collection_from_map(map, &sub_collection)) return 0;
+      map = PHP_SCYLLADB_GET_MAP(value);
+      if (!php_scylladb_collection_from_map(map, &sub_collection)) return 0;
       CHECK_ERROR(cass_user_type_set_collection_by_name(ut, name, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_SET:
-      set = PHP_DRIVER_GET_SET(value);
-      if (!php_driver_collection_from_set(set, &sub_collection)) return 0;
+      set = PHP_SCYLLADB_GET_SET(value);
+      if (!php_scylladb_collection_from_set(set, &sub_collection)) return 0;
       CHECK_ERROR(cass_user_type_set_collection_by_name(ut, name, sub_collection));
       cass_collection_free(sub_collection);
       break;
     case CASS_VALUE_TYPE_TUPLE:
-      tuple = PHP_DRIVER_GET_TUPLE(value);
-      if (!php_driver_tuple_from_tuple(tuple, &sub_tup)) return 0;
+      tuple = PHP_SCYLLADB_GET_TUPLE(value);
+      if (!php_scylladb_tuple_from_tuple(tuple, &sub_tup)) return 0;
       CHECK_ERROR(cass_user_type_set_tuple_by_name(ut, name, sub_tup));
       cass_tuple_free(sub_tup);
       break;
     case CASS_VALUE_TYPE_UDT:
-      user_type_value = PHP_DRIVER_GET_USER_TYPE_VALUE(value);
-      if (!php_driver_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
+      user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(value);
+      if (!php_scylladb_user_type_from_user_type_value(user_type_value, &sub_ut)) return 0;
       CHECK_ERROR(cass_user_type_set_user_type_by_name(ut, name, sub_ut));
       cass_user_type_free(sub_ut);
       break;
     default:
-      zend_throw_exception_ex(php_driver_runtime_exception_ce, 0, "Unsupported collection type");
+      zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported collection type");
       return 0;
   }
 
   return result;
 }
 
-int php_driver_collection_from_set(php_driver_set* set, CassCollection** collection_ptr) {
+int php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** collection_ptr) {
   int result = 1;
   CassCollection* collection = nullptr;
-  php_driver_type* type;
-  php_driver_type* value_type;
-  php_driver_set_entry *curr, *temp;
+  php_scylladb_type* type;
+  php_scylladb_type* value_type;
+  php_scylladb_set_entry *curr, *temp;
 
-  type = PHP_DRIVER_GET_TYPE(&set->type);
-  value_type = PHP_DRIVER_GET_TYPE(&type->data.set.value_type);
+  type = PHP_SCYLLADB_GET_TYPE(&set->type);
+  value_type = PHP_SCYLLADB_GET_TYPE(&type->data.set.value_type);
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(set->entries));
   if (collection == NULL) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassCollection for set");
     return 0;
   }
   HASH_ITER(hh, set->entries, curr, temp) {
-    if (!php_driver_collection_append(collection, &curr->value, value_type->type)) {
+    if (!php_scylladb_collection_append(collection, &curr->value, value_type->type)) {
       result = 0;
       break;
     }
@@ -734,26 +734,26 @@ int php_driver_collection_from_set(php_driver_set* set, CassCollection** collect
   return result;
 }
 
-int php_driver_collection_from_collection(php_driver_collection* coll,
+int php_scylladb_collection_from_collection(php_scylladb_collection* coll,
                                           CassCollection** collection_ptr) {
   int result = 1;
   zval* current;
-  php_driver_type* type;
-  php_driver_type* value_type;
+  php_scylladb_type* type;
+  php_scylladb_type* value_type;
   CassCollection* collection;
 
-  type = PHP_DRIVER_GET_TYPE(&(coll->type));
-  value_type = PHP_DRIVER_GET_TYPE(&(type->data.collection.value_type));
+  type = PHP_SCYLLADB_GET_TYPE(&(coll->type));
+  value_type = PHP_SCYLLADB_GET_TYPE(&(type->data.collection.value_type));
   collection =
       cass_collection_new_from_data_type(type->data_type, zend_hash_num_elements(&coll->values));
   if (collection == NULL) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassCollection for list");
     return 0;
   }
 
   ZEND_HASH_FOREACH_VAL(&coll->values, current) {
-    if (!php_driver_collection_append(collection, current, value_type->type)) {
+    if (!php_scylladb_collection_append(collection, current, value_type->type)) {
       result = 0;
       break;
     }
@@ -768,29 +768,29 @@ int php_driver_collection_from_collection(php_driver_collection* coll,
   return result;
 }
 
-int php_driver_collection_from_map(php_driver_map* map, CassCollection** collection_ptr) {
+int php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** collection_ptr) {
   int result = 1;
   CassCollection* collection;
-  php_driver_type* type;
-  php_driver_type* key_type;
-  php_driver_type* value_type;
-  php_driver_map_entry *curr, *temp;
+  php_scylladb_type* type;
+  php_scylladb_type* key_type;
+  php_scylladb_type* value_type;
+  php_scylladb_map_entry *curr, *temp;
 
-  type = PHP_DRIVER_GET_TYPE(&(map->type));
-  value_type = PHP_DRIVER_GET_TYPE(&(type->data.map.value_type));
-  key_type = PHP_DRIVER_GET_TYPE(&(type->data.map.key_type));
+  type = PHP_SCYLLADB_GET_TYPE(&(map->type));
+  value_type = PHP_SCYLLADB_GET_TYPE(&(type->data.map.value_type));
+  key_type = PHP_SCYLLADB_GET_TYPE(&(type->data.map.key_type));
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(map->entries));
   if (collection == NULL) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassCollection for map");
     return 0;
   }
   HASH_ITER(hh, map->entries, curr, temp) {
-    if (!php_driver_collection_append(collection, &(curr->key), key_type->type)) {
+    if (!php_scylladb_collection_append(collection, &(curr->key), key_type->type)) {
       result = 0;
       break;
     }
-    if (!php_driver_collection_append(collection, &(curr->value), value_type->type)) {
+    if (!php_scylladb_collection_append(collection, &(curr->value), value_type->type)) {
       result = 0;
       break;
     }
@@ -804,31 +804,31 @@ int php_driver_collection_from_map(php_driver_map* map, CassCollection** collect
   return result;
 }
 
-int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
+int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output) {
   int result = 1;
   zend_ulong num_key;
   zval* current;
-  php_driver_type* type;
+  php_scylladb_type* type;
   CassTuple* tup;
 
-  type = PHP_DRIVER_GET_TYPE(&(tuple->type));
+  type = PHP_SCYLLADB_GET_TYPE(&(tuple->type));
   tup = cass_tuple_new_from_data_type(type->data_type);
   if (tup == NULL) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassTuple");
     return 0;
   }
 
   ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
-    php_driver_type* sub_type;
+    php_scylladb_type* sub_type;
     if ((zsub_type = zend_hash_index_find(&type->data.tuple.types, (zend_ulong)(num_key))) == NULL ||
-        !php_driver_validate_object((current), (zsub_type))) {
+        !php_scylladb_validate_object((current), (zsub_type))) {
       result = 0;
       break;
     }
-    sub_type = PHP_DRIVER_GET_TYPE((zsub_type));
-    if (!php_driver_tuple_set(tup, num_key, (current), sub_type->type)) {
+    sub_type = PHP_SCYLLADB_GET_TYPE((zsub_type));
+    if (!php_scylladb_tuple_set(tup, num_key, (current), sub_type->type)) {
       result = 0;
       break;
     }
@@ -843,32 +843,32 @@ int php_driver_tuple_from_tuple(php_driver_tuple* tuple, CassTuple** output) {
   return result;
 }
 
-int php_driver_user_type_from_user_type_value(php_driver_user_type_value* user_type_value,
+int php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* user_type_value,
                                               CassUserType** output) {
   int result = 1;
   zend_string* name;
   zval* current;
-  php_driver_type* type;
+  php_scylladb_type* type;
   CassUserType* ut;
 
-  type = PHP_DRIVER_GET_TYPE(&user_type_value->type);
+  type = PHP_SCYLLADB_GET_TYPE(&user_type_value->type);
   ut = cass_user_type_new_from_data_type(type->data_type);
   if (ut == NULL) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassUserType");
     return 0;
   }
 
   ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
     zval* zsub_type;
-    php_driver_type* sub_type;
+    php_scylladb_type* sub_type;
     if ((zsub_type = zend_hash_str_find(&type->data.udt.types, ZSTR_VAL(name), (size_t)(ZSTR_LEN(name) + 1 - 1))) == NULL ||
-        !php_driver_validate_object((current), (zsub_type))) {
+        !php_scylladb_validate_object((current), (zsub_type))) {
       result = 0;
       break;
     }
-    sub_type = PHP_DRIVER_GET_TYPE((zsub_type));
-    if (!php_driver_user_type_set(ut, ZSTR_VAL(name), (current), sub_type->type)) {
+    sub_type = PHP_SCYLLADB_GET_TYPE((zsub_type));
+    if (!php_scylladb_user_type_set(ut, ZSTR_VAL(name), (current), sub_type->type)) {
       result = 0;
       break;
     }

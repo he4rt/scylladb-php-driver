@@ -17,7 +17,7 @@
 #pragma once
 
 BEGIN_EXTERN_C()
-void php_driver_user_type_value_set(php_driver_user_type_value *user_type_value, const char *name, size_t name_length,
+void php_scylladb_user_type_value_set(php_scylladb_user_type_value *user_type_value, const char *name, size_t name_length,
                                     zval *object);
 
 END_EXTERN_C()

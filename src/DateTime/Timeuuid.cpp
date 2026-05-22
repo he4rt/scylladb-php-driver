@@ -16,8 +16,8 @@
 
 #include <ZendCPP/ZendCPP.hpp>
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 #include "Type/ValueHash.h"
 #include "Type/TypeFactory.h"
 #include "../UuidGen.h"
@@ -28,9 +28,10 @@ BEGIN_EXTERN_C()
 
 #include "Timeuuid_arginfo.h"
 
-zend_class_entry *php_driver_timeuuid_ce = nullptr;
+extern php_scylladb_value_handlers php_scylladb_timeuuid_handlers;
 
-zend_result php_driver_timeuuid_init(zval *returnValue, zend_string *str = nullptr,
+
+zend_result php_scylladb_timeuuid_init(zval *returnValue, zend_string *str = nullptr,
                                      zend_long timestamp = -1) {
   if (returnValue == nullptr) {
     return FAILURE;
@@ -38,26 +39,26 @@ zend_result php_driver_timeuuid_init(zval *returnValue, zend_string *str = nullp
 
   if (Z_TYPE_P(returnValue) == IS_UNDEF) {
     zval val;
-    object_init_ex(&val, php_driver_timeuuid_ce);
+    object_init_ex(&val, php_scylladb_timeuuid_ce);
     ZVAL_OBJ(returnValue, Z_OBJ(val));
   }
 
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(returnValue);
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_uuid>(returnValue);
 
   if (str == nullptr && timestamp == -1) {
-    php_driver_uuid_generate_time(&self->uuid);
+    php_scylladb_uuid_generate_time(&self->uuid);
     return SUCCESS;
   }
 
   if (str != nullptr) {
     if (cass_uuid_from_string(ZSTR_VAL(str), &self->uuid) != CASS_OK) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0, "Invalid UUID: '%s'", ZSTR_VAL(str));
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "Invalid UUID: '%s'", ZSTR_VAL(str));
       return FAILURE;
     }
 
     int version = cass_uuid_version(self->uuid);
     if (version != 1) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "UUID must be of type 1, type %d given", version);
       return FAILURE;
     }
@@ -65,12 +66,12 @@ zend_result php_driver_timeuuid_init(zval *returnValue, zend_string *str = nullp
   }
 
   if (timestamp < 0) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                             "Timestamp must be a positive integer, %ld given", timestamp);
     return FAILURE;
   }
 
-  php_driver_uuid_generate_from_time(timestamp, &self->uuid);
+  php_scylladb_uuid_generate_from_time(timestamp, &self->uuid);
   return SUCCESS;
 }
 
@@ -86,8 +87,8 @@ ZEND_METHOD(Cassandra_Timeuuid, __construct) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  if (php_driver_timeuuid_init(getThis(), str, timestamp) != SUCCESS) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+  if (php_scylladb_timeuuid_init(getThis(), str, timestamp) != SUCCESS) {
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                             "Cannot create Timeuuid from invalid value");
     return;
   }
@@ -97,7 +98,7 @@ ZEND_METHOD(Cassandra_Timeuuid, __construct) {
 /* {{{ Timeuuid::__toString() */
 ZEND_METHOD(Cassandra_Timeuuid, __toString) {
   char string[CASS_UUID_STRING_LENGTH];
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(getThis());
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_uuid>(getThis());
 
   cass_uuid_string(self->uuid, string);
 
@@ -107,7 +108,7 @@ ZEND_METHOD(Cassandra_Timeuuid, __toString) {
 
 /* {{{ Timeuuid::type() */
 ZEND_METHOD(Cassandra_Timeuuid, type) {
-  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
+  zval type = php_scylladb_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
   RETURN_ZVAL(&type, 1, 1);
 }
 /* }}} */
@@ -115,7 +116,7 @@ ZEND_METHOD(Cassandra_Timeuuid, type) {
 /* {{{ Timeuuid::uuid() */
 ZEND_METHOD(Cassandra_Timeuuid, uuid) {
   char string[CASS_UUID_STRING_LENGTH];
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(getThis());
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_uuid>(getThis());
 
   cass_uuid_string(self->uuid, string);
 
@@ -125,7 +126,7 @@ ZEND_METHOD(Cassandra_Timeuuid, uuid) {
 
 /* {{{ Timeuuid::version() */
 ZEND_METHOD(Cassandra_Timeuuid, version) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(getThis());
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_uuid>(getThis());
 
   RETURN_LONG((long)cass_uuid_version(self->uuid));
 }
@@ -133,29 +134,28 @@ ZEND_METHOD(Cassandra_Timeuuid, version) {
 
 /* {{{ Timeuuid::time() */
 ZEND_METHOD(Cassandra_Timeuuid, time) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(getThis());
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_uuid>(getThis());
 
   RETURN_LONG((long)(cass_uuid_timestamp(self->uuid) / 1000));
 }
 /* }}} */
 
-static php_driver_value_handlers php_driver_timeuuid_handlers;
 
-static HashTable *php_driver_timeuuid_gc(zend_object *object, zval** table, int *n) {
+HashTable *php_scylladb_timeuuid_gc(zend_object *object, zval** table, int *n) {
   *table = nullptr;
   *n = 0;
   return NULL;
 }
 
-static HashTable *php_driver_timeuuid_properties(zend_object *object) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(object);
+HashTable *php_scylladb_timeuuid_properties(zend_object *object) {
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_uuid>(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
   object->properties = zend_new_array(3);
   HashTable *props = object->properties;
 
-  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
+  zval type = php_scylladb_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
   (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
   char string[CASS_UUID_STRING_LENGTH];
@@ -172,13 +172,13 @@ static HashTable *php_driver_timeuuid_properties(zend_object *object) {
   return props;
 }
 
-static int php_driver_timeuuid_compare(zval *obj1, zval *obj2) {
+int php_scylladb_timeuuid_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
-  auto *uuid1 = ZendCPP::ObjectFetch<php_driver_uuid>(obj1);
-  auto *uuid2 = ZendCPP::ObjectFetch<php_driver_uuid>(obj2);
+  auto *uuid1 = ZendCPP::ObjectFetch<php_scylladb_uuid>(obj1);
+  auto *uuid2 = ZendCPP::ObjectFetch<php_scylladb_uuid>(obj2);
 
   if (uuid1->uuid.time_and_version != uuid2->uuid.time_and_version)
     return uuid1->uuid.time_and_version < uuid2->uuid.time_and_version ? -1 : 1;
@@ -187,40 +187,33 @@ static int php_driver_timeuuid_compare(zval *obj1, zval *obj2) {
   return 0;
 }
 
-static unsigned php_driver_timeuuid_hash_value(zval *obj) {
-  auto *self = ZendCPP::ObjectFetch<php_driver_uuid>(obj);
+unsigned php_scylladb_timeuuid_hash_value(zval *obj) {
+  auto *self = ZendCPP::ObjectFetch<php_scylladb_uuid>(obj);
 
-  return php_driver_combine_hash(
+  return php_scylladb_combine_hash(
       (self->uuid.time_and_version ^ (self->uuid.time_and_version >> 32)),
       (self->uuid.clock_seq_and_node ^ (self->uuid.clock_seq_and_node >> 32)));
 }
 
-static void php_driver_timeuuid_free(zend_object *object) {
-  php_driver_uuid *self = php_driver_uuid_object_fetch(object);
+void php_scylladb_timeuuid_free(zend_object *object) {
+  php_scylladb_uuid *self = php_scylladb_uuid_object_fetch(object);
   zend_object_std_dtor(&self->zendObject);
 }
 
-static zend_object* php_driver_timeuuid_new(zend_class_entry *ce) {
-  auto *self = (php_driver_uuid *)ecalloc(1, sizeof(php_driver_uuid) + zend_object_properties_size(ce));
+zend_object* php_scylladb_timeuuid_new(zend_class_entry *ce) {
+  auto *self = (php_scylladb_uuid *)ecalloc(1, sizeof(php_scylladb_uuid) + zend_object_properties_size(ce));
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_timeuuid_handlers.std.offset = XtOffsetOf(php_driver_uuid, zendObject);
-  php_driver_timeuuid_handlers.std.free_obj = php_driver_timeuuid_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_timeuuid_handlers;
+  php_scylladb_timeuuid_handlers.std.offset = XtOffsetOf(php_scylladb_uuid, zendObject);
+  php_scylladb_timeuuid_handlers.std.free_obj = php_scylladb_timeuuid_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_timeuuid_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_Timeuuid() {
-  php_driver_timeuuid_ce = register_class_Cassandra_Timeuuid(php_driver_value_ce,
-                                                              php_driver_uuid_interface_ce);
-  php_driver_timeuuid_ce->create_object = php_driver_timeuuid_new;
 
-  memcpy(&php_driver_timeuuid_handlers, zend_get_std_object_handlers(),
-         sizeof(zend_object_handlers));
-  php_driver_timeuuid_handlers.std.get_properties = php_driver_timeuuid_properties;
-  php_driver_timeuuid_handlers.std.get_gc = php_driver_timeuuid_gc;
-  php_driver_timeuuid_handlers.std.compare = php_driver_timeuuid_compare;
-  php_driver_timeuuid_handlers.hash_value = php_driver_timeuuid_hash_value;
-  php_driver_timeuuid_handlers.std.clone_obj = nullptr;
+void php_scylladb_timeuuid_post_register(zend_class_entry *ce)
+{
+    (void)ce;
+    php_scylladb_timeuuid_handlers.std.offset = XtOffsetOf(php_scylladb_uuid, zendObject);
 }
 END_EXTERN_C()

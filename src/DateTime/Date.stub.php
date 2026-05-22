@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @scylladb-value-handlers
      */
     final class Date implements Value {
         public function __construct(int|string $value = UNKNOWN) {}

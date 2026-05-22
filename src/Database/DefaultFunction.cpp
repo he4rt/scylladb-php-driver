@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 #include "Database/ResultDecoder.h"
 #include "Type/TypeFactory.h"
 
 #include "DefaultFunction.h"
+
 BEGIN_EXTERN_C()
 #include "DefaultFunction_arginfo.h"
-zend_class_entry *php_driver_default_function_ce = NULL;
 
+extern zend_object_handlers php_scylladb_default_function_handlers;
 zval
-php_driver_create_function(zval *schema,
+php_scylladb_create_function(zval *schema,
                               const CassFunctionMeta *meta )
 {
   zval result;
-  php_driver_function *function;
+  php_scylladb_function *function;
   const char *full_name;
   size_t full_name_length;
 
   ZVAL_UNDEF(&result);
 
+  object_init_ex(&result, php_scylladb_default_function_ce);
 
-  object_init_ex(&result, php_driver_default_function_ce);
-
-  function = PHP_DRIVER_GET_FUNCTION(&result);
+  function = PHP_SCYLLADB_GET_FUNCTION(&result);
   ZVAL_COPY(&function->schema, schema);
   function->meta   = meta;
 
@@ -51,24 +51,24 @@ php_driver_create_function(zval *schema,
 
 ZEND_METHOD(Cassandra_DefaultFunction, name)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
 
   RETURN_ZVAL(&self->signature, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_DefaultFunction, simpleName)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
   if (Z_ISUNDEF(self->simple_name)) {
     const char *name;
     size_t name_length;
@@ -82,12 +82,12 @@ ZEND_METHOD(Cassandra_DefaultFunction, simpleName)
 
 ZEND_METHOD(Cassandra_DefaultFunction, arguments)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
   if (Z_ISUNDEF(self->arguments)) {
     size_t i, count = cass_function_meta_argument_count(self->meta);
 
@@ -97,7 +97,7 @@ ZEND_METHOD(Cassandra_DefaultFunction, arguments)
       size_t name_length;
       const CassDataType* data_type;
       if (cass_function_meta_argument(self->meta, i, &name, &name_length, &data_type) == CASS_OK) {
-        zval type = php_driver_type_from_data_type(data_type );
+        zval type = php_scylladb_type_from_data_type(data_type );
         if (!Z_ISUNDEF(type)) {
           add_assoc_zval_ex(&self->arguments, name, name_length, &type);
         }
@@ -110,18 +110,18 @@ ZEND_METHOD(Cassandra_DefaultFunction, arguments)
 
 ZEND_METHOD(Cassandra_DefaultFunction, returnType)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
   if (Z_ISUNDEF(self->return_type)) {
     const CassDataType* data_type = cass_function_meta_return_type(self->meta);
     if (!data_type) {
       return;
     }
-    self->return_type = php_driver_type_from_data_type(data_type );
+    self->return_type = php_scylladb_type_from_data_type(data_type );
   }
 
   RETURN_ZVAL(&self->return_type, 1, 0);
@@ -129,23 +129,23 @@ ZEND_METHOD(Cassandra_DefaultFunction, returnType)
 
 ZEND_METHOD(Cassandra_DefaultFunction, signature)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
   RETURN_ZVAL(&self->signature, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_DefaultFunction, language)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
   if (Z_ISUNDEF(self->language)) {
     const char *language;
     size_t language_length;
@@ -159,12 +159,12 @@ ZEND_METHOD(Cassandra_DefaultFunction, language)
 
 ZEND_METHOD(Cassandra_DefaultFunction, body)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
   if (Z_ISUNDEF(self->body)) {
     const char *body;
     size_t body_length;
@@ -178,19 +178,17 @@ ZEND_METHOD(Cassandra_DefaultFunction, body)
 
 ZEND_METHOD(Cassandra_DefaultFunction, isCalledOnNullInput)
 {
-  php_driver_function *self;
+  php_scylladb_function *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
   RETURN_BOOL((int)cass_function_meta_called_on_null_input(self->meta));
 }
 
-static zend_object_handlers php_driver_default_function_handlers;
-
-static HashTable *
-php_driver_type_default_function_gc(
+HashTable *
+php_scylladb_default_function_gc(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object,
 #else
@@ -204,8 +202,8 @@ php_driver_type_default_function_gc(
   return NULL;
 }
 
-static HashTable *
-php_driver_default_function_properties(
+HashTable *
+php_scylladb_default_function_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
@@ -218,8 +216,8 @@ php_driver_default_function_properties(
   return props;
 }
 
-static int
-php_driver_default_function_compare(zval *obj1, zval *obj2 )
+int
+php_scylladb_default_function_compare(zval *obj1, zval *obj2 )
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -230,10 +228,10 @@ php_driver_default_function_compare(zval *obj1, zval *obj2 )
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void
-php_driver_default_function_free(zend_object *object )
+void
+php_scylladb_default_function_free(zend_object *object )
 {
-  php_driver_function *self = php_driver_function_object_fetch(object);
+  php_scylladb_function *self = php_scylladb_function_object_fetch(object);
 
   zval_ptr_dtor(&self->simple_name);
   zval_ptr_dtor(&self->arguments);
@@ -252,11 +250,11 @@ php_driver_default_function_free(zend_object *object )
 
 }
 
-static zend_object*
-php_driver_default_function_new(zend_class_entry *ce )
+zend_object*
+php_scylladb_default_function_new(zend_class_entry *ce )
 {
-  php_driver_function *self =
-      (php_driver_function *)ecalloc(1, sizeof(php_driver_function) + zend_object_properties_size(ce));
+  php_scylladb_function *self =
+      (php_scylladb_function *)ecalloc(1, sizeof(php_scylladb_function) + zend_object_properties_size(ce));
 
   ZVAL_UNDEF(&self->simple_name);
   ZVAL_UNDEF(&self->arguments);
@@ -269,27 +267,11 @@ php_driver_default_function_new(zend_class_entry *ce )
   self->meta = NULL;
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_default_function_handlers.offset = XtOffsetOf(php_driver_function, zendObject);
-  php_driver_default_function_handlers.free_obj = php_driver_default_function_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_function_handlers;
+  php_scylladb_default_function_handlers.offset = XtOffsetOf(php_scylladb_function, zendObject);
+  php_scylladb_default_function_handlers.free_obj = php_scylladb_default_function_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_function_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_DefaultFunction()
-{
-  php_driver_default_function_ce = register_class_Cassandra_DefaultFunction(php_driver_function_ce);
-  php_driver_default_function_ce->create_object = php_driver_default_function_new;
-
-  memcpy(&php_driver_default_function_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_default_function_handlers.get_properties  = php_driver_default_function_properties;
-#if PHP_VERSION_ID >= 50400
-  php_driver_default_function_handlers.get_gc          = php_driver_type_default_function_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_default_function_handlers.compare = php_driver_default_function_compare;
-#else
-  php_driver_default_function_handlers.compare_objects = php_driver_default_function_compare;
-#endif
-  php_driver_default_function_handlers.clone_obj = NULL;
-}
 END_EXTERN_C()
+

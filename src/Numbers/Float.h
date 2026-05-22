@@ -16,5 +16,5 @@
 
 #pragma once
 BEGIN_EXTERN_C()
-void php_driver_float_init(INTERNAL_FUNCTION_PARAMETERS);
+void php_scylladb_float_init(INTERNAL_FUNCTION_PARAMETERS);
 END_EXTERN_C()

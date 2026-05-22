@@ -17,5 +17,5 @@
 
 #include <cassandra.h>
 
-void php_driver_format_address(CassInet inet, char** out);
-int php_driver_parse_ip_address(char* in, CassInet* inet);
+void php_scylladb_format_address(CassInet inet, char** out);
+int php_scylladb_parse_ip_address(char* in, CassInet* inet);

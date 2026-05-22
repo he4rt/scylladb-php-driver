@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 
 #include "FutureUtil.h"
 
 int
-php_driver_future_wait_timed(CassFuture* future, zval* timeout)
+php_scylladb_future_wait_timed(CassFuture* future, zval* timeout)
 {
   cass_duration_t timeout_us;
 
   if (future == NULL) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Received a NULL future from the driver (allocation failure)");
     return FAILURE;
   }
@@ -47,7 +47,7 @@ php_driver_future_wait_timed(CassFuture* future, zval* timeout)
   }
 
   if (!cass_future_wait_timed(future, timeout_us)) {
-    zend_throw_exception_ex(php_driver_timeout_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_timeout_exception_ce, 0,
                             "Future hasn't resolved within %f seconds", timeout_us / 1000000.0);
     return FAILURE;
   }
@@ -56,10 +56,10 @@ php_driver_future_wait_timed(CassFuture* future, zval* timeout)
 }
 
 int
-php_driver_future_is_error(CassFuture* future)
+php_scylladb_future_is_error(CassFuture* future)
 {
   if (future == NULL) {
-    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Received a NULL future from the driver (allocation failure)");
     return FAILURE;
   }

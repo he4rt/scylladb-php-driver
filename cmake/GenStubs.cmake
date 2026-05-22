@@ -14,7 +14,7 @@
 #      calls so the emitted code compiles as C++.
 #
 # Public surface:
-#   php_driver_generate_arginfo(<target> <stub1.stub.php> [stub2 ...])
+#   php_scylladb_generate_arginfo(<target> <stub1.stub.php> [stub2 ...])
 # ──────────────────────────────────────────────────────────────────────────────
 
 if (NOT PHP_BINARY)
@@ -24,9 +24,9 @@ endif ()
 # ── Locate gen_stub.php from the active PHP install ──────────────────────────
 # Standard install layout: ${PHP_PREFIX}/lib/php/build/gen_stub.php
 # PHP source-tree layout : ${PHP_PREFIX}/src/build/gen_stub.php (compile-php.sh)
-# Optional override      : -DPHP_DRIVER_GEN_STUB_SCRIPT=/abs/path/gen_stub.php
+# Optional override      : -DPHP_SCYLLADB_GEN_STUB_SCRIPT=/abs/path/gen_stub.php
 
-if (NOT DEFINED PHP_DRIVER_GEN_STUB_SCRIPT OR PHP_DRIVER_GEN_STUB_SCRIPT STREQUAL "")
+if (NOT DEFINED PHP_SCYLLADB_GEN_STUB_SCRIPT OR PHP_SCYLLADB_GEN_STUB_SCRIPT STREQUAL "")
     # First try: ask php-config for the prefix and look in the install tree.
     execute_process(
             COMMAND "${PHP_CONFIG_EXECUTABLE}" --prefix
@@ -34,7 +34,7 @@ if (NOT DEFINED PHP_DRIVER_GEN_STUB_SCRIPT OR PHP_DRIVER_GEN_STUB_SCRIPT STREQUA
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 
-    find_file(PHP_DRIVER_GEN_STUB_SCRIPT
+    find_file(PHP_SCYLLADB_GEN_STUB_SCRIPT
             NAMES gen_stub.php
             PATHS
               "${_php_prefix}/lib/php/build"
@@ -51,7 +51,7 @@ endif ()
 # (PHP-8.3, PHP-8.4, …) and pull the matching gen_stub.php from the
 # canonical php-src GitHub raw URL into the binary dir, where it stays
 # valid across builds (cached by CMake's file(DOWNLOAD) idempotency check).
-if (NOT PHP_DRIVER_GEN_STUB_SCRIPT OR PHP_DRIVER_GEN_STUB_SCRIPT STREQUAL "PHP_DRIVER_GEN_STUB_SCRIPT-NOTFOUND" OR NOT EXISTS "${PHP_DRIVER_GEN_STUB_SCRIPT}")
+if (NOT PHP_SCYLLADB_GEN_STUB_SCRIPT OR PHP_SCYLLADB_GEN_STUB_SCRIPT STREQUAL "PHP_SCYLLADB_GEN_STUB_SCRIPT-NOTFOUND" OR NOT EXISTS "${PHP_SCYLLADB_GEN_STUB_SCRIPT}")
     if (NOT PHP_VERSION_NUM)
         execute_process(
                 COMMAND "${PHP_CONFIG_EXECUTABLE}" --vernum
@@ -81,26 +81,36 @@ if (NOT PHP_DRIVER_GEN_STUB_SCRIPT OR PHP_DRIVER_GEN_STUB_SCRIPT STREQUAL "PHP_D
             message(FATAL_ERROR
                     "Failed to download gen_stub.php from ${_url}: ${_dl_msg}\n"
                     "Install PHP build tools (`php-dev` / `php-devel`) or pass "
-                    "-DPHP_DRIVER_GEN_STUB_SCRIPT=/path/to/gen_stub.php.")
+                    "-DPHP_SCYLLADB_GEN_STUB_SCRIPT=/path/to/gen_stub.php.")
         endif ()
     endif ()
-    set(PHP_DRIVER_GEN_STUB_SCRIPT "${_cached}" CACHE FILEPATH
+    set(PHP_SCYLLADB_GEN_STUB_SCRIPT "${_cached}" CACHE FILEPATH
             "Path to the PHP build/gen_stub.php script" FORCE)
 endif ()
 
-if (NOT EXISTS "${PHP_DRIVER_GEN_STUB_SCRIPT}")
+if (NOT EXISTS "${PHP_SCYLLADB_GEN_STUB_SCRIPT}")
     message(FATAL_ERROR "gen_stub.php still not found after fallback attempts.")
 endif ()
 
-message(STATUS "Using gen_stub.php at ${PHP_DRIVER_GEN_STUB_SCRIPT}")
+message(STATUS "Using gen_stub.php at ${PHP_SCYLLADB_GEN_STUB_SCRIPT}")
 
-set(PHP_DRIVER_GEN_STUB_WRAPPER "${PROJECT_SOURCE_DIR}/tools/gen_stub/gen_arginfo.sh")
+set(PHP_SCYLLADB_GEN_STUB_WRAPPER "${PROJECT_SOURCE_DIR}/tools/gen_stub/gen_arginfo.sh")
 
-if (NOT EXISTS "${PHP_DRIVER_GEN_STUB_WRAPPER}")
-    message(FATAL_ERROR "wrapper not found: ${PHP_DRIVER_GEN_STUB_WRAPPER}")
+if (NOT EXISTS "${PHP_SCYLLADB_GEN_STUB_WRAPPER}")
+    message(FATAL_ERROR "wrapper not found: ${PHP_SCYLLADB_GEN_STUB_WRAPPER}")
 endif ()
 
-function(php_driver_generate_arginfo target_name)
+# Generator that emits <basename>_descriptor.cpp alongside each <basename>_arginfo.h.
+# The descriptor.cpp wires the class into the self-registering descriptor system
+# (see src/Registry/) — global ce, handlers struct, register fn (with weakly
+# referenced create_object/free/properties/etc. callbacks), and the
+# PHP_SCYLLADB_REGISTER_CLASS macro invocation.
+set(PHP_SCYLLADB_GEN_DESCRIPTOR_SCRIPT "${PROJECT_SOURCE_DIR}/tools/gen_descriptor/gen_class_descriptor.php")
+if (NOT EXISTS "${PHP_SCYLLADB_GEN_DESCRIPTOR_SCRIPT}")
+    message(FATAL_ERROR "descriptor generator not found: ${PHP_SCYLLADB_GEN_DESCRIPTOR_SCRIPT}")
+endif ()
+
+function(php_scylladb_generate_arginfo target_name)
     set(_generated_headers)
     foreach (_stub IN LISTS ARGN)
         # "Builder.stub.php" → "Builder_arginfo.h"
@@ -115,13 +125,13 @@ function(php_driver_generate_arginfo target_name)
 
         add_custom_command(
                 OUTPUT  "${_arginfo_path}"
-                COMMAND "${PHP_DRIVER_GEN_STUB_WRAPPER}"
+                COMMAND "${PHP_SCYLLADB_GEN_STUB_WRAPPER}"
                         "${_stub_path}"
                         "${PHP_BINARY}"
-                        "${PHP_DRIVER_GEN_STUB_SCRIPT}"
+                        "${PHP_SCYLLADB_GEN_STUB_SCRIPT}"
                 DEPENDS "${_stub_path}"
-                        "${PHP_DRIVER_GEN_STUB_SCRIPT}"
-                        "${PHP_DRIVER_GEN_STUB_WRAPPER}"
+                        "${PHP_SCYLLADB_GEN_STUB_SCRIPT}"
+                        "${PHP_SCYLLADB_GEN_STUB_WRAPPER}"
                 COMMENT "Generating ${_arginfo} from ${_stub}"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                 VERBATIM
@@ -131,4 +141,47 @@ function(php_driver_generate_arginfo target_name)
     endforeach ()
 
     target_sources(${target_name} PRIVATE ${_generated_headers})
+endfunction()
+
+# Opt-in: generate <basename>_descriptor.cpp for each stub passed here.
+# The descriptor.cpp wires the class into the self-registering descriptor
+# system (see src/Registry/) — global ce, handlers struct, register fn (with
+# weakly referenced create_object/free/properties/etc. callbacks), and the
+# PHP_SCYLLADB_REGISTER_CLASS macro invocation.
+#
+# Caller must ensure the companion .cpp does NOT also declare the ce global,
+# the handlers struct, the register fn, or call the descriptor macro — those
+# now come from the generated file.
+function(php_scylladb_generate_descriptor target_name)
+    set(_generated_descriptors)
+    foreach (_stub IN LISTS ARGN)
+        string(REGEX REPLACE "\\.stub\\.php$" "_arginfo.h"      _arginfo    "${_stub}")
+        string(REGEX REPLACE "\\.stub\\.php$" "_descriptor.cpp" _descriptor "${_stub}")
+        get_filename_component(_arginfo_name "${_arginfo}" NAME)
+
+        set(_stub_path       "${CMAKE_CURRENT_SOURCE_DIR}/${_stub}")
+        set(_descriptor_path "${CMAKE_CURRENT_SOURCE_DIR}/${_descriptor}")
+
+        if (NOT EXISTS "${_stub_path}")
+            message(FATAL_ERROR "stub file not found: ${_stub_path}")
+        endif ()
+
+        add_custom_command(
+                OUTPUT  "${_descriptor_path}"
+                COMMAND "${PHP_BINARY}"
+                        "${PHP_SCYLLADB_GEN_DESCRIPTOR_SCRIPT}"
+                        "${_stub_path}"
+                        "${_descriptor_path}"
+                        "${_arginfo_name}"
+                DEPENDS "${_stub_path}"
+                        "${PHP_SCYLLADB_GEN_DESCRIPTOR_SCRIPT}"
+                COMMENT "Generating ${_descriptor} from ${_stub}"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                VERBATIM
+        )
+
+        list(APPEND _generated_descriptors "${_descriptor_path}")
+    endforeach ()
+
+    target_sources(${target_name} PRIVATE ${_generated_descriptors})
 endfunction()

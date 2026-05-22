@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 #include "InetUtil.h"
 
 #include <cstdlib>
@@ -25,7 +25,7 @@
 #define TOKEN_MAX_LEN 4
 #define IP_MAX_ADDRLEN 50
 #define EXPECTING_TOKEN(expected)                                                               \
-  zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,                          \
+  zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,                          \
                           "Unexpected %s at position %d in address \"%s\", expected " expected, \
                           ip_address_describe_token(type), ((int)(in_ptr - in) - 1), in);       \
   return 0;
@@ -118,7 +118,7 @@ static enum ip_address_token_type ip_address_tokenize(char *address, char *token
   return type;
 }
 
-int php_driver_parse_ip_address(char *in, CassInet *inet) {
+int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
   char token[TOKEN_MAX_LEN + 1];
   int token_len = -1;
   int prev_token_len = 0;
@@ -134,7 +134,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
 
   if (strlen(in) > (IP_MAX_ADDRLEN - 1)) {
     zend_throw_exception_ex(
-        php_driver_invalid_argument_exception_ce, 0,
+        php_scylladb_invalid_argument_exception_ce, 0,
         "The IP address \"%s\" is too long (at most %d characters are expected)", in,
         IP_MAX_ADDRLEN - 1);
     return 0;
@@ -146,7 +146,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
     type = ip_address_tokenize(in_ptr, token, &token_len, &in_ptr);
 
     if (type == TOKEN_ILLEGAL) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               R"(Illegal character "%c" at position %d in address "%s")", *token,
                               ((int)(in_ptr - in) - 1), in);
       return 0;
@@ -185,7 +185,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
       if (type == TOKEN_COLON) {
         /* Only one compressed zero block can exist. */
         if (compress_pos != -1) {
-          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+          zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                                   "Duplicate \"::\" block at position %d in address \"%s\"",
                                   ((int)(in_ptr - in) - 1), in);
           return 0;
@@ -277,7 +277,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
     if (state == STATE_IPV4BYTE) {
       if (type == TOKEN_DEC) {
         if (token_len > 1 && token[0] == '0') {
-          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+          zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                                   "Illegal IPv4 character \"%s\" at position %d "
                                   "in address \"%s\" (no leading zeroes are allowed)",
                                   token, ((int)(in_ptr - in) - 1), in);
@@ -287,7 +287,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
         ipv4_byte = atoi(token);
 
         if (ipv4_byte < 0 || ipv4_byte > 255) {
-          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+          zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                                   "Illegal IPv4 segment value '%d' at position %d "
                                   "in address \"%s\" (expected: 0 - 255)",
                                   ipv4_byte, ((int)(in_ptr - in) - 1), in);
@@ -358,7 +358,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
      * in the parsed byte array.
      */
     if (pos + 1 >= CASS_INET_V6_LENGTH) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Address \"%s\" contains a compressed zeroes block '::', "
                               "but the address already contains %d bytes or more",
                               address, CASS_INET_V6_LENGTH);
@@ -385,7 +385,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
           address[src_pos] = 0;
         } else {
           // Throw exception if out of bounds
-          zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+          zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Index out of bounds: src_pos = %d, dst_pos = %d, array size = %d",
                               src_pos, dst_pos, CASS_INET_V6_LENGTH);
         }
@@ -400,7 +400,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
   else if (!domain) {
     /* Check if there are enough bytes. */
     if (pos + 1 < CASS_INET_V6_LENGTH) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Address \"%s\" contains only %d bytes  (%d bytes are expected)", in,
                               pos + 1, CASS_INET_V6_LENGTH);
       return 0;
@@ -408,7 +408,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
 
     /* Check if the number of bytes does not exceed the maximum. */
     if (pos + 1 > CASS_INET_V6_LENGTH) {
-      zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Address \"%s\" exceeds the maximum IPv6 byte length "
                               "(%d bytes are expected)\n",
                               in, CASS_INET_V6_LENGTH);
@@ -426,7 +426,7 @@ int php_driver_parse_ip_address(char *in, CassInet *inet) {
   return 1;
 }
 
-void php_driver_format_address(CassInet inet, char **out) {
+void php_scylladb_format_address(CassInet inet, char **out) {
   if (inet.address_length > 4)
     spprintf(out, 0, "%x:%x:%x:%x:%x:%x:%x:%x", (inet.address[0] * 256 + inet.address[1]),
              (inet.address[2] * 256 + inet.address[3]), (inet.address[4] * 256 + inet.address[5]),

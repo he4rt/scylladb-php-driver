@@ -17,6 +17,7 @@
 #include <DateTime/Date.h>
 #include <ZendCPP/String/Builder.h>
 #include <php.h>
+#include <php_scylladb_types.h>
 #include "Type/ValueHash.h"
 #include "Type/TypeFactory.h"
 
@@ -31,7 +32,8 @@ BEGIN_EXTERN_C()
 
 #include "Date_arginfo.h"
 
-zend_class_entry *php_scylladb_date_ce = nullptr;
+extern php_scylladb_value_handlers php_scylladb_date_handlers;
+
 
 PHP_SCYLLADB_API php_scylladb_date *php_scylladb_date_instantiate(zval *object) {
   zval val;
@@ -81,13 +83,13 @@ ZEND_METHOD(Cassandra_Date, __construct) {
 
   if (php_scylladb_date_initialize(ZendCPP::ObjectFetch<php_scylladb_date>(getThis()), secondsStr,
                                    seconds) == FAILURE) {
-    zend_throw_exception_ex(php_driver_invalid_argument_exception_ce, 0,
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                             "Invalid seconds value: '%s'", ZSTR_VAL(secondsStr));
     RETURN_THROWS();
   }
 }
 ZEND_METHOD(Cassandra_Date, type) {
-  zval type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);
+  zval type = php_scylladb_type_scalar(CASS_VALUE_TYPE_DATE);
   RETURN_ZVAL(&type, 1, 1);
 }
 
@@ -126,7 +128,7 @@ ZEND_METHOD(Cassandra_Date, toDateTime) {
   });
 
   if (status == FAILURE) [[unlikely]] {
-    zend_throw_exception(php_driver_runtime_exception_ce, "Failed to create DateTime object", 0);
+    zend_throw_exception(php_scylladb_runtime_exception_ce, "Failed to create DateTime object", 0);
     RETURN_THROWS();
   }
 
@@ -150,7 +152,7 @@ ZEND_METHOD(Cassandra_Date, fromDateTime) {
 
   if (self == nullptr) {
     zval_ptr_dtor(&getTimeStampResult);
-    zend_throw_exception(php_driver_runtime_exception_ce, "Failed to create Cassandra\\Date object",
+    zend_throw_exception(php_scylladb_runtime_exception_ce, "Failed to create Cassandra\\Date object",
                          0);
     RETURN_THROWS();
   }
@@ -165,28 +167,27 @@ ZEND_METHOD(Cassandra_Date, __toString) {
   auto *self = ZendCPP::ObjectFetch<php_scylladb_date>(getThis());
 
   char *ret = nullptr;
-  spprintf(&ret, 0, PHP_DRIVER_NAMESPACE "\\Date(seconds=%ld)",
+  spprintf(&ret, 0, PHP_SCYLLADB_NAMESPACE "\\Date(seconds=%ld)",
            cass_date_time_to_epoch(self->date, 0));
   RETVAL_STRING(ret);
   efree(ret);
 }
 
-static php_driver_value_handlers php_scylladb_date_handlers;
 
-static HashTable *php_scylladb_date_gc(zend_object *object, zval **table, int *n) {
+HashTable *php_scylladb_date_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
   return NULL;
 }
 
-static HashTable *php_scylladb_date_properties(zend_object *object) {
+HashTable *php_scylladb_date_properties(zend_object *object) {
   if (object->properties) {
     zend_array_release(object->properties);
   }
   object->properties = zend_new_array(2);
   HashTable *props = object->properties;
 
-  auto type = php_driver_type_scalar(CASS_VALUE_TYPE_DATE);
+  auto type = php_scylladb_type_scalar(CASS_VALUE_TYPE_DATE);
   zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
   zval seconds;
@@ -197,7 +198,7 @@ static HashTable *php_scylladb_date_properties(zend_object *object) {
   return props;
 }
 
-static int php_scylladb_date_compare(zval *obj1, zval *obj2) {
+int php_scylladb_date_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
@@ -205,29 +206,25 @@ static int php_scylladb_date_compare(zval *obj1, zval *obj2) {
   auto date1 = ZendCPP::ObjectFetch<php_scylladb_date>(obj1);
   auto date2 = ZendCPP::ObjectFetch<php_scylladb_date>(obj2);
 
-  return PHP_DRIVER_COMPARE(date1->date, date2->date);
+  return PHP_SCYLLADB_COMPARE(date1->date, date2->date);
 }
 
-static unsigned php_scylladb_date_hash_value(zval *obj) {
+unsigned php_scylladb_date_hash_value(zval *obj) {
   auto self = ZendCPP::ObjectFetch<php_scylladb_date>(obj);
   return 31 * 17 + self->date;
 }
 
-static zend_object *php_scylladb_date_new(zend_class_entry *ce) {
+zend_object *php_scylladb_date_new(zend_class_entry *ce) {
   auto *self = ZendCPP::Allocate<php_scylladb_date>(ce, &php_scylladb_date_handlers);
   self->date = 0;
   return &self->zendObject;
 }
 
-void php_driver_define_Date() {
-  php_scylladb_date_ce = register_class_Cassandra_Date(php_driver_value_ce);
-  php_scylladb_date_ce->create_object = php_scylladb_date_new;
 
-  ZendCPP::InitHandlers<php_scylladb_date>(&php_scylladb_date_handlers);
-  php_scylladb_date_handlers.std.get_properties = php_scylladb_date_properties;
-  php_scylladb_date_handlers.std.get_gc = php_scylladb_date_gc;
-  php_scylladb_date_handlers.std.compare = php_scylladb_date_compare;
-  php_scylladb_date_handlers.hash_value = php_scylladb_date_hash_value;
+
+void php_scylladb_date_post_register(zend_class_entry *ce)
+{
+    (void)ce;
+    php_scylladb_date_handlers.std.offset = XtOffsetOf(php_scylladb_date, zendObject);
 }
-
 END_EXTERN_C()

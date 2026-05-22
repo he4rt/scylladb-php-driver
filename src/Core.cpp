@@ -8,20 +8,18 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 
 BEGIN_EXTERN_C()
 #include "Cassandra_arginfo.h"
 
-zend_class_entry *php_driver_core_ce = NULL;
-
 ZEND_METHOD(Cassandra, cluster) {
-    object_init_ex(return_value, php_driver_cluster_builder_ce);
+    object_init_ex(return_value, php_scylladb_cluster_builder_ce);
 }
 
 ZEND_METHOD(Cassandra, ssl) {
-    object_init_ex(return_value, php_scylladb_ssl_builder_ce);
+    object_init_ex(return_value, php_scylladb_ssloptions_builder_ce);
 }
 
 static void override_class_constant_string(zend_class_entry *ce, const char *name, const char *value) {
@@ -31,9 +29,8 @@ static void override_class_constant_string(zend_class_entry *ce, const char *nam
     ZVAL_STR(&c->value, zend_string_init(value, strlen(value), 1));
 }
 
-void php_driver_define_Core() {
-    php_driver_core_ce = register_class_Cassandra();
-
+void php_scylladb_core_post_register(zend_class_entry *ce)
+{
     /* CPP_DRIVER_VERSION is runtime-computed from the linked driver. The stub
        has a placeholder; override it here with the real value before any
        user code can observe it. */
@@ -41,9 +38,9 @@ void php_driver_define_Core() {
     snprintf(buf, sizeof(buf), "%d.%d.%d%s",
              CASS_VERSION_MAJOR, CASS_VERSION_MINOR, CASS_VERSION_PATCH,
              strlen(CASS_VERSION_SUFFIX) > 0 ? "-" CASS_VERSION_SUFFIX : "");
-    override_class_constant_string(php_driver_core_ce, "CPP_DRIVER_VERSION", buf);
+    override_class_constant_string(ce, "CPP_DRIVER_VERSION", buf);
 
-    /* VERSION constant set to PHP_DRIVER_VERSION (overrides stub placeholder). */
-    override_class_constant_string(php_driver_core_ce, "VERSION", PHP_DRIVER_VERSION);
+    /* VERSION constant set to PHP_SCYLLADB_VERSION (overrides stub placeholder). */
+    override_class_constant_string(ce, "VERSION", PHP_SCYLLADB_VERSION);
 }
 END_EXTERN_C()

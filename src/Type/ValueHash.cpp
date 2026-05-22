@@ -15,8 +15,8 @@
  */
 
 #include <cassandra.h>
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 
 #include "Type/ValueHash.h"
 
@@ -33,15 +33,15 @@ double_to_bits(cass_double_t value)
 static inline unsigned
 double_hash(cass_double_t value)
 {
-  return php_driver_bigint_hash(double_to_bits(value));
+  return php_scylladb_bigint_hash(double_to_bits(value));
 }
 
 uint32_t
-php_driver_value_hash(zval* zvalue)
+php_scylladb_value_hash(zval* zvalue)
 {
   switch (Z_TYPE_P(zvalue)) {
   case IS_LONG:
-    return php_driver_bigint_hash(Z_LVAL_P(zvalue));
+    return php_scylladb_bigint_hash(Z_LVAL_P(zvalue));
   case IS_DOUBLE:
     return double_hash(Z_DVAL_P(zvalue));
   case IS_TRUE:
@@ -51,7 +51,7 @@ php_driver_value_hash(zval* zvalue)
   case IS_STRING:
     return zend_inline_hash_func(Z_STRVAL_P(zvalue), Z_STRLEN_P(zvalue));
   case IS_OBJECT:
-    return ((php_driver_value_handlers*) Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue);
+    return ((php_scylladb_value_handlers*) Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue);
   default:
     return 0;
   }
@@ -68,11 +68,11 @@ double_compare(cass_double_t d1, cass_double_t d2)
   bits1 = double_to_bits(d1);
   bits2 = double_to_bits(d2);
   /* Handle NaNs and negative and positive 0.0 */
-  return PHP_DRIVER_COMPARE(bits1, bits2);
+  return PHP_SCYLLADB_COMPARE(bits1, bits2);
 }
 
 int
-php_driver_value_compare(zval* zvalue1, zval* zvalue2)
+php_scylladb_value_compare(zval* zvalue1, zval* zvalue2)
 {
   if (zvalue1 == zvalue2)
     return 0;
@@ -86,7 +86,7 @@ php_driver_value_compare(zval* zvalue1, zval* zvalue2)
     return 0;
 
   case IS_LONG:
-    return PHP_DRIVER_COMPARE(Z_LVAL_P(zvalue1), Z_LVAL_P(zvalue2));
+    return PHP_SCYLLADB_COMPARE(Z_LVAL_P(zvalue1), Z_LVAL_P(zvalue2));
 
   case IS_DOUBLE:
     return double_compare(Z_DVAL_P(zvalue1), Z_DVAL_P(zvalue2));
@@ -106,27 +106,27 @@ php_driver_value_compare(zval* zvalue1, zval* zvalue2)
 }
 
 int
-php_driver_data_compare(Bucket* a, Bucket* b)
+php_scylladb_data_compare(Bucket* a, Bucket* b)
 {
   zval* first  = &a->val;
   zval* second = &b->val;
 
-  return php_driver_value_compare(first, second);
+  return php_scylladb_value_compare(first, second);
 }
 
 uint32_t
-php_driver_mpz_hash(uint32_t seed, mpz_t n)
+php_scylladb_mpz_hash(uint32_t seed, mpz_t n)
 {
   mp_size_t i;
   mp_size_t size = mpz_size(n);
   unsigned hashv = seed;
 #if GMP_LIMB_BITS == 32
   for (i = 0; i < size; ++i) {
-    hashv = php_driver_combine_hash(hashv, mpz_getlimbn(n, i));
+    hashv = php_scylladb_combine_hash(hashv, mpz_getlimbn(n, i));
   }
 #elif GMP_LIMB_BITS == 64
   for (i = 0; i < size; ++i) {
-    hashv = php_driver_combine_hash(hashv, php_driver_bigint_hash(mpz_getlimbn(n, i)));
+    hashv = php_scylladb_combine_hash(hashv, php_scylladb_bigint_hash(mpz_getlimbn(n, i)));
   }
 #else
 #error "Unexpected GMP limb bits size"

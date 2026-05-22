@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
+#include "php_scylladb.h"
 
 BEGIN_EXTERN_C()
-zval php_driver_create_column(zval *schema, const CassColumnMeta *meta );
+zval php_scylladb_create_column(zval *schema, const CassColumnMeta *meta );
 END_EXTERN_C()

@@ -1,18 +1,18 @@
 #include <php.h>
 
-#include <php_driver.h>
-#include <php_driver_types.h>
+#include <php_scylladb.h>
+#include <php_scylladb_types.h>
 
 #include "BuilderHandlers.h"
 
 BEGIN_EXTERN_C()
-static zend_object_handlers php_driver_cluster_builder_handlers;
+extern zend_object_handlers php_scylladb_cluster_builder_handlers;
 
-static HashTable *php_driver_cluster_builder_gc(zend_object *object, zval **table, int *n)
+HashTable *php_scylladb_cluster_builder_gc(zend_object *object, zval **table, int *n)
 {
     return zend_std_get_gc(object, table, n);
 }
-static HashTable *php_driver_cluster_builder_properties(zend_object *object)
+HashTable *php_scylladb_cluster_builder_properties(zend_object *object)
 {
     zval contactPoints;
     zval loadBalancingPolicy;
@@ -48,7 +48,7 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
     zval randomizedContactPoints;
     zval connectionHeartbeatInterval;
 
-    php_driver_cluster_builder *self = php_driver_cluster_builder_object_fetch(object);
+    php_scylladb_cluster_builder *self = php_scylladb_cluster_builder_object_fetch(object);
     if (object->properties) {
         zend_array_release(object->properties);
     }
@@ -223,16 +223,16 @@ static HashTable *php_driver_cluster_builder_properties(zend_object *object)
 
     return props;
 }
-static int php_driver_cluster_builder_compare(zval *obj1, zval *obj2)
+int php_scylladb_cluster_builder_compare(zval *obj1, zval *obj2)
 {
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
         return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
     return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
-static void php_driver_cluster_builder_free(zend_object *object)
+void php_scylladb_cluster_builder_free(zend_object *object)
 {
-    php_driver_cluster_builder *self = php_driver_cluster_builder_object_fetch(object);
+    php_scylladb_cluster_builder *self = php_scylladb_cluster_builder_object_fetch(object);
 
     zend_string_release(self->contact_points);
     self->contact_points = nullptr;
@@ -305,10 +305,10 @@ static void php_driver_cluster_builder_free(zend_object *object)
 
     zend_object_std_dtor(object);
 }
-zend_object* php_driver_cluster_builder_new(zend_class_entry *ce)
+zend_object *php_scylladb_cluster_builder_new(zend_class_entry *ce)
 {
-    auto *self = static_cast<php_driver_cluster_builder *>(
-        emalloc(sizeof(php_driver_cluster_builder) + zend_object_properties_size(ce)));
+    auto *self = static_cast<php_scylladb_cluster_builder *>(
+        emalloc(sizeof(php_scylladb_cluster_builder) + zend_object_properties_size(ce)));
 
     self->contact_points = zend_string_init_fast(ZEND_STRL("127.0.0.1"));
     self->port = 9042;
@@ -348,7 +348,7 @@ zend_object* php_driver_cluster_builder_new(zend_class_entry *ce)
     ZVAL_UNDEF(&self->default_timeout);
 
     zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_driver_cluster_builder_handlers;
+    self->zendObject.handlers = &php_scylladb_cluster_builder_handlers;
 
     if (zend_object_properties_size(ce) > 0)
     {
@@ -359,13 +359,3 @@ zend_object* php_driver_cluster_builder_new(zend_class_entry *ce)
 }
 
 END_EXTERN_C()
-
-void php_driver_initialize_cluster_builder_handlers()
-{
-    memcpy(&php_driver_cluster_builder_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-    php_driver_cluster_builder_handlers.get_properties = php_driver_cluster_builder_properties;
-    php_driver_cluster_builder_handlers.get_gc = php_driver_cluster_builder_gc;
-    php_driver_cluster_builder_handlers.compare = php_driver_cluster_builder_compare;
-    php_driver_cluster_builder_handlers.offset = XtOffsetOf(php_driver_cluster_builder, zendObject);
-    php_driver_cluster_builder_handlers.free_obj = php_driver_cluster_builder_free;
-}

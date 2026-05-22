@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-#include "php_driver.h"
-#include "php_driver_types.h"
+#include "php_scylladb.h"
+#include "php_scylladb_types.h"
 #include "Database/ResultDecoder.h"
 #include "Type/TypeFactory.h"
 
 #include "DefaultIndex.h"
+
 BEGIN_EXTERN_C()
 #include "DefaultIndex_arginfo.h"
-zend_class_entry *php_driver_default_index_ce = NULL;
 
+extern zend_object_handlers php_scylladb_default_index_handlers;
 zval
-php_driver_create_index(zval *schema,
+php_scylladb_create_index(zval *schema,
                            const CassIndexMeta *meta )
 {
   zval result;
-  php_driver_index *index;
+  php_scylladb_index *index;
   const char *name;
   size_t name_length;
 
   ZVAL_UNDEF(&result);
 
+  object_init_ex(&result, php_scylladb_default_index_ce);
 
-  object_init_ex(&result, php_driver_default_index_ce);
-
-  index = PHP_DRIVER_GET_INDEX(&result);
+  index = PHP_SCYLLADB_GET_INDEX(&result);
   index->meta   = meta;
   ZVAL_COPY(&index->schema, schema);
 
@@ -51,23 +51,23 @@ php_driver_create_index(zval *schema,
 
 ZEND_METHOD(Cassandra_DefaultIndex, name)
 {
-  php_driver_index *self;
+  php_scylladb_index *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_INDEX(getThis());
+  self = PHP_SCYLLADB_GET_INDEX(getThis());
   RETURN_ZVAL(&self->name, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_DefaultIndex, target)
 {
-  php_driver_index *self;
+  php_scylladb_index *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_INDEX(getThis());
+  self = PHP_SCYLLADB_GET_INDEX(getThis());
   if (Z_ISUNDEF(self->target)) {
     const char *target;
     size_t target_length;
@@ -81,12 +81,12 @@ ZEND_METHOD(Cassandra_DefaultIndex, target)
 
 ZEND_METHOD(Cassandra_DefaultIndex, kind)
 {
-  php_driver_index *self;
+  php_scylladb_index *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_INDEX(getThis());
+  self = PHP_SCYLLADB_GET_INDEX(getThis());
   if (Z_ISUNDEF(self->kind)) {
 
     switch (cass_index_meta_type(self->meta)) {
@@ -108,10 +108,9 @@ ZEND_METHOD(Cassandra_DefaultIndex, kind)
   RETURN_ZVAL(&self->kind, 1, 0);
 }
 
-void php_driver_index_build_option(php_driver_index *index)
+void php_scylladb_index_build_option(php_scylladb_index *index)
 {
   const CassValue* options;
-
 
   array_init(&index->options);
   options = cass_index_meta_options(index->meta);
@@ -140,16 +139,16 @@ ZEND_METHOD(Cassandra_DefaultIndex, option)
 {
   char *name;
   size_t name_len;
-  php_driver_index *self;
+  php_scylladb_index *self;
   zval* result;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_STRING(name, name_len)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_DRIVER_GET_INDEX(getThis());
+  self = PHP_SCYLLADB_GET_INDEX(getThis());
   if (Z_ISUNDEF(self->options)) {
-    php_driver_index_build_option(self);
+    php_scylladb_index_build_option(self);
   }
 
   if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != NULL) {
@@ -160,14 +159,14 @@ ZEND_METHOD(Cassandra_DefaultIndex, option)
 
 ZEND_METHOD(Cassandra_DefaultIndex, options)
 {
-  php_driver_index *self;
+  php_scylladb_index *self;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_INDEX(getThis());
+  self = PHP_SCYLLADB_GET_INDEX(getThis());
   if (Z_ISUNDEF(self->options)) {
-    php_driver_index_build_option(self);
+    php_scylladb_index_build_option(self);
   }
 
   RETURN_ZVAL(&self->options, 1, 0);
@@ -175,15 +174,15 @@ ZEND_METHOD(Cassandra_DefaultIndex, options)
 
 ZEND_METHOD(Cassandra_DefaultIndex, className)
 {
-  php_driver_index *self;
+  php_scylladb_index *self;
   zval* result;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_INDEX(getThis());
+  self = PHP_SCYLLADB_GET_INDEX(getThis());
   if (Z_ISUNDEF(self->options)) {
-    php_driver_index_build_option(self);
+    php_scylladb_index_build_option(self);
   }
 
   if ((result = zend_hash_str_find(Z_ARRVAL(self->options), ZEND_STRL("class_name"))) != NULL) {
@@ -194,25 +193,23 @@ ZEND_METHOD(Cassandra_DefaultIndex, className)
 
 ZEND_METHOD(Cassandra_DefaultIndex, isCustom)
 {
-  php_driver_index *self;
+  php_scylladb_index *self;
   int is_custom;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
 
-  self = PHP_DRIVER_GET_INDEX(getThis());
+  self = PHP_SCYLLADB_GET_INDEX(getThis());
   if (Z_ISUNDEF(self->options)) {
-    php_driver_index_build_option(self);
+    php_scylladb_index_build_option(self);
   }
 
   is_custom = zend_hash_str_exists(Z_ARRVAL(self->options), ZEND_STRL("class_name"));
   RETURN_BOOL(is_custom);
 }
 
-static zend_object_handlers php_driver_default_index_handlers;
-
-static HashTable *
-php_driver_type_default_index_gc(
+HashTable *
+php_scylladb_default_index_gc(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object,
 #else
@@ -226,8 +223,8 @@ php_driver_type_default_index_gc(
   return NULL;
 }
 
-static HashTable *
-php_driver_default_index_properties(
+HashTable *
+php_scylladb_default_index_properties(
 #if PHP_MAJOR_VERSION >= 8
         zend_object *object
 #else
@@ -240,8 +237,8 @@ php_driver_default_index_properties(
   return props;
 }
 
-static int
-php_driver_default_index_compare(zval *obj1, zval *obj2 )
+int
+php_scylladb_default_index_compare(zval *obj1, zval *obj2 )
 {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
@@ -252,10 +249,10 @@ php_driver_default_index_compare(zval *obj1, zval *obj2 )
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-static void
-php_driver_default_index_free(zend_object *object )
+void
+php_scylladb_default_index_free(zend_object *object )
 {
-  php_driver_index *self = php_driver_index_object_fetch(object);
+  php_scylladb_index *self = php_scylladb_index_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->kind);
@@ -272,11 +269,11 @@ php_driver_default_index_free(zend_object *object )
 
 }
 
-static zend_object*
-php_driver_default_index_new(zend_class_entry *ce )
+zend_object*
+php_scylladb_default_index_new(zend_class_entry *ce )
 {
-  php_driver_index *self =
-      (php_driver_index *)ecalloc(1, sizeof(php_driver_index) + zend_object_properties_size(ce));
+  php_scylladb_index *self =
+      (php_scylladb_index *)ecalloc(1, sizeof(php_scylladb_index) + zend_object_properties_size(ce));
 
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->kind);
@@ -287,27 +284,11 @@ php_driver_default_index_new(zend_class_entry *ce )
   self->meta = NULL;
 
   zend_object_std_init(&self->zendObject, ce);
-  php_driver_default_index_handlers.offset = XtOffsetOf(php_driver_index, zendObject);
-  php_driver_default_index_handlers.free_obj = php_driver_default_index_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_index_handlers;
+  php_scylladb_default_index_handlers.offset = XtOffsetOf(php_scylladb_index, zendObject);
+  php_scylladb_default_index_handlers.free_obj = php_scylladb_default_index_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_index_handlers;
   return &self->zendObject;
 }
 
-void php_driver_define_DefaultIndex()
-{
-  php_driver_default_index_ce = register_class_Cassandra_DefaultIndex(php_driver_index_ce);
-  php_driver_default_index_ce->create_object = php_driver_default_index_new;
-
-  memcpy(&php_driver_default_index_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-  php_driver_default_index_handlers.get_properties  = php_driver_default_index_properties;
-#if PHP_VERSION_ID >= 50400
-  php_driver_default_index_handlers.get_gc          = php_driver_type_default_index_gc;
-#endif
-#if PHP_MAJOR_VERSION >= 8
-  php_driver_default_index_handlers.compare = php_driver_default_index_compare;
-#else
-  php_driver_default_index_handlers.compare_objects = php_driver_default_index_compare;
-#endif
-  php_driver_default_index_handlers.clone_obj = NULL;
-}
 END_EXTERN_C()
+

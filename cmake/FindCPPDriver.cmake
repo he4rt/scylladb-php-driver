@@ -4,26 +4,26 @@ include(FindPackageHandleStandardArgs)
 find_package(PkgConfig REQUIRED)
 
 # ── Backend selection ────────────────────────────────────────────────────────
-# PHP_DRIVER_BACKEND is the canonical knob. The legacy USE_LIBCASSANDRA flag is
+# PHP_SCYLLADB_BACKEND is the canonical knob. The legacy USE_LIBCASSANDRA flag is
 # honoured for one release as a fallback: ON → "cassandra", OFF → "scylla-cpp".
-# Set PHP_DRIVER_BACKEND explicitly to override.
-set(_php_driver_backend_default "scylla-cpp")
+# Set PHP_SCYLLADB_BACKEND explicitly to override.
+set(_php_scylladb_backend_default "scylla-cpp")
 if (DEFINED USE_LIBCASSANDRA)
     if (USE_LIBCASSANDRA)
-        set(_php_driver_backend_default "cassandra")
+        set(_php_scylladb_backend_default "cassandra")
     else ()
-        set(_php_driver_backend_default "scylla-cpp")
+        set(_php_scylladb_backend_default "scylla-cpp")
     endif ()
 endif ()
 
-set(PHP_DRIVER_BACKEND "${_php_driver_backend_default}" CACHE STRING
+set(PHP_SCYLLADB_BACKEND "${_php_scylladb_backend_default}" CACHE STRING
         "C/C++ driver backend: cassandra | scylla-cpp | scylla-rust")
-set_property(CACHE PHP_DRIVER_BACKEND PROPERTY STRINGS cassandra scylla-cpp scylla-rust)
-unset(_php_driver_backend_default)
+set_property(CACHE PHP_SCYLLADB_BACKEND PROPERTY STRINGS cassandra scylla-cpp scylla-rust)
+unset(_php_scylladb_backend_default)
 
-if (NOT PHP_DRIVER_BACKEND MATCHES "^(cassandra|scylla-cpp|scylla-rust)$")
+if (NOT PHP_SCYLLADB_BACKEND MATCHES "^(cassandra|scylla-cpp|scylla-rust)$")
     message(FATAL_ERROR
-        "PHP_DRIVER_BACKEND='${PHP_DRIVER_BACKEND}' is invalid. "
+        "PHP_SCYLLADB_BACKEND='${PHP_SCYLLADB_BACKEND}' is invalid. "
         "Expected: cassandra, scylla-cpp, or scylla-rust.")
 endif ()
 
@@ -32,20 +32,20 @@ endif ()
 # named `scylla-cpp-driver`. The user disambiguates by pointing PKG_CONFIG_PATH
 # (or CMAKE_PREFIX_PATH) at the install prefix of the desired backend before
 # configuring.
-if (PHP_DRIVER_BACKEND STREQUAL "cassandra")
+if (PHP_SCYLLADB_BACKEND STREQUAL "cassandra")
     set(_cpp_driver_label "DataStax cassandra")
     set(_install_hint "cassandra")
-    set(_cpp_driver_define PHP_DRIVER_BACKEND_CASSANDRA)
-    if (PHP_DRIVER_STATIC)
+    set(_cpp_driver_define PHP_SCYLLADB_BACKEND_CASSANDRA)
+    if (PHP_SCYLLADB_STATIC)
         set(_cpp_driver_pc "cassandra_static")
     else ()
         set(_cpp_driver_pc "cassandra")
     endif ()
-elseif (PHP_DRIVER_BACKEND STREQUAL "scylla-rust")
+elseif (PHP_SCYLLADB_BACKEND STREQUAL "scylla-rust")
     set(_cpp_driver_label "ScyllaDB cpp-rs-driver")
     set(_install_hint "scylla-rust")
-    set(_cpp_driver_define PHP_DRIVER_BACKEND_SCYLLA_RUST)
-    if (PHP_DRIVER_STATIC)
+    set(_cpp_driver_define PHP_SCYLLADB_BACKEND_SCYLLA_RUST)
+    if (PHP_SCYLLADB_STATIC)
         set(_cpp_driver_pc "scylla-cpp-driver_static")
     else ()
         set(_cpp_driver_pc "scylla-cpp-driver")
@@ -53,8 +53,8 @@ elseif (PHP_DRIVER_BACKEND STREQUAL "scylla-rust")
 else ()
     set(_cpp_driver_label "ScyllaDB cpp-driver")
     set(_install_hint "scylladb")
-    set(_cpp_driver_define PHP_DRIVER_BACKEND_SCYLLA_CPP)
-    if (PHP_DRIVER_STATIC)
+    set(_cpp_driver_define PHP_SCYLLADB_BACKEND_SCYLLA_CPP)
+    if (PHP_SCYLLADB_STATIC)
         set(_cpp_driver_pc "scylla-cpp-driver_static")
     else ()
         set(_cpp_driver_pc "scylla-cpp-driver")
@@ -64,7 +64,7 @@ endif ()
 pkg_check_modules(LIBCPPDRIVER QUIET IMPORTED_TARGET "${_cpp_driver_pc}")
 
 if (NOT LIBCPPDRIVER_FOUND)
-    if (PHP_DRIVER_BACKEND STREQUAL "scylla-rust")
+    if (PHP_SCYLLADB_BACKEND STREQUAL "scylla-rust")
         set(_install_cmd "scripts/compile-cpp-rs-driver.sh --prefix <prefix>")
     else ()
         set(_install_cmd "scripts/compile-cpp-driver.sh --driver ${_install_hint}")
@@ -75,8 +75,8 @@ if (NOT LIBCPPDRIVER_FOUND)
         "  * Install it with: ${_install_cmd}\n"
         "  * Then point CMake at the install prefix with:\n"
         "      -DCPP_DRIVER_PREFIX=<prefix>   (e.g. /usr/local/${_install_hint})\n"
-        "  * Switch backend with: -DPHP_DRIVER_BACKEND=cassandra|scylla-cpp|scylla-rust\n"
-        "  * To link statically, pass: -DPHP_DRIVER_STATIC=ON (expects '${_cpp_driver_pc}.pc')\n"
+        "  * Switch backend with: -DPHP_SCYLLADB_BACKEND=cassandra|scylla-cpp|scylla-rust\n"
+        "  * To link statically, pass: -DPHP_SCYLLADB_STATIC=ON (expects '${_cpp_driver_pc}.pc')\n"
         "Current PKG_CONFIG_PATH: $ENV{PKG_CONFIG_PATH}"
     )
 endif ()
@@ -90,7 +90,7 @@ if (NOT TARGET CppDriver::Driver)
     target_compile_definitions(CppDriver::Driver INTERFACE "${_cpp_driver_define}")
 endif ()
 
-message(STATUS "PHP driver backend: ${PHP_DRIVER_BACKEND} "
+message(STATUS "PHP driver backend: ${PHP_SCYLLADB_BACKEND} "
                "(${_cpp_driver_label} ${_cpp_driver_version})")
 
 find_package_handle_standard_args(CPPDriver
