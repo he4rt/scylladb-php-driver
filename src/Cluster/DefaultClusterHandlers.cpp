@@ -29,12 +29,6 @@ static void php_driver_default_cluster_free(zend_object *object)
 {
     php_driver_cluster *self = php_driver_cluster_object_fetch(object);
 
-    if (self->hash_key)
-    {
-        zend_string_release(self->hash_key);
-        self->hash_key = nullptr;
-    }
-
     if (!self->persist && self->cluster)
     {
         cass_cluster_free(self->cluster);
@@ -57,7 +51,7 @@ zend_object *php_driver_default_cluster_new(zend_class_entry *ce)
     self->default_consistency = PHP_DRIVER_DEFAULT_CONSISTENCY;
     self->default_page_size = 5000;
     self->persist = cass_false;
-    self->hash_key = nullptr;
+    self->cache_key = 0;
 
     ZVAL_UNDEF(&self->default_timeout);
 

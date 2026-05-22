@@ -19,6 +19,7 @@
 #include <cassandra.h>
 
 #include <php_driver.h>
+#include <php_driver_cache_key.h>
 #include <SSLOptions/SSLOptions.h>
 #include <php_driver_globals.h>
 #include <php_driver_types.h>
@@ -127,28 +128,43 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
     if (self->persist)
     {
-        char *tmp = nullptr;
-        size_t tmp_len = spprintf(&tmp, 0,
-            PHP_DRIVER_NAME ":%s:%d:%d:%s:%d:%d:%d:%s:%s:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%s:%s:%s:%s",
-            ZSTR_VAL(self->contact_points), self->port, self->load_balancing_policy, SAFE_ZEND_STRING(self->local_dc),
-            self->used_hosts_per_remote_dc, self->allow_remote_dcs_for_local_cl, self->use_token_aware_routing,
-            SAFE_ZEND_STRING(self->username), SAFE_ZEND_STRING(self->password), self->connect_timeout,
-            self->request_timeout, self->protocol_version, self->io_threads, self->core_connections_per_host,
-            self->max_connections_per_host, self->reconnect_interval, self->enable_latency_aware_routing,
-            self->enable_tcp_nodelay, self->enable_tcp_keepalive, self->tcp_keepalive_delay, self->enable_schema,
-            self->enable_hostname_resolution, self->enable_randomized_contact_points,
-            self->connection_heartbeat_interval, SAFE_ZEND_STRING(self->whitelist_hosts),
-            SAFE_ZEND_STRING(self->whitelist_dcs), SAFE_ZEND_STRING(self->blacklist_hosts),
-            SAFE_ZEND_STRING(self->blacklist_dcs));
-        /* Persistent: this string is used as a key in EG(persistent_list) and
-           also stored on the cluster object across requests. */
-        cluster->hash_key = zend_string_init(tmp, tmp_len, 1);
-        efree(tmp);
+        /* FNV-1a fingerprint of every field that affects the CassCluster
+           identity. Persistent_list is integer-keyed → zero per-call
+           allocation, even on cache hit. */
+        zend_ulong h = php_driver_cache_key_init();
+        h = php_driver_cache_key_mix_cstr(h, PHP_DRIVER_NAME);
+        h = php_driver_cache_key_mix_zstr(h, self->contact_points);
+        h = php_driver_cache_key_mix_int(h, self->port);
+        h = php_driver_cache_key_mix_int(h, self->load_balancing_policy);
+        h = php_driver_cache_key_mix_zstr(h, self->local_dc);
+        h = php_driver_cache_key_mix_int(h, self->used_hosts_per_remote_dc);
+        h = php_driver_cache_key_mix_int(h, self->allow_remote_dcs_for_local_cl);
+        h = php_driver_cache_key_mix_int(h, self->use_token_aware_routing);
+        h = php_driver_cache_key_mix_zstr(h, self->username);
+        h = php_driver_cache_key_mix_zstr(h, self->password);
+        h = php_driver_cache_key_mix_int(h, self->connect_timeout);
+        h = php_driver_cache_key_mix_int(h, self->request_timeout);
+        h = php_driver_cache_key_mix_int(h, self->protocol_version);
+        h = php_driver_cache_key_mix_int(h, self->io_threads);
+        h = php_driver_cache_key_mix_int(h, self->core_connections_per_host);
+        h = php_driver_cache_key_mix_int(h, self->max_connections_per_host);
+        h = php_driver_cache_key_mix_int(h, self->reconnect_interval);
+        h = php_driver_cache_key_mix_int(h, self->enable_latency_aware_routing);
+        h = php_driver_cache_key_mix_int(h, self->enable_tcp_nodelay);
+        h = php_driver_cache_key_mix_int(h, self->enable_tcp_keepalive);
+        h = php_driver_cache_key_mix_int(h, self->tcp_keepalive_delay);
+        h = php_driver_cache_key_mix_int(h, self->enable_schema);
+        h = php_driver_cache_key_mix_int(h, self->enable_hostname_resolution);
+        h = php_driver_cache_key_mix_int(h, self->enable_randomized_contact_points);
+        h = php_driver_cache_key_mix_int(h, self->connection_heartbeat_interval);
+        h = php_driver_cache_key_mix_zstr(h, self->whitelist_hosts);
+        h = php_driver_cache_key_mix_zstr(h, self->whitelist_dcs);
+        h = php_driver_cache_key_mix_zstr(h, self->blacklist_hosts);
+        h = php_driver_cache_key_mix_zstr(h, self->blacklist_dcs);
+        cluster->cache_key = h;
 
-        zval *le;
-
-        if ((le = zend_hash_find(&EG(persistent_list), cluster->hash_key)) != NULL &&
-            Z_TYPE_P(le) == IS_RESOURCE &&
+        zval *le = zend_hash_index_find(&EG(persistent_list), h);
+        if (le != NULL && Z_TYPE_P(le) == IS_RESOURCE &&
             Z_RES_P(le)->type == php_le_php_driver_cluster())
         {
             cluster->cluster = (CassCluster *)Z_RES_P(le)->ptr;
@@ -261,7 +277,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_driver_cluster());
 
-        (void)zend_hash_update(&EG(persistent_list), cluster->hash_key, &resource);
+        (void)zend_hash_index_update(&EG(persistent_list), cluster->cache_key, &resource);
         PHP_DRIVER_G(persistent_clusters)++;
     }
 }
