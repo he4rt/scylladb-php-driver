@@ -8,8 +8,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class UserTypeValue implements Value, \Countable, \Iterator
+ * @scylladb-struct php_scylladb_user_type_value
+ */    final class UserTypeValue implements Value, \Countable, \Iterator
     {
         public function __construct(array $types) {}
 

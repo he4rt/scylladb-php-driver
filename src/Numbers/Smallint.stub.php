@@ -10,8 +10,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Smallint implements Value, Numeric {
+ * @scylladb-struct php_scylladb_numeric
+ */    final class Smallint implements Value, Numeric {
         public function __construct(int|float|string|Smallint $value) {}
 
         public function type(): Type {}

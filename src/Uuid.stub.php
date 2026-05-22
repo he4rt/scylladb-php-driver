@@ -10,8 +10,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Uuid implements Value, UuidInterface {
+ * @scylladb-struct php_scylladb_uuid
+ */    final class Uuid implements Value, UuidInterface {
         public function __construct(string $uuid = UNKNOWN) {}
 
         public function uuid(): string {}

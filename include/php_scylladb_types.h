@@ -20,6 +20,7 @@
 #include <php_scylladb.h>
 #include <php_scylladb_object.h>
 
+#include <DateTime/Date.h>
 #include <RetryPolicy/RetryPolicy.h>
 #include "SSLOptions/SSLOptions.h"
 

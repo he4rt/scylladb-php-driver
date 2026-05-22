@@ -10,8 +10,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Date implements Value {
+ * @scylladb-struct php_scylladb_date
+ */    final class Date implements Value {
         public function __construct(int|string $value = UNKNOWN) {}
 
         public static function fromDateTime(\DateTimeInterface $datetime): static {}

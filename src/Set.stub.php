@@ -8,8 +8,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Set implements Value, \Countable, \Iterator
+ * @scylladb-struct php_scylladb_set
+ */    final class Set implements Value, \Countable, \Iterator
     {
         public function __construct(\Cassandra\Type|string $type) {}
 

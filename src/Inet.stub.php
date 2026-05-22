@@ -10,8 +10,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Inet implements Value {
+ * @scylladb-struct php_scylladb_inet
+ */    final class Inet implements Value {
         public function __construct(string $address) {}
 
         public function type(): Type {}
