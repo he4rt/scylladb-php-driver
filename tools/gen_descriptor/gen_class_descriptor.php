@@ -182,6 +182,10 @@ function parse_stub(string $src): array
 
             $fqn = $namespace === '' ? $name : "$namespace\\$name";
             $hasValueHandlers = $doc !== null && str_contains($doc, '@scylladb-value-handlers');
+            $structName = null;
+            if ($doc !== null && preg_match('/@scylladb-struct\s+([A-Za-z_][A-Za-z0-9_]*)/', $doc, $m)) {
+                $structName = $m[1];
+            }
             $out[] = [
                 'fqn'              => $fqn,
                 'kind'             => $kind,
@@ -191,6 +195,7 @@ function parse_stub(string $src): array
                 'no_generate'      => $doc !== null && (str_contains($doc, '@scylladb-no-generate')
                                                        || str_contains($doc, '@scylladb-skip')),
                 'value_handlers'   => $hasValueHandlers,
+                'struct'           => $structName,
             ];
 
             $i = $j;
@@ -385,7 +390,9 @@ function emit_class_descriptor(array $cls): array
     $useValueHandlers = !empty($cls['value_handlers']);
     $handlersType     = $useValueHandlers ? 'php_scylladb_value_handlers' : 'zend_object_handlers';
     $stdAccess        = $useValueHandlers ? '.std' : '';
-    if ($useValueHandlers) {
+    // Both the value-handlers type and any @scylladb-struct typename live in
+    // php_scylladb_types.h (or modules that include it transitively).
+    if ($useValueHandlers || !empty($cls['struct'])) {
         $extraIncludes[] = 'php_scylladb_types.h';
     }
 
@@ -429,7 +436,17 @@ function emit_class_descriptor(array $cls): array
     // Handler wiring. The memcpy initializes the std-handlers slot (which is
     // `<handlersVar>$stdAccess`); any user-overridden callbacks get wired in
     // after. The hash_value extension only exists on value_handlers.
+    //
+    // If a @scylladb-struct annotation specified the embedding type,
+    // set handlers.offset so Zend can locate the user struct's start from
+    // the embedded zend_object pointer (free / property access / etc.).
+    // Without this, offset stays 0 and Zend efrees/derefs the wrong
+    // address → zend_mm_heap corrupted at runtime.
     $handlerWiring = "  memcpy(&$handlersVar$stdAccess, zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n";
+    if (!empty($cls['struct'])) {
+        $struct = $cls['struct'];
+        $handlerWiring .= "  $handlersVar$stdAccess.offset = XtOffsetOf($struct, zendObject);\n";
+    }
     $handlerWiring .= "  if (&php_scylladb_{$snake}_free)       $handlersVar$stdAccess.free_obj       = php_scylladb_{$snake}_free;\n";
     $handlerWiring .= "  if (&php_scylladb_{$snake}_properties) $handlersVar$stdAccess.get_properties = php_scylladb_{$snake}_properties;\n";
     $handlerWiring .= "  if (&php_scylladb_{$snake}_gc)         $handlersVar$stdAccess.get_gc         = php_scylladb_{$snake}_gc;\n";

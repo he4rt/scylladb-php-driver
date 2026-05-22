@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class DefaultColumn implements \Cassandra\Column {
+ * @scylladb-struct php_scylladb_column
+ */    final class DefaultColumn implements \Cassandra\Column {
         public function name(): string {}
 
         /** @return \Cassandra\Type|null */

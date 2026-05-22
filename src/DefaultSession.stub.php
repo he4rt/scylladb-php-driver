@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class DefaultSession implements Session {
+ * @scylladb-struct php_scylladb_session
+ */    final class DefaultSession implements Session {
         public function execute(string|Statement $statement, array|ExecutionOptions|null $options = null): Rows {}
         public function executeAsync(string|Statement $statement, array|ExecutionOptions|null $options = null): FutureRows {}
         public function prepare(string $cql, array|ExecutionOptions|null $options = null): PreparedStatement {}

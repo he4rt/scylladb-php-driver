@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra\Type {
     /**
      * @strict-properties
-     */
-    final class UserType extends \Cassandra\Type
+ * @scylladb-struct php_scylladb_type
+ */    final class UserType extends \Cassandra\Type
     {
         private function __construct() {}
 

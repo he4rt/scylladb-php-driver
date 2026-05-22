@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
-     */
-    final class PreparedStatement implements Statement {
+ * @scylladb-struct php_scylladb_statement
+ */    final class PreparedStatement implements Statement {
         private function __construct() {}
     }
 }

@@ -9,8 +9,8 @@ declare(strict_types=1);
 namespace Cassandra\RetryPolicy {
     /**
      * @strict-properties
-     */
-    final class Logging implements \Cassandra\RetryPolicy
+ * @scylladb-struct php_scylladb_retry_policy
+ */    final class Logging implements \Cassandra\RetryPolicy
     {
         public function __construct(\Cassandra\RetryPolicy $policy) {}
     }

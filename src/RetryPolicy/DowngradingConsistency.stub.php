@@ -15,6 +15,6 @@ namespace Cassandra\RetryPolicy {
      * It can lead to unexpected behavior when the cluster is in a degraded state.
      * Instead, applications should prefer using the lowest consistency level
      * on statements that can be tolerated by a specific use case.
-     */
-    final class DowngradingConsistency implements \Cassandra\RetryPolicy { }
+ * @scylladb-struct php_scylladb_retry_policy
+ */    final class DowngradingConsistency implements \Cassandra\RetryPolicy { }
 }

@@ -9,8 +9,8 @@ declare(strict_types=1);
 namespace Cassandra\SSLOptions {
     /**
      * @strict-properties
-     */
-     final class Builder {
+ * @scylladb-struct php_scylladb_ssl_builder
+ */     final class Builder {
         public function withTrustedCerts(string ...$path): static {}
         public function withVerifyFlags(int $flags): static {}
         public function withClientCert(string $path): static {}
