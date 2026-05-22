@@ -452,7 +452,14 @@ function emit_class_descriptor(array $cls): array
     $handlerWiring .= "  if (&php_scylladb_{$snake}_gc)         $handlersVar$stdAccess.get_gc         = php_scylladb_{$snake}_gc;\n";
     $handlerWiring .= "  if (&php_scylladb_{$snake}_compare)    $handlersVar$stdAccess.compare        = php_scylladb_{$snake}_compare;\n";
     $handlerWiring .= "  if (&php_scylladb_{$snake}_cast)       $handlersVar$stdAccess.cast_object    = php_scylladb_{$snake}_cast;\n";
-    $handlerWiring .= "  if (&php_scylladb_{$snake}_clone)      $handlersVar$stdAccess.clone_obj      = php_scylladb_{$snake}_clone;\n";
+    // Cloning: assign unconditionally from the weakly-declared _clone fn. If
+    // the user defined it, that's their custom clone handler; if they didn't,
+    // the weak ref resolves to NULL → clone_obj = nullptr disables cloning
+    // entirely (PHP throws on `clone $obj`). This matches the pre-refactor
+    // behavior where every class explicitly set clone_obj = NULL because the
+    // underlying C state (CassFuture*, CassStatement*, etc.) can't safely be
+    // shallow-copied.
+    $handlerWiring .= "  $handlersVar$stdAccess.clone_obj = php_scylladb_{$snake}_clone;\n";
     if ($useValueHandlers) {
         $handlerWiring .= "  if (&php_scylladb_{$snake}_hash_value) $handlersVar.hash_value           = php_scylladb_{$snake}_hash_value;\n";
     }
