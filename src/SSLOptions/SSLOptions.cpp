@@ -21,9 +21,9 @@
 BEGIN_EXTERN_C()
 #include "SSLOptions_arginfo.h"
 
-extern zend_object_handlers php_scylladb_ssloptions_handlers;
+extern zend_object_handlers php_scylladb_ssl_options_handlers;
 
-int php_scylladb_ssloptions_compare(zval *obj1, zval *obj2) {
+int php_scylladb_ssl_options_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
@@ -31,14 +31,14 @@ int php_scylladb_ssloptions_compare(zval *obj1, zval *obj2) {
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-void php_scylladb_ssloptions_free(zend_object *object) {
+void php_scylladb_ssl_options_free(zend_object *object) {
   const auto *self = ZendCPP::ObjectFetch<php_scylladb_ssl>(object);
   cass_ssl_free(self->ssl);
   zend_object_std_dtor(object);
 }
 
-zend_object *php_scylladb_ssloptions_new(zend_class_entry *ce) {
-  auto *self = ZendCPP::Allocate<php_scylladb_ssl>(ce, &php_scylladb_ssloptions_handlers);
+zend_object *php_scylladb_ssl_options_new(zend_class_entry *ce) {
+  auto *self = ZendCPP::Allocate<php_scylladb_ssl>(ce, &php_scylladb_ssl_options_handlers);
   self->ssl = cass_ssl_new();
   if (self->ssl == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
@@ -48,14 +48,14 @@ zend_object *php_scylladb_ssloptions_new(zend_class_entry *ce) {
   return &self->zendObject;
 }
 
-void php_scylladb_ssloptions_post_register(zend_class_entry *ce) {
+void php_scylladb_ssl_options_post_register(zend_class_entry *ce) {
   (void)ce;
-  php_scylladb_ssloptions_handlers.clone_obj = nullptr;
+  php_scylladb_ssl_options_handlers.clone_obj = nullptr;
 }
 
 PHP_SCYLLADB_API php_scylladb_ssl *php_scylladb_ssl_instantiate(zval *object) {
   zval val;
-  if (object_init_ex(&val, php_scylladb_ssloptions_ce) != SUCCESS) {
+  if (object_init_ex(&val, php_scylladb_ssl_options_ce) != SUCCESS) {
     return nullptr;
   }
 

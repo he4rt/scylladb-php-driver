@@ -48,7 +48,7 @@ static zend_result file_get_contents(const zend_string *path, zend_string** out_
 
 #include "Builder_arginfo.h"
 
-extern zend_object_handlers php_scylladb_ssloptions_builder_handlers;
+extern zend_object_handlers php_scylladb_ssl_options_builder_handlers;
 
 ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
   const php_scylladb_ssl *ssl = php_scylladb_ssl_instantiate(return_value);
@@ -247,13 +247,13 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withPrivateKey) {
   RETURN_ZVAL(getThis(), 1, 0);
 }
 
-HashTable *php_scylladb_ssloptions_builder_properties(zend_object *object) {
+HashTable *php_scylladb_ssl_options_builder_properties(zend_object *object) {
   HashTable *props = zend_std_get_properties(object);
 
   return props;
 }
 
-int php_scylladb_ssloptions_builder_compare(zval *obj1, zval *obj2) {
+int php_scylladb_ssl_options_builder_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
@@ -261,7 +261,7 @@ int php_scylladb_ssloptions_builder_compare(zval *obj1, zval *obj2) {
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
-void php_scylladb_ssloptions_builder_free(zend_object *object) {
+void php_scylladb_ssl_options_builder_free(zend_object *object) {
   const auto *self = ZendCPP::ObjectFetch<php_scylladb_ssl_builder>(object);
 
   if (self->trusted_certs) {
@@ -286,8 +286,8 @@ void php_scylladb_ssloptions_builder_free(zend_object *object) {
   zend_object_std_dtor(object);
 }
 
-zend_object *php_scylladb_ssloptions_builder_new(zend_class_entry *ce) {
-  auto *self = ZendCPP::Allocate<php_scylladb_ssl_builder>(ce, &php_scylladb_ssloptions_builder_handlers);
+zend_object *php_scylladb_ssl_options_builder_new(zend_class_entry *ce) {
+  auto *self = ZendCPP::Allocate<php_scylladb_ssl_builder>(ce, &php_scylladb_ssl_options_builder_handlers);
   return &self->zendObject;
 }
 END_EXTERN_C()

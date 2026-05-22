@@ -673,7 +673,7 @@ extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_default_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_cluster_builder_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_default_cluster_builder_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssloptions_builder_ce;
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssl_options_builder_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_future_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_future_prepared_statement_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_future_rows_ce;

@@ -500,7 +500,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withSSL)
     zval *ssl_options = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_OBJECT_OF_CLASS(ssl_options, php_scylladb_ssloptions_ce)
+    Z_PARAM_OBJECT_OF_CLASS(ssl_options, php_scylladb_ssl_options_ce)
     ZEND_PARSE_PARAMETERS_END();
 
     php_scylladb_ssl *ssl = Z_SCYLLADB_SSL_P(ssl_options);

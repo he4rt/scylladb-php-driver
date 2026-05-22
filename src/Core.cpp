@@ -19,7 +19,7 @@ ZEND_METHOD(Cassandra, cluster) {
 }
 
 ZEND_METHOD(Cassandra, ssl) {
-    object_init_ex(return_value, php_scylladb_ssloptions_builder_ce);
+    object_init_ex(return_value, php_scylladb_ssl_options_builder_ce);
 }
 
 static void override_class_constant_string(zend_class_entry *ce, const char *name, const char *value) {
