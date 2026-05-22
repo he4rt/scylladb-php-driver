@@ -88,3 +88,59 @@ if (! function_exists('isScyllaRustBackend')) {
         return driverBackend() === 'scylla-rust';
     }
 }
+
+if (! function_exists('persistentScyllaDbBuilder')) {
+    /**
+     * Builder configured for persistent sessions, contact points / port /
+     * credentials matching scyllaDbConnection(). Use to exercise the
+     * EG(persistent_list) caching path: build()->connect() reuses the
+     * cached CassCluster/CassSession across calls within the same process.
+     */
+    function persistentScyllaDbBuilder(): \Cassandra\Cluster\Builder
+    {
+        $hosts = env('SCYLLADB_HOSTS', '127.0.0.1');
+        if (is_string($hosts)) {
+            $hosts = explode(',', $hosts);
+        }
+
+        return Cassandra::cluster()
+            ->withContactPoints(...$hosts)
+            ->withPort((int) env('SCYLLADB_PORT', 9042))
+            ->withCredentials(
+                env('SCYLLADB_USERNAME', 'cassandra'),
+                env('SCYLLADB_PASSWORD', 'cassandra'),
+            )
+            ->withPersistentSessions(true)
+            ->withTokenAwareRouting(true);
+    }
+}
+
+if (! function_exists('persistentCounters')) {
+    /**
+     * Snapshot of the extension's persistent_list counters
+     * (clusters / sessions / prepared statements). Extracted from phpinfo()
+     * since the extension doesn't expose a userland accessor.
+     *
+     * @return array{clusters:int,sessions:int,prepared:int}
+     */
+    function persistentCounters(): array
+    {
+        ob_start();
+        phpinfo(INFO_MODULES);
+        $info = (string) ob_get_clean();
+
+        $extract = static function (string $label) use ($info): int {
+            // Matches both HTML and plain-text phpinfo layouts.
+            if (preg_match('/' . preg_quote($label, '/') . '\\s*=?>?\\s*<?[^>]*>?\\s*(\\d+)/', $info, $m)) {
+                return (int) $m[1];
+            }
+            return -1;
+        };
+
+        return [
+            'clusters' => $extract('Persistent Clusters'),
+            'sessions' => $extract('Persistent Sessions'),
+            'prepared' => $extract('Persistent Prepared Statements'),
+        ];
+    }
+}
