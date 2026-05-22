@@ -17,6 +17,6 @@
 #pragma once
 
 BEGIN_EXTERN_C()
-zend_result php_scylladb_timeuuid_init(zval *returnValueOrThis, zend_string *str = nullptr,
-                                     zend_long timestamp = -1);
+zend_result php_scylladb_timeuuid_init(zval *returnValueOrThis, zend_string *str,
+                                       zend_long timestamp);
 END_EXTERN_C()

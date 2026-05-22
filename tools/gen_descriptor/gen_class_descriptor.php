@@ -23,13 +23,13 @@
  *     entirely. Use this for unusual hierarchies (e.g. exception batch).
  *
  * Usage:
- *   php gen_class_descriptor.php <stub.php> <out.cpp> <arginfo_header>
+ *   php gen_class_descriptor.php <stub.php> <out.c> <arginfo_header>
  */
 
 declare(strict_types=1);
 
 if ($argc !== 4) {
-    fwrite(STDERR, "usage: gen_class_descriptor.php <stub.php> <out.cpp> <arginfo_header>\n");
+    fwrite(STDERR, "usage: gen_class_descriptor.php <stub.php> <out.c> <arginfo_header>\n");
     exit(2);
 }
 
@@ -340,13 +340,7 @@ EOF;
 
 #include <php.h>
 #include <Zend/zend_attributes.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "$arginfoHeader"
-#ifdef __cplusplus
-}
-#endif
 #include <Registry/Registry.h>
 $extraIncBlock
 
@@ -502,24 +496,15 @@ function emit_class_descriptor(array $cls): array
 zend_class_entry      *$ceVar       = nullptr;
 $handlersType   $handlersVar;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 $weakDecls
-static zend_class_entry *$registerFn(zend_class_entry *const *deps)
+static zend_class_entry *$registerFn([[maybe_unused]] zend_class_entry *const *deps)
 {
-  (void)deps;
 $registerCall
 $createObjWire
 $handlerWiring
 $postReg
   return ce;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 $macro
 EOF;

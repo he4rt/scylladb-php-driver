@@ -10,8 +10,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Blob implements Value {
+ * @scylladb-struct php_scylladb_blob
+ */    final class Blob implements Value {
         public function __construct(string $bytes) {}
 
         public function type(): Type {}

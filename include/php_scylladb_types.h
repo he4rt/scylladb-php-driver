@@ -16,10 +16,12 @@
 
 #pragma once
 
-#include <RetryPolicy/RetryPolicy.h>
 #include <php.h>
 #include <php_scylladb.h>
+#include <php_scylladb_object.h>
 
+#include <DateTime/Date.h>
+#include <RetryPolicy/RetryPolicy.h>
 #include "SSLOptions/SSLOptions.h"
 
 BEGIN_EXTERN_C()
@@ -56,7 +58,7 @@ BEGIN_EXTERN_C()
 #define PHP_SCYLLADB_GET_TIMESTAMP_GEN(obj) php_scylladb_timestamp_gen_object_fetch(Z_OBJ_P(obj))
 #define PHP_SCYLLADB_GET_DURATION(obj) php_scylladb_duration_object_fetch(Z_OBJ_P(obj))
 
-typedef enum
+typedef enum : uint8_t
 {
     PHP_SCYLLADB_BIGINT,
     PHP_SCYLLADB_DECIMAL,

@@ -68,18 +68,18 @@ mv "$tmpdir/${stub_base}_arginfo.h" "$arginfo"
 #  1. cast void* → zend_function* for C++ compatibility on the
 #     `zend_add_*_attribute(zend_hash_str_find_ptr(...))` calls.
 #  2. Mark the `static zend_class_entry *register_class_*()` functions as
-#     `__attribute__((unused))`. The arginfo header is included by both
-#     the user-maintained .cpp (which no longer calls register_class_*
+#     `[[maybe_unused]]` (C23 attribute). The arginfo header is included
+#     by both the user-maintained .c (which no longer calls register_class_*
 #     directly — the descriptor system does that) and by the generated
-#     <basename>_descriptor.cpp. In the user .cpp TU the function is
-#     unused, which GCC flags as -Wunused-function. The attribute silences
-#     it in TUs that don't reference it without affecting the TU
-#     (descriptor.cpp) that does.
+#     <basename>_descriptor.c. In the user .c TU the function is unused,
+#     which GCC flags as -Wunused-function. The attribute silences it in
+#     TUs that don't reference it without affecting the TU
+#     (descriptor.c) that does.
 # Use a portable sed (no -i / -E differences between GNU and BSD).
 tmp_out=$(mktemp -t "${stub_base}_arginfo.XXXXXX").h
 sed \
     -e 's/zend_add_function_attribute(zend_hash_str_find_ptr/zend_add_function_attribute((zend_function *)zend_hash_str_find_ptr/g' \
     -e 's/zend_add_parameter_attribute(zend_hash_str_find_ptr/zend_add_parameter_attribute((zend_function *)zend_hash_str_find_ptr/g' \
-    -e 's/^static zend_class_entry \*register_class_/__attribute__((unused)) static zend_class_entry *register_class_/' \
+    -e 's/^static zend_class_entry \*register_class_/[[maybe_unused]] static zend_class_entry *register_class_/' \
     "$arginfo" > "$tmp_out"
 mv "$tmp_out" "$arginfo"

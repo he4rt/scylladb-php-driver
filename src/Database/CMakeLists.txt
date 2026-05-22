@@ -1,17 +1,17 @@
 php_scylladb_module(database ext_scylladb::database)
 
 target_sources(database PRIVATE
-        ResultDecoder.cpp
-        Rows.cpp
-        Table.cpp
-        DefaultAggregate.cpp
-        DefaultColumn.cpp
-        DefaultFunction.cpp
-        DefaultIndex.cpp
-        DefaultKeyspace.cpp
-        DefaultMaterializedView.cpp
-        DefaultSchema.cpp
-        DefaultTable.cpp
+        ResultDecoder.c
+        Rows.c
+        Table.c
+        DefaultAggregate.c
+        DefaultColumn.c
+        DefaultFunction.c
+        DefaultIndex.c
+        DefaultKeyspace.c
+        DefaultMaterializedView.c
+        DefaultSchema.c
+        DefaultTable.c
 )
 
 php_scylladb_generate_arginfo(database

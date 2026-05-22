@@ -10,8 +10,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Timestamp implements Value {
+ * @scylladb-struct php_scylladb_timestamp
+ */    final class Timestamp implements Value {
         public function __construct(int $seconds = UNKNOWN, int $microseconds = UNKNOWN) {}
 
         public function type(): Type {}

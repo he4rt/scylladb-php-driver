@@ -7,6 +7,6 @@ declare(strict_types=1);
 namespace Cassandra\TimestampGenerator {
     /**
      * @strict-properties
-     */
-    final class ServerSide implements \Cassandra\TimestampGenerator {}
+ * @scylladb-struct php_scylladb_timestamp_gen
+ */    final class ServerSide implements \Cassandra\TimestampGenerator {}
 }

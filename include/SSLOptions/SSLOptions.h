@@ -4,7 +4,7 @@
 #include <php.h>
 #include <cassandra.h>
 
-#include <ZendCPP/ZendCPP.hpp>
+#include <php_scylladb_object.h>
 
 BEGIN_EXTERN_C()
 
@@ -26,12 +26,12 @@ typedef struct {
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssl_options_builder_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssl_options_ce;
 
-zend_always_inline php_scylladb_ssl_builder *php_scylladb_ssl_builder_from_obj(zend_object *obj) {
-  return ZendCPP::ObjectFetch<php_scylladb_ssl_builder>(obj);
+static zend_always_inline php_scylladb_ssl_builder *php_scylladb_ssl_builder_from_obj(zend_object *obj) {
+  return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_ssl_builder, obj);
 }
 
-zend_always_inline php_scylladb_ssl *php_scylladb_ssl_from_obj(zend_object *obj) {
-  return ZendCPP::ObjectFetch<php_scylladb_ssl>(obj);
+static zend_always_inline php_scylladb_ssl *php_scylladb_ssl_from_obj(zend_object *obj) {
+  return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_ssl, obj);
 }
 
 #define Z_SCYLLADB_SSL_BUILDER_P(zv) php_scylladb_ssl_builder_from_obj(Z_OBJ_P((zv)))
@@ -40,6 +40,6 @@ zend_always_inline php_scylladb_ssl *php_scylladb_ssl_from_obj(zend_object *obj)
 #define Z_SCYLLADB_SSL_P(zv) php_scylladb_ssl_from_obj(Z_OBJ_P((zv)))
 #define Z_SCYLLADB_SSL(zv) php_scylladb_ssl_from_obj(Z_OBJ((zv)))
 
-PHP_SCYLLADB_API php_scylladb_ssl *php_scylladb_ssl_instantiate(zval *object);
+[[nodiscard]] PHP_SCYLLADB_API php_scylladb_ssl *php_scylladb_ssl_instantiate(zval *object);
 
-END_EXTERN_C();
+END_EXTERN_C()

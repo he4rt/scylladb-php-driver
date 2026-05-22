@@ -8,8 +8,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Tuple implements Value, \Countable, \Iterator
+ * @scylladb-struct php_scylladb_tuple
+ */    final class Tuple implements Value, \Countable, \Iterator
     {
         public function __construct(array $types) {}
 

@@ -4,7 +4,7 @@ project(php-ext-scylladb
         VERSION     1.4.0
         DESCRIPTION "ScyllaDB/Cassandra PHP extension"
         HOMEPAGE_URL "https://github.com/he4rt/scylladb-php-driver"
-        LANGUAGES   C CXX
+        LANGUAGES   C
 )
 
 add_library(ext_scylladb SHARED)
@@ -157,7 +157,6 @@ find_package(LibGMP   REQUIRED)
 find_package(CPPDriver REQUIRED)
 
 # ── Sub-libraries ─────────────────────────────────────────────────────────────
-add_subdirectory(ZendCPP)
 add_subdirectory(src/Registry)
 add_subdirectory(src)
 add_subdirectory(src/Cluster)
@@ -177,11 +176,10 @@ scylladb_php_library(ext_scylladb)
 
 target_sources(ext_scylladb
         PUBLIC  FILE_SET headers TYPE HEADERS FILES "${HEADERS_LIST}"
-        PRIVATE src/php_scylladb.cpp
+        PRIVATE src/php_scylladb.c
 )
 
 target_link_libraries(ext_scylladb PRIVATE
-        Zend
         Libuv::Libuv
         # Self-registering class descriptors live in these static libs. Their
         # .o files have no externally-referenced symbols once the legacy

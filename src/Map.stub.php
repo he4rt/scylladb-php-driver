@@ -8,8 +8,8 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
-     */
-    final class Map implements Value, \Countable, \Iterator, \ArrayAccess
+ * @scylladb-struct php_scylladb_map
+ */    final class Map implements Value, \Countable, \Iterator, \ArrayAccess
     {
         public function __construct(\Cassandra\Type|string $keyType, \Cassandra\Type|string $valueType) {}
 
