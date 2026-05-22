@@ -68,3 +68,5 @@ src/*_arginfo.h
 src/**/*_descriptor.c
 src/*_descriptor.c
 tools/gen_stub/PHP-Parser-*/
+cmake-build/
+cmake-build-*/

@@ -347,12 +347,8 @@ zend_object *php_scylladb_cluster_builder_new(zend_class_entry *ce)
     ZVAL_UNDEF(&self->default_timeout);
 
     zend_object_std_init(&self->zendObject, ce);
+    object_properties_init(&self->zendObject, ce);
     self->zendObject.handlers = &php_scylladb_cluster_builder_handlers;
-
-    if (zend_object_properties_size(ce) > 0)
-    {
-        object_properties_init(&self->zendObject, ce);
-    }
 
     return &self->zendObject;
 }
