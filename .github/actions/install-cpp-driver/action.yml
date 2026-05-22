@@ -16,7 +16,7 @@ outputs:
     description: 'Directory containing the driver .pc file for PKG_CONFIG_PATH'
   backend:
     value: ${{ steps.meta.outputs.backend }}
-    description: 'PHP_DRIVER_BACKEND value (cassandra | scylla-cpp | scylla-rust)'
+    description: 'PHP_SCYLLADB_BACKEND value (cassandra | scylla-cpp | scylla-rust)'
 
 runs:
   using: composite

@@ -59,10 +59,12 @@ void php_scylladb_class_registry_minit(void);
 #define PHP_SCYLLADB_REGISTER_CLASS(slug, _name, _ce_out, _parent, _register_fn) \
     static const char *const scylladb_cls_##slug##_deps[] = { (_parent), nullptr }; \
     static php_scylladb_class_descriptor_t scylladb_cls_##slug = {              \
-        .name      = (_name),                                                   \
-        .deps      = ((_parent) == nullptr ? nullptr : scylladb_cls_##slug##_deps), \
-        .ce_out    = (_ce_out),                                                 \
-        .register_ = (_register_fn),                                            \
+        .name       = (_name),                                                  \
+        .deps       = ((_parent) == nullptr ? nullptr : scylladb_cls_##slug##_deps), \
+        .ce_out     = (_ce_out),                                                \
+        .register_  = (_register_fn),                                           \
+        .next       = nullptr,                                                  \
+        .registered = false,                                                    \
     };                                                                           \
     __attribute__((constructor))                                                \
     static void scylladb_cls_register_##slug##_ctor(void) {                     \
@@ -79,10 +81,12 @@ void php_scylladb_class_registry_minit(void);
  */
 #define PHP_SCYLLADB_REGISTER_CLASS_DEPS(slug, _name, _ce_out, _deps_array, _register_fn) \
     static php_scylladb_class_descriptor_t scylladb_cls_##slug = {              \
-        .name      = (_name),                                                   \
-        .deps      = (_deps_array),                                             \
-        .ce_out    = (_ce_out),                                                 \
-        .register_ = (_register_fn),                                            \
+        .name       = (_name),                                                  \
+        .deps       = (_deps_array),                                            \
+        .ce_out     = (_ce_out),                                                \
+        .register_  = (_register_fn),                                           \
+        .next       = nullptr,                                                  \
+        .registered = false,                                                    \
     };                                                                           \
     __attribute__((constructor))                                                \
     static void scylladb_cls_register_##slug##_ctor(void) {                     \

@@ -41,8 +41,8 @@ runs:
           -DCMAKE_BUILD_TYPE="${{ inputs.build_type }}" \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-          -DPHP_DRIVER_STATIC="${{ inputs.static_driver }}" \
-          -DPHP_DRIVER_BACKEND="${BACKEND}" \
+          -DPHP_SCYLLADB_STATIC="${{ inputs.static_driver }}" \
+          -DPHP_SCYLLADB_BACKEND="${BACKEND}" \
           -DENABLE_LTO="${{ inputs.enable_lto }}"
 
     - name: Build
