@@ -24,7 +24,7 @@
 #include <php_driver_globals.h>
 #include <php_driver_types.h>
 #include <ZendCPP/ZendCPP.hpp>
-#include <util/consistency.h>
+#include <php_driver_consistency.h>
 
 #include "BuilderHandlers.h"
 #include "Cluster.h"

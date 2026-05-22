@@ -16,7 +16,7 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/consistency.h"
+#include "php_driver_consistency.h"
 #include "util/math.h"
 BEGIN_EXTERN_C()
 #include "ExecutionOptions_arginfo.h"

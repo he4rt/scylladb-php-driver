@@ -6,20 +6,13 @@
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 #pragma once
 
 #include <cassandra.h>
+#include <stdint.h>
 
-#include "inline.h"
-
-PHP_DRIVER_ALWAYS_INLINE int32_t php_driver_validate_consistency(uint32_t consistency)
+static inline int32_t php_driver_validate_consistency(uint32_t consistency)
 {
     switch (consistency)
     {
@@ -40,7 +33,7 @@ PHP_DRIVER_ALWAYS_INLINE int32_t php_driver_validate_consistency(uint32_t consis
     }
 }
 
-PHP_DRIVER_ALWAYS_INLINE int32_t php_driver_validate_serial_consistency(uint32_t serial_consistency)
+static inline int32_t php_driver_validate_serial_consistency(uint32_t serial_consistency)
 {
     switch (serial_consistency)
     {

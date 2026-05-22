@@ -15,7 +15,6 @@
  */
 #pragma once
 
-#include "inline.h"
 #include <php_driver.h>
 
 #define uthash_malloc(sz) emalloc(sz)
@@ -54,12 +53,12 @@ int32_t php_driver_value_compare(zval *zvalue1, zval *zvalue2);
 int32_t php_driver_data_compare(Bucket *a, Bucket *b);
 uint32_t php_driver_mpz_hash(unsigned seed, mpz_t n);
 
-static PHP_DRIVER_ALWAYS_INLINE uint32_t php_driver_bigint_hash(cass_int64_t value)
+static inline uint32_t php_driver_bigint_hash(cass_int64_t value)
 {
     return (uint32_t)(value ^ (value >> 32));
 }
 
-static PHP_DRIVER_ALWAYS_INLINE uint32_t php_driver_combine_hash(unsigned seed, unsigned hashv)
+static inline uint32_t php_driver_combine_hash(unsigned seed, unsigned hashv)
 {
     return seed ^ (hashv + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 }
