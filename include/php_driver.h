@@ -27,6 +27,16 @@ extern "C"
 #error PHP 8.1.0 or later is required in order to build the driver
 #endif
 
+#if PHP_VERSION_ID < 80400
+/* Shim for the PHP 8.4 helper used by stub-generated arginfo headers. */
+static zend_always_inline zend_class_entry *zend_register_internal_class_with_flags(
+    zend_class_entry *class_entry, zend_class_entry *parent_ce, uint32_t ce_flags) {
+    zend_class_entry *ce = zend_register_internal_class_ex(class_entry, parent_ce);
+    ce->ce_flags |= ce_flags;
+    return ce;
+}
+#endif
+
 
 #define PHP_DRIVER_NAMESPACE "Cassandra"
 
