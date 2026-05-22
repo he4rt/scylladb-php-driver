@@ -813,8 +813,13 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   if (self->persist) {
     zval* le;
 
-    hash_key = zend_strpprintf(0, "%s%s:prepared_statement:%s",
-                               ZSTR_VAL(self->hash_key), Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
+    {
+      char *tmp = NULL;
+      size_t tmp_len = spprintf(&tmp, 0, "%s%s:prepared_statement:%s",
+                                ZSTR_VAL(self->hash_key), Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
+      hash_key = zend_string_init(tmp, tmp_len, 1);
+      efree(tmp);
+    }
 
     if ((le = zend_hash_find(&EG(persistent_list), hash_key)) != NULL &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {

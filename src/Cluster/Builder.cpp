@@ -127,7 +127,8 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
     if (self->persist)
     {
-        cluster->hash_key = zend_strpprintf(0,
+        char *tmp = nullptr;
+        size_t tmp_len = spprintf(&tmp, 0,
             PHP_DRIVER_NAME ":%s:%d:%d:%s:%d:%d:%d:%s:%s:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%s:%s:%s:%s",
             ZSTR_VAL(self->contact_points), self->port, self->load_balancing_policy, SAFE_ZEND_STRING(self->local_dc),
             self->used_hosts_per_remote_dc, self->allow_remote_dcs_for_local_cl, self->use_token_aware_routing,
@@ -139,6 +140,10 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
             self->connection_heartbeat_interval, SAFE_ZEND_STRING(self->whitelist_hosts),
             SAFE_ZEND_STRING(self->whitelist_dcs), SAFE_ZEND_STRING(self->blacklist_hosts),
             SAFE_ZEND_STRING(self->blacklist_dcs));
+        /* Persistent: this string is used as a key in EG(persistent_list) and
+           also stored on the cluster object across requests. */
+        cluster->hash_key = zend_string_init(tmp, tmp_len, 1);
+        efree(tmp);
 
         zval *le;
 

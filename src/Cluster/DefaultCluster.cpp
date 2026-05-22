@@ -72,7 +72,12 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
     {
         zval *le;
 
-        hash_key = zend_strpprintf(0, "%s:session:%s", ZSTR_VAL(self->hash_key), SAFE_STR(keyspace));
+        {
+            char *tmp = nullptr;
+            size_t tmp_len = spprintf(&tmp, 0, "%s:session:%s", ZSTR_VAL(self->hash_key), SAFE_STR(keyspace));
+            hash_key = zend_string_init(tmp, tmp_len, 1);
+            efree(tmp);
+        }
 
         if ((le = zend_hash_find(&EG(persistent_list), hash_key)) != NULL &&
             Z_RES_P(le)->type == php_le_php_driver_session())
@@ -170,7 +175,12 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         zval *le;
 
         future->session_keyspace = keyspace ? estrndup(keyspace, keyspace_len) : nullptr;
-        future->hash_key = zend_strpprintf(0, "%s:session:%s", ZSTR_VAL(self->hash_key), SAFE_STR(keyspace));
+        {
+            char *tmp = nullptr;
+            size_t tmp_len = spprintf(&tmp, 0, "%s:session:%s", ZSTR_VAL(self->hash_key), SAFE_STR(keyspace));
+            future->hash_key = zend_string_init(tmp, tmp_len, 1);
+            efree(tmp);
+        }
 
         if ((le = zend_hash_find(&EG(persistent_list), future->hash_key)) != NULL &&
             Z_RES_P(le)->type == php_le_php_driver_session())
