@@ -28,8 +28,8 @@ extern php_scylladb_value_handlers php_scylladb_uuid_handlers;
 void
 php_scylladb_uuid_init(INTERNAL_FUNCTION_PARAMETERS)
 {
-  char *value;
-  size_t value_len;
+  char *value = nullptr;
+  size_t value_len = 0;
   php_scylladb_uuid *self;
 
   // clang-format off
