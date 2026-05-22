@@ -23,7 +23,7 @@ beforeAll(function () use ($keyspace) {
     migrateKeyspace(<<<CQL
     CREATE KEYSPACE $keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
     USE $keyspace;
-    CREATE TABLE entries (id int PRIMARY KEY, value text)
+    CREATE TABLE cache_log (id int PRIMARY KEY, payload text)
     CQL);
 });
 
@@ -56,7 +56,7 @@ it('caches separate CassClusters for distinct configs', function () {
 
     $after = persistentCounters();
 
-    // Different config → cache miss on the second build → two entries.
+    // Different config → cache miss on the second build → two cache_log.
     expect($after['clusters'])->toBe($before['clusters'] + 2);
 
     unset($a, $b);
@@ -74,8 +74,8 @@ it('reuses a cached CassSession on identical connect() calls', function () use (
     expect($after['sessions'])->toBe($before['sessions'] + 1);
 
     // Both should be usable.
-    expect($s1->execute(new SimpleStatement('SELECT id FROM entries'))->count())->toBe(0);
-    expect($s2->execute(new SimpleStatement('SELECT id FROM entries'))->count())->toBe(0);
+    expect($s1->execute(new SimpleStatement('SELECT id FROM cache_log'))->count())->toBe(0);
+    expect($s2->execute(new SimpleStatement('SELECT id FROM cache_log'))->count())->toBe(0);
 
     unset($s1, $s2, $cluster);
 })->group('feature', 'persistent');
@@ -99,7 +99,7 @@ it('reuses cached prepared statements on identical prepare() calls', function ()
     $session = $cluster->connect($keyspace);
     $before  = persistentCounters();
 
-    $cql = 'SELECT value FROM entries WHERE id = ?';
+    $cql = 'SELECT payload FROM cache_log WHERE id = ?';
     $p1  = $session->prepare($cql);
     $p2  = $session->prepare($cql);
 
@@ -119,8 +119,8 @@ it('caches separate prepared statements for distinct CQL', function () use ($key
     $session = $cluster->connect($keyspace);
     $before  = persistentCounters();
 
-    $p1 = $session->prepare('SELECT value FROM entries WHERE id = ?');
-    $p2 = $session->prepare('SELECT id FROM entries WHERE value = ? ALLOW FILTERING');
+    $p1 = $session->prepare('SELECT payload FROM cache_log WHERE id = ?');
+    $p2 = $session->prepare('SELECT id FROM cache_log WHERE payload = ? ALLOW FILTERING');
 
     $after = persistentCounters();
 
@@ -170,7 +170,7 @@ it('keeps a session alive after its originating $cluster is unset (hash_key UAF 
 
     // Force a prepare(), which is the path that spprintf's against the
     // hash_key. Must not crash/segfault.
-    $stmt = $session->prepare('SELECT id FROM entries WHERE id = ?');
+    $stmt = $session->prepare('SELECT id FROM cache_log WHERE id = ?');
     expect($stmt)->not->toBeNull();
 
     expect($session->execute($stmt, ['arguments' => [1]])->count())->toBe(0);
