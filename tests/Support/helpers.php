@@ -88,3 +88,30 @@ if (! function_exists('isScyllaRustBackend')) {
         return driverBackend() === 'scylla-rust';
     }
 }
+
+if (! function_exists('persistentScyllaDbBuilder')) {
+    /**
+     * Builder configured for persistent sessions, contact points / port /
+     * credentials matching scyllaDbConnection(). Use to exercise the
+     * EG(persistent_list) caching path: build()->connect() reuses the
+     * cached CassCluster/CassSession across calls within the same process.
+     */
+    function persistentScyllaDbBuilder(): \Cassandra\Cluster\Builder
+    {
+        $hosts = env('SCYLLADB_HOSTS', '127.0.0.1');
+        if (is_string($hosts)) {
+            $hosts = explode(',', $hosts);
+        }
+
+        return Cassandra::cluster()
+            ->withContactPoints(...$hosts)
+            ->withPort((int) env('SCYLLADB_PORT', 9042))
+            ->withCredentials(
+                env('SCYLLADB_USERNAME', 'cassandra'),
+                env('SCYLLADB_PASSWORD', 'cassandra'),
+            )
+            ->withPersistentSessions(true)
+            ->withTokenAwareRouting(true);
+    }
+}
+

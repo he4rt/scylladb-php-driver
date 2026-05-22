@@ -16,7 +16,6 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "util/ref.h"
 BEGIN_EXTERN_C()
 #include "DefaultSchema_arginfo.h"
 zend_class_entry *php_driver_default_schema_ce = NULL;
@@ -34,14 +33,14 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspace)
   ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SCHEMA(getThis());
-  meta = cass_schema_meta_keyspace_by_name_n((CassSchemaMeta *) self->schema->data, name, name_len);
+  meta = cass_schema_meta_keyspace_by_name_n(self->schema_meta, name, name_len);
   if (meta == NULL) {
     RETURN_FALSE;
   }
 
   object_init_ex(return_value, php_driver_default_keyspace_ce);
   keyspace = PHP_DRIVER_GET_KEYSPACE(return_value);
-  keyspace->schema = php_driver_add_ref(self->schema);
+  ZVAL_COPY(&keyspace->schema, getThis());
   keyspace->meta   = meta;
 }
 
@@ -54,7 +53,7 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
     return;
 
   self     = PHP_DRIVER_GET_SCHEMA(getThis());
-  iterator = cass_iterator_keyspaces_from_schema_meta((CassSchemaMeta *) self->schema->data);
+  iterator = cass_iterator_keyspaces_from_schema_meta(self->schema_meta);
 
   array_init(return_value);
   while (cass_iterator_next(iterator)) {
@@ -76,7 +75,7 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
 
     object_init_ex(&zkeyspace, php_driver_default_keyspace_ce);
     keyspace = PHP_DRIVER_GET_KEYSPACE(&zkeyspace);
-    keyspace->schema = php_driver_add_ref(self->schema);
+    ZVAL_COPY(&keyspace->schema, getThis());
     keyspace->meta   = meta;
     add_assoc_zval_ex(return_value, keyspace_name, keyspace_name_len, &zkeyspace);
   }
@@ -92,7 +91,7 @@ ZEND_METHOD(Cassandra_DefaultSchema, version)
     return;
 
   self = PHP_DRIVER_GET_SCHEMA(getThis());
-  RETURN_LONG(cass_schema_meta_snapshot_version((CassSchemaMeta *) self->schema->data));
+  RETURN_LONG(cass_schema_meta_snapshot_version(self->schema_meta));
 }
 
 static zend_object_handlers php_driver_default_schema_handlers;
@@ -128,9 +127,9 @@ php_driver_default_schema_free(zend_object *object )
 {
   php_driver_schema *self = php_driver_schema_object_fetch(object);
 
-  if (self->schema) {
-    php_driver_del_ref(&self->schema);
-    self->schema = NULL;
+  if (self->schema_meta) {
+    cass_schema_meta_free(self->schema_meta);
+    self->schema_meta = NULL;
   }
 
   zend_object_std_dtor(&self->zendObject);
@@ -143,7 +142,7 @@ php_driver_default_schema_new(zend_class_entry *ce )
   php_driver_schema *self =
       (php_driver_schema *)ecalloc(1, sizeof(php_driver_schema) + zend_object_properties_size(ce));
 
-  self->schema = NULL;
+  self->schema_meta = NULL;
 
   zend_object_std_init(&self->zendObject, ce);
   php_driver_default_schema_handlers.offset = XtOffsetOf(php_driver_schema, zendObject);

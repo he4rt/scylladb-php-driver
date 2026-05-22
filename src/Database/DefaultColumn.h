@@ -17,5 +17,5 @@
 #include "php_driver.h"
 
 BEGIN_EXTERN_C()
-zval php_driver_create_column(php_driver_ref *schema, const CassColumnMeta *meta );
+zval php_driver_create_column(zval *schema, const CassColumnMeta *meta );
 END_EXTERN_C()

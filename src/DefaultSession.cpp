@@ -16,6 +16,7 @@
 
 #include "DateTime/Date.h"
 #include "php_driver.h"
+#include "php_driver_cache_key.h"
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
 #include "src/ExecutionOptions.h"
@@ -774,7 +775,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
 ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   zval* cql = NULL;
   zval* options = NULL;
-  zend_string* hash_key = NULL;
+  zend_ulong cache_key = 0;
   php_driver_session* self = NULL;
   php_driver_execution_options* opts = NULL;
   php_driver_execution_options local_opts;
@@ -811,13 +812,15 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   }
 
   if (self->persist) {
-    zval* le;
+    /* Mix session cache_key + CQL bytes + keyspace into a uint64_t.
+       Zero allocation per prepare() call, even on cache hit. */
+    cache_key = php_driver_cache_key_mix_ulong(php_driver_cache_key_init(), self->cache_key);
+    cache_key = php_driver_cache_key_mix_bytes(cache_key, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
+    cache_key = php_driver_cache_key_mix_cstr(cache_key, ":prepared_statement:");
+    cache_key = php_driver_cache_key_mix_cstr(cache_key, SAFE_STR(self->keyspace));
 
-    hash_key = zend_strpprintf(0, "%s%s:prepared_statement:%s",
-                               ZSTR_VAL(self->hash_key), Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
-
-    if ((le = zend_hash_find(&EG(persistent_list), hash_key)) != NULL &&
-        Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
+    zval* le = zend_hash_index_find(&EG(persistent_list), cache_key);
+    if (le != NULL && Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
 
       /* The cached future may belong to a previous prepare that has since
@@ -830,13 +833,12 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
           object_init_ex(return_value, php_driver_prepared_statement_ce);
           prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
           prepared_statement->data.prepared.prepared = cached;
-          zend_string_release(hash_key);
           return;
         }
       }
 
       /* Cached future is bad - drop the entry and re-prepare below. */
-      (void)zend_hash_del(&EG(persistent_list), hash_key);
+      (void)zend_hash_index_del(&EG(persistent_list), cache_key);
     }
   }
 
@@ -844,7 +846,6 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
       cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
   if (future == NULL) {
-    if (hash_key) zend_string_release(hash_key);
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
                             "Failed to allocate a prepare future");
     return;
@@ -852,13 +853,11 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
 
   if (php_driver_future_wait_timed(future, timeout) == FAILURE) {
     cass_future_free(future);
-    if (hash_key) zend_string_release(hash_key);
     return;
   }
 
   if (php_driver_future_is_error(future) == FAILURE) {
     cass_future_free(future);
-    if (hash_key) zend_string_release(hash_key);
     return;
   }
 
@@ -875,9 +874,8 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
                             php_le_php_driver_prepared_statement());
-    (void)zend_hash_update(&EG(persistent_list), hash_key, &resource);
+    (void)zend_hash_index_update(&EG(persistent_list), cache_key, &resource);
     PHP_DRIVER_G(persistent_prepared_statements)++;
-    zend_string_release(hash_key);
     /* Ownership of `future` transferred to the persistent_list entry. */
   } else {
     cass_future_free(future);
@@ -1007,8 +1005,7 @@ ZEND_METHOD(Cassandra_DefaultSession, schema) {
   object_init_ex(return_value, php_driver_default_schema_ce);
   schema = PHP_DRIVER_GET_SCHEMA(return_value);
 
-  schema->schema = php_driver_new_ref(
-      (void*)cass_session_get_schema_meta((CassSession*)self->session->data), free_schema);
+  schema->schema_meta = cass_session_get_schema_meta((CassSession*)self->session->data);
 }
 
 static zend_object_handlers php_driver_default_session_handlers;
@@ -1037,11 +1034,6 @@ static void php_driver_default_session_free(zend_object* object) {
     self->keyspace = NULL;
   }
 
-  if (self->hash_key) {
-    zend_string_release(self->hash_key);
-    self->hash_key = NULL;
-  }
-
   zend_object_std_dtor(&self->zendObject);
 }
 
@@ -1053,7 +1045,7 @@ static zend_object* php_driver_default_session_new(zend_class_entry* ce) {
   self->default_consistency = PHP_DRIVER_DEFAULT_CONSISTENCY;
   self->default_page_size = 5000;
   self->keyspace = NULL;
-  self->hash_key = NULL;
+  self->cache_key = 0;
   ZVAL_UNDEF(&self->default_timeout);
 
   zend_object_std_init(&self->zendObject, ce);

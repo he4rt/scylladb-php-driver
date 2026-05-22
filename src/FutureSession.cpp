@@ -61,9 +61,9 @@ ZEND_METHOD(Cassandra_FutureSession, get)
   session->persist = self->persist;
 
   if (php_driver_future_wait_timed(self->future, timeout) == FAILURE) {
-    if (self->persist && self->hash_key) {
+    if (self->persist && self->cache_key) {
       /* Remove timed-out pending session so the next request reconnects. */
-      if (zend_hash_del(&EG(persistent_list), self->hash_key) == SUCCESS) {
+      if (zend_hash_index_del(&EG(persistent_list), self->cache_key) == SUCCESS) {
         self->future = NULL;
       }
     }
@@ -81,7 +81,7 @@ ZEND_METHOD(Cassandra_FutureSession, get)
       self->exception_message = estrndup(message, message_len);
       self->exception_code    = rc;
 
-      if (zend_hash_del(&EG(persistent_list), self->hash_key) == SUCCESS) {
+      if (zend_hash_index_del(&EG(persistent_list), self->cache_key) == SUCCESS) {
         self->future = NULL;
       }
 
@@ -120,11 +120,6 @@ static void php_driver_future_session_free(zend_object *object)
 {
   php_driver_future_session *self = php_driver_future_session_object_fetch(object);
 
-  if (self->hash_key) {
-    zend_string_release(self->hash_key);
-    self->hash_key = nullptr;
-  }
-
   if (!self->persist && self->future) {
     cass_future_free(self->future);
   }
@@ -152,7 +147,7 @@ static zend_object *php_driver_future_session_new(zend_class_entry *ce)
   self->session           = nullptr;
   self->future            = nullptr;
   self->exception_message = nullptr;
-  self->hash_key          = nullptr;
+  self->cache_key         = 0;
   self->persist           = cass_false;
 
   ZVAL_UNDEF(&self->default_session);

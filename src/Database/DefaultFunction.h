@@ -21,5 +21,5 @@
 #include <php_driver_types.h>
 
 BEGIN_EXTERN_C()
-zval php_driver_create_function(php_driver_ref *schema, const CassFunctionMeta *meta );
+zval php_driver_create_function(zval *schema, const CassFunctionMeta *meta );
 END_EXTERN_C()

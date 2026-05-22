@@ -231,7 +231,7 @@ typedef struct php_driver_cluster_
     uint32_t default_page_size;
     zval default_timeout;
     cass_bool_t persist;
-    zend_string *hash_key;
+    zend_ulong cache_key;
     zend_object zendObject;
 } php_driver_cluster;
 static zend_always_inline php_driver_cluster *php_driver_cluster_object_fetch(zend_object *obj)
@@ -438,7 +438,7 @@ typedef struct php_driver_future_session_
     php_driver_ref *session;
     zval default_session;
     cass_bool_t persist;
-    zend_string *hash_key;
+    zend_ulong cache_key;
     char *exception_message;
     CassError exception_code;
     char *session_keyspace;
@@ -467,7 +467,7 @@ typedef struct php_driver_session_
     long default_consistency;
     int default_page_size;
     char *keyspace;
-    zend_string *hash_key;
+    zend_ulong cache_key;
     zval default_timeout;
     cass_bool_t persist;
     zend_object zendObject;
@@ -479,7 +479,7 @@ static zend_always_inline php_driver_session *php_driver_session_object_fetch(ze
 
 typedef struct php_driver_schema_
 {
-    php_driver_ref *schema;
+    const CassSchemaMeta *schema_meta;
     zend_object zendObject;
 } php_driver_schema;
 static zend_always_inline php_driver_schema *php_driver_schema_object_fetch(zend_object *obj)
@@ -489,7 +489,7 @@ static zend_always_inline php_driver_schema *php_driver_schema_object_fetch(zend
 
 typedef struct php_driver_keyspace_
 {
-    php_driver_ref *schema;
+    zval schema;
     const CassKeyspaceMeta *meta;
     zend_object zendObject;
 } php_driver_keyspace;
@@ -506,7 +506,7 @@ typedef struct php_driver_table_
     zval primary_key;
     zval clustering_key;
     zval clustering_order;
-    php_driver_ref *schema;
+    zval schema;
     const CassTableMeta *meta;
     zend_object zendObject;
 } php_driver_table;
@@ -524,7 +524,7 @@ typedef struct php_driver_materialized_view_
     zval clustering_key;
     zval clustering_order;
     zval base_table;
-    php_driver_ref *schema;
+    zval schema;
     const CassMaterializedViewMeta *meta;
     zend_object zendObject;
 } php_driver_materialized_view;
@@ -539,7 +539,7 @@ typedef struct php_driver_column_
     zval type;
     int reversed;
     int frozen;
-    php_driver_ref *schema;
+    zval schema;
     const CassColumnMeta *meta;
     zend_object zendObject;
 } php_driver_column;
@@ -554,7 +554,7 @@ typedef struct php_driver_index_
     zval kind;
     zval target;
     zval options;
-    php_driver_ref *schema;
+    zval schema;
     const CassIndexMeta *meta;
     zend_object zendObject;
 } php_driver_index;
@@ -571,7 +571,7 @@ typedef struct php_driver_function_
     zval signature;
     zval language;
     zval body;
-    php_driver_ref *schema;
+    zval schema;
     const CassFunctionMeta *meta;
     zend_object zendObject;
 } php_driver_function;
@@ -590,7 +590,7 @@ typedef struct php_driver_aggregate_
     zval state_type;
     zval return_type;
     zval signature;
-    php_driver_ref *schema;
+    zval schema;
     const CassAggregateMeta *meta;
     zend_object zendObject;
 } php_driver_aggregate;

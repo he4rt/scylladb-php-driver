@@ -26,7 +26,7 @@ BEGIN_EXTERN_C()
 zend_class_entry *php_driver_default_index_ce = NULL;
 
 zval
-php_driver_create_index(php_driver_ref *schema,
+php_driver_create_index(zval *schema,
                            const CassIndexMeta *meta )
 {
   zval result;
@@ -41,7 +41,7 @@ php_driver_create_index(php_driver_ref *schema,
 
   index = PHP_DRIVER_GET_INDEX(&result);
   index->meta   = meta;
-  index->schema = php_driver_add_ref(schema);
+  ZVAL_COPY(&index->schema, schema);
 
   cass_index_meta_name(meta, &name, &name_length);
 
@@ -263,9 +263,9 @@ php_driver_default_index_free(zend_object *object )
   zval_ptr_dtor(&self->target);
   zval_ptr_dtor(&self->options);
 
-  if (self->schema) {
-    php_driver_del_ref(&self->schema);
-    self->schema = NULL;
+  if (!Z_ISUNDEF(self->schema)) {
+    zval_ptr_dtor(&self->schema);
+    ZVAL_UNDEF(&self->schema);
   }
   self->meta = NULL;
 
@@ -284,7 +284,7 @@ php_driver_default_index_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->target);
   ZVAL_UNDEF(&self->options);
 
-  self->schema = NULL;
+  ZVAL_UNDEF(&self->schema);
   self->meta = NULL;
 
   zend_object_std_init(&self->zendObject, ce);
