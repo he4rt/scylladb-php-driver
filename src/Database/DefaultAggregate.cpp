@@ -242,7 +242,7 @@ php_driver_default_aggregate_compare(zval *obj1, zval *obj2 )
 static void
 php_driver_default_aggregate_free(zend_object *object )
 {
-  php_driver_aggregate *self = PHP5TO7_ZEND_OBJECT_GET(aggregate, object);
+  php_driver_aggregate *self = php_driver_aggregate_object_fetch(object);
 
   zval_ptr_dtor(&self->simple_name);
   zval_ptr_dtor(&self->argument_types);
@@ -267,7 +267,7 @@ static zend_object*
 php_driver_default_aggregate_new(zend_class_entry *ce )
 {
   php_driver_aggregate *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(aggregate, ce);
+      (php_driver_aggregate *)ecalloc(1, sizeof(php_driver_aggregate) + zend_object_properties_size(ce));
 
   ZVAL_UNDEF(&self->simple_name);
   ZVAL_UNDEF(&self->argument_types);
@@ -281,7 +281,11 @@ php_driver_default_aggregate_new(zend_class_entry *ce )
   self->schema = NULL;
   self->meta = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(aggregate, default_aggregate, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_default_aggregate_handlers.offset = XtOffsetOf(php_driver_aggregate, zendObject);
+  php_driver_default_aggregate_handlers.free_obj = php_driver_default_aggregate_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_aggregate_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_DefaultAggregate()

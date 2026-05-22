@@ -77,10 +77,9 @@ ZEND_METHOD(Cassandra_Type_Set, create)
   zval* args = NULL;
   int argc = 0, i;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "*",
-                            &args, &argc) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(0, -1)
+    Z_PARAM_VARIADIC('*', args, argc)
+  ZEND_PARSE_PARAMETERS_END();
 
   object_init_ex(return_value, php_driver_set_ce);
   set = PHP_DRIVER_GET_SET(return_value);
@@ -127,7 +126,7 @@ php_driver_type_set_properties(
 )
 {
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_type *self  = PHP5TO7_ZEND_OBJECT_GET(type, object);
+  php_driver_type *self  = php_driver_type_object_fetch(object);
 #else
   php_driver_type *self  = PHP_DRIVER_GET_TYPE(object);
 #endif
@@ -158,7 +157,7 @@ php_driver_type_set_compare(zval *obj1, zval *obj2 )
 static void
 php_driver_type_set_free(zend_object *object )
 {
-  php_driver_type *self = PHP5TO7_ZEND_OBJECT_GET(type, object);
+  php_driver_type *self = php_driver_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
   zval_ptr_dtor(&self->data.set.value_type);
@@ -171,13 +170,17 @@ static zend_object*
 php_driver_type_set_new(zend_class_entry *ce )
 {
   php_driver_type *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(type, ce);
+      (php_driver_type *)ecalloc(1, sizeof(php_driver_type) + zend_object_properties_size(ce));
 
   self->type = CASS_VALUE_TYPE_SET;
   self->data_type = cass_data_type_new(self->type);
   ZVAL_UNDEF(&self->data.set.value_type);
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(type, type_set, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_type_set_handlers.offset = XtOffsetOf(php_driver_type, zendObject);
+  php_driver_type_set_handlers.free_obj = php_driver_type_set_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_type_set_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_TypeSet()

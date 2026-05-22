@@ -131,10 +131,9 @@ ZEND_METHOD(Cassandra_DefaultMaterializedView, option)
   php_driver_materialized_view *self;
   zval* result;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s",
-                            &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MATERIALIZED_VIEW(getThis());
   if (Z_ISUNDEF(self->options)) {
@@ -375,9 +374,9 @@ ZEND_METHOD(Cassandra_DefaultMaterializedView, column)
   zval column;
   const CassColumnMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MATERIALIZED_VIEW(getThis());
   meta = cass_materialized_view_meta_column_by_name(self->meta, name);
@@ -579,7 +578,7 @@ php_driver_default_materialized_view_compare(zval *obj1, zval *obj2 )
 static void
 php_driver_default_materialized_view_free(zend_object *object )
 {
-  php_driver_materialized_view *self = PHP5TO7_ZEND_OBJECT_GET(materialized_view, object);
+  php_driver_materialized_view *self = php_driver_materialized_view_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->options);
@@ -603,7 +602,7 @@ static zend_object*
 php_driver_default_materialized_view_new(zend_class_entry *ce )
 {
   php_driver_materialized_view *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(materialized_view, ce);
+      (php_driver_materialized_view *)ecalloc(1, sizeof(php_driver_materialized_view) + zend_object_properties_size(ce));
 
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->options);
@@ -616,7 +615,11 @@ php_driver_default_materialized_view_new(zend_class_entry *ce )
   self->meta   = NULL;
   self->schema = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(materialized_view, default_materialized_view, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_default_materialized_view_handlers.offset = XtOffsetOf(php_driver_materialized_view, zendObject);
+  php_driver_default_materialized_view_handlers.free_obj = php_driver_default_materialized_view_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_materialized_view_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_DefaultMaterializedView()

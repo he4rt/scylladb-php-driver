@@ -77,9 +77,9 @@ ZEND_METHOD(Cassandra_Tuple, __construct)
   HashTable *types;
   zval *current;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "h", &types) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ARRAY_HT(types)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_TUPLE(getThis());
   self->type = php_driver_type_tuple();
@@ -139,13 +139,15 @@ ZEND_METHOD(Cassandra_Tuple, values)
 ZEND_METHOD(Cassandra_Tuple, set)
 {
   php_driver_tuple *self = NULL;
-  long index;
+  zend_long index;
   php_driver_type *type;
   zval *sub_type;
   zval *value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "lz", &index, &value) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(2, 2)
+    Z_PARAM_LONG(index)
+    Z_PARAM_ZVAL(value)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_TUPLE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -170,12 +172,13 @@ ZEND_METHOD(Cassandra_Tuple, set)
 ZEND_METHOD(Cassandra_Tuple, get)
 {
   php_driver_tuple *self = NULL;
-  long index;
+  zend_long index;
   php_driver_type *type;
   zval *value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "l", &index) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_LONG(index)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_TUPLE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -284,7 +287,7 @@ php_driver_tuple_properties(
   zval values;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_tuple  *self = PHP5TO7_ZEND_OBJECT_GET(tuple, object);
+  php_driver_tuple  *self = php_driver_tuple_object_fetch(object);
 #else
   php_driver_tuple  *self = PHP_DRIVER_GET_TUPLE(object);
 #endif
@@ -376,7 +379,7 @@ static void
 php_driver_tuple_free(zend_object *object )
 {
   php_driver_tuple *self =
-      PHP5TO7_ZEND_OBJECT_GET(tuple, object);
+      php_driver_tuple_object_fetch(object);
 
   zend_hash_destroy(&self->values);
   zval_ptr_dtor(&self->type);
@@ -389,7 +392,7 @@ static zend_object*
 php_driver_tuple_new(zend_class_entry *ce )
 {
   php_driver_tuple *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(tuple, ce);
+      (php_driver_tuple *)ecalloc(1, sizeof(php_driver_tuple) + zend_object_properties_size(ce));
 
   zend_hash_init(&self->values, 0, NULL, ZVAL_PTR_DTOR, 0);
 #if PHP_MAJOR_VERSION >= 7
@@ -400,7 +403,11 @@ php_driver_tuple_new(zend_class_entry *ce )
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  PHP5TO7_ZEND_OBJECT_INIT(tuple, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_tuple_handlers.std.offset = XtOffsetOf(php_driver_tuple, zendObject);
+  php_driver_tuple_handlers.std.free_obj = php_driver_tuple_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_tuple_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_Tuple()

@@ -2,6 +2,8 @@
 
 /** @generate-class-entries */
 
+declare(strict_types=1);
+
 namespace Cassandra\Cluster {
     /**
      * @strict-properties
@@ -59,7 +61,7 @@ namespace Cassandra\Cluster {
         {
         }
 
-        public function withCredentials(string $username, string $password): static
+        public function withCredentials(string $username, #[\SensitiveParameter] string $password): static
         {
         }
 

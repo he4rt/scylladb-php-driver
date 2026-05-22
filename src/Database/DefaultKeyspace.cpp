@@ -84,9 +84,9 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, table) {
   zval ztable;
   const CassTableMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_KEYSPACE(getThis());
   meta = cass_keyspace_meta_table_by_name_n(self->meta, name, name_len);
@@ -145,9 +145,9 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, userType) {
   zval ztype;
   const CassDataType *user_type;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_KEYSPACE(getThis());
   user_type = cass_keyspace_meta_user_type_by_name_n(self->meta, name, name_len);
@@ -193,9 +193,9 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, materializedView) {
   zval zview;
   const CassMaterializedViewMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_KEYSPACE(getThis());
   meta = cass_keyspace_meta_materialized_view_by_name_n(self->meta, name, name_len);
@@ -286,9 +286,11 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, function) {
   int argc = 0;
   const CassFunctionMeta *meta = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|*", &name, &name_len, &args, &argc) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, -1)
+    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_VARIADIC('*', args, argc)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_KEYSPACE(getThis());
 
@@ -374,9 +376,11 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, aggregate) {
   int argc = 0;
   const CassAggregateMeta *meta = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|*", &name, &name_len, &args, &argc) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, -1)
+    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_VARIADIC('*', args, argc)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_KEYSPACE(getThis());
 
@@ -465,7 +469,7 @@ static int php_driver_default_keyspace_compare(zval *obj1, zval *obj2) {
 }
 
 static void php_driver_default_keyspace_free(zend_object *object) {
-  php_driver_keyspace *self = PHP5TO7_ZEND_OBJECT_GET(keyspace, object);
+  php_driver_keyspace *self = php_driver_keyspace_object_fetch(object);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -478,12 +482,16 @@ static void php_driver_default_keyspace_free(zend_object *object) {
 }
 
 static zend_object* php_driver_default_keyspace_new(zend_class_entry *ce) {
-  php_driver_keyspace *self = PHP5TO7_ZEND_OBJECT_ECALLOC(keyspace, ce);
+  php_driver_keyspace *self = (php_driver_keyspace *)ecalloc(1, sizeof(php_driver_keyspace) + zend_object_properties_size(ce));
 
   self->meta = NULL;
   self->schema = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(keyspace, default_keyspace, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_default_keyspace_handlers.offset = XtOffsetOf(php_driver_keyspace, zendObject);
+  php_driver_default_keyspace_handlers.free_obj = php_driver_default_keyspace_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_keyspace_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_DefaultKeyspace() {

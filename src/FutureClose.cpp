@@ -62,7 +62,7 @@ static int php_driver_future_close_compare(zval *obj1, zval *obj2)
 
 static void php_driver_future_close_free(zend_object *object)
 {
-  php_driver_future_close *self = PHP5TO7_ZEND_OBJECT_GET(future_close, object);
+  php_driver_future_close *self = php_driver_future_close_object_fetch(object);
 
   if (self->future)
     cass_future_free(self->future);
@@ -72,11 +72,15 @@ static void php_driver_future_close_free(zend_object *object)
 
 static zend_object *php_driver_future_close_new(zend_class_entry *ce)
 {
-  php_driver_future_close *self = PHP5TO7_ZEND_OBJECT_ECALLOC(future_close, ce);
+  php_driver_future_close *self = (php_driver_future_close *)ecalloc(1, sizeof(php_driver_future_close) + zend_object_properties_size(ce));
 
   self->future = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT(future_close, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_future_close_handlers.offset = XtOffsetOf(php_driver_future_close, zendObject);
+  php_driver_future_close_handlers.free_obj = php_driver_future_close_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_future_close_handlers;
+  return &self->zendObject;
 }
 
 END_EXTERN_C()

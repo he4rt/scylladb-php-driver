@@ -101,7 +101,11 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
       return;
     }
 
-    const CassError rc = cass_ssl_set_cert_n(ssl->ssl, ZSTR_VAL(str), ZSTR_LEN(str));
+    const char *passphrase = builder->passphrase ? ZSTR_VAL(builder->passphrase) : "";
+    const size_t passphrase_len = builder->passphrase ? ZSTR_LEN(builder->passphrase) : 0;
+
+    const CassError rc = cass_ssl_set_private_key_n(ssl->ssl, ZSTR_VAL(str), ZSTR_LEN(str),
+                                                    passphrase, passphrase_len);
     zend_string_release(str);
     if (rc != CASS_OK) {
       zend_throw_exception_ex(exception_class(rc), rc, "%s", cass_error_desc(rc));

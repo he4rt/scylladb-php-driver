@@ -29,9 +29,9 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspace)
   php_driver_keyspace *keyspace;
   const CassKeyspaceMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SCHEMA(getThis());
   meta = cass_schema_meta_keyspace_by_name_n((CassSchemaMeta *) self->schema->data, name, name_len);
@@ -126,7 +126,7 @@ php_driver_default_schema_compare(zval *obj1, zval *obj2 )
 static void
 php_driver_default_schema_free(zend_object *object )
 {
-  php_driver_schema *self = PHP5TO7_ZEND_OBJECT_GET(schema, object);
+  php_driver_schema *self = php_driver_schema_object_fetch(object);
 
   if (self->schema) {
     php_driver_del_ref(&self->schema);
@@ -141,11 +141,15 @@ static zend_object*
 php_driver_default_schema_new(zend_class_entry *ce )
 {
   php_driver_schema *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(schema, ce);
+      (php_driver_schema *)ecalloc(1, sizeof(php_driver_schema) + zend_object_properties_size(ce));
 
   self->schema = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(schema, default_schema, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_default_schema_handlers.offset = XtOffsetOf(php_driver_schema, zendObject);
+  php_driver_default_schema_handlers.free_obj = php_driver_default_schema_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_schema_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_DefaultSchema()

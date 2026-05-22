@@ -2,6 +2,8 @@
 
 /** @generate-class-entries */
 
+declare(strict_types=1);
+
 namespace Cassandra {
     interface Session {
         public function execute(string|Statement $statement, array|ExecutionOptions|null $options = null): Rows;

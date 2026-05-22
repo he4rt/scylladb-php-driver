@@ -29,11 +29,13 @@ static void php_driver_default_cluster_free(zend_object *object)
 {
     php_driver_cluster *self = php_driver_cluster_object_fetch(object);
 
-    if (self->persist)
+    if (self->hash_key)
     {
-        efree(self->hash_key);
+        zend_string_release(self->hash_key);
+        self->hash_key = nullptr;
     }
-    else if (self->cluster)
+
+    if (!self->persist && self->cluster)
     {
         cass_cluster_free(self->cluster);
     }

@@ -73,9 +73,9 @@ ZEND_METHOD(Cassandra_UserTypeValue, __construct)
   int index = 0;
   zval *current;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "h", &types) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ARRAY_HT(types)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   self->type = php_driver_type_user_type();
@@ -150,10 +150,10 @@ ZEND_METHOD(Cassandra_UserTypeValue, set)
   size_t name_length;
   zval *value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "sz",
-                            &name, &name_length,
-                            &value) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(2, 2)
+    Z_PARAM_STRING(name, name_length)
+    Z_PARAM_ZVAL(value)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -183,9 +183,9 @@ ZEND_METHOD(Cassandra_UserTypeValue, get)
   size_t name_length;
   zval *value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s",
-                            &name, &name_length) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_length)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_USER_TYPE_VALUE(getThis());
   type = PHP_DRIVER_GET_TYPE(&self->type);
@@ -305,7 +305,7 @@ php_driver_user_type_value_properties(
   zval values;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_user_type_value *self = PHP5TO7_ZEND_OBJECT_GET(user_type_value, object);
+  php_driver_user_type_value *self = php_driver_user_type_value_object_fetch(object);
 #else
   php_driver_user_type_value *self = PHP_DRIVER_GET_USER_TYPE_VALUE(object);
 #endif
@@ -397,7 +397,7 @@ static void
 php_driver_user_type_value_free(zend_object *object )
 {
   php_driver_user_type_value *self =
-      PHP5TO7_ZEND_OBJECT_GET(user_type_value, object);
+      php_driver_user_type_value_object_fetch(object);
 
   zend_hash_destroy(&self->values);
   zval_ptr_dtor(&self->type);
@@ -410,7 +410,7 @@ static zend_object*
 php_driver_user_type_value_new(zend_class_entry *ce )
 {
   php_driver_user_type_value *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(user_type_value, ce);
+      (php_driver_user_type_value *)ecalloc(1, sizeof(php_driver_user_type_value) + zend_object_properties_size(ce));
 
   zend_hash_init(&self->values, 0, NULL, ZVAL_PTR_DTOR, 0);
 #if PHP_MAJOR_VERSION >= 7
@@ -421,7 +421,11 @@ php_driver_user_type_value_new(zend_class_entry *ce )
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  PHP5TO7_ZEND_OBJECT_INIT(user_type_value, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_user_type_value_handlers.std.offset = XtOffsetOf(php_driver_user_type_value, zendObject);
+  php_driver_user_type_value_handlers.std.free_obj = php_driver_user_type_value_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_user_type_value_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_UserTypeValue()

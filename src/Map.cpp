@@ -177,8 +177,10 @@ PHP_METHOD(Cassandra_Map, __construct)
   ZVAL_UNDEF(&scalar_key_type);
   ZVAL_UNDEF(&scalar_value_type);
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "zz", &key_type, &value_type) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(2, 2)
+    Z_PARAM_ZVAL(key_type)
+    Z_PARAM_ZVAL(value_type)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -255,8 +257,10 @@ PHP_METHOD(Cassandra_Map, set)
   php_driver_map *self = NULL;
   zval *value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "zz", &key, &value) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(2, 2)
+    Z_PARAM_ZVAL(key)
+    Z_PARAM_ZVAL(value)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -272,8 +276,9 @@ PHP_METHOD(Cassandra_Map, get)
   php_driver_map *self = NULL;
   zval value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &key) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(key)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -286,8 +291,9 @@ PHP_METHOD(Cassandra_Map, remove)
   zval *key;
   php_driver_map *self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &key) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(key)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -302,8 +308,9 @@ PHP_METHOD(Cassandra_Map, has)
   zval *key;
   php_driver_map *self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &key) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(key)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -359,8 +366,10 @@ PHP_METHOD(Cassandra_Map, offsetSet)
   php_driver_map *self = NULL;
   zval *value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "zz", &key, &value) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(2, 2)
+    Z_PARAM_ZVAL(key)
+    Z_PARAM_ZVAL(value)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -373,8 +382,9 @@ PHP_METHOD(Cassandra_Map, offsetGet)
   php_driver_map *self = NULL;
   zval value;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &key) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(key)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -387,8 +397,9 @@ PHP_METHOD(Cassandra_Map, offsetUnset)
   zval *key;
   php_driver_map *self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &key) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(key)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -400,8 +411,9 @@ PHP_METHOD(Cassandra_Map, offsetExists)
   zval *key;
   php_driver_map *self = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &key) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(key)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_MAP(getThis());
 
@@ -440,7 +452,7 @@ php_driver_map_properties(
   zval values;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_map *self = PHP5TO7_ZEND_OBJECT_GET(map, object);
+  php_driver_map *self = php_driver_map_object_fetch(object);
 #else
   php_driver_map *self = PHP_DRIVER_GET_MAP(object);
 #endif
@@ -536,7 +548,7 @@ php_driver_map_hash_value(zval *obj )
 static void
 php_driver_map_free(zend_object *object )
 {
-  php_driver_map *self = PHP5TO7_ZEND_OBJECT_GET(map, object);
+  php_driver_map *self = php_driver_map_object_fetch(object);
   php_driver_map_entry *curr, *temp;
 
   HASH_ITER(hh, self->entries, curr, temp) {
@@ -556,13 +568,17 @@ static zend_object*
 php_driver_map_new(zend_class_entry *ce )
 {
   php_driver_map *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(map, ce);
+      (php_driver_map *)ecalloc(1, sizeof(php_driver_map) + zend_object_properties_size(ce));
 
   self->entries = self->iter_curr = self->iter_temp = NULL;
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  PHP5TO7_ZEND_OBJECT_INIT(map, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_map_handlers.std.offset = XtOffsetOf(php_driver_map, zendObject);
+  php_driver_map_handlers.std.free_obj = php_driver_map_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_map_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_Map()

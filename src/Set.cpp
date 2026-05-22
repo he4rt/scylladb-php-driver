@@ -123,8 +123,9 @@ PHP_METHOD(Cassandra_Set, __construct)
   php_driver_set* self;
   zval* type;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &type) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(type)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SET(getThis());
 
@@ -169,8 +170,9 @@ PHP_METHOD(Cassandra_Set, add)
   php_driver_set* self = NULL;
 
   zval* object;
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &object) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(object)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SET(getThis());
 
@@ -187,8 +189,9 @@ PHP_METHOD(Cassandra_Set, remove)
   php_driver_set* self = NULL;
 
   zval* object;
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &object) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(object)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SET(getThis());
 
@@ -205,8 +208,9 @@ PHP_METHOD(Cassandra_Set, has)
   php_driver_set* self = NULL;
 
   zval* object;
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "z", &object) == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ZVAL(object)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SET(getThis());
 
@@ -298,7 +302,7 @@ php_driver_set_properties(
   zval values;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_driver_set* self = PHP5TO7_ZEND_OBJECT_GET(set, object);
+  php_driver_set* self = php_driver_set_object_fetch(object);
 #else
   php_driver_set* self                        = PHP_DRIVER_GET_SET(object);
 #endif
@@ -386,7 +390,7 @@ php_driver_set_hash_value(zval* obj )
 static void
 php_driver_set_free(zend_object* object )
 {
-  php_driver_set* self = PHP5TO7_ZEND_OBJECT_GET(set, object);
+  php_driver_set* self = php_driver_set_object_fetch(object);
   php_driver_set_entry *curr, *temp;
 
   HASH_ITER(hh, self->entries, curr, temp)
@@ -406,14 +410,18 @@ static zend_object*
 php_driver_set_new(zend_class_entry* ce )
 {
   php_driver_set* self =
-    PHP5TO7_ZEND_OBJECT_ECALLOC(set, ce);
+    (php_driver_set *)ecalloc(1, sizeof(php_driver_set) + zend_object_properties_size(ce));
 
   self->entries = self->iter_curr = self->iter_temp = NULL;
   self->iter_index                                  = 0;
   self->dirty                                       = 1;
   ZVAL_UNDEF(&self->type);
 
-  PHP5TO7_ZEND_OBJECT_INIT(set, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_set_handlers.std.offset = XtOffsetOf(php_driver_set, zendObject);
+  php_driver_set_handlers.std.free_obj = php_driver_set_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_set_handlers;
+  return &self->zendObject;
 }
 
 void

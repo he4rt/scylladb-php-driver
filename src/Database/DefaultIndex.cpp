@@ -144,10 +144,9 @@ ZEND_METHOD(Cassandra_DefaultIndex, option)
   php_driver_index *self;
   zval* result;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s",
-                            &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_INDEX(getThis());
   if (Z_ISUNDEF(self->options)) {
@@ -257,7 +256,7 @@ php_driver_default_index_compare(zval *obj1, zval *obj2 )
 static void
 php_driver_default_index_free(zend_object *object )
 {
-  php_driver_index *self = PHP5TO7_ZEND_OBJECT_GET(index, object);
+  php_driver_index *self = php_driver_index_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->kind);
@@ -278,7 +277,7 @@ static zend_object*
 php_driver_default_index_new(zend_class_entry *ce )
 {
   php_driver_index *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(index, ce);
+      (php_driver_index *)ecalloc(1, sizeof(php_driver_index) + zend_object_properties_size(ce));
 
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->kind);
@@ -288,7 +287,11 @@ php_driver_default_index_new(zend_class_entry *ce )
   self->schema = NULL;
   self->meta = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(index, default_index, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_default_index_handlers.offset = XtOffsetOf(php_driver_index, zendObject);
+  php_driver_default_index_handlers.free_obj = php_driver_default_index_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_index_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_DefaultIndex()

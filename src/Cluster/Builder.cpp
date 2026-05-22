@@ -127,8 +127,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
     if (self->persist)
     {
-        cluster->hash_key_len = spprintf(
-            &cluster->hash_key, 0,
+        cluster->hash_key = zend_strpprintf(0,
             PHP_DRIVER_NAME ":%s:%d:%d:%s:%d:%d:%d:%s:%s:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%s:%s:%s:%s",
             ZSTR_VAL(self->contact_points), self->port, self->load_balancing_policy, SAFE_ZEND_STRING(self->local_dc),
             self->used_hosts_per_remote_dc, self->allow_remote_dcs_for_local_cl, self->use_token_aware_routing,
@@ -143,7 +142,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
         zval *le;
 
-        if ((le = zend_hash_str_find(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len)) != NULL &&
+        if ((le = zend_hash_find(&EG(persistent_list), cluster->hash_key)) != NULL &&
             Z_TYPE_P(le) == IS_RESOURCE &&
             Z_RES_P(le)->type == php_le_php_driver_cluster())
         {
@@ -257,7 +256,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
 
         ZVAL_NEW_PERSISTENT_RES(&resource, 0, cluster->cluster, php_le_php_driver_cluster());
 
-        (void)zend_hash_str_update(&EG(persistent_list), cluster->hash_key, cluster->hash_key_len, &resource);
+        (void)zend_hash_update(&EG(persistent_list), cluster->hash_key, &resource);
         PHP_DRIVER_G(persistent_clusters)++;
     }
 }

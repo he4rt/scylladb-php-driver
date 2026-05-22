@@ -112,9 +112,11 @@ php_driver_duration_init(INTERNAL_FUNCTION_PARAMETERS)
   cass_int64_t param;
   php_driver_duration *self = nullptr;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "zzz", &months, &days, &nanos) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(3, 3)
+    Z_PARAM_ZVAL(months)
+    Z_PARAM_ZVAL(days)
+    Z_PARAM_ZVAL(nanos)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_DURATION(getThis());
 

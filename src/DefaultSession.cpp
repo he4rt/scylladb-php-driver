@@ -413,6 +413,11 @@ static CassStatement* create_statement(php_driver_statement* statement, HashTabl
 static CassBatch* create_batch(php_driver_statement* batch, CassConsistency consistency,
                                CassRetryPolicy* retry_policy, cass_int64_t timestamp) {
   CassBatch* cass_batch = cass_batch_new(batch->data.batch.type);
+  if (cass_batch == NULL) {
+    zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
+                            "Failed to allocate a CassBatch");
+    return NULL;
+  }
   CassError rc = CASS_OK;
 
   zval* current;
@@ -528,9 +533,11 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   CassStatement* single = NULL;
   CassBatch* batch = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &statement, &options) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 2)
+    Z_PARAM_ZVAL(statement)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_ZVAL(options)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SESSION(getThis());
 
@@ -674,9 +681,11 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   CassStatement* single = NULL;
   CassBatch* batch = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &statement, &options) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 2)
+    Z_PARAM_ZVAL(statement)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_ZVAL(options)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SESSION(getThis());
 
@@ -765,8 +774,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
 ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   zval* cql = NULL;
   zval* options = NULL;
-  char* hash_key = NULL;
-  size_t hash_key_len = 0;
+  zend_string* hash_key = NULL;
   php_driver_session* self = NULL;
   php_driver_execution_options* opts = NULL;
   php_driver_execution_options local_opts;
@@ -775,9 +783,11 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   php_driver_statement* prepared_statement = NULL;
   php_driver_pprepared_statement* pprepared_statement = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &cql, &options) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 2)
+    Z_PARAM_ZVAL(cql)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_ZVAL(options)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SESSION(getThis());
 
@@ -803,10 +813,10 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   if (self->persist) {
     zval* le;
 
-    hash_key_len = spprintf(&hash_key, 0, "%s%s:prepared_statement:%s",
-                            self->hash_key, Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
+    hash_key = zend_strpprintf(0, "%s%s:prepared_statement:%s",
+                               ZSTR_VAL(self->hash_key), Z_STRVAL_P(cql), SAFE_STR(self->keyspace));
 
-    if ((le = zend_hash_str_find(&EG(persistent_list), hash_key, hash_key_len)) != NULL &&
+    if ((le = zend_hash_find(&EG(persistent_list), hash_key)) != NULL &&
         Z_RES_P(le)->type == php_le_php_driver_prepared_statement()) {
       pprepared_statement = (php_driver_pprepared_statement*)Z_RES_P(le)->ptr;
 
@@ -820,13 +830,13 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
           object_init_ex(return_value, php_driver_prepared_statement_ce);
           prepared_statement = PHP_DRIVER_GET_STATEMENT(return_value);
           prepared_statement->data.prepared.prepared = cached;
-          efree(hash_key);
+          zend_string_release(hash_key);
           return;
         }
       }
 
       /* Cached future is bad - drop the entry and re-prepare below. */
-      (void)zend_hash_str_del(&EG(persistent_list), hash_key, hash_key_len);
+      (void)zend_hash_del(&EG(persistent_list), hash_key);
     }
   }
 
@@ -834,7 +844,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
       cass_session_prepare_n((CassSession*)self->session->data, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
   if (future == NULL) {
-    if (hash_key) efree(hash_key);
+    if (hash_key) zend_string_release(hash_key);
     zend_throw_exception_ex(php_driver_runtime_exception_ce, 0,
                             "Failed to allocate a prepare future");
     return;
@@ -842,13 +852,13 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
 
   if (php_driver_future_wait_timed(future, timeout) == FAILURE) {
     cass_future_free(future);
-    if (hash_key) efree(hash_key);
+    if (hash_key) zend_string_release(hash_key);
     return;
   }
 
   if (php_driver_future_is_error(future) == FAILURE) {
     cass_future_free(future);
-    if (hash_key) efree(hash_key);
+    if (hash_key) zend_string_release(hash_key);
     return;
   }
 
@@ -865,9 +875,9 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
 
     ZVAL_NEW_PERSISTENT_RES(&resource, 0, pprepared_statement,
                             php_le_php_driver_prepared_statement());
-    (void)zend_hash_str_update(&EG(persistent_list), hash_key, hash_key_len, &resource);
+    (void)zend_hash_update(&EG(persistent_list), hash_key, &resource);
     PHP_DRIVER_G(persistent_prepared_statements)++;
-    efree(hash_key);
+    zend_string_release(hash_key);
     /* Ownership of `future` transferred to the persistent_list entry. */
   } else {
     cass_future_free(future);
@@ -881,9 +891,11 @@ ZEND_METHOD(Cassandra_DefaultSession, prepareAsync) {
   CassFuture* future = NULL;
   php_driver_future_prepared_statement* future_prepared = NULL;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &cql, &options) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 2)
+    Z_PARAM_ZVAL(cql)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_ZVAL(options)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SESSION(getThis());
 
@@ -901,9 +913,10 @@ ZEND_METHOD(Cassandra_DefaultSession, close) {
   CassFuture* future = NULL;
   php_driver_session* self;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z", &timeout) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(0, 1)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_ZVAL(timeout)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_SESSION(getThis());
 
@@ -1014,7 +1027,7 @@ static int php_driver_default_session_compare(zval* obj1, zval* obj2) {
 }
 
 static void php_driver_default_session_free(zend_object* object) {
-  php_driver_session* self = PHP5TO7_ZEND_OBJECT_GET(session, object);
+  php_driver_session* self = php_driver_session_object_fetch(object);
 
   php_driver_del_peref(&self->session, 1);
   zval_ptr_dtor(&self->default_timeout);
@@ -1024,11 +1037,16 @@ static void php_driver_default_session_free(zend_object* object) {
     self->keyspace = NULL;
   }
 
+  if (self->hash_key) {
+    zend_string_release(self->hash_key);
+    self->hash_key = NULL;
+  }
+
   zend_object_std_dtor(&self->zendObject);
 }
 
 static zend_object* php_driver_default_session_new(zend_class_entry* ce) {
-  php_driver_session* self = PHP5TO7_ZEND_OBJECT_ECALLOC(session, ce);
+  php_driver_session* self = (php_driver_session *)ecalloc(1, sizeof(php_driver_session) + zend_object_properties_size(ce));
 
   self->session = NULL;
   self->persist = cass_false;
@@ -1038,7 +1056,11 @@ static zend_object* php_driver_default_session_new(zend_class_entry* ce) {
   self->hash_key = NULL;
   ZVAL_UNDEF(&self->default_timeout);
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(session, default_session, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_default_session_handlers.offset = XtOffsetOf(php_driver_session, zendObject);
+  php_driver_default_session_handlers.free_obj = php_driver_default_session_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_session_handlers;
+  return &self->zendObject;
 }
 
 END_EXTERN_C()

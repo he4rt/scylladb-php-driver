@@ -131,10 +131,9 @@ ZEND_METHOD(Cassandra_DefaultTable, option)
   php_driver_table *self;
   zval* result;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s",
-                            &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_TABLE(getThis());
   if (Z_ISUNDEF(self->options)) {
@@ -375,9 +374,9 @@ ZEND_METHOD(Cassandra_DefaultTable, column)
   zval column;
   const CassColumnMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_TABLE(getThis());
   meta = cass_table_meta_column_by_name(self->meta, name);
@@ -520,9 +519,9 @@ ZEND_METHOD(Cassandra_DefaultTable, index)
   zval index;
   const CassIndexMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_TABLE(getThis());
   meta = cass_table_meta_index_by_name(self->meta, name);
@@ -579,9 +578,9 @@ ZEND_METHOD(Cassandra_DefaultTable, materializedView)
   zval zview;
   const CassMaterializedViewMeta *meta;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() , "s", &name, &name_len) == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_STRING(name, name_len)
+  ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_DRIVER_GET_TABLE(getThis());
   meta = cass_table_meta_materialized_view_by_name_n(self->meta,
@@ -678,7 +677,7 @@ php_driver_default_table_compare(zval *obj1, zval *obj2 )
 static void
 php_driver_default_table_free(zend_object *object )
 {
-  php_driver_table *self = PHP5TO7_ZEND_OBJECT_GET(table, object);
+  php_driver_table *self = php_driver_table_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->options);
@@ -701,7 +700,7 @@ static zend_object*
 php_driver_default_table_new(zend_class_entry *ce )
 {
   php_driver_table *self =
-      PHP5TO7_ZEND_OBJECT_ECALLOC(table, ce);
+      (php_driver_table *)ecalloc(1, sizeof(php_driver_table) + zend_object_properties_size(ce));
 
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->options);
@@ -713,7 +712,11 @@ php_driver_default_table_new(zend_class_entry *ce )
   self->meta   = NULL;
   self->schema = NULL;
 
-  PHP5TO7_ZEND_OBJECT_INIT_EX(table, default_table, self, ce);
+  zend_object_std_init(&self->zendObject, ce);
+  php_driver_default_table_handlers.offset = XtOffsetOf(php_driver_table, zendObject);
+  php_driver_default_table_handlers.free_obj = php_driver_default_table_free;
+  self->zendObject.handlers = (zend_object_handlers *)&php_driver_default_table_handlers;
+  return &self->zendObject;
 }
 
 void php_driver_define_DefaultTable()
