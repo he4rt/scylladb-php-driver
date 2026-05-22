@@ -497,9 +497,8 @@ zend_class_entry      *$ceVar       = nullptr;
 $handlersType   $handlersVar;
 
 $weakDecls
-static zend_class_entry *$registerFn(zend_class_entry *const *deps)
+static zend_class_entry *$registerFn([[maybe_unused]] zend_class_entry *const *deps)
 {
-  (void)deps;
 $registerCall
 $createObjWire
 $handlerWiring

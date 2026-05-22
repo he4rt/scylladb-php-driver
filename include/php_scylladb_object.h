@@ -9,6 +9,9 @@
  *
  * PHP_SCYLLADB_OBJ_FETCH(T, obj):
  *   Recover a pointer to the user struct from the embedded zend_object*.
+ *   Requires T to have a field named `zendObject` of type zend_object.
+ *   Compile-time-checked via static_assert below — if T lacks zendObject,
+ *   you get a clean diagnostic from XtOffsetOf instead of a runtime crash.
  *
  * PHP_SCYLLADB_OBJ_ALLOCATE(T, ce, handlers):
  *   Allocate a user struct (size = sizeof(T), offset = XtOffsetOf(T, zendObject)),
@@ -21,7 +24,7 @@
 #define PHP_SCYLLADB_OBJ_FETCH(T, obj) \
     ((T *)((char *)(obj) - XtOffsetOf(T, zendObject)))
 
-static zend_always_inline void *php_scylladb_obj_allocate(
+[[nodiscard]] static zend_always_inline void *php_scylladb_obj_allocate(
     size_t size, size_t obj_offset, zend_class_entry *ce, void *handlers)
 {
     void *self = emalloc(size + zend_object_properties_size(ce));

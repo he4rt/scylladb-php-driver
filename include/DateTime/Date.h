@@ -24,20 +24,20 @@ typedef struct {
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_date_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_time_ce;
 
-PHP_SCYLLADB_API php_scylladb_date *php_scylladb_date_instantiate(zval *object);
-PHP_SCYLLADB_API zend_result php_scylladb_date_initialize(php_scylladb_date *object,
-                                                          zend_string *secondsStr,
-                                                          zend_long seconds);
+[[nodiscard]] PHP_SCYLLADB_API php_scylladb_date *php_scylladb_date_instantiate(zval *object);
+[[nodiscard]] PHP_SCYLLADB_API zend_result php_scylladb_date_initialize(php_scylladb_date *object,
+                                                                        zend_string *secondsStr,
+                                                                        zend_long seconds);
 
-PHP_SCYLLADB_API php_scylladb_time *php_scylladb_time_instantiate(zval *object);
-PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *object,
-                                                          zend_string *nanosecondsStr,
-                                                          zend_long nanoseconds);
+[[nodiscard]] PHP_SCYLLADB_API php_scylladb_time *php_scylladb_time_instantiate(zval *object);
+[[nodiscard]] PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *object,
+                                                                        zend_string *nanosecondsStr,
+                                                                        zend_long nanoseconds);
 
-PHP_SCYLLADB_API php_scylladb_timestamp *php_scylladb_timestamp_instantiate(zval *object);
-PHP_SCYLLADB_API zend_result php_scylladb_timestamp_initialize(php_scylladb_timestamp *object,
-                                                               cass_int64_t seconds,
-                                                               cass_int64_t microseconds);
+[[nodiscard]] PHP_SCYLLADB_API php_scylladb_timestamp *php_scylladb_timestamp_instantiate(zval *object);
+[[nodiscard]] PHP_SCYLLADB_API zend_result php_scylladb_timestamp_initialize(php_scylladb_timestamp *object,
+                                                                             cass_int64_t seconds,
+                                                                             cass_int64_t microseconds);
 
 static zend_always_inline php_scylladb_date *php_scylladb_date_from_obj(zend_object *obj) {
   return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, obj);
