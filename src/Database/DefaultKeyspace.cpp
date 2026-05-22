@@ -94,7 +94,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, table) {
     RETURN_FALSE;
   }
 
-  ztable = php_driver_create_table(self->schema, meta);
+  ztable = php_driver_create_table(&self->schema, meta);
   if (Z_ISUNDEF(ztable)) {
     return;
   }
@@ -118,7 +118,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, tables) {
     php_driver_table *table;
 
     meta = cass_iterator_get_table_meta(iterator);
-    ztable = php_driver_create_table(self->schema, meta);
+    ztable = php_driver_create_table(&self->schema, meta);
 
     if (Z_ISUNDEF(ztable)) {
       zval_ptr_dtor(return_value);
@@ -203,7 +203,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, materializedView) {
     RETURN_FALSE;
   }
 
-  zview = php_driver_create_materialized_view(self->schema, meta);
+  zview = php_driver_create_materialized_view(&self->schema, meta);
   if (Z_ISUNDEF(zview)) {
     return;
   }
@@ -227,7 +227,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, materializedViews) {
     php_driver_materialized_view *view;
 
     meta = cass_iterator_get_materialized_view_meta(iterator);
-    zview = php_driver_create_materialized_view(self->schema, meta);
+    zview = php_driver_create_materialized_view(&self->schema, meta);
 
     if (Z_ISUNDEF(zview)) {
       zval_ptr_dtor(return_value);
@@ -305,7 +305,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, function) {
                                                (arguments.s ? arguments.s->val : NULL),
                                                (arguments.s ? arguments.s->len : 0));
   if (meta) {
-    zval zfunction = php_driver_create_function(self->schema, meta);
+    zval zfunction = php_driver_create_function(&self->schema, meta);
     RETVAL_ZVAL(&zfunction, 1, 1);
   } else {
     RETVAL_FALSE;
@@ -327,7 +327,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, functions) {
   array_init(return_value);
   while (cass_iterator_next(iterator)) {
     const CassFunctionMeta *meta = cass_iterator_get_function_meta(iterator);
-    zval zfunction = php_driver_create_function(self->schema, meta);
+    zval zfunction = php_driver_create_function(&self->schema, meta);
 
     if (!Z_ISUNDEF(zfunction)) {
       php_driver_function *function = PHP_DRIVER_GET_FUNCTION(&zfunction);
@@ -343,7 +343,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, functions) {
   cass_iterator_free(iterator);
 }
 
-static zval php_driver_create_aggregate(php_driver_ref *schema,
+static zval php_driver_create_aggregate(zval *schema,
                                                 const CassAggregateMeta *meta) {
   zval result;
   php_driver_aggregate *aggregate;
@@ -356,7 +356,7 @@ static zval php_driver_create_aggregate(php_driver_ref *schema,
   object_init_ex(&result, php_driver_default_aggregate_ce);
 
   aggregate = PHP_DRIVER_GET_AGGREGATE(&result);
-  aggregate->schema = php_driver_add_ref(schema);
+  ZVAL_COPY(&aggregate->schema, schema);
   aggregate->meta = meta;
 
   cass_aggregate_meta_full_name(aggregate->meta, &full_name, &full_name_length);
@@ -395,7 +395,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, aggregate) {
                                                 (arguments.s ? arguments.s->val : NULL),
                                                 (arguments.s ? arguments.s->len : 0));
   if (meta) {
-    zval zaggregate = php_driver_create_aggregate(self->schema, meta);
+    zval zaggregate = php_driver_create_aggregate(&self->schema, meta);
     RETVAL_ZVAL(&zaggregate, 1, 1);
   } else {
     RETVAL_FALSE;
@@ -417,7 +417,7 @@ ZEND_METHOD(Cassandra_DefaultKeyspace, aggregates) {
   array_init(return_value);
   while (cass_iterator_next(iterator)) {
     const CassAggregateMeta *meta = cass_iterator_get_aggregate_meta(iterator);
-    zval zaggregate = php_driver_create_aggregate(self->schema, meta);
+    zval zaggregate = php_driver_create_aggregate(&self->schema, meta);
 
     if (!Z_ISUNDEF(zaggregate)) {
       php_driver_aggregate *aggregate = PHP_DRIVER_GET_AGGREGATE(&zaggregate);
@@ -471,9 +471,9 @@ static int php_driver_default_keyspace_compare(zval *obj1, zval *obj2) {
 static void php_driver_default_keyspace_free(zend_object *object) {
   php_driver_keyspace *self = php_driver_keyspace_object_fetch(object);
 
-  if (self->schema) {
-    php_driver_del_ref(&self->schema);
-    self->schema = NULL;
+  if (!Z_ISUNDEF(self->schema)) {
+    zval_ptr_dtor(&self->schema);
+    ZVAL_UNDEF(&self->schema);
   }
   self->meta = NULL;
 
@@ -485,7 +485,7 @@ static zend_object* php_driver_default_keyspace_new(zend_class_entry *ce) {
   php_driver_keyspace *self = (php_driver_keyspace *)ecalloc(1, sizeof(php_driver_keyspace) + zend_object_properties_size(ce));
 
   self->meta = NULL;
-  self->schema = NULL;
+  ZVAL_UNDEF(&self->schema);
 
   zend_object_std_init(&self->zendObject, ce);
   php_driver_default_keyspace_handlers.offset = XtOffsetOf(php_driver_keyspace, zendObject);

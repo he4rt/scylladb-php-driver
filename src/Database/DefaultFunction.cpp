@@ -26,7 +26,7 @@ BEGIN_EXTERN_C()
 zend_class_entry *php_driver_default_function_ce = NULL;
 
 zval
-php_driver_create_function(php_driver_ref* schema,
+php_driver_create_function(zval *schema,
                               const CassFunctionMeta *meta )
 {
   zval result;
@@ -40,7 +40,7 @@ php_driver_create_function(php_driver_ref* schema,
   object_init_ex(&result, php_driver_default_function_ce);
 
   function = PHP_DRIVER_GET_FUNCTION(&result);
-  function->schema = php_driver_add_ref(schema);
+  ZVAL_COPY(&function->schema, schema);
   function->meta   = meta;
 
   cass_function_meta_full_name(function->meta, &full_name, &full_name_length);
@@ -243,9 +243,9 @@ php_driver_default_function_free(zend_object *object )
   zval_ptr_dtor(&self->language);
   zval_ptr_dtor(&self->body);
 
-  if (self->schema) {
-    php_driver_del_ref(&self->schema);
-    self->schema = NULL;
+  if (!Z_ISUNDEF(self->schema)) {
+    zval_ptr_dtor(&self->schema);
+    ZVAL_UNDEF(&self->schema);
   }
   self->meta = NULL;
 
@@ -266,7 +266,7 @@ php_driver_default_function_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->language);
   ZVAL_UNDEF(&self->body);
 
-  self->schema = NULL;
+  ZVAL_UNDEF(&self->schema);
   self->meta = NULL;
 
   zend_object_std_init(&self->zendObject, ce);

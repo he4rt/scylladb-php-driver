@@ -26,7 +26,7 @@ BEGIN_EXTERN_C()
 zend_class_entry *php_driver_default_column_ce = NULL;
 
 zval
-php_driver_create_column(php_driver_ref *schema,
+php_driver_create_column(zval *schema,
                          const CassColumnMeta *meta )
 {
   zval result;
@@ -41,7 +41,7 @@ php_driver_create_column(php_driver_ref *schema,
   object_init_ex(&result, php_driver_default_column_ce);
 
   column = PHP_DRIVER_GET_COLUMN(&result);
-  column->schema = php_driver_add_ref(schema);
+  ZVAL_COPY(&column->schema, schema);
   column->meta   = meta;
 
   cass_column_meta_name(meta, &name, &name_length);
@@ -257,9 +257,9 @@ php_driver_default_column_free(zend_object *object )
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->type);
 
-  if (self->schema) {
-    php_driver_del_ref(&self->schema);
-    self->schema = NULL;
+  if (!Z_ISUNDEF(self->schema)) {
+    zval_ptr_dtor(&self->schema);
+    ZVAL_UNDEF(&self->schema);
   }
   self->meta = NULL;
 
@@ -275,7 +275,7 @@ php_driver_default_column_new(zend_class_entry *ce )
 
   self->reversed = 0;
   self->frozen   = 0;
-  self->schema   = NULL;
+  ZVAL_UNDEF(&self->schema);
   self->meta     = NULL;
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->type);

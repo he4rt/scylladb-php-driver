@@ -97,7 +97,7 @@ ZEND_METHOD(Cassandra_DefaultAggregate, stateFunction)
       return;
     }
     self->state_function =
-        php_driver_create_function(self->schema, function );
+        php_driver_create_function(&self->schema, function );
   }
 
   RETURN_ZVAL(&self->state_function, 1, 0);
@@ -117,7 +117,7 @@ ZEND_METHOD(Cassandra_DefaultAggregate, finalFunction)
       return;
     }
     self->final_function =
-        php_driver_create_function(self->schema, function );
+        php_driver_create_function(&self->schema, function );
   }
 
   RETURN_ZVAL(&self->final_function, 1, 0);
@@ -253,9 +253,9 @@ php_driver_default_aggregate_free(zend_object *object )
   zval_ptr_dtor(&self->return_type);
   zval_ptr_dtor(&self->signature);
 
-  if (self->schema) {
-    php_driver_del_ref(&self->schema);
-    self->schema = NULL;
+  if (!Z_ISUNDEF(self->schema)) {
+    zval_ptr_dtor(&self->schema);
+    ZVAL_UNDEF(&self->schema);
   }
   self->meta = NULL;
 
@@ -278,7 +278,7 @@ php_driver_default_aggregate_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->return_type);
   ZVAL_UNDEF(&self->signature);
 
-  self->schema = NULL;
+  ZVAL_UNDEF(&self->schema);
   self->meta = NULL;
 
   zend_object_std_init(&self->zendObject, ce);

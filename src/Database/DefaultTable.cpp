@@ -37,7 +37,7 @@ populate_partition_key(php_driver_table *table, zval *result )
     const CassColumnMeta *column =
       cass_table_meta_partition_key(table->meta, i);
     if (column) {
-      zval zcolumn = php_driver_create_column(table->schema, column );
+      zval zcolumn = php_driver_create_column(&table->schema, column );
       if (!Z_ISUNDEF(zcolumn)) {
         add_next_index_zval(result, &zcolumn);
       }
@@ -53,7 +53,7 @@ populate_clustering_key(php_driver_table *table, zval *result )
     const CassColumnMeta *column =
         cass_table_meta_clustering_key(table->meta, i);
     if (column) {
-      zval zcolumn = php_driver_create_column(table->schema, column );
+      zval zcolumn = php_driver_create_column(&table->schema, column );
       if (!Z_ISUNDEF(zcolumn)) {
         add_next_index_zval(result, &zcolumn);
       }
@@ -62,7 +62,7 @@ populate_clustering_key(php_driver_table *table, zval *result )
 }
 
 zval
-php_driver_create_table(php_driver_ref* schema,
+php_driver_create_table(zval *schema,
                            const CassTableMeta *meta )
 {
   zval result;
@@ -76,7 +76,7 @@ php_driver_create_table(php_driver_ref* schema,
   object_init_ex(&result, php_driver_default_table_ce);
 
   table = PHP_DRIVER_GET_TABLE(&result);
-  table->schema = php_driver_add_ref(schema);
+  ZVAL_COPY(&table->schema, schema);
   table->meta   = meta;
 
   cass_table_meta_name(meta, &name, &name_length);
@@ -384,7 +384,7 @@ ZEND_METHOD(Cassandra_DefaultTable, column)
     RETURN_FALSE;
   }
 
-  column = php_driver_create_column(self->schema, meta );
+  column = php_driver_create_column(&self->schema, meta );
 
   if (Z_ISUNDEF(column)) {
     return;
@@ -411,7 +411,7 @@ ZEND_METHOD(Cassandra_DefaultTable, columns)
     php_driver_column *column;
 
     meta    = cass_iterator_get_column_meta(iterator);
-    zcolumn = php_driver_create_column(self->schema, meta );
+    zcolumn = php_driver_create_column(&self->schema, meta );
 
     if (!Z_ISUNDEF(zcolumn)) {
       column = PHP_DRIVER_GET_COLUMN(&zcolumn);
@@ -529,7 +529,7 @@ ZEND_METHOD(Cassandra_DefaultTable, index)
     RETURN_FALSE;
   }
 
-  index = php_driver_create_index(self->schema, meta );
+  index = php_driver_create_index(&self->schema, meta );
   if (Z_ISUNDEF(index)) {
     return;
   }
@@ -554,7 +554,7 @@ ZEND_METHOD(Cassandra_DefaultTable, indexes)
     zval zindex;
 
     meta   = cass_iterator_get_index_meta(iterator);
-    zindex = php_driver_create_index(self->schema, meta );
+    zindex = php_driver_create_index(&self->schema, meta );
 
     if (!Z_ISUNDEF(zindex)) {
       php_driver_index *index = PHP_DRIVER_GET_INDEX(&zindex);
@@ -589,7 +589,7 @@ ZEND_METHOD(Cassandra_DefaultTable, materializedView)
     RETURN_FALSE;
   }
 
-  zview = php_driver_create_materialized_view(self->schema, meta );
+  zview = php_driver_create_materialized_view(&self->schema, meta );
   if (Z_ISUNDEF(zview)) {
     return;
   }
@@ -615,7 +615,7 @@ ZEND_METHOD(Cassandra_DefaultTable, materializedViews)
     php_driver_materialized_view *view;
 
     meta  = cass_iterator_get_materialized_view_meta(iterator);
-    zview = php_driver_create_materialized_view(self->schema, meta );
+    zview = php_driver_create_materialized_view(&self->schema, meta );
 
     if (!Z_ISUNDEF(zview)) {
       view = PHP_DRIVER_GET_MATERIALIZED_VIEW(&zview);
@@ -686,9 +686,9 @@ php_driver_default_table_free(zend_object *object )
   zval_ptr_dtor(&self->clustering_key);
   zval_ptr_dtor(&self->clustering_order);
 
-  if (self->schema) {
-    php_driver_del_ref(&self->schema);
-    self->schema = NULL;
+  if (!Z_ISUNDEF(self->schema)) {
+    zval_ptr_dtor(&self->schema);
+    ZVAL_UNDEF(&self->schema);
   }
   self->meta = NULL;
 
@@ -710,7 +710,7 @@ php_driver_default_table_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->clustering_order);
 
   self->meta   = NULL;
-  self->schema = NULL;
+  ZVAL_UNDEF(&self->schema);
 
   zend_object_std_init(&self->zendObject, ce);
   php_driver_default_table_handlers.offset = XtOffsetOf(php_driver_table, zendObject);

@@ -18,5 +18,5 @@
 
 #include "php_driver.h"
 BEGIN_EXTERN_C()
-zval php_driver_create_index(php_driver_ref *schema, const CassIndexMeta *meta);
+zval php_driver_create_index(zval *schema, const CassIndexMeta *meta);
 END_EXTERN_C()

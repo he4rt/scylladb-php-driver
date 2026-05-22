@@ -1012,8 +1012,7 @@ ZEND_METHOD(Cassandra_DefaultSession, schema) {
   object_init_ex(return_value, php_driver_default_schema_ce);
   schema = PHP_DRIVER_GET_SCHEMA(return_value);
 
-  schema->schema = php_driver_new_ref(
-      (void*)cass_session_get_schema_meta((CassSession*)self->session->data), free_schema);
+  schema->schema_meta = cass_session_get_schema_meta((CassSession*)self->session->data);
 }
 
 static zend_object_handlers php_driver_default_session_handlers;
