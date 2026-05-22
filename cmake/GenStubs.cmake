@@ -27,8 +27,7 @@ endif ()
 # Optional override      : -DPHP_DRIVER_GEN_STUB_SCRIPT=/abs/path/gen_stub.php
 
 if (NOT DEFINED PHP_DRIVER_GEN_STUB_SCRIPT OR PHP_DRIVER_GEN_STUB_SCRIPT STREQUAL "")
-    # Always ask php-config for the prefix — works regardless of how
-    # FindPHP scoped its variables.
+    # First try: ask php-config for the prefix and look in the install tree.
     execute_process(
             COMMAND "${PHP_CONFIG_EXECUTABLE}" --prefix
             OUTPUT_VARIABLE _php_prefix
@@ -46,11 +45,51 @@ if (NOT DEFINED PHP_DRIVER_GEN_STUB_SCRIPT OR PHP_DRIVER_GEN_STUB_SCRIPT STREQUA
     )
 endif ()
 
+# ── Fallback: download gen_stub.php from php-src for the exact PHP version ──
+# Useful in CI environments (e.g. setup-php) that install the PHP runtime
+# without the build/ directory. We map PHP_VERSION_NUM → branch name
+# (PHP-8.3, PHP-8.4, …) and pull the matching gen_stub.php from the
+# canonical php-src GitHub raw URL into the binary dir, where it stays
+# valid across builds (cached by CMake's file(DOWNLOAD) idempotency check).
 if (NOT PHP_DRIVER_GEN_STUB_SCRIPT OR PHP_DRIVER_GEN_STUB_SCRIPT STREQUAL "PHP_DRIVER_GEN_STUB_SCRIPT-NOTFOUND" OR NOT EXISTS "${PHP_DRIVER_GEN_STUB_SCRIPT}")
-    message(FATAL_ERROR
-            "gen_stub.php not found under the active PHP install (${_php_prefix}).\n"
-            "Install the PHP development build tools (e.g. `php-dev` on Debian / "
-            "Ubuntu) or pass -DPHP_DRIVER_GEN_STUB_SCRIPT=/path/to/gen_stub.php.")
+    if (NOT PHP_VERSION_NUM)
+        execute_process(
+                COMMAND "${PHP_CONFIG_EXECUTABLE}" --vernum
+                OUTPUT_VARIABLE PHP_VERSION_NUM
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+    endif ()
+
+    # PHP_VERSION_NUM is e.g. 80305 for 8.3.5; we only need MAJOR.MINOR.
+    math(EXPR _php_major "${PHP_VERSION_NUM} / 10000")
+    math(EXPR _php_minor "(${PHP_VERSION_NUM} / 100) % 100")
+    set(_branch "PHP-${_php_major}.${_php_minor}")
+
+    set(_cached "${PROJECT_BINARY_DIR}/_deps/gen_stub-${_php_major}.${_php_minor}.php")
+    if (NOT EXISTS "${_cached}")
+        set(_url "https://raw.githubusercontent.com/php/php-src/${_branch}/build/gen_stub.php")
+        message(STATUS "Downloading gen_stub.php for PHP ${_php_major}.${_php_minor} from ${_url}")
+        file(DOWNLOAD "${_url}" "${_cached}"
+                STATUS  _dl_status
+                TIMEOUT 30
+                TLS_VERIFY ON
+        )
+        list(GET _dl_status 0 _dl_rc)
+        if (NOT _dl_rc EQUAL 0)
+            list(GET _dl_status 1 _dl_msg)
+            file(REMOVE "${_cached}")
+            message(FATAL_ERROR
+                    "Failed to download gen_stub.php from ${_url}: ${_dl_msg}\n"
+                    "Install PHP build tools (`php-dev` / `php-devel`) or pass "
+                    "-DPHP_DRIVER_GEN_STUB_SCRIPT=/path/to/gen_stub.php.")
+        endif ()
+    endif ()
+    set(PHP_DRIVER_GEN_STUB_SCRIPT "${_cached}" CACHE FILEPATH
+            "Path to the PHP build/gen_stub.php script" FORCE)
+endif ()
+
+if (NOT EXISTS "${PHP_DRIVER_GEN_STUB_SCRIPT}")
+    message(FATAL_ERROR "gen_stub.php still not found after fallback attempts.")
 endif ()
 
 message(STATUS "Using gen_stub.php at ${PHP_DRIVER_GEN_STUB_SCRIPT}")
