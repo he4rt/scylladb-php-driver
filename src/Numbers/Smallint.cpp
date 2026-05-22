@@ -16,9 +16,9 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/hash.h"
-#include "Util/math.h"
-#include "Util/types.h"
+#include "Type/ValueHash.h"
+#include "Numbers/NumberParser.h"
+#include "Type/TypeFactory.h"
 
 #if !defined(HAVE_STDINT_H) && !defined(_MSC_STDINT_H_)
 #define INT16_MAX 32767

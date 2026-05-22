@@ -16,8 +16,8 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/result.h"
-#include "Util/types.h"
+#include "Database/ResultDecoder.h"
+#include "Type/TypeFactory.h"
 
 #include "DefaultColumn.h"
 #include "DefaultMaterializedView.h"

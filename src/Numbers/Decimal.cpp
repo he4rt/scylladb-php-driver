@@ -21,9 +21,9 @@
 #include "ext/spl/spl_exceptions.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/hash.h"
-#include "Util/math.h"
-#include "Util/types.h"
+#include "Type/ValueHash.h"
+#include "Numbers/NumberParser.h"
+#include "Type/TypeFactory.h"
 BEGIN_EXTERN_C()
 #include "Decimal_arginfo.h"
 zend_class_entry *php_driver_decimal_ce = NULL;

@@ -17,7 +17,7 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "php_driver_consistency.h"
-#include "Util/math.h"
+#include "Numbers/NumberParser.h"
 BEGIN_EXTERN_C()
 #include "ExecutionOptions_arginfo.h"
 

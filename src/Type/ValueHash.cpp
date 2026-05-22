@@ -18,7 +18,7 @@
 #include <php_driver.h>
 #include <php_driver_types.h>
 
-#include "hash.h"
+#include "Type/ValueHash.h"
 
 static inline cass_int64_t
 double_to_bits(cass_double_t value)

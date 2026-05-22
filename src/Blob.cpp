@@ -16,7 +16,7 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/types.h"
+#include "Type/TypeFactory.h"
 BEGIN_EXTERN_C()
 
 #include "Blob_arginfo.h"
@@ -41,7 +41,7 @@ static void php_driver_bytes_to_hex(const char *bin, size_t len, char **out, siz
   *out_len = size;
 }
 
-/* Legacy init helper used by util/src/types.cpp php_driver_scalar_init() */
+/* Legacy init helper used by src/Type/TypeFactory.cpp php_driver_scalar_init() */
 void php_driver_blob_init(INTERNAL_FUNCTION_PARAMETERS) {
   char *string;
   size_t string_len;

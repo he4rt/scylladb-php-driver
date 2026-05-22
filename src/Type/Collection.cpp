@@ -18,8 +18,8 @@
 
 #include <php_driver.h>
 #include <php_driver_types.h>
-#include "Util/collections.h"
-#include "Util/types.h"
+#include "Type/Conversions.h"
+#include "Type/TypeFactory.h"
 #include <zend_smart_str.h>
 BEGIN_EXTERN_C()
 #include "Collection_arginfo.h"

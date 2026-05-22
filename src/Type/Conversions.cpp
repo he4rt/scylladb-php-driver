@@ -17,10 +17,10 @@
 #include <DateTime/Date.h>
 #include <php_driver.h>
 #include <php_driver_types.h>
-#include "collections.h"
-#include "hash.h"
-#include "math.h"
-#include "types.h"
+#include "Type/Conversions.h"
+#include "Type/ValueHash.h"
+#include "Numbers/NumberParser.h"
+#include "Type/TypeFactory.h"
 
 #include <cmath>
 

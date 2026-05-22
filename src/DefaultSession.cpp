@@ -20,10 +20,10 @@
 #include "php_driver_globals.h"
 #include "php_driver_types.h"
 #include "src/ExecutionOptions.h"
-#include "Util/collections.h"
+#include "Type/Conversions.h"
 #include "FutureUtil.h"
-#include "Util/math.h"
-#include "Util/result.h"
+#include "Numbers/NumberParser.h"
+#include "Database/ResultDecoder.h"
 BEGIN_EXTERN_C()
 #include "DefaultSession_arginfo.h"
 

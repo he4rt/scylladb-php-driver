@@ -17,7 +17,7 @@
 #include <php_driver.h>
 #include <php_driver_globals.h>
 #include <php_driver_types.h>
-#include "types.h"
+#include "Type/TypeFactory.h"
 #include <zend_smart_str.h>
 
 #include <ZendCPP/ZendCPP.hpp>

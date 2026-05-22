@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "Util/hash.h"
-#include "Util/math.h"
-#include "Util/types.h"
+#include "Type/ValueHash.h"
+#include "Numbers/NumberParser.h"
+#include "Type/TypeFactory.h"
 
 #include <ZendCPP/ZendCPP.hpp>
 

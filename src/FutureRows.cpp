@@ -17,7 +17,7 @@
 #include "php_driver.h"
 #include "php_driver_types.h"
 #include "FutureUtil.h"
-#include "Util/result.h"
+#include "Database/ResultDecoder.h"
 BEGIN_EXTERN_C()
 #include "FutureRows_arginfo.h"
 

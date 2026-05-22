@@ -17,7 +17,7 @@
 #include "InetUtil.h"
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/types.h"
+#include "Type/TypeFactory.h"
 BEGIN_EXTERN_C()
 #include "Inet_arginfo.h"
 

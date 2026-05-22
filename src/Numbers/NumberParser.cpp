@@ -21,7 +21,7 @@
 #include <php_driver.h>
 #include <php_driver_types.h>
 
-#include "math.h"
+#include "Numbers/NumberParser.h"
 
 extern zend_class_entry* php_driver_invalid_argument_exception_ce;
 

@@ -154,7 +154,6 @@ find_package(CPPDriver REQUIRED)
 
 # ── Sub-libraries ─────────────────────────────────────────────────────────────
 add_subdirectory(ZendCPP)
-add_subdirectory(src/Util)
 add_subdirectory(src)
 add_subdirectory(src/Cluster)
 add_subdirectory(src/DateTime)
@@ -180,7 +179,6 @@ target_link_libraries(ext_scylladb PRIVATE
         Zend
         Libuv::Libuv
         ext_scylladb::src
-        ext_scylladb::utils
         ext_scylladb::type
         ext_scylladb::datetime
         ext_scylladb::database

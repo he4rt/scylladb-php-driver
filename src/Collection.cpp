@@ -17,9 +17,9 @@
 #include <php_driver.h>
 #include <php_driver_types.h>
 
-#include "Util/collections.h"
-#include "Util/hash.h"
-#include "Util/types.h"
+#include "Type/Conversions.h"
+#include "Type/ValueHash.h"
+#include "Type/TypeFactory.h"
 
 #include "Collection.h"
 BEGIN_EXTERN_C()

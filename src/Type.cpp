@@ -16,7 +16,7 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/types.h"
+#include "Type/TypeFactory.h"
 
 #include "src/Type/Tuple.h"
 #include "src/Type/UserType.h"

@@ -16,9 +16,9 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/hash.h"
-#include "Util/math.h"
-#include "Util/types.h"
+#include "Type/ValueHash.h"
+#include "Numbers/NumberParser.h"
+#include "Type/TypeFactory.h"
 
 #include <float.h>
 BEGIN_EXTERN_C()

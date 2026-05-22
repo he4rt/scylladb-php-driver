@@ -18,8 +18,8 @@
 
 #include "php_driver.h"
 #include "php_driver_types.h"
-#include "Util/hash.h"
-#include "Util/types.h"
+#include "Type/ValueHash.h"
+#include "Type/TypeFactory.h"
 #include "../UuidGen.h"
 
 BEGIN_EXTERN_C()

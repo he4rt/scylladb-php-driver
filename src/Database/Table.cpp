@@ -16,7 +16,7 @@
 
 #include "php_driver.h"
 
-#include "Util/result.h"
+#include "Database/ResultDecoder.h"
 BEGIN_EXTERN_C()
 #include "Table_arginfo.h"
 zend_class_entry *php_driver_table_ce = NULL;

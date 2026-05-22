@@ -7,6 +7,7 @@ target_sources(database PRIVATE
         Index.cpp
         Keyspace.cpp
         MaterializedView.cpp
+        ResultDecoder.cpp
         Rows.cpp
         Schema.cpp
         Table.cpp

@@ -4,6 +4,7 @@ target_sources(numbers PRIVATE
         Bigint.cpp
         Decimal.cpp
         Float.cpp
+        NumberParser.cpp
         Numeric.cpp
         Smallint.cpp
         Tinyint.cpp

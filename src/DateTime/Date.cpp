@@ -17,8 +17,8 @@
 #include <DateTime/Date.h>
 #include <ZendCPP/String/Builder.h>
 #include <php.h>
-#include "Util/hash.h"
-#include "Util/types.h"
+#include "Type/ValueHash.h"
+#include "Type/TypeFactory.h"
 
 #include <ZendCPP/ZendCPP.hpp>
 #include <ctime>
