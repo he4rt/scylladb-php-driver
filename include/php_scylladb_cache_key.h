@@ -26,8 +26,10 @@
  * needs.
  */
 
-static constexpr zend_ulong PHP_SCYLLADB_FNV1A_OFFSET = 0xcbf29ce484222325ULL;
-static constexpr zend_ulong PHP_SCYLLADB_FNV1A_PRIME  = 0x100000001b3ULL;
+/* Kept as #define for clang-tidy compatibility (lint job doesn't pick up
+ * the build's -std=c23 yet). */
+#define PHP_SCYLLADB_FNV1A_OFFSET 0xcbf29ce484222325ULL
+#define PHP_SCYLLADB_FNV1A_PRIME  0x100000001b3ULL
 
 [[gnu::const]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_init(void) {

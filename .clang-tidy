@@ -62,7 +62,6 @@ Checks: >
   readability-redundant-casting,
   readability-redundant-inline-specifier,
   readability-non-const-parameter,
-  readability-else-after-return,
   readability-avoid-const-params-in-decls,
   misc-redundant-expression,
   misc-misplaced-const,

@@ -122,8 +122,10 @@ void throw_invalid_argument(const zval *object, const char *object_name, const c
 
 #define ASSERT_SUCCESS_VALUE(rc, value) ASSERT_SUCCESS_BLOCK(rc, return value;)
 
-/* C23 constexpr — value, not preprocessor identity. Cannot be used in #if. */
-static constexpr CassConsistency PHP_SCYLLADB_DEFAULT_CONSISTENCY = CASS_CONSISTENCY_LOCAL_ONE;
+/* Kept as #define: clang-tidy on CI runs without -std=c23 and chokes on
+ * `constexpr` despite the build compiler supporting it. Revisit once the
+ * lint job inherits the build's compilation database flags. */
+#define PHP_SCYLLADB_DEFAULT_CONSISTENCY CASS_CONSISTENCY_LOCAL_ONE
 
 /* String-literal concatenation forces these to stay as #define. */
 #define PHP_SCYLLADB_DEFAULT_LOG PHP_SCYLLADB_NAME ".log"
