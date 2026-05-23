@@ -150,7 +150,7 @@ ZEND_METHOD(Cassandra_DefaultIndex, option)
     php_scylladb_index_build_option(self);
   }
 
-  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != NULL) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != nullptr) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -184,7 +184,7 @@ ZEND_METHOD(Cassandra_DefaultIndex, className)
     php_scylladb_index_build_option(self);
   }
 
-  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), ZEND_STRL("class_name"))) != NULL) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), ZEND_STRL("class_name"))) != nullptr) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -210,9 +210,9 @@ ZEND_METHOD(Cassandra_DefaultIndex, isCustom)
 HashTable *
 php_scylladb_default_index_gc(zend_object *object, zval** table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -236,7 +236,7 @@ php_scylladb_default_index_compare(zval *obj1, zval *obj2 )
 void
 php_scylladb_default_index_free(zend_object *object )
 {
-  php_scylladb_index *self = php_scylladb_index_object_fetch(object);
+  auto self = php_scylladb_index_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->kind);
@@ -247,7 +247,7 @@ php_scylladb_default_index_free(zend_object *object )
     zval_ptr_dtor(&self->schema);
     ZVAL_UNDEF(&self->schema);
   }
-  self->meta = NULL;
+  self->meta = nullptr;
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -257,7 +257,7 @@ zend_object*
 php_scylladb_default_index_new(zend_class_entry *ce )
 {
   php_scylladb_index *self =
-      (php_scylladb_index *)ecalloc(1, sizeof(php_scylladb_index) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_index, ce, &php_scylladb_default_index_handlers);
 
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->kind);
@@ -265,11 +265,9 @@ php_scylladb_default_index_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->options);
 
   ZVAL_UNDEF(&self->schema);
-  self->meta = NULL;
+  self->meta = nullptr;
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_default_index_handlers.offset = XtOffsetOf(php_scylladb_index, zendObject);
   php_scylladb_default_index_handlers.free_obj = php_scylladb_default_index_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_index_handlers;
   return &self->zendObject;
 }

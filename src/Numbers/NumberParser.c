@@ -108,7 +108,7 @@ php_scylladb_parse_double(char* in, int in_len, cass_double_t* number )
 int
 php_scylladb_parse_int(char* in, int in_len, cass_int32_t* number )
 {
-  char* end          = NULL;
+  char* end          = nullptr;
   int pos            = 0;
   int negative       = 0;
   cass_uint32_t temp = 0;
@@ -158,7 +158,7 @@ php_scylladb_parse_int(char* in, int in_len, cass_int32_t* number )
 int
 php_scylladb_parse_bigint(char* in, int in_len, cass_int64_t* number )
 {
-  char* end          = NULL;
+  char* end          = nullptr;
   int pos            = 0;
   int negative       = 0;
   cass_uint64_t temp = 0;
@@ -415,7 +415,7 @@ php_scylladb_format_integer(mpz_t number, char** out, int* out_len)
 void
 php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
 {
-  char* tmp    = NULL;
+  char* tmp    = nullptr;
   size_t total = 0;
   size_t len   = mpz_sizeinbase(number, 10);
   int negative = 0;
@@ -550,7 +550,7 @@ export_twos_complement(mpz_t number, size_t* size)
   cass_byte_t* bytes;
 
   if (mpz_sgn(number) == 0) {
-    /* mpz_export() returns NULL for 0 */
+    /* mpz_export() returns nullptr for 0 */
     bytes  = (cass_byte_t*) malloc(sizeof(cass_byte_t));
     *bytes = 0;
     *size  = 1;
@@ -586,7 +586,7 @@ export_twos_complement(mpz_t number, size_t* size)
     mpz_set_ui(temp, 1);
     mpz_mul_2exp(temp, temp, 8 * n);
     mpz_add(temp, number, temp);
-    bytes = (cass_byte_t*) mpz_export(NULL, size, 1, sizeof(cass_byte_t), 1, 0, temp);
+    bytes = (cass_byte_t*) mpz_export(nullptr, size, 1, sizeof(cass_byte_t), 1, 0, temp);
     mpz_clear(temp);
   } else {
     /* mpz_export() always returns a unsigned number and can have
@@ -598,7 +598,7 @@ export_twos_complement(mpz_t number, size_t* size)
     *size    = (mpz_sizeinbase(number, 2) + 7) / 8 + 1;
     bytes    = (cass_byte_t*) malloc(*size);
     bytes[0] = 0;
-    mpz_export(bytes + 1, NULL, 1, sizeof(cass_byte_t), 1, 0, number);
+    mpz_export(bytes + 1, nullptr, 1, sizeof(cass_byte_t), 1, 0, number);
   }
 
   return bytes;

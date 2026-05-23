@@ -57,12 +57,12 @@ static time_now php_scylladb_time_now(void) {
   cass_int64_t seconds;
   cass_int64_t microseconds;
 #if defined(__APPLE__) && defined(__MACH__)
-  struct timeval ts = {0};
-  gettimeofday(&ts, NULL);
+  struct timeval ts = {};
+  gettimeofday(&ts, nullptr);
   seconds = (cass_int64_t)ts.tv_sec;
   microseconds = (cass_int64_t)ts.tv_usec;
 #else
-  struct timespec ts = {0};
+  struct timespec ts = {};
   clock_gettime(CLOCK_REALTIME, &ts);
   seconds = ts.tv_sec;
   microseconds = ts.tv_nsec / 1000;
@@ -154,7 +154,7 @@ static zend_string *timestamp_to_datetime_get_timestamp(void *vctx) {
   int64_t sec = ctx->self->timestamp / 1000;
   int64_t millisec = (ctx->self->timestamp - (sec * 1000));
 
-  smart_str b = {0};
+  smart_str b = {};
   smart_str_append_long(&b, (zend_long)sec);
   smart_str_appendc(&b, '.');
   smart_str_append_long(&b, (zend_long)millisec);
@@ -190,7 +190,7 @@ ZEND_METHOD(Cassandra_Timestamp, fromDateTime) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  zval getTimeStampResult = {0};
+  zval getTimeStampResult = {};
   zval format;
   zend_string *val = zend_string_init_existing_interned(ZEND_STRL("Uv"), false);
   ZVAL_STR(&format, val);
@@ -237,7 +237,7 @@ ZEND_METHOD(Cassandra_Timestamp, __toString) {
 HashTable *php_scylladb_timestamp_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 HashTable *php_scylladb_timestamp_properties(zend_object *object) {
   php_scylladb_timestamp *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, object);
@@ -290,8 +290,7 @@ zend_object *php_scylladb_timestamp_new(zend_class_entry *ce) {
 }
 
 
-void php_scylladb_timestamp_post_register(zend_class_entry *ce)
+void php_scylladb_timestamp_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_timestamp_handlers.std.offset = XtOffsetOf(php_scylladb_timestamp, zendObject);
 }

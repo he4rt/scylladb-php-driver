@@ -28,7 +28,7 @@ static void init_execution_options(php_scylladb_execution_options *self)
     self->consistency = -1;
     self->serial_consistency = -1;
     self->page_size = -1;
-    self->paging_state_token = NULL;
+    self->paging_state_token = nullptr;
     self->paging_state_token_size = 0;
     self->timestamp = INT64_MIN;
     ZVAL_UNDEF(&self->arguments);
@@ -38,16 +38,16 @@ static void init_execution_options(php_scylladb_execution_options *self)
 
 static zend_result build_from_array(php_scylladb_execution_options *self, zval *options, int copy)
 {
-    zval *consistency = NULL;
-    zval *serial_consistency = NULL;
-    zval *page_size = NULL;
-    zval *paging_state_token = NULL;
-    zval *timeout = NULL;
-    zval *arguments = NULL;
-    zval *retry_policy = NULL;
-    zval *timestamp = NULL;
+    zval *consistency = nullptr;
+    zval *serial_consistency = nullptr;
+    zval *page_size = nullptr;
+    zval *paging_state_token = nullptr;
+    zval *timeout = nullptr;
+    zval *arguments = nullptr;
+    zval *retry_policy = nullptr;
+    zval *timestamp = nullptr;
 
-    if ((consistency = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("consistency"))) != NULL)
+    if ((consistency = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("consistency"))) != nullptr)
     {
         if (Z_TYPE_P(consistency) != IS_LONG)
         {
@@ -67,7 +67,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         self->consistency = val;
     }
 
-    if ((serial_consistency = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("serial_consistency"))) != NULL)
+    if ((serial_consistency = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("serial_consistency"))) != nullptr)
     {
         if (Z_TYPE_P(serial_consistency) != IS_LONG)
         {
@@ -90,7 +90,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         self->serial_consistency = val;
     }
 
-    if ((page_size = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("page_size"))) != NULL)
+    if ((page_size = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("page_size"))) != nullptr)
     {
         if (Z_TYPE_P(page_size) != IS_LONG ||
             Z_LVAL_P(page_size) <= 0)
@@ -101,7 +101,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         self->page_size = Z_LVAL_P(page_size);
     }
 
-    if ((paging_state_token = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("paging_state_token"))) != NULL)
+    if ((paging_state_token = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("paging_state_token"))) != nullptr)
     {
         if (Z_TYPE_P(paging_state_token) != IS_STRING)
         {
@@ -120,7 +120,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         self->paging_state_token_size = Z_STRLEN_P(paging_state_token);
     }
 
-    if ((timeout = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("timeout"))) != NULL)
+    if ((timeout = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("timeout"))) != nullptr)
     {
         if (!(Z_TYPE_P(timeout) == IS_LONG &&
               Z_LVAL_P(timeout) > 0) &&
@@ -143,7 +143,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         }
     }
 
-    if ((arguments = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("arguments"))) != NULL)
+    if ((arguments = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("arguments"))) != nullptr)
     {
         if (Z_TYPE_P(arguments) != IS_ARRAY)
         {
@@ -161,7 +161,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         }
     }
 
-    if ((retry_policy = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("retry_policy"))) != NULL)
+    if ((retry_policy = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("retry_policy"))) != nullptr)
     {
         if (Z_TYPE_P(retry_policy) != IS_OBJECT ||
             !instanceof_function(Z_OBJCE_P(retry_policy), php_scylladb_retry_policy_ce))
@@ -181,7 +181,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         }
     }
 
-    if ((timestamp = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("timestamp"))) != NULL)
+    if ((timestamp = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("timestamp"))) != nullptr)
     {
         if (Z_TYPE_P(timestamp) == IS_LONG)
         {
@@ -212,8 +212,8 @@ int php_scylladb_execution_options_build_local_from_array(php_scylladb_execution
 
 ZEND_METHOD(Cassandra_ExecutionOptions, __construct)
 {
-    zval *options = NULL;
-    php_scylladb_execution_options *self = NULL;
+    zval *options = nullptr;
+    php_scylladb_execution_options *self = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_ARRAY(options)
@@ -227,7 +227,7 @@ ZEND_METHOD(Cassandra_ExecutionOptions, __construct)
 ZEND_METHOD(Cassandra_ExecutionOptions, __get)
 {
     zend_string *name;
-    php_scylladb_execution_options *self = NULL;
+    php_scylladb_execution_options *self = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STR(name)
@@ -322,7 +322,7 @@ int php_scylladb_execution_options_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_execution_options_free(zend_object *object)
 {
-    php_scylladb_execution_options *self = php_scylladb_execution_options_object_fetch(object);
+    auto self = php_scylladb_execution_options_object_fetch(object);
 
     if (self->paging_state_token)
     {
@@ -337,11 +337,9 @@ void php_scylladb_execution_options_free(zend_object *object)
 
 zend_object* php_scylladb_execution_options_new(zend_class_entry *ce)
 {
-    php_scylladb_execution_options *self = (php_scylladb_execution_options *)ecalloc(1, sizeof(php_scylladb_execution_options) + zend_object_properties_size(ce));
+    php_scylladb_execution_options *self =
+        PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_execution_options, ce, &php_scylladb_execution_options_handlers);
 
     init_execution_options(self);
-
-    zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_scylladb_execution_options_handlers;
     return &self->zendObject;
 }

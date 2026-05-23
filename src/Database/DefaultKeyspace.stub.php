@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @not-serializable
  * @scylladb-struct php_scylladb_keyspace
  */    final class DefaultKeyspace implements \Cassandra\Keyspace {
         public function name(): string {}

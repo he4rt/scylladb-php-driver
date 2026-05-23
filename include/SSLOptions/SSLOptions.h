@@ -40,6 +40,6 @@ static zend_always_inline php_scylladb_ssl *php_scylladb_ssl_from_obj(zend_objec
 #define Z_SCYLLADB_SSL_P(zv) php_scylladb_ssl_from_obj(Z_OBJ_P((zv)))
 #define Z_SCYLLADB_SSL(zv) php_scylladb_ssl_from_obj(Z_OBJ((zv)))
 
-[[nodiscard]] PHP_SCYLLADB_API php_scylladb_ssl *php_scylladb_ssl_instantiate(zval *object);
+[[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API php_scylladb_ssl *php_scylladb_ssl_instantiate(zval *object);
 
 END_EXTERN_C()

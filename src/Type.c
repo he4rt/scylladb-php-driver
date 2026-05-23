@@ -79,7 +79,7 @@ ZEND_METHOD(Cassandra_Type, tuple)
 {
   zval ztype;
   php_scylladb_type *type;
-  zval* args = NULL;
+  zval* args = nullptr;
   int argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
@@ -112,7 +112,7 @@ ZEND_METHOD(Cassandra_Type, userType)
 {
   zval ztype;
   php_scylladb_type *type;
-  zval* args = NULL;
+  zval* args = nullptr;
   int argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)

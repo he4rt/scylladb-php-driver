@@ -59,7 +59,7 @@ ZEND_METHOD(Cassandra_Inet, __construct)
 /* {{{ Inet::__toString() */
 ZEND_METHOD(Cassandra_Inet, __toString)
 {
-  php_scylladb_inet *inet = PHP_SCYLLADB_GET_INET(ZEND_THIS);
+  auto inet = PHP_SCYLLADB_GET_INET(ZEND_THIS);
   char *string;
   php_scylladb_format_address(inet->inet, &string);
 
@@ -79,7 +79,7 @@ ZEND_METHOD(Cassandra_Inet, type)
 /* {{{ Inet::address() */
 ZEND_METHOD(Cassandra_Inet, address)
 {
-  php_scylladb_inet *inet = PHP_SCYLLADB_GET_INET(ZEND_THIS);
+  auto inet = PHP_SCYLLADB_GET_INET(ZEND_THIS);
   char *string;
   php_scylladb_format_address(inet->inet, &string);
 
@@ -92,9 +92,9 @@ ZEND_METHOD(Cassandra_Inet, address)
 HashTable *
 php_scylladb_inet_gc(zend_object *object, zval** table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -104,7 +104,7 @@ php_scylladb_inet_properties(zend_object *object)
   zval type;
   zval address;
 
-  php_scylladb_inet *self = php_scylladb_inet_object_fetch(object);
+  auto self = php_scylladb_inet_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -127,8 +127,8 @@ int
 php_scylladb_inet_compare(zval *obj1, zval *obj2)
 {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-  php_scylladb_inet *inet1 = NULL;
-  php_scylladb_inet *inet2 = NULL;
+  php_scylladb_inet *inet1 = nullptr;
+  php_scylladb_inet *inet2 = nullptr;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
@@ -145,7 +145,7 @@ php_scylladb_inet_compare(zval *obj1, zval *obj2)
 unsigned
 php_scylladb_inet_hash_value(zval *obj )
 {
-  php_scylladb_inet *self = PHP_SCYLLADB_GET_INET(obj);
+  auto self = PHP_SCYLLADB_GET_INET(obj);
   return zend_inline_hash_func((const char *) self->inet.address,
                                self->inet.address_length);
 }
@@ -153,7 +153,7 @@ php_scylladb_inet_hash_value(zval *obj )
 void
 php_scylladb_inet_free(zend_object *object)
 {
-  php_scylladb_inet *self = php_scylladb_inet_object_fetch(object);
+  auto self = php_scylladb_inet_object_fetch(object);
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -162,16 +162,13 @@ php_scylladb_inet_free(zend_object *object)
 zend_object*
 php_scylladb_inet_new(zend_class_entry *ce)
 {
-  php_scylladb_inet *self = (php_scylladb_inet *)ecalloc(1, sizeof(php_scylladb_inet) + zend_object_properties_size(ce));
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_inet_handlers;
+  php_scylladb_inet *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_inet, ce, &php_scylladb_inet_handlers);
   return &self->zendObject;
 }
 
 
-void php_scylladb_inet_post_register(zend_class_entry *ce)
+void php_scylladb_inet_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_inet_handlers.std.offset = XtOffsetOf(php_scylladb_inet, zendObject);
 }

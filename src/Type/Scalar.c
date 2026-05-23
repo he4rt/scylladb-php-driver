@@ -70,12 +70,12 @@ HashTable *php_scylladb_type_scalar_gc(zend_object *object, zval **table,
                                             int *n) {
   *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *php_scylladb_type_scalar_properties(zend_object *object) {
   zval name;
-  php_scylladb_type *self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -94,14 +94,14 @@ HashTable *php_scylladb_type_scalar_properties(zend_object *object) {
 
 int php_scylladb_type_scalar_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
-  php_scylladb_type *type1 = PHP_SCYLLADB_GET_TYPE(obj1);
-  php_scylladb_type *type2 = PHP_SCYLLADB_GET_TYPE(obj2);
+  auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
+  auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
   return php_scylladb_type_compare(type1, type2);
 }
 
 void php_scylladb_type_scalar_free(zend_object *object) {
-  php_scylladb_type *self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
 
@@ -110,15 +110,14 @@ void php_scylladb_type_scalar_free(zend_object *object) {
 }
 
 zend_object* php_scylladb_type_scalar_new(zend_class_entry *ce) {
-  php_scylladb_type *self = (php_scylladb_type *)ecalloc(1, sizeof(php_scylladb_type) + zend_object_properties_size(ce));
+  php_scylladb_type *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_type, ce, &php_scylladb_type_scalar_handlers);
 
   self->type = CASS_VALUE_TYPE_UNKNOWN;
   self->data_type = nullptr;
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_type_scalar_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
   php_scylladb_type_scalar_handlers.free_obj = php_scylladb_type_scalar_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_type_scalar_handlers;
   return &self->zendObject;
 }
 

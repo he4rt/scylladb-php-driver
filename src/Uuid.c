@@ -69,7 +69,7 @@ ZEND_METHOD(Cassandra_Uuid, __construct)
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  php_scylladb_uuid *self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
+  auto self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
 
   if (uuid == nullptr) {
     php_scylladb_uuid_generate_random(&self->uuid);
@@ -87,7 +87,7 @@ ZEND_METHOD(Cassandra_Uuid, __construct)
 ZEND_METHOD(Cassandra_Uuid, __toString)
 {
   char string[CASS_UUID_STRING_LENGTH];
-  php_scylladb_uuid *self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
+  auto self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
 
   cass_uuid_string(self->uuid, string);
 
@@ -107,7 +107,7 @@ ZEND_METHOD(Cassandra_Uuid, type)
 ZEND_METHOD(Cassandra_Uuid, uuid)
 {
   char string[CASS_UUID_STRING_LENGTH];
-  php_scylladb_uuid *self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
+  auto self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
 
   cass_uuid_string(self->uuid, string);
 
@@ -118,7 +118,7 @@ ZEND_METHOD(Cassandra_Uuid, uuid)
 /* {{{ Uuid::version() */
 ZEND_METHOD(Cassandra_Uuid, version)
 {
-  php_scylladb_uuid *self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
+  auto self = PHP_SCYLLADB_GET_UUID(ZEND_THIS);
 
   RETURN_LONG((long) cass_uuid_version(self->uuid));
 }
@@ -128,9 +128,9 @@ ZEND_METHOD(Cassandra_Uuid, version)
 HashTable *
 php_scylladb_uuid_gc(zend_object *object, zval** table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -141,7 +141,7 @@ php_scylladb_uuid_properties(zend_object *object)
   zval uuid;
   zval version;
 
-  php_scylladb_uuid *self = php_scylladb_uuid_object_fetch(object);
+  auto self = php_scylladb_uuid_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -166,8 +166,8 @@ int
 php_scylladb_uuid_compare(zval *obj1, zval *obj2)
 {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-  php_scylladb_uuid *uuid1 = NULL;
-  php_scylladb_uuid *uuid2 = NULL;
+  php_scylladb_uuid *uuid1 = nullptr;
+  php_scylladb_uuid *uuid2 = nullptr;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
@@ -186,7 +186,7 @@ php_scylladb_uuid_compare(zval *obj1, zval *obj2)
 unsigned
 php_scylladb_uuid_hash_value(zval *obj)
 {
-  php_scylladb_uuid *self = PHP_SCYLLADB_GET_UUID(obj);
+  auto self = PHP_SCYLLADB_GET_UUID(obj);
   return php_scylladb_combine_hash(php_scylladb_bigint_hash(self->uuid.time_and_version),
                                     php_scylladb_bigint_hash(self->uuid.clock_seq_and_node));
 }
@@ -194,7 +194,7 @@ php_scylladb_uuid_hash_value(zval *obj)
 void
 php_scylladb_uuid_free(zend_object *object)
 {
-  php_scylladb_uuid *self = php_scylladb_uuid_object_fetch(object);
+  auto self = php_scylladb_uuid_object_fetch(object);
 
   zend_object_std_dtor(&self->zendObject);
 }
@@ -202,16 +202,13 @@ php_scylladb_uuid_free(zend_object *object)
 zend_object*
 php_scylladb_uuid_new(zend_class_entry *ce)
 {
-  php_scylladb_uuid *self = (php_scylladb_uuid *)ecalloc(1, sizeof(php_scylladb_uuid) + zend_object_properties_size(ce));
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_uuid_handlers;
+  php_scylladb_uuid *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_uuid, ce, &php_scylladb_uuid_handlers);
   return &self->zendObject;
 }
 
 
-void php_scylladb_uuid_post_register(zend_class_entry *ce)
+void php_scylladb_uuid_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_uuid_handlers.std.offset = XtOffsetOf(php_scylladb_uuid, zendObject);
 }

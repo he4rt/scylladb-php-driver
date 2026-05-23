@@ -35,7 +35,7 @@ void php_scylladb_batch_statement_entry_dtor(zval* dest)
 ZEND_METHOD(Cassandra_BatchStatement, __construct)
 {
     zend_long type = CASS_BATCH_TYPE_LOGGED;
-    php_scylladb_statement *self = NULL;
+    php_scylladb_statement *self = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(0, 1)
         Z_PARAM_OPTIONAL
@@ -61,10 +61,10 @@ ZEND_METHOD(Cassandra_BatchStatement, __construct)
 
 ZEND_METHOD(Cassandra_BatchStatement, add)
 {
-    zval *statement = NULL;
-    zval *arguments = NULL;
-    php_scylladb_batch_statement_entry *batch_statement_entry = NULL;
-    php_scylladb_statement *self = NULL;
+    zval *statement = nullptr;
+    zval *arguments = nullptr;
+    php_scylladb_batch_statement_entry *batch_statement_entry = nullptr;
+    php_scylladb_statement *self = nullptr;
     zval entry;
 
     ZEND_PARSE_PARAMETERS_START(1, 2)
@@ -117,7 +117,7 @@ int php_scylladb_batch_statement_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_batch_statement_free(zend_object *object)
 {
-    php_scylladb_statement *self = php_scylladb_statement_object_fetch(object);
+    auto self = php_scylladb_statement_object_fetch(object);
 
     zend_hash_destroy(&self->data.batch.statements);
 
@@ -126,13 +126,11 @@ void php_scylladb_batch_statement_free(zend_object *object)
 
 zend_object* php_scylladb_batch_statement_new(zend_class_entry *ce)
 {
-    php_scylladb_statement *self = (php_scylladb_statement *)ecalloc(1, sizeof(php_scylladb_statement) + zend_object_properties_size(ce));
+    php_scylladb_statement *self =
+        PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_statement, ce, &php_scylladb_batch_statement_handlers);
 
     self->type = PHP_SCYLLADB_BATCH_STATEMENT;
     self->data.batch.type = CASS_BATCH_TYPE_LOGGED;
-    zend_hash_init(&self->data.batch.statements, 0, NULL, (dtor_func_t)php_scylladb_batch_statement_entry_dtor, 0);
-
-    zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_scylladb_batch_statement_handlers;
+    zend_hash_init(&self->data.batch.statements, 0, nullptr, (dtor_func_t)php_scylladb_batch_statement_entry_dtor, 0);
     return &self->zendObject;
 }

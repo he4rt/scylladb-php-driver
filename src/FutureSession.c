@@ -25,10 +25,10 @@ extern zend_object_handlers php_scylladb_future_session_handlers;
 
 ZEND_METHOD(Cassandra_FutureSession, get)
 {
-  zval *timeout = NULL;
+  zval *timeout = nullptr;
   CassError rc = CASS_OK;
-  php_scylladb_session *session = NULL;
-  php_scylladb_future_session *self = NULL;
+  php_scylladb_session *session = nullptr;
+  php_scylladb_future_session *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(0, 1)
     Z_PARAM_OPTIONAL
@@ -47,7 +47,7 @@ ZEND_METHOD(Cassandra_FutureSession, get)
     RETURN_ZVAL(&self->default_session, 1, 0);
   }
 
-  if (self->session == NULL || self->future == NULL) {
+  if (self->session == nullptr || self->future == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "FutureSession has no associated session (cached entry expired)");
     return;
@@ -69,7 +69,7 @@ ZEND_METHOD(Cassandra_FutureSession, get)
     if (self->persist && self->cache_key) {
       /* Remove timed-out pending session so the next request reconnects. */
       if (zend_hash_index_del(&EG(persistent_list), self->cache_key) == SUCCESS) {
-        self->future = NULL;
+        self->future = nullptr;
       }
     }
     return;
@@ -87,7 +87,7 @@ ZEND_METHOD(Cassandra_FutureSession, get)
       self->exception_code    = rc;
 
       if (zend_hash_index_del(&EG(persistent_list), self->cache_key) == SUCCESS) {
-        self->future = NULL;
+        self->future = nullptr;
       }
 
       zend_throw_exception_ex(exception_class(self->exception_code),
@@ -121,7 +121,7 @@ int php_scylladb_future_session_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_future_session_free(zend_object *object)
 {
-  php_scylladb_future_session *self = php_scylladb_future_session_object_fetch(object);
+  auto self = php_scylladb_future_session_object_fetch(object);
 
   if (!self->persist && self->future) {
     cass_future_free(self->future);
@@ -149,7 +149,8 @@ void php_scylladb_future_session_free(zend_object *object)
 
 zend_object *php_scylladb_future_session_new(zend_class_entry *ce)
 {
-  php_scylladb_future_session *self = (php_scylladb_future_session *)ecalloc(1, sizeof(php_scylladb_future_session) + zend_object_properties_size(ce));
+  php_scylladb_future_session *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_session, ce, &php_scylladb_future_session_handlers);
 
   self->session           = nullptr;
   self->future            = nullptr;
@@ -158,8 +159,5 @@ zend_object *php_scylladb_future_session_new(zend_class_entry *ce)
   self->persist           = cass_false;
 
   ZVAL_UNDEF(&self->default_session);
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_future_session_handlers;
   return &self->zendObject;
 }

@@ -23,22 +23,19 @@ ZEND_METHOD(Cassandra, ssl) {
 
 static void override_class_constant_string(zend_class_entry *ce, const char *name, const char *value) {
     zend_class_constant *c = (zend_class_constant *)zend_hash_str_find_ptr(&ce->constants_table, name, strlen(name));
-    if (c == NULL) return;
+    if (c == nullptr) return;
     zval_ptr_dtor(&c->value);
     ZVAL_STR(&c->value, zend_string_init(value, strlen(value), 1));
 }
 
 void php_scylladb_core_post_register(zend_class_entry *ce)
 {
-    /* CPP_DRIVER_VERSION is runtime-computed from the linked driver. The stub
-       has a placeholder; override it here with the real value before any
-       user code can observe it. */
+    /* VERSION is now wired in the stub via @cvalue PHP_SCYLLADB_VERSION.
+     * CPP_DRIVER_VERSION still needs runtime composition because
+     * CASS_VERSION_SUFFIX may be empty and we don't want a trailing dash. */
     char buf[64];
     snprintf(buf, sizeof(buf), "%d.%d.%d%s",
              CASS_VERSION_MAJOR, CASS_VERSION_MINOR, CASS_VERSION_PATCH,
              strlen(CASS_VERSION_SUFFIX) > 0 ? "-" CASS_VERSION_SUFFIX : "");
     override_class_constant_string(ce, "CPP_DRIVER_VERSION", buf);
-
-    /* VERSION constant set to PHP_SCYLLADB_VERSION (overrides stub placeholder). */
-    override_class_constant_string(ce, "VERSION", PHP_SCYLLADB_VERSION);
 }

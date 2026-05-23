@@ -102,7 +102,7 @@ php_scylladb_table_get_option(php_scylladb_table *table,
     php_scylladb_default_table_build_options(table );
   }
 
-  if ((zvalue = zend_hash_str_find(Z_ARRVAL(table->options), name, strlen(name))) == NULL) {
+  if ((zvalue = zend_hash_str_find(Z_ARRVAL(table->options), name, strlen(name))) == nullptr) {
     ZVAL_FALSE(result);
     return;
   }
@@ -137,7 +137,7 @@ ZEND_METHOD(Cassandra_DefaultTable, option)
     php_scylladb_default_table_build_options(self );
   }
 
-  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != NULL) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != nullptr) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -376,7 +376,7 @@ ZEND_METHOD(Cassandra_DefaultTable, column)
 
   self = PHP_SCYLLADB_GET_TABLE(getThis());
   meta = cass_table_meta_column_by_name(self->meta, name);
-  if (meta == NULL) {
+  if (meta == nullptr) {
     RETURN_FALSE;
   }
 
@@ -521,7 +521,7 @@ ZEND_METHOD(Cassandra_DefaultTable, index)
 
   self = PHP_SCYLLADB_GET_TABLE(getThis());
   meta = cass_table_meta_index_by_name(self->meta, name);
-  if (meta == NULL) {
+  if (meta == nullptr) {
     RETURN_FALSE;
   }
 
@@ -553,7 +553,7 @@ ZEND_METHOD(Cassandra_DefaultTable, indexes)
     zindex = php_scylladb_create_index(&self->schema, meta );
 
     if (!Z_ISUNDEF(zindex)) {
-      php_scylladb_index *index = PHP_SCYLLADB_GET_INDEX(&zindex);
+      auto index = PHP_SCYLLADB_GET_INDEX(&zindex);
 
       if (Z_TYPE(index->name) == IS_STRING) {
         add_assoc_zval_ex(return_value, Z_STRVAL(index->name), Z_STRLEN(index->name), &zindex);
@@ -581,7 +581,7 @@ ZEND_METHOD(Cassandra_DefaultTable, materializedView)
   self = PHP_SCYLLADB_GET_TABLE(getThis());
   meta = cass_table_meta_materialized_view_by_name_n(self->meta,
                                                      name, name_len);
-  if (meta == NULL) {
+  if (meta == nullptr) {
     RETURN_FALSE;
   }
 
@@ -630,9 +630,9 @@ ZEND_METHOD(Cassandra_DefaultTable, materializedViews)
 HashTable *
 php_scylladb_default_table_gc(zend_object *object, zval** table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -656,7 +656,7 @@ php_scylladb_default_table_compare(zval *obj1, zval *obj2 )
 void
 php_scylladb_default_table_free(zend_object *object )
 {
-  php_scylladb_table *self = php_scylladb_table_object_fetch(object);
+  auto self = php_scylladb_table_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->options);
@@ -669,7 +669,7 @@ php_scylladb_default_table_free(zend_object *object )
     zval_ptr_dtor(&self->schema);
     ZVAL_UNDEF(&self->schema);
   }
-  self->meta = NULL;
+  self->meta = nullptr;
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -679,7 +679,7 @@ zend_object*
 php_scylladb_default_table_new(zend_class_entry *ce )
 {
   php_scylladb_table *self =
-      (php_scylladb_table *)ecalloc(1, sizeof(php_scylladb_table) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_table, ce, &php_scylladb_default_table_handlers);
 
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->options);
@@ -688,12 +688,10 @@ php_scylladb_default_table_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->clustering_key);
   ZVAL_UNDEF(&self->clustering_order);
 
-  self->meta   = NULL;
+  self->meta   = nullptr;
   ZVAL_UNDEF(&self->schema);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_default_table_handlers.offset = XtOffsetOf(php_scylladb_table, zendObject);
   php_scylladb_default_table_handlers.free_obj = php_scylladb_default_table_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_table_handlers;
   return &self->zendObject;
 }

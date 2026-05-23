@@ -26,17 +26,22 @@
  * needs.
  */
 
+/* Kept as #define for clang-tidy compatibility (lint job doesn't pick up
+ * the build's -std=c23 yet). */
 #define PHP_SCYLLADB_FNV1A_OFFSET 0xcbf29ce484222325ULL
 #define PHP_SCYLLADB_FNV1A_PRIME  0x100000001b3ULL
 
+[[gnu::const]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_init(void) {
     return PHP_SCYLLADB_FNV1A_OFFSET;
 }
 
+[[gnu::const]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_mix_byte(zend_ulong h, uint8_t b) {
     return (h ^ b) * PHP_SCYLLADB_FNV1A_PRIME;
 }
 
+[[gnu::pure]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_mix_bytes(zend_ulong h, const void *buf, size_t len) {
     const uint8_t *p = (const uint8_t *)buf;
     for (size_t i = 0; i < len; i++) {
@@ -45,31 +50,38 @@ static zend_always_inline zend_ulong php_scylladb_cache_key_mix_bytes(zend_ulong
     return h;
 }
 
+/* `pure` rather than `const`: the inlined body takes &v (a local) and
+ * dereferences it through mix_bytes — `const` forbids any indirection. */
+[[gnu::pure]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_mix_long(zend_ulong h, zend_long v) {
     return php_scylladb_cache_key_mix_bytes(h, &v, sizeof(v));
 }
 
+[[gnu::pure]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_mix_int(zend_ulong h, int v) {
     return php_scylladb_cache_key_mix_bytes(h, &v, sizeof(v));
 }
 
+[[gnu::pure]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_mix_ulong(zend_ulong h, zend_ulong v) {
     return php_scylladb_cache_key_mix_bytes(h, &v, sizeof(v));
 }
 
 /* Mix a zend_string, including a separator byte so adjacent fields can't
-   alias (e.g. ("ab", "c") vs ("a", "bc")). NULL becomes a single 0 byte. */
+   alias (e.g. ("ab", "c") vs ("a", "bc")). nullptr becomes a single 0 byte. */
+[[gnu::pure]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_mix_zstr(zend_ulong h, const zend_string *s) {
-    if (s == NULL) {
+    if (s == nullptr) {
         return php_scylladb_cache_key_mix_byte(h, 0);
     }
     h = php_scylladb_cache_key_mix_bytes(h, ZSTR_VAL(s), ZSTR_LEN(s));
     return php_scylladb_cache_key_mix_byte(h, 0);  /* separator */
 }
 
-/* Mix a C string (NUL-terminated or NULL). */
+/* Mix a C string (NUL-terminated or nullptr). */
+[[gnu::pure]]
 static zend_always_inline zend_ulong php_scylladb_cache_key_mix_cstr(zend_ulong h, const char *s) {
-    if (s == NULL) {
+    if (s == nullptr) {
         return php_scylladb_cache_key_mix_byte(h, 0);
     }
     while (*s) {

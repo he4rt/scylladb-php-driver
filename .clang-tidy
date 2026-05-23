@@ -12,7 +12,9 @@
 #     - readability-inconsistent-declaration-parameter-name (handler ABI)
 #     - misc-unused-parameters                         (Zend handler ABI)
 #     - misc-include-cleaner                           (PHP umbrella headers)
-#     - modernize-*                                    (we're moving C++ → C23, not the other way)
+#
+#   modernize-* is mostly C++-targeted. We enable the subset that helps the
+#   C++ → C23 migration: prefer C23 nullptr/true/false/enum constants.
 #
 #   False positives from third-party / Zend macros (re-enable per-module
 #   as code is ported to C23):
@@ -22,6 +24,9 @@
 #     - bugprone-exception-escape         (last C++ files; dissolves with migration)
 #     - performance-no-int-to-ptr         (uthash HASH_DEL)
 #     - cert-err33-c                      (cass_* return codes deliberately ignored on cleanup)
+#     - cert-err34-c                      (sscanf/atoi on driver-controlled inputs; noisy)
+#     - clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+#                                         (memcpy/memset/fprintf — Annex K _s variants aren't portable on glibc)
 #     - bugprone-easily-swappable-parameters / bugprone-macro-parentheses (Zend ABI shape)
 
 Checks: >
@@ -38,21 +43,30 @@ Checks: >
   -clang-analyzer-security.ArrayBound,
   -clang-analyzer-core.NullDereference,
   -clang-analyzer-deadcode.DeadStores,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
   cert-*,
   -cert-err33-c,
+  -cert-err34-c,
   -cert-dcl37-c,
   -cert-dcl51-cpp,
   -cert-str34-c,
   performance-*,
   -performance-no-int-to-ptr,
   portability-*,
+  modernize-macro-to-enum,
+  modernize-use-bool-literals,
+  modernize-use-nullptr,
   readability-misleading-indentation,
   readability-redundant-declaration,
   readability-redundant-string-init,
+  readability-redundant-casting,
+  readability-redundant-inline-specifier,
   readability-non-const-parameter,
+  readability-avoid-const-params-in-decls,
   misc-redundant-expression,
   misc-misplaced-const,
-  misc-static-assert
+  misc-static-assert,
+  misc-header-include-cycle
 
 # Treat the curated set as errors — we only enabled checks we expect to pass.
 WarningsAsErrors: '*'
@@ -68,3 +82,11 @@ CheckOptions:
     value: 'true'
   - key: misc-unused-parameters.StrictMode
     value: 'false'
+  # else-after-return: don't rewrite ternaries / single-statement guards.
+  - key: readability-else-after-return.WarnOnUnfixable
+    value: 'false'
+  - key: readability-else-after-return.WarnOnConditionVariables
+    value: 'false'
+  # modernize-use-nullptr: also treat 0 as a null candidate in pointer ctx.
+  - key: modernize-use-nullptr.NullMacros
+    value: 'NULL'

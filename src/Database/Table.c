@@ -31,7 +31,7 @@ php_scylladb_table_build_options(CassIterator* iterator ) {
     return zoptions;
   }
   while (cass_iterator_next(iterator)) {
-    const CassValue *value = NULL;
+    const CassValue *value = nullptr;
     if (cass_iterator_get_meta_field_name(iterator, &name, &name_length) == CASS_OK) {
       if ((name_length == sizeof("keyspace_name") - 1 &&
            memcmp(name, "keyspace_name", name_length) == 0) ||

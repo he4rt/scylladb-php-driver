@@ -25,16 +25,16 @@ php_scylladb_future_wait_timed(CassFuture* future, zval* timeout)
 {
   cass_duration_t timeout_us;
 
-  if (future == NULL) {
+  if (future == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "Received a NULL future from the driver (allocation failure)");
+                            "Received a nullptr future from the driver (allocation failure)");
     return FAILURE;
   }
 
   if (cass_future_ready(future))
     return SUCCESS;
 
-  if (timeout == NULL || Z_TYPE_P(timeout) == IS_NULL || Z_TYPE_P(timeout) == IS_UNDEF) {
+  if (timeout == nullptr || Z_TYPE_P(timeout) == IS_NULL || Z_TYPE_P(timeout) == IS_UNDEF) {
     cass_future_wait(future);
     return SUCCESS;
   }
@@ -59,9 +59,9 @@ php_scylladb_future_wait_timed(CassFuture* future, zval* timeout)
 int
 php_scylladb_future_is_error(CassFuture* future)
 {
-  if (future == NULL) {
+  if (future == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "Received a NULL future from the driver (allocation failure)");
+                            "Received a nullptr future from the driver (allocation failure)");
     return FAILURE;
   }
 

@@ -24,7 +24,7 @@
 
 static zend_result file_get_contents(const zend_string *path, zend_string** out_val) {
   php_stream *stream =
-      php_stream_open_wrapper(ZSTR_VAL(path), "rb", USE_PATH | REPORT_ERRORS, NULL);
+      php_stream_open_wrapper(ZSTR_VAL(path), "rb", USE_PATH | REPORT_ERRORS, nullptr);
   if (!stream) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "The path '%s' doesn't exist or is not readable", ZSTR_VAL(path));
@@ -144,7 +144,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withTrustedCerts) {
     certs[i] = zend_string_copy(Z_STR_P(path));
   }
 
-  php_scylladb_ssl_builder *builder = Z_SCYLLADB_SSL_BUILDER_P(ZEND_THIS);
+  auto builder = Z_SCYLLADB_SSL_BUILDER_P(ZEND_THIS);
 
   if (builder->trusted_certs) {
     for (size_t i = 0; i < builder->trusted_certs_cnt; i++) {
@@ -193,7 +193,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withClientCert) {
     return;
   }
 
-  php_scylladb_ssl_builder *builder = Z_SCYLLADB_SSL_BUILDER_P(ZEND_THIS);
+  auto builder = Z_SCYLLADB_SSL_BUILDER_P(ZEND_THIS);
 
   if (builder->client_cert) {
     zend_string_release(builder->client_cert);

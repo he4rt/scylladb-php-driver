@@ -83,7 +83,7 @@ static char* php_scylladb_from_hex(const char* hex, size_t hex_length) {
   size_t size = hex_length / 2;
   char* result;
   if ((hex_length & 1) == 1) { /* Invalid if not divisible by 2 */
-    return NULL;
+    return nullptr;
   }
   result = (char*)emalloc(size + 1);
   for (i = 0; i < size; ++i) {
@@ -91,7 +91,7 @@ static char* php_scylladb_from_hex(const char* hex, size_t hex_length) {
     int half1 = hex_value(hex[i * 2 + 1]);
     if (half0 < 0 || half1 < 0) {
       efree(result);
-      return NULL;
+      return nullptr;
     }
     result[c++] = (char)(((uint8_t)half0 << 4) | (uint8_t)half1);
   }
@@ -125,7 +125,7 @@ static zval php_scylladb_tuple_from_node(struct node_s* node) {
   ztype = php_scylladb_type_tuple();
   type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
-  for (current = node->first_child; current != NULL; current = current->next_sibling) {
+  for (current = node->first_child; current != nullptr; current = current->next_sibling) {
     zval sub_type = php_scylladb_create_type(current);
     php_scylladb_type_tuple_add(type, &sub_type);
   }
@@ -306,10 +306,10 @@ static inline int tuple_compare(php_scylladb_type* type1, php_scylladb_type* typ
   zend_hash_internal_pointer_reset_ex(&type1->data.tuple.types, &pos1);
   zend_hash_internal_pointer_reset_ex(&type2->data.tuple.types, &pos2);
 
-  while ((current1 = zend_hash_get_current_data_ex(&type1->data.tuple.types, &pos1)) != NULL &&
-         (current2 = zend_hash_get_current_data_ex(&type2->data.tuple.types, &pos2)) != NULL) {
-    php_scylladb_type* sub_type1 = PHP_SCYLLADB_GET_TYPE(current1);
-    php_scylladb_type* sub_type2 = PHP_SCYLLADB_GET_TYPE(current2);
+  while ((current1 = zend_hash_get_current_data_ex(&type1->data.tuple.types, &pos1)) != nullptr &&
+         (current2 = zend_hash_get_current_data_ex(&type2->data.tuple.types, &pos2)) != nullptr) {
+    auto sub_type1 = PHP_SCYLLADB_GET_TYPE(current1);
+    auto sub_type2 = PHP_SCYLLADB_GET_TYPE(current2);
     int result = php_scylladb_type_compare(sub_type1, sub_type2);
     if (result != 0) return result;
     zend_hash_move_forward_ex(&type1->data.tuple.types, &pos1);
@@ -338,15 +338,15 @@ static inline int user_type_compare(php_scylladb_type* type1, php_scylladb_type*
   zend_hash_internal_pointer_reset_ex(&type1->data.udt.types, &pos1);
   zend_hash_internal_pointer_reset_ex(&type2->data.udt.types, &pos2);
 
-  while (zend_hash_get_current_key_ex(&type1->data.udt.types, &key1, NULL, &pos1) ==
+  while (zend_hash_get_current_key_ex(&type1->data.udt.types, &key1, nullptr, &pos1) ==
              HASH_KEY_IS_STRING &&
-         zend_hash_get_current_key_ex(&type2->data.udt.types, &key2, NULL, &pos2) ==
+         zend_hash_get_current_key_ex(&type2->data.udt.types, &key2, nullptr, &pos2) ==
              HASH_KEY_IS_STRING &&
-         (current1 = zend_hash_get_current_data_ex(&type1->data.udt.types, &pos1)) != NULL &&
-         (current2 = zend_hash_get_current_data_ex(&type2->data.udt.types, &pos2)) != NULL) {
+         (current1 = zend_hash_get_current_data_ex(&type1->data.udt.types, &pos1)) != nullptr &&
+         (current2 = zend_hash_get_current_data_ex(&type2->data.udt.types, &pos2)) != nullptr) {
     int result;
-    php_scylladb_type* sub_type1 = PHP_SCYLLADB_GET_TYPE(current1);
-    php_scylladb_type* sub_type2 = PHP_SCYLLADB_GET_TYPE(current2);
+    auto sub_type1 = PHP_SCYLLADB_GET_TYPE(current1);
+    auto sub_type2 = PHP_SCYLLADB_GET_TYPE(current2);
     result = php5to7_string_compare(key1, key2);
     if (result != 0) return result;
     result = php_scylladb_type_compare(sub_type1, sub_type2);
@@ -419,7 +419,7 @@ static inline void tuple_string(php_scylladb_type* type, smart_str* string) {
 
   smart_str_appendl(string, "tuple<", 6);
   ZEND_HASH_FOREACH_VAL(&type->data.tuple.types, current) {
-    php_scylladb_type* sub_type = PHP_SCYLLADB_GET_TYPE(current);
+    auto sub_type = PHP_SCYLLADB_GET_TYPE(current);
     if (!first) smart_str_appendl(string, ", ", 2);
     first = 0;
     php_scylladb_type_string(sub_type, string);
@@ -442,7 +442,7 @@ static inline void user_type_string(php_scylladb_type* type, smart_str* string) 
   } else {
     smart_str_appendl(string, "userType<", 9);
     ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
-      php_scylladb_type* sub_type = PHP_SCYLLADB_GET_TYPE(current);
+      auto sub_type = PHP_SCYLLADB_GET_TYPE(current);
       if (!first) smart_str_appendl(string, ", ", 2);
       first = 0;
       smart_str_appendl(string, ZSTR_VAL(name), ZSTR_LEN(name));
@@ -492,7 +492,7 @@ void php_scylladb_type_string(php_scylladb_type* type, smart_str* string) {
 static zval php_scylladb_type_scalar_new(CassValueType type) {
   zval ztype;
   object_init_ex(&ztype, php_scylladb_type_scalar_ce);
-  php_scylladb_type* scalar = PHP_SCYLLADB_GET_TYPE(&ztype);
+  auto scalar = PHP_SCYLLADB_GET_TYPE(&ztype);
   scalar->type = type;
   scalar->data_type = cass_data_type_new(type);
 
@@ -593,7 +593,7 @@ static void php_scylladb_text_init(INTERNAL_FUNCTION_PARAMETERS) {
   XX(inet, CASS_VALUE_TYPE_INET)
 
 void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
-  php_scylladb_type* self = PHP_SCYLLADB_GET_TYPE(getThis());
+  auto self = PHP_SCYLLADB_GET_TYPE(getThis());
 
 #define XX_SCALAR(name, value)          \
   if (self->type == value) {            \
@@ -998,7 +998,7 @@ static int php_scylladb_parse_class_name(const char* validator, size_t validator
   struct node_s* node;
   struct node_s* child;
 
-  token_str = NULL;
+  token_str = nullptr;
   token_len = 0;
   state = STATE_CLASS;
   str = validator;
@@ -1019,7 +1019,7 @@ static int php_scylladb_parse_class_name(const char* validator, size_t validator
 
     if (state == STATE_AFTER_PARENS) {
       if (token == TOKEN_COMMA) {
-        if (node->parent == NULL) {
+        if (node->parent == nullptr) {
           EXPECTING_TOKEN("end of string");
         }
         state = STATE_CLASS;
@@ -1033,7 +1033,7 @@ static int php_scylladb_parse_class_name(const char* validator, size_t validator
         node = child;
         continue;
       } else if (token == TOKEN_PAREN_CLOSE) {
-        if (node->parent == NULL) {
+        if (node->parent == nullptr) {
           EXPECTING_TOKEN("end of string");
         }
 
@@ -1053,7 +1053,7 @@ static int php_scylladb_parse_class_name(const char* validator, size_t validator
         child = php_scylladb_parse_node_new();
         child->parent = node;
 
-        if (node->first_child == NULL) {
+        if (node->first_child == nullptr) {
           node->first_child = child;
         }
 
@@ -1255,9 +1255,9 @@ static zval php_scylladb_create_type(struct node_s* node) {
 
   if (type == CASS_VALUE_TYPE_CUSTOM) {
     zval ztype;
-    smart_str class_name = {NULL, 0};
+    smart_str class_name = {nullptr, 0};
     php_scylladb_node_dump_to(node, &class_name);
-    ztype = php_scylladb_type_custom((class_name.s ? class_name.s->val : NULL),
+    ztype = php_scylladb_type_custom((class_name.s ? class_name.s->val : nullptr),
                                    (class_name.s ? class_name.s->len : 0));
     smart_str_free(&class_name);
     return ztype;

@@ -123,32 +123,15 @@ include(cmake/PhpExtensionHelpers.cmake)
 include(cmake/GenStubs.cmake)
 
 if (ENABLE_SANITIZERS)
-    set(_sanitizers_cmake_dir "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake")
-    if (NOT EXISTS "${_sanitizers_cmake_dir}/FindSanitizers.cmake")
-        # Submodule not initialized — try to init it automatically when we're
-        # inside a git checkout; otherwise tell the user exactly what to run.
-        find_package(Git QUIET)
-        if (Git_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.gitmodules")
-            message(STATUS "Initializing third-party/sanitizers-cmake submodule")
-            execute_process(
-                COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive
-                        third-party/sanitizers-cmake
-                WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-                RESULT_VARIABLE _sm_rc
-            )
-        else ()
-            set(_sm_rc 1)
-        endif ()
-        if (NOT EXISTS "${_sanitizers_cmake_dir}/FindSanitizers.cmake")
-            message(FATAL_ERROR
-                "ENABLE_SANITIZERS=ON but third-party/sanitizers-cmake is missing.\n"
-                "Run: git submodule update --init --recursive\n"
-                "Or disable with: -DENABLE_SANITIZERS=OFF"
-            )
-        endif ()
-        unset(_sm_rc)
+    # sanitizers-cmake is vendored under third-party/ (no submodule). The path
+    # is added to CMAKE_MODULE_PATH at the top of this file.
+    if (NOT EXISTS "${PROJECT_SOURCE_DIR}/third-party/sanitizers-cmake/cmake/FindSanitizers.cmake")
+        message(FATAL_ERROR
+            "ENABLE_SANITIZERS=ON but third-party/sanitizers-cmake is missing "
+            "(expected a vendored copy of arsenm/sanitizers-cmake under "
+            "third-party/sanitizers-cmake/). Re-clone the repo or "
+            "disable with: -DENABLE_SANITIZERS=OFF")
     endif ()
-    unset(_sanitizers_cmake_dir)
     find_package(Sanitizers REQUIRED)
 endif ()
 

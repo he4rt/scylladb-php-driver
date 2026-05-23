@@ -46,7 +46,7 @@ php_scylladb_prepared_statement_compare(zval *obj1, zval *obj2)
 void
 php_scylladb_prepared_statement_free(zend_object *object)
 {
-  php_scylladb_statement *self = php_scylladb_statement_object_fetch(object);
+  auto self = php_scylladb_statement_object_fetch(object);
 
   if (self->data.prepared.prepared)
     cass_prepared_free(self->data.prepared.prepared);
@@ -59,12 +59,9 @@ zend_object*
 php_scylladb_prepared_statement_new(zend_class_entry *ce)
 {
   php_scylladb_statement *self =
-      (php_scylladb_statement *)ecalloc(1, sizeof(php_scylladb_statement) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_statement, ce, &php_scylladb_prepared_statement_handlers);
 
   self->type = PHP_SCYLLADB_PREPARED_STATEMENT;
-  self->data.prepared.prepared = NULL;
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_prepared_statement_handlers;
+  self->data.prepared.prepared = nullptr;
   return &self->zendObject;
 }

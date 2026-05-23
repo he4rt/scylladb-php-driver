@@ -338,7 +338,9 @@ EOF;
  * via cmake/GenStubs.cmake's php_scylladb_generate_arginfo() function.
  */
 
-#include <php.h>
+/* Include the umbrella header so any @cvalue identifier (CASS_*,
+ * PHP_SCYLLADB_VERSION, …) is visible to the arginfo register fn. */
+#include "php_scylladb.h"
 #include <Zend/zend_attributes.h>
 #include "$arginfoHeader"
 #include <Registry/Registry.h>

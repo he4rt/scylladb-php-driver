@@ -17,5 +17,5 @@
 #pragma once
 
 BEGIN_EXTERN_C()
-int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, zval *timeout );
+[[gnu::nonnull(1)]] int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, zval *timeout );
 END_EXTERN_C()

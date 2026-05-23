@@ -29,7 +29,7 @@ int
 php_scylladb_type_tuple_add(php_scylladb_type* type,
                           zval* zsub_type )
 {
-  php_scylladb_type* sub_type = PHP_SCYLLADB_GET_TYPE(zsub_type);
+  auto sub_type = PHP_SCYLLADB_GET_TYPE(zsub_type);
   if (cass_data_type_add_sub_type(type->data_type,
                                   sub_type->data_type)
       != CASS_OK) {
@@ -72,7 +72,7 @@ ZEND_METHOD(Cassandra_Type_Tuple, types)
 ZEND_METHOD(Cassandra_Type_Tuple, __toString)
 {
   php_scylladb_type* self;
-  smart_str string = {NULL,0};
+  smart_str string = {nullptr,0};
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -91,7 +91,7 @@ ZEND_METHOD(Cassandra_Type_Tuple, create)
 {
   php_scylladb_type* self;
   php_scylladb_tuple* tuple;
-  zval* args = NULL;
+  zval* args = nullptr;
   int argc               = 0, i, num_types;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
@@ -120,7 +120,7 @@ ZEND_METHOD(Cassandra_Type_Tuple, create)
     for (i = 0; i < argc; i++) {
       zval* sub_type;
 
-      if ((sub_type = zend_hash_index_find(&self->data.tuple.types, (zend_ulong)(i))) == NULL || !php_scylladb_validate_object(&args[i], sub_type )) {
+      if ((sub_type = zend_hash_index_find(&self->data.tuple.types, (zend_ulong)(i))) == nullptr || !php_scylladb_validate_object(&args[i], sub_type )) {
 
         return;
       }
@@ -141,9 +141,9 @@ php_scylladb_type_tuple_gc(
   zval** table,
   int* n )
 {
-  *table = NULL;
+  *table = nullptr;
   *n     = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable*
@@ -157,9 +157,9 @@ php_scylladb_type_tuple_properties(
 {
   zval types;
 #if PHP_MAJOR_VERSION >= 8
-  php_scylladb_type* self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 #else
-  php_scylladb_type* self                          = PHP_SCYLLADB_GET_TYPE(object);
+  auto self = PHP_SCYLLADB_GET_TYPE(object);
 #endif
   if (object->properties) {
     zend_array_release(object->properties);
@@ -180,8 +180,8 @@ php_scylladb_type_tuple_compare(zval* obj1, zval* obj2 )
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
-  php_scylladb_type* type1 = PHP_SCYLLADB_GET_TYPE(obj1);
-  php_scylladb_type* type2 = PHP_SCYLLADB_GET_TYPE(obj2);
+  auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
+  auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
   return php_scylladb_type_compare(type1, type2 );
 }
@@ -189,7 +189,7 @@ php_scylladb_type_tuple_compare(zval* obj1, zval* obj2 )
 void
 php_scylladb_type_tuple_free(zend_object* object )
 {
-  php_scylladb_type* self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 
   if (self->data_type)
     cass_data_type_free(self->data_type);
@@ -202,16 +202,15 @@ php_scylladb_type_tuple_free(zend_object* object )
 zend_object*
 php_scylladb_type_tuple_new(zend_class_entry* ce )
 {
-  php_scylladb_type* self = (php_scylladb_type *)ecalloc(1, sizeof(php_scylladb_type) + zend_object_properties_size(ce));
+  php_scylladb_type* self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_type, ce, &php_scylladb_type_tuple_handlers);
 
   self->type      = CASS_VALUE_TYPE_TUPLE;
   self->data_type = cass_data_type_new(self->type);
-  zend_hash_init(&self->data.tuple.types, 0, NULL, ZVAL_PTR_DTOR, 0);
+  zend_hash_init(&self->data.tuple.types, 0, nullptr, ZVAL_PTR_DTOR, 0);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_type_tuple_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
   php_scylladb_type_tuple_handlers.free_obj = php_scylladb_type_tuple_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_type_tuple_handlers;
   return &self->zendObject;
 }
 

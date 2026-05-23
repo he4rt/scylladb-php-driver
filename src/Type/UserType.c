@@ -29,7 +29,7 @@ int php_scylladb_type_user_type_add(php_scylladb_type *type,
                                      const char *name, size_t name_length,
                                      zval *zsub_type )
 {
-  php_scylladb_type *sub_type = PHP_SCYLLADB_GET_TYPE(zsub_type);
+  auto sub_type = PHP_SCYLLADB_GET_TYPE(zsub_type);
   if (cass_data_type_add_sub_type_by_name_n(type->data_type,
                                             name, name_length,
                                             sub_type->data_type) != CASS_OK) {
@@ -148,7 +148,7 @@ ZEND_METHOD(Cassandra_Type_UserType, types)
 ZEND_METHOD(Cassandra_Type_UserType, __toString)
 {
   php_scylladb_type *self;
-  smart_str string = {NULL,0};
+  smart_str string = {nullptr,0};
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -167,7 +167,7 @@ ZEND_METHOD(Cassandra_Type_UserType, create)
 {
   php_scylladb_type *self;
   php_scylladb_user_type_value *user_type_value;
-  zval* args = NULL;
+  zval* args = nullptr;
   int argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
@@ -202,7 +202,7 @@ ZEND_METHOD(Cassandra_Type_UserType, create)
 
         return;
       }
-      if ((sub_type = zend_hash_str_find(&self->data.udt.types, Z_STRVAL_P(name), Z_STRLEN_P(name))) == NULL) {
+      if ((sub_type = zend_hash_str_find(&self->data.udt.types, Z_STRVAL_P(name), Z_STRLEN_P(name))) == nullptr) {
         zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce,
                                 0 ,
                                 "Invalid name '%s'", Z_STRVAL_P(name));
@@ -247,9 +247,9 @@ php_scylladb_type_user_type_properties(
   zval types;
 
 #if PHP_MAJOR_VERSION >= 8
-  php_scylladb_type *self  = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 #else
-  php_scylladb_type *self  = PHP_SCYLLADB_GET_TYPE(object);
+  auto self = PHP_SCYLLADB_GET_TYPE(object);
 #endif
   if (object->properties) {
     zend_array_release(object->properties);
@@ -270,8 +270,8 @@ php_scylladb_type_user_type_compare(zval *obj1, zval *obj2 )
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
-  php_scylladb_type* type1 = PHP_SCYLLADB_GET_TYPE(obj1);
-  php_scylladb_type* type2 = PHP_SCYLLADB_GET_TYPE(obj2);
+  auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
+  auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
   return php_scylladb_type_compare(type1, type2 );
 }
@@ -279,7 +279,7 @@ php_scylladb_type_user_type_compare(zval *obj1, zval *obj2 )
 void
 php_scylladb_type_user_type_free(zend_object *object )
 {
-  php_scylladb_type *self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
   if (self->data.udt.keyspace) efree(self->data.udt.keyspace);
@@ -293,17 +293,16 @@ php_scylladb_type_user_type_free(zend_object *object )
 zend_object*
 php_scylladb_type_user_type_new(zend_class_entry *ce )
 {
-  php_scylladb_type *self = (php_scylladb_type *)ecalloc(1, sizeof(php_scylladb_type) + zend_object_properties_size(ce));
+  php_scylladb_type *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_type, ce, &php_scylladb_type_user_type_handlers);
 
   self->type = CASS_VALUE_TYPE_UDT;
-  self->data_type = NULL;
-  self->data.udt.keyspace = self->data.udt.type_name = NULL;
-  zend_hash_init(&self->data.udt.types, 0, NULL, ZVAL_PTR_DTOR, 0);
+  self->data_type = nullptr;
+  self->data.udt.keyspace = self->data.udt.type_name = nullptr;
+  zend_hash_init(&self->data.udt.types, 0, nullptr, ZVAL_PTR_DTOR, 0);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_type_user_type_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
   php_scylladb_type_user_type_handlers.free_obj = php_scylladb_type_user_type_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_type_user_type_handlers;
   return &self->zendObject;
 }
 

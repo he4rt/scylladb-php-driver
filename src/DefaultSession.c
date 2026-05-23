@@ -35,153 +35,142 @@ extern zend_object_handlers php_scylladb_default_session_handlers;
     return SUCCESS;                    \
   } while (0)
 
+/* Cleanup helpers for PHP_SCYLLADB_CLEANUP — destructor signature is `T **`
+ * because the cleanup attribute passes a pointer to the local variable. */
+static inline void php_scylladb_free_bytes(cass_byte_t **p) {
+  if (*p) free(*p);
+}
+static inline void php_scylladb_cass_collection_free(CassCollection **p) {
+  if (*p) cass_collection_free(*p);
+}
+static inline void php_scylladb_cass_tuple_free(CassTuple **p) {
+  if (*p) cass_tuple_free(*p);
+}
+static inline void php_scylladb_cass_user_type_free(CassUserType **p) {
+  if (*p) cass_user_type_free(*p);
+}
+
 static int bind_argument_by_index(CassStatement* statement, size_t index, zval* value) {
-  if (Z_TYPE_P(value) == IS_NULL) CHECK_RESULT(cass_statement_bind_null(statement, index));
-
-  if (Z_TYPE_P(value) == IS_STRING)
-    CHECK_RESULT(cass_statement_bind_string(statement, index, Z_STRVAL_P(value)));
-
-  if (Z_TYPE_P(value) == IS_DOUBLE)
-    CHECK_RESULT(cass_statement_bind_double(statement, index, Z_DVAL_P(value)));
-
-  if (Z_TYPE_P(value) == IS_LONG)
-    CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
-
-  if ((Z_TYPE_P(value) == IS_TRUE))
-    CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
-
-  if ((Z_TYPE_P(value) == IS_FALSE))
-    CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
+  /* Primitive dispatch: one Z_TYPE_P read, compiler builds a jump table.
+   * CHECK_RESULT always returns, so each case is terminal. IS_OBJECT and
+   * any unsupported type fall through to the instanceof chain / error. */
+  switch (Z_TYPE_P(value)) {
+    case IS_NULL:   CHECK_RESULT(cass_statement_bind_null(statement, index));
+    case IS_STRING: CHECK_RESULT(cass_statement_bind_string(statement, index, Z_STRVAL_P(value)));
+    case IS_DOUBLE: CHECK_RESULT(cass_statement_bind_double(statement, index, Z_DVAL_P(value)));
+    case IS_LONG:   CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
+    case IS_TRUE:   CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
+    case IS_FALSE:  CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
+    case IS_OBJECT: break;       /* dispatched on class entry below */
+    default:        break;       /* fall through to unsupported throw */
+  }
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_float_ce)) {
-      php_scylladb_numeric* float_number = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto float_number = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(cass_statement_bind_float(statement, index, float_number->data.floating.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_bigint_ce)) {
-      php_scylladb_numeric* bigint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto bigint = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(cass_statement_bind_int64(statement, index, bigint->data.bigint.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_smallint_ce)) {
-      php_scylladb_numeric* smallint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto smallint = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(cass_statement_bind_int16(statement, index, smallint->data.smallint.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_tinyint_ce)) {
-      php_scylladb_numeric* tinyint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto tinyint = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(cass_statement_bind_int8(statement, index, tinyint->data.tinyint.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_timestamp_ce)) {
-      php_scylladb_timestamp* timestamp = Z_SCYLLADB_TIMESTAMP_P(value);
+      auto timestamp = Z_SCYLLADB_TIMESTAMP_P(value);
       CHECK_RESULT(cass_statement_bind_int64(statement, index, timestamp->timestamp));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_date_ce)) {
-      php_scylladb_date* date = Z_SCYLLADB_DATE_P(value);
+      auto date = Z_SCYLLADB_DATE_P(value);
       CHECK_RESULT(cass_statement_bind_uint32(statement, index, date->date));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_time_ce)) {
-      php_scylladb_time* time = Z_SCYLLADB_TIME_P(value);
+      auto time = Z_SCYLLADB_TIME_P(value);
       CHECK_RESULT(cass_statement_bind_int64(statement, index, time->time));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_blob_ce)) {
-      php_scylladb_blob* blob = PHP_SCYLLADB_GET_BLOB(value);
+      auto blob = PHP_SCYLLADB_GET_BLOB(value);
       CHECK_RESULT(cass_statement_bind_bytes(statement, index, blob->data, blob->size));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_varint_ce)) {
-      php_scylladb_numeric* varint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto varint = PHP_SCYLLADB_GET_NUMERIC(value);
       size_t size;
+      PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
       cass_byte_t* data = export_twos_complement(varint->data.varint.value, &size);
-      CassError rc = cass_statement_bind_bytes(statement, index, data, size);
-      free(data);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_bytes(statement, index, data, size));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_decimal_ce)) {
-      php_scylladb_numeric* decimal = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto decimal = PHP_SCYLLADB_GET_NUMERIC(value);
       size_t size;
+      PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
       cass_byte_t* data = (cass_byte_t*)export_twos_complement(decimal->data.decimal.value, &size);
-      CassError rc =
-          cass_statement_bind_decimal(statement, index, data, size, decimal->data.decimal.scale);
-      free(data);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_decimal(statement, index, data, size, decimal->data.decimal.scale));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_uuid_interface_ce)) {
-      php_scylladb_uuid* uuid = PHP_SCYLLADB_GET_UUID(value);
+      auto uuid = PHP_SCYLLADB_GET_UUID(value);
       CHECK_RESULT(cass_statement_bind_uuid(statement, index, uuid->uuid));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_inet_ce)) {
-      php_scylladb_inet* inet = PHP_SCYLLADB_GET_INET(value);
+      auto inet = PHP_SCYLLADB_GET_INET(value);
       CHECK_RESULT(cass_statement_bind_inet(statement, index, inet->inet));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_duration_ce)) {
-      php_scylladb_duration* duration = PHP_SCYLLADB_GET_DURATION(value);
+      auto duration = PHP_SCYLLADB_GET_DURATION(value);
       CHECK_RESULT(cass_statement_bind_duration(statement, index, duration->months, duration->days,
                                                 duration->nanos));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_set_ce)) {
-      CassError rc;
-      CassCollection* collection;
-      php_scylladb_set* set = PHP_SCYLLADB_GET_SET(value);
+      auto set = PHP_SCYLLADB_GET_SET(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_collection_free) CassCollection* collection = nullptr;
       if (!php_scylladb_collection_from_set(set, &collection)) return FAILURE;
-
-      rc = cass_statement_bind_collection(statement, index, collection);
-      cass_collection_free(collection);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_collection(statement, index, collection));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_map_ce)) {
-      CassError rc;
-      CassCollection* collection;
-      php_scylladb_map* map = PHP_SCYLLADB_GET_MAP(value);
+      auto map = PHP_SCYLLADB_GET_MAP(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_collection_free) CassCollection* collection = nullptr;
       if (!php_scylladb_collection_from_map(map, &collection)) return FAILURE;
-
-      rc = cass_statement_bind_collection(statement, index, collection);
-      cass_collection_free(collection);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_collection(statement, index, collection));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_collection_ce)) {
-      CassError rc;
-      CassCollection* collection;
-      php_scylladb_collection* coll = PHP_SCYLLADB_GET_COLLECTION(value);
+      auto coll = PHP_SCYLLADB_GET_COLLECTION(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_collection_free) CassCollection* collection = nullptr;
       if (!php_scylladb_collection_from_collection(coll, &collection)) return FAILURE;
-
-      rc = cass_statement_bind_collection(statement, index, collection);
-      cass_collection_free(collection);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_collection(statement, index, collection));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_tuple_ce)) {
-      CassError rc;
-      CassTuple* tup;
-      php_scylladb_tuple* tuple = PHP_SCYLLADB_GET_TUPLE(value);
+      auto tuple = PHP_SCYLLADB_GET_TUPLE(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_tuple_free) CassTuple* tup = nullptr;
       if (!php_scylladb_tuple_from_tuple(tuple, &tup)) return FAILURE;
-
-      rc = cass_statement_bind_tuple(statement, index, tup);
-      cass_tuple_free(tup);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_tuple(statement, index, tup));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_user_type_value_ce)) {
-      CassError rc;
-      CassUserType* ut;
-      php_scylladb_user_type_value* user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(value);
+      auto user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_user_type_free) CassUserType* ut = nullptr;
       if (!php_scylladb_user_type_from_user_type_value(user_type_value, &ut)) return FAILURE;
-
-      rc = cass_statement_bind_user_type(statement, index, ut);
-      cass_user_type_free(ut);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_user_type(statement, index, ut));
     }
   }
 
@@ -192,156 +181,126 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
 }
 
 static int bind_argument_by_name(CassStatement* statement, const char* name, zval* value) {
-  if (Z_TYPE_P(value) == IS_NULL) {
-    CHECK_RESULT(cass_statement_bind_null_by_name(statement, name));
+  switch (Z_TYPE_P(value)) {
+    case IS_NULL:   CHECK_RESULT(cass_statement_bind_null_by_name(statement, name));
+    case IS_STRING: CHECK_RESULT(cass_statement_bind_string_by_name(statement, name, Z_STRVAL_P(value)));
+    case IS_DOUBLE: CHECK_RESULT(cass_statement_bind_double_by_name(statement, name, Z_DVAL_P(value)));
+    case IS_LONG:   CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, Z_LVAL_P(value)));
+    case IS_TRUE:   CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_true));
+    case IS_FALSE:  CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
+    case IS_OBJECT: break;
+    default:        break;
   }
-
-  if (Z_TYPE_P(value) == IS_STRING)
-    CHECK_RESULT(cass_statement_bind_string_by_name(statement, name, Z_STRVAL_P(value)));
-
-  if (Z_TYPE_P(value) == IS_DOUBLE)
-    CHECK_RESULT(cass_statement_bind_double_by_name(statement, name, Z_DVAL_P(value)));
-
-  if (Z_TYPE_P(value) == IS_LONG)
-    CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, Z_LVAL_P(value)));
-
-  if ((Z_TYPE_P(value) == IS_TRUE))
-    CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_true));
-
-  if ((Z_TYPE_P(value) == IS_FALSE))
-    CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
 
   if (Z_TYPE_P(value) == IS_OBJECT) {
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_float_ce)) {
-      php_scylladb_numeric* float_number = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto float_number = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(
           cass_statement_bind_float_by_name(statement, name, float_number->data.floating.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_bigint_ce)) {
-      php_scylladb_numeric* bigint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto bigint = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(cass_statement_bind_int64_by_name(statement, name, bigint->data.bigint.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_smallint_ce)) {
-      php_scylladb_numeric* smallint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto smallint = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(
           cass_statement_bind_int16_by_name(statement, name, smallint->data.smallint.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_tinyint_ce)) {
-      php_scylladb_numeric* tinyint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto tinyint = PHP_SCYLLADB_GET_NUMERIC(value);
       CHECK_RESULT(cass_statement_bind_int8_by_name(statement, name, tinyint->data.tinyint.value));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_timestamp_ce)) {
-      php_scylladb_timestamp* timestamp = Z_SCYLLADB_TIMESTAMP_P(value);
+      auto timestamp = Z_SCYLLADB_TIMESTAMP_P(value);
       CHECK_RESULT(cass_statement_bind_int64_by_name(statement, name, timestamp->timestamp));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_date_ce)) {
-      php_scylladb_date* date = Z_SCYLLADB_DATE_P(value);
+      auto date = Z_SCYLLADB_DATE_P(value);
       CHECK_RESULT(cass_statement_bind_uint32_by_name(statement, name, date->date));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_time_ce)) {
-      php_scylladb_time* time = Z_SCYLLADB_TIME_P(value);
+      auto time = Z_SCYLLADB_TIME_P(value);
       CHECK_RESULT(cass_statement_bind_int64_by_name(statement, name, time->time));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_blob_ce)) {
-      php_scylladb_blob* blob = PHP_SCYLLADB_GET_BLOB(value);
+      auto blob = PHP_SCYLLADB_GET_BLOB(value);
       CHECK_RESULT(cass_statement_bind_bytes_by_name(statement, name, blob->data, blob->size));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_varint_ce)) {
-      php_scylladb_numeric* varint = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto varint = PHP_SCYLLADB_GET_NUMERIC(value);
       size_t size;
+      PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
       cass_byte_t* data = (cass_byte_t*)export_twos_complement(varint->data.varint.value, &size);
-      CassError rc = cass_statement_bind_bytes_by_name(statement, name, data, size);
-      free(data);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_bytes_by_name(statement, name, data, size));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_decimal_ce)) {
-      php_scylladb_numeric* decimal = PHP_SCYLLADB_GET_NUMERIC(value);
+      auto decimal = PHP_SCYLLADB_GET_NUMERIC(value);
       size_t size;
+      PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
       cass_byte_t* data = (cass_byte_t*)export_twos_complement(decimal->data.decimal.value, &size);
-      CassError rc = cass_statement_bind_decimal_by_name(statement, name, data, size,
-                                                         decimal->data.decimal.scale);
-      free(data);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_decimal_by_name(statement, name, data, size,
+                                                       decimal->data.decimal.scale));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_uuid_interface_ce)) {
-      php_scylladb_uuid* uuid = PHP_SCYLLADB_GET_UUID(value);
+      auto uuid = PHP_SCYLLADB_GET_UUID(value);
       CHECK_RESULT(cass_statement_bind_uuid_by_name(statement, name, uuid->uuid));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_inet_ce)) {
-      php_scylladb_inet* inet = PHP_SCYLLADB_GET_INET(value);
+      auto inet = PHP_SCYLLADB_GET_INET(value);
       CHECK_RESULT(cass_statement_bind_inet_by_name(statement, name, inet->inet));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_duration_ce)) {
-      php_scylladb_duration* duration = PHP_SCYLLADB_GET_DURATION(value);
+      auto duration = PHP_SCYLLADB_GET_DURATION(value);
       CHECK_RESULT(cass_statement_bind_duration_by_name(statement, name, duration->months,
                                                         duration->days, duration->nanos));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_set_ce)) {
-      CassError rc;
-      CassCollection* collection;
-      php_scylladb_set* set = PHP_SCYLLADB_GET_SET(value);
+      auto set = PHP_SCYLLADB_GET_SET(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_collection_free) CassCollection* collection = nullptr;
       if (!php_scylladb_collection_from_set(set, &collection)) return FAILURE;
-
-      rc = cass_statement_bind_collection_by_name(statement, name, collection);
-      cass_collection_free(collection);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_collection_by_name(statement, name, collection));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_map_ce)) {
-      CassError rc;
-      CassCollection* collection;
-      php_scylladb_map* map = PHP_SCYLLADB_GET_MAP(value);
+      auto map = PHP_SCYLLADB_GET_MAP(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_collection_free) CassCollection* collection = nullptr;
       if (!php_scylladb_collection_from_map(map, &collection)) return FAILURE;
-
-      rc = cass_statement_bind_collection_by_name(statement, name, collection);
-      cass_collection_free(collection);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_collection_by_name(statement, name, collection));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_collection_ce)) {
-      CassError rc;
-      CassCollection* collection;
-      php_scylladb_collection* coll = PHP_SCYLLADB_GET_COLLECTION(value);
+      auto coll = PHP_SCYLLADB_GET_COLLECTION(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_collection_free) CassCollection* collection = nullptr;
       if (!php_scylladb_collection_from_collection(coll, &collection)) return FAILURE;
-
-      rc = cass_statement_bind_collection_by_name(statement, name, collection);
-      cass_collection_free(collection);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_collection_by_name(statement, name, collection));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_tuple_ce)) {
-      CassError rc;
-      CassTuple* tup;
-      php_scylladb_tuple* tuple = PHP_SCYLLADB_GET_TUPLE(value);
+      auto tuple = PHP_SCYLLADB_GET_TUPLE(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_tuple_free) CassTuple* tup = nullptr;
       if (!php_scylladb_tuple_from_tuple(tuple, &tup)) return FAILURE;
-
-      rc = cass_statement_bind_tuple_by_name(statement, name, tup);
-      cass_tuple_free(tup);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_tuple_by_name(statement, name, tup));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_user_type_value_ce)) {
-      CassError rc;
-      CassUserType* ut;
-      php_scylladb_user_type_value* user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(value);
+      auto user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(value);
+      PHP_SCYLLADB_CLEANUP(php_scylladb_cass_user_type_free) CassUserType* ut = nullptr;
       if (!php_scylladb_user_type_from_user_type_value(user_type_value, &ut)) return FAILURE;
-
-      rc = cass_statement_bind_user_type_by_name(statement, name, ut);
-      cass_user_type_free(ut);
-      CHECK_RESULT(rc);
+      CHECK_RESULT(cass_statement_bind_user_type_by_name(statement, name, ut));
     }
   }
 
@@ -355,7 +314,7 @@ static int bind_arguments(CassStatement* statement, HashTable* arguments) {
   int rc = SUCCESS;
 
   zval* current;
-  ulong num_key;
+  zend_ulong num_key;
   zend_string* key;
   ZEND_HASH_FOREACH_KEY_VAL(arguments, num_key, key, current) {
     if (key) {
@@ -387,18 +346,18 @@ static CassStatement* create_statement(php_scylladb_statement* statement, HashTa
       break;
     default:
       zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported statement type.");
-      return NULL;
+      return nullptr;
   }
 
-  if (stmt == NULL) {
+  if (stmt == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassStatement");
-    return NULL;
+    return nullptr;
   }
 
   if (arguments && bind_arguments(stmt, arguments) == FAILURE) {
     cass_statement_free(stmt);
-    return NULL;
+    return nullptr;
   }
 
   return stmt;
@@ -407,10 +366,10 @@ static CassStatement* create_statement(php_scylladb_statement* statement, HashTa
 static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency consistency,
                                CassRetryPolicy* retry_policy, cass_int64_t timestamp) {
   CassBatch* cass_batch = cass_batch_new(batch->data.batch.type);
-  if (cass_batch == NULL) {
+  if (cass_batch == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassBatch");
-    return NULL;
+    return nullptr;
   }
   CassError rc = CASS_OK;
 
@@ -434,12 +393,12 @@ static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency co
 
     arguments = !Z_ISUNDEF(batch_statement_entry->arguments)
                     ? Z_ARRVAL_P(&batch_statement_entry->arguments)
-                    : NULL;
+                    : nullptr;
 
     stmt = create_statement(statement, arguments);
     if (!stmt) {
       cass_batch_free(cass_batch);
-      return NULL;
+      return nullptr;
     }
     cass_batch_add_statement(cass_batch, stmt);
     cass_statement_free(stmt);
@@ -447,10 +406,10 @@ static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency co
   ZEND_HASH_FOREACH_END();
 
   rc = cass_batch_set_consistency(cass_batch, consistency);
-  ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
+  ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return nullptr;);
 
   rc = cass_batch_set_retry_policy(cass_batch, retry_policy);
-  ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
+  ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return nullptr;);
 
   // INT64_MIN is our sentinel for "no explicit timestamp set" (see
   // ExecutionOptions). The legacy cpp-driver tolerated forwarding it on the
@@ -458,7 +417,7 @@ static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency co
   // protocol range excludes INT64_MIN. Only set when caller provided a value.
   if (timestamp != INT64_MIN) {
     rc = cass_batch_set_timestamp(cass_batch, timestamp);
-    ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return NULL;);
+    ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return nullptr;);
   }
 
   return cass_batch;
@@ -471,7 +430,7 @@ static CassStatement* create_single(php_scylladb_statement* statement, HashTable
                                     cass_int64_t timestamp) {
   CassError rc = CASS_OK;
   CassStatement* stmt = create_statement(statement, arguments);
-  if (!stmt) return NULL;
+  if (!stmt) return nullptr;
 
   rc = cass_statement_set_consistency(stmt, consistency);
 
@@ -495,32 +454,32 @@ static CassStatement* create_single(php_scylladb_statement* statement, HashTable
   if (rc != CASS_OK) {
     cass_statement_free(stmt);
     zend_throw_exception_ex(exception_class(rc), rc, "%s", cass_error_desc(rc));
-    return NULL;
+    return nullptr;
   }
 
   return stmt;
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, execute) {
-  zval* statement = NULL;
-  zval* options = NULL;
-  php_scylladb_session* self = NULL;
-  php_scylladb_statement* stmt = NULL;
+  zval* statement = nullptr;
+  zval* options = nullptr;
+  php_scylladb_session* self = nullptr;
+  php_scylladb_statement* stmt = nullptr;
   php_scylladb_statement simple_statement;
-  HashTable* arguments = NULL;
+  HashTable* arguments = nullptr;
   CassConsistency consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
   int page_size = -1;
-  char* paging_state_token = NULL;
+  char* paging_state_token = nullptr;
   size_t paging_state_token_size = 0;
-  zval* timeout = NULL;
+  zval* timeout = nullptr;
   long serial_consistency = -1;
-  CassRetryPolicy* retry_policy = NULL;
+  CassRetryPolicy* retry_policy = nullptr;
   cass_int64_t timestamp = INT64_MIN;
-  php_scylladb_execution_options* opts = NULL;
+  php_scylladb_execution_options* opts = nullptr;
   php_scylladb_execution_options local_opts;
-  CassFuture* future = NULL;
-  CassStatement* single = NULL;
-  CassBatch* batch = NULL;
+  CassFuture* future = nullptr;
+  CassStatement* single = nullptr;
+  CassBatch* batch = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(statement)
@@ -609,8 +568,8 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   }
 
   do {
-    const CassResult* result = NULL;
-    php_scylladb_rows* rows = NULL;
+    const CassResult* result = nullptr;
+    php_scylladb_rows* rows = nullptr;
 
     if (php_scylladb_future_wait_timed(future, timeout) == FAILURE ||
         php_scylladb_future_is_error(future) == FAILURE) {
@@ -640,7 +599,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
       rows->statement = zend_register_resource(single, php_le_cass_statement());
       rows->result    = result;
       ZVAL_COPY(&rows->session, getThis());
-      single = NULL;   /* ownership transferred via resource */
+      single = nullptr;   /* ownership transferred via resource */
       return;
     }
 
@@ -653,24 +612,24 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
-  zval* statement = NULL;
-  zval* options = NULL;
-  php_scylladb_session* self = NULL;
-  php_scylladb_statement* stmt = NULL;
+  zval* statement = nullptr;
+  zval* options = nullptr;
+  php_scylladb_session* self = nullptr;
+  php_scylladb_statement* stmt = nullptr;
   php_scylladb_statement simple_statement;
-  HashTable* arguments = NULL;
+  HashTable* arguments = nullptr;
   CassConsistency consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
   int page_size = -1;
-  char* paging_state_token = NULL;
+  char* paging_state_token = nullptr;
   size_t paging_state_token_size = 0;
   long serial_consistency = -1;
-  CassRetryPolicy* retry_policy = NULL;
+  CassRetryPolicy* retry_policy = nullptr;
   cass_int64_t timestamp = INT64_MIN;
-  php_scylladb_execution_options* opts = NULL;
+  php_scylladb_execution_options* opts = nullptr;
   php_scylladb_execution_options local_opts;
-  php_scylladb_future_rows* future_rows = NULL;
-  CassStatement* single = NULL;
-  CassBatch* batch = NULL;
+  php_scylladb_future_rows* future_rows = nullptr;
+  CassStatement* single = nullptr;
+  CassBatch* batch = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(statement)
@@ -763,16 +722,16 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, prepare) {
-  zval* cql = NULL;
-  zval* options = NULL;
+  zval* cql = nullptr;
+  zval* options = nullptr;
   zend_ulong cache_key = 0;
-  php_scylladb_session* self = NULL;
-  php_scylladb_execution_options* opts = NULL;
+  php_scylladb_session* self = nullptr;
+  php_scylladb_execution_options* opts = nullptr;
   php_scylladb_execution_options local_opts;
-  CassFuture* future = NULL;
-  zval* timeout = NULL;
-  php_scylladb_statement* prepared_statement = NULL;
-  php_scylladb_pprepared_statement* pprepared_statement = NULL;
+  CassFuture* future = nullptr;
+  zval* timeout = nullptr;
+  php_scylladb_statement* prepared_statement = nullptr;
+  php_scylladb_pprepared_statement* pprepared_statement = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(cql)
@@ -810,16 +769,16 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
     cache_key = php_scylladb_cache_key_mix_cstr(cache_key, SAFE_STR(self->keyspace));
 
     zval* le = zend_hash_index_find(&EG(persistent_list), cache_key);
-    if (le != NULL && Z_RES_P(le)->type == php_le_php_scylladb_prepared_statement()) {
+    if (le != nullptr && Z_RES_P(le)->type == php_le_php_scylladb_prepared_statement()) {
       pprepared_statement = (php_scylladb_pprepared_statement*)Z_RES_P(le)->ptr;
 
       /* The cached future may belong to a previous prepare that has since
        * failed (e.g. a server-side schema drop). Validate the error code
-       * before trusting cass_future_get_prepared, which returns NULL on
+       * before trusting cass_future_get_prepared, which returns nullptr on
        * error futures and would otherwise corrupt the prepared statement. */
       if (cass_future_error_code(pprepared_statement->future) == CASS_OK) {
         const CassPrepared* cached = cass_future_get_prepared(pprepared_statement->future);
-        if (cached != NULL) {
+        if (cached != nullptr) {
           object_init_ex(return_value, php_scylladb_prepared_statement_ce);
           prepared_statement = PHP_SCYLLADB_GET_STATEMENT(return_value);
           prepared_statement->data.prepared.prepared = cached;
@@ -835,7 +794,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   future =
       cass_session_prepare_n(self->session, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
-  if (future == NULL) {
+  if (future == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a prepare future");
     return;
@@ -875,11 +834,11 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, prepareAsync) {
-  zval* cql = NULL;
-  zval* options = NULL;
-  php_scylladb_session* self = NULL;
-  CassFuture* future = NULL;
-  php_scylladb_future_prepared_statement* future_prepared = NULL;
+  zval* cql = nullptr;
+  zval* options = nullptr;
+  php_scylladb_session* self = nullptr;
+  CassFuture* future = nullptr;
+  php_scylladb_future_prepared_statement* future_prepared = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(cql)
@@ -899,8 +858,8 @@ ZEND_METHOD(Cassandra_DefaultSession, prepareAsync) {
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, close) {
-  zval* timeout = NULL;
-  CassFuture* future = NULL;
+  zval* timeout = nullptr;
+  CassFuture* future = nullptr;
   php_scylladb_session* self;
 
   ZEND_PARSE_PARAMETERS_START(0, 1)
@@ -921,7 +880,7 @@ ZEND_METHOD(Cassandra_DefaultSession, close) {
 
 ZEND_METHOD(Cassandra_DefaultSession, closeAsync) {
   php_scylladb_session* self;
-  php_scylladb_future_close* future = NULL;
+  php_scylladb_future_close* future = nullptr;
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -945,7 +904,7 @@ ZEND_METHOD(Cassandra_DefaultSession, metrics) {
   zval requests;
   zval stats;
   zval errors;
-  php_scylladb_session* self = PHP_SCYLLADB_GET_SESSION(getThis());
+  auto self = PHP_SCYLLADB_GET_SESSION(getThis());
 
   if (zend_parse_parameters_none() == FAILURE) return;
 
@@ -1014,36 +973,34 @@ int php_scylladb_default_session_compare(zval* obj1, zval* obj2) {
 }
 
 void php_scylladb_default_session_free(zend_object* object) {
-  php_scylladb_session* self = php_scylladb_session_object_fetch(object);
+  auto self = php_scylladb_session_object_fetch(object);
 
   /* Persistent: the psession entry in EG(persistent_list) owns the
      CassSession; we just borrowed the pointer. */
   if (!self->persist && self->session) {
     cass_session_free(self->session);
-    self->session = NULL;
+    self->session = nullptr;
   }
   zval_ptr_dtor(&self->default_timeout);
 
   if (self->keyspace) {
     efree(self->keyspace);
-    self->keyspace = NULL;
+    self->keyspace = nullptr;
   }
 
   zend_object_std_dtor(&self->zendObject);
 }
 
 zend_object* php_scylladb_default_session_new(zend_class_entry* ce) {
-  php_scylladb_session* self = (php_scylladb_session *)ecalloc(1, sizeof(php_scylladb_session) + zend_object_properties_size(ce));
+  php_scylladb_session* self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_session, ce, &php_scylladb_default_session_handlers);
 
-  self->session = NULL;
+  self->session = nullptr;
   self->persist = cass_false;
   self->default_consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
   self->default_page_size = 5000;
-  self->keyspace = NULL;
+  self->keyspace = nullptr;
   self->cache_key = 0;
   ZVAL_UNDEF(&self->default_timeout);
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_default_session_handlers;
   return &self->zendObject;
 }

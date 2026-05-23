@@ -19,5 +19,5 @@
 #include "php_scylladb_types.h"
 
 BEGIN_EXTERN_C()
-void php_scylladb_tuple_set(php_scylladb_tuple *tuple, ulong index, zval *object);
+[[gnu::nonnull(1, 3)]] void php_scylladb_tuple_set(php_scylladb_tuple *tuple, zend_ulong index, zval *object);
 END_EXTERN_C()

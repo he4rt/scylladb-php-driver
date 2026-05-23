@@ -79,6 +79,9 @@ function(scylladb_php_library target)
             # _TIME_BITS/_FILE_OFFSET_BITS are glibc extensions; macOS uses 64-bit by default
             $<$<NOT:$<PLATFORM_ID:Darwin>>:_TIME_BITS=64>
             $<$<NOT:$<PLATFORM_ID:Darwin>>:_FILE_OFFSET_BITS=64>
+            # PHP's zend_memrchr inlines glibc's memrchr() when HAVE_MEMRCHR is set
+            # — that prototype is only exposed under _GNU_SOURCE on glibc.
+            $<$<NOT:$<PLATFORM_ID:Darwin>>:_GNU_SOURCE>
             $<$<CONFIG:Debug>:DEBUG>
             $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:RELEASE>
     )

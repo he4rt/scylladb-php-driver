@@ -105,7 +105,7 @@ typedef struct {
 
 static zend_string *date_to_datetime_get_timestamp(void *vctx) {
   date_to_datetime_ctx_t *ctx = (date_to_datetime_ctx_t *)vctx;
-  smart_str b = {0};
+  smart_str b = {};
   smart_str_append_long(
       &b,
       (zend_long)cass_date_time_to_epoch(
@@ -154,7 +154,7 @@ ZEND_METHOD(Cassandra_Date, fromDateTime) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  zval getTimeStampResult = {0};
+  zval getTimeStampResult = {};
   zend_call_method_with_0_params(Z_OBJ_P(datetime), Z_OBJCE_P(datetime), nullptr, "gettimestamp",
                                  &getTimeStampResult);
 
@@ -187,7 +187,7 @@ ZEND_METHOD(Cassandra_Date, __toString) {
 HashTable *php_scylladb_date_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *php_scylladb_date_properties(zend_object *object) {
@@ -233,8 +233,7 @@ zend_object *php_scylladb_date_new(zend_class_entry *ce) {
 
 
 
-void php_scylladb_date_post_register(zend_class_entry *ce)
+void php_scylladb_date_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_date_handlers.std.offset = XtOffsetOf(php_scylladb_date, zendObject);
 }

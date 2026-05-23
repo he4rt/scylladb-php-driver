@@ -73,7 +73,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
         session->cache_key = cache_key;
 
         zval *le = zend_hash_index_find(&EG(persistent_list), cache_key);
-        if (le != NULL && Z_RES_P(le)->type == php_le_php_scylladb_session())
+        if (le != nullptr && Z_RES_P(le)->type == php_le_php_scylladb_session())
         {
             psession = (php_scylladb_psession *)Z_RES_P(le)->ptr;
             session->session = psession->session;   /* borrowed; psession owns */
@@ -81,7 +81,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
         }
     }
 
-    if (future == NULL)
+    if (future == nullptr)
     {
         zval resource;
 
@@ -139,10 +139,10 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
 ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
 {
-    char *keyspace = NULL;
+    char *keyspace = nullptr;
     size_t keyspace_len;
-    php_scylladb_cluster *self = NULL;
-    php_scylladb_future_session *future = NULL;
+    php_scylladb_cluster *self = nullptr;
+    php_scylladb_future_session *future = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(0, 1)
         Z_PARAM_OPTIONAL
@@ -166,7 +166,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         future->cache_key = php_scylladb_cache_key_mix_cstr(future->cache_key, SAFE_STR(keyspace));
 
         zval *le = zend_hash_index_find(&EG(persistent_list), future->cache_key);
-        if (le != NULL && Z_RES_P(le)->type == php_le_php_scylladb_session())
+        if (le != nullptr && Z_RES_P(le)->type == php_le_php_scylladb_session())
         {
             php_scylladb_psession *psession = (php_scylladb_psession *)Z_RES_P(le)->ptr;
             future->session = psession->session;   /* borrowed; psession owns */

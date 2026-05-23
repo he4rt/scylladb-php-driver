@@ -17,5 +17,5 @@
 
 #include <cassandra.h>
 
-void php_scylladb_format_address(CassInet inet, char** out);
-int php_scylladb_parse_ip_address(char* in, CassInet* inet);
+[[gnu::nonnull(2)]] void php_scylladb_format_address(CassInet inet, char** out);
+[[gnu::nonnull(1, 2)]] int php_scylladb_parse_ip_address(char* in, CassInet* inet);
