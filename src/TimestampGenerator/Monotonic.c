@@ -24,7 +24,7 @@ extern zend_object_handlers php_scylladb_timestamp_generator_monotonic_handlers;
 void
 php_scylladb_timestamp_generator_monotonic_free(zend_object *object)
 {
-    php_scylladb_timestamp_gen *self = php_scylladb_timestamp_gen_object_fetch(object);
+    auto self = php_scylladb_timestamp_gen_object_fetch(object);
 
     cass_timestamp_gen_free(self->gen);
 
@@ -35,18 +35,15 @@ zend_object *
 php_scylladb_timestamp_generator_monotonic_new(zend_class_entry *ce)
 {
     php_scylladb_timestamp_gen *self =
-        (php_scylladb_timestamp_gen *)ecalloc(1, sizeof(php_scylladb_timestamp_gen) + zend_object_properties_size(ce));
+        PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_timestamp_gen, ce,
+                                  &php_scylladb_timestamp_generator_monotonic_handlers);
 
     self->gen = cass_timestamp_gen_monotonic_new();
-
-    zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_scylladb_timestamp_generator_monotonic_handlers;
 
     return &self->zendObject;
 }
 
-void php_scylladb_timestamp_generator_monotonic_post_register(zend_class_entry *ce)
+void php_scylladb_timestamp_generator_monotonic_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_timestamp_generator_monotonic_handlers.offset = XtOffsetOf(php_scylladb_timestamp_gen, zendObject);
 }

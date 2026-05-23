@@ -61,7 +61,7 @@ static const char *ip_address_describe_token(enum ip_address_token_type type) {
     case TOKEN_ILLEGAL:
       return "illegal character";
     default:
-      return NULL;
+      return nullptr;
   }
 }
 

@@ -26,7 +26,7 @@ extern zend_object_handlers php_scylladb_future_rows_handlers;
 int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, zval *timeout)
 {
   if (!future_rows->result) {
-    const CassResult *result = NULL;
+    const CassResult *result = nullptr;
 
     if (php_scylladb_future_wait_timed(future_rows->future, timeout) == FAILURE) {
       return FAILURE;
@@ -51,10 +51,10 @@ int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, z
 
 ZEND_METHOD(Cassandra_FutureRows, get)
 {
-  zval *timeout = NULL;
-  php_scylladb_rows *rows = NULL;
+  zval *timeout = nullptr;
+  php_scylladb_rows *rows = nullptr;
 
-  php_scylladb_future_rows *self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
 
   ZEND_PARSE_PARAMETERS_START(0, 1)
     Z_PARAM_OPTIONAL
@@ -84,7 +84,7 @@ ZEND_METHOD(Cassandra_FutureRows, get)
     GC_ADDREF(self->statement);
     rows->statement = self->statement;
     rows->result    = self->result;
-    self->result    = NULL;   /* transferred to Rows */
+    self->result    = nullptr;   /* transferred to Rows */
   }
 }
 
@@ -106,17 +106,17 @@ int php_scylladb_future_rows_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_future_rows_free(zend_object *object)
 {
-  php_scylladb_future_rows *self = php_scylladb_future_rows_object_fetch(object);
+  auto self = php_scylladb_future_rows_object_fetch(object);
 
   zval_ptr_dtor(&self->rows);
 
   if (self->statement) {
     zend_list_delete(self->statement);
-    self->statement = NULL;
+    self->statement = nullptr;
   }
   if (self->result) {
     cass_result_free((CassResult *)self->result);
-    self->result = NULL;
+    self->result = nullptr;
   }
   if (!Z_ISUNDEF(self->session)) {
     zval_ptr_dtor(&self->session);
@@ -132,15 +132,13 @@ void php_scylladb_future_rows_free(zend_object *object)
 
 zend_object *php_scylladb_future_rows_new(zend_class_entry *ce)
 {
-  php_scylladb_future_rows *self = (php_scylladb_future_rows *)ecalloc(1, sizeof(php_scylladb_future_rows) + zend_object_properties_size(ce));
+  php_scylladb_future_rows *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_rows, ce, &php_scylladb_future_rows_handlers);
 
-  self->future    = NULL;
-  self->statement = NULL;
-  self->result    = NULL;
+  self->future    = nullptr;
+  self->statement = nullptr;
+  self->result    = nullptr;
   ZVAL_UNDEF(&self->session);
   ZVAL_UNDEF(&self->rows);
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_future_rows_handlers;
   return &self->zendObject;
 }

@@ -103,7 +103,7 @@ php_scylladb_materialized_view_get_option(php_scylladb_materialized_view *view,
     php_scylladb_default_materialized_view_build_options(view );
   }
 
-  if ((zvalue = zend_hash_str_find(Z_ARRVAL(view->options), name, strlen(name))) == NULL) {
+  if ((zvalue = zend_hash_str_find(Z_ARRVAL(view->options), name, strlen(name))) == nullptr) {
     ZVAL_FALSE(result);
     return;
   }
@@ -138,7 +138,7 @@ ZEND_METHOD(Cassandra_DefaultMaterializedView, option)
     php_scylladb_default_materialized_view_build_options(self );
   }
 
-  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != NULL) {
+  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != nullptr) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -377,7 +377,7 @@ ZEND_METHOD(Cassandra_DefaultMaterializedView, column)
 
   self = PHP_SCYLLADB_GET_MATERIALIZED_VIEW(getThis());
   meta = cass_materialized_view_meta_column_by_name(self->meta, name);
-  if (meta == NULL) {
+  if (meta == nullptr) {
     RETURN_FALSE;
   }
 
@@ -531,9 +531,9 @@ ZEND_METHOD(Cassandra_DefaultMaterializedView, baseTable)
 HashTable *
 php_scylladb_default_materialized_view_gc(zend_object *object, zval** table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -557,7 +557,7 @@ php_scylladb_default_materialized_view_compare(zval *obj1, zval *obj2 )
 void
 php_scylladb_default_materialized_view_free(zend_object *object )
 {
-  php_scylladb_materialized_view *self = php_scylladb_materialized_view_object_fetch(object);
+  auto self = php_scylladb_materialized_view_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->options);
@@ -571,7 +571,7 @@ php_scylladb_default_materialized_view_free(zend_object *object )
     zval_ptr_dtor(&self->schema);
     ZVAL_UNDEF(&self->schema);
   }
-  self->meta = NULL;
+  self->meta = nullptr;
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -581,7 +581,8 @@ zend_object*
 php_scylladb_default_materialized_view_new(zend_class_entry *ce )
 {
   php_scylladb_materialized_view *self =
-      (php_scylladb_materialized_view *)ecalloc(1, sizeof(php_scylladb_materialized_view) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_materialized_view, ce,
+                                &php_scylladb_default_materialized_view_handlers);
 
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->options);
@@ -591,12 +592,10 @@ php_scylladb_default_materialized_view_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->clustering_order);
   ZVAL_UNDEF(&self->base_table);
 
-  self->meta   = NULL;
+  self->meta   = nullptr;
   ZVAL_UNDEF(&self->schema);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_default_materialized_view_handlers.offset = XtOffsetOf(php_scylladb_materialized_view, zendObject);
   php_scylladb_default_materialized_view_handlers.free_obj = php_scylladb_default_materialized_view_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_materialized_view_handlers;
   return &self->zendObject;
 }

@@ -25,7 +25,7 @@ int php_scylladb_default_cluster_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_default_cluster_free(zend_object *object)
 {
-    php_scylladb_cluster *self = php_scylladb_cluster_object_fetch(object);
+    auto self = php_scylladb_cluster_object_fetch(object);
 
     if (!self->persist && self->cluster)
     {
@@ -43,7 +43,8 @@ void php_scylladb_default_cluster_free(zend_object *object)
 
 zend_object *php_scylladb_default_cluster_new(zend_class_entry *ce)
 {
-    php_scylladb_cluster *self = (php_scylladb_cluster *)ecalloc(1, sizeof(php_scylladb_cluster) + zend_object_properties_size(ce));
+    php_scylladb_cluster *self =
+        PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_cluster, ce, &php_scylladb_default_cluster_handlers);
 
     self->cluster = nullptr;
     self->default_consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
@@ -52,9 +53,6 @@ zend_object *php_scylladb_default_cluster_new(zend_class_entry *ce)
     self->cache_key = 0;
 
     ZVAL_UNDEF(&self->default_timeout);
-
-    zend_object_std_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_scylladb_default_cluster_handlers;
 
     return &self->zendObject;
 }

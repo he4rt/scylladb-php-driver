@@ -101,7 +101,7 @@ void php_scylladb_class_registry_minit(void) {
             zend_class_entry *ce = d->register_(n_deps > 0 ? resolved : nullptr);
             if (ce == nullptr) {
                 zend_error_noreturn(E_CORE_ERROR,
-                    "scylladb registry: register_ for '%s' returned NULL", d->name);
+                    "scylladb registry: register_ for '%s' returned nullptr", d->name);
             }
             *(d->ce_out)  = ce;
             d->registered = true;

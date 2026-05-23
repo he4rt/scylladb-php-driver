@@ -23,8 +23,8 @@ extern zend_object_handlers php_scylladb_simple_statement_handlers;
 
 ZEND_METHOD(Cassandra_SimpleStatement, __construct)
 {
-  zend_string *cql = NULL;
-  php_scylladb_statement *self = NULL;
+  zend_string *cql = nullptr;
+  php_scylladb_statement *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_STR(cql)
@@ -56,11 +56,11 @@ php_scylladb_simple_statement_compare(zval *obj1, zval *obj2)
 void
 php_scylladb_simple_statement_free(zend_object *object)
 {
-  php_scylladb_statement *self = php_scylladb_statement_object_fetch(object);
+  auto self = php_scylladb_statement_object_fetch(object);
 
   if (self->data.simple.cql) {
     efree(self->data.simple.cql);
-    self->data.simple.cql = NULL;
+    self->data.simple.cql = nullptr;
   }
 
   zend_object_std_dtor(&self->zendObject);
@@ -71,12 +71,9 @@ zend_object*
 php_scylladb_simple_statement_new(zend_class_entry *ce)
 {
   php_scylladb_statement *self =
-      (php_scylladb_statement *)ecalloc(1, sizeof(php_scylladb_statement) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_statement, ce, &php_scylladb_simple_statement_handlers);
 
   self->type = PHP_SCYLLADB_SIMPLE_STATEMENT;
-  self->data.simple.cql  = NULL;
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_simple_statement_handlers;
+  self->data.simple.cql  = nullptr;
   return &self->zendObject;
 }

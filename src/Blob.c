@@ -53,7 +53,7 @@ void php_scylladb_blob_init(INTERNAL_FUNCTION_PARAMETERS) {
   // clang-format on
 
   if (ZEND_THIS && instanceof_function(Z_OBJCE_P(ZEND_THIS), php_scylladb_blob_ce)) {
-    php_scylladb_blob *self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
+    auto self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
     if (self->data) {
       efree(self->data);
     }
@@ -62,7 +62,7 @@ void php_scylladb_blob_init(INTERNAL_FUNCTION_PARAMETERS) {
     memcpy(self->data, string, string_len);
   } else {
     object_init_ex(return_value, php_scylladb_blob_ce);
-    php_scylladb_blob *self = PHP_SCYLLADB_GET_BLOB(return_value);
+    auto self = PHP_SCYLLADB_GET_BLOB(return_value);
     self->data = (cass_byte_t *)emalloc(string_len * sizeof(cass_byte_t));
     self->size = string_len;
     memcpy(self->data, string, string_len);
@@ -79,7 +79,7 @@ ZEND_METHOD(Cassandra_Blob, __construct) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  php_scylladb_blob *self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
+  auto self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
 
   self->data = (cass_byte_t *)emalloc(ZSTR_LEN(bytes) * sizeof(cass_byte_t));
   self->size = ZSTR_LEN(bytes);
@@ -89,7 +89,7 @@ ZEND_METHOD(Cassandra_Blob, __construct) {
 
 /* {{{ Blob::__toString() */
 ZEND_METHOD(Cassandra_Blob, __toString) {
-  php_scylladb_blob *self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
+  auto self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
   char *hex;
   size_t hex_len;
   php_scylladb_bytes_to_hex((const char *)self->data, self->size, &hex, &hex_len);
@@ -108,7 +108,7 @@ ZEND_METHOD(Cassandra_Blob, type) {
 
 /* {{{ Blob::bytes() */
 ZEND_METHOD(Cassandra_Blob, bytes) {
-  php_scylladb_blob *self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
+  auto self = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
   char *hex;
   size_t hex_len;
   php_scylladb_bytes_to_hex((const char *)self->data, self->size, &hex, &hex_len);
@@ -120,7 +120,7 @@ ZEND_METHOD(Cassandra_Blob, bytes) {
 
 /* {{{ Blob::toBinaryString() */
 ZEND_METHOD(Cassandra_Blob, toBinaryString) {
-  php_scylladb_blob *blob = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
+  auto blob = PHP_SCYLLADB_GET_BLOB(ZEND_THIS);
 
   RETVAL_STRINGL((const char *)blob->data, blob->size);
 }
@@ -128,9 +128,9 @@ ZEND_METHOD(Cassandra_Blob, toBinaryString) {
 
 
 HashTable *php_scylladb_blob_gc(zend_object *object, zval** table, int *n) {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *php_scylladb_blob_properties(zend_object *object) {
@@ -139,7 +139,7 @@ HashTable *php_scylladb_blob_properties(zend_object *object) {
   zval type;
   zval bytes;
 
-  php_scylladb_blob *self = php_scylladb_blob_object_fetch(object);
+  auto self = php_scylladb_blob_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -160,8 +160,8 @@ HashTable *php_scylladb_blob_properties(zend_object *object) {
 
 int php_scylladb_blob_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-  php_scylladb_blob *blob1 = NULL;
-  php_scylladb_blob *blob2 = NULL;
+  php_scylladb_blob *blob1 = nullptr;
+  php_scylladb_blob *blob2 = nullptr;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -179,12 +179,12 @@ int php_scylladb_blob_compare(zval *obj1, zval *obj2) {
 }
 
 unsigned php_scylladb_blob_hash_value(zval *obj) {
-  php_scylladb_blob *self = PHP_SCYLLADB_GET_BLOB(obj);
+  auto self = PHP_SCYLLADB_GET_BLOB(obj);
   return zend_inline_hash_func((const char *)self->data, self->size);
 }
 
 void php_scylladb_blob_free(zend_object *object) {
-  php_scylladb_blob *self = php_scylladb_blob_object_fetch(object);
+  auto self = php_scylladb_blob_object_fetch(object);
 
   if (self->data) {
     efree(self->data);
@@ -194,16 +194,13 @@ void php_scylladb_blob_free(zend_object *object) {
 }
 
 zend_object* php_scylladb_blob_new(zend_class_entry *ce) {
-  php_scylladb_blob *self = (php_scylladb_blob *)ecalloc(1, sizeof(php_scylladb_blob) + zend_object_properties_size(ce));
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_blob_handlers;
+  php_scylladb_blob *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_blob, ce, &php_scylladb_blob_handlers);
   return &self->zendObject;
 }
 
 
-void php_scylladb_blob_post_register(zend_class_entry *ce)
+void php_scylladb_blob_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_blob_handlers.std.offset = XtOffsetOf(php_scylladb_blob, zendObject);
 }

@@ -19,30 +19,25 @@
  * MINIT with a clear message naming the culprit.
  */
 
-#include <stdbool.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <Zend/zend_API.h>
 
 /* Register callback. `deps` is a parallel array to the descriptor's `deps`
  * field, with each FQN resolved to its zend_class_entry*. Length = however
  * many strings were declared (no terminator slot exposed). When the
- * descriptor was declared with no deps, `deps` may be NULL. */
+ * descriptor was declared with no deps, `deps` may be nullptr. */
 typedef zend_class_entry *(*php_scylladb_class_register_fn)(zend_class_entry *const *deps);
 
 typedef struct php_scylladb_class_descriptor {
     const char                          *name;        /* FQN, e.g. "Cassandra\\RetryPolicy\\DefaultPolicy" */
-    const char *const                   *deps;        /* NULL-terminated FQN array, or NULL for no deps */
+    const char *const                   *deps;        /* nullptr-terminated FQN array, or nullptr for no deps */
     zend_class_entry                   **ce_out;      /* where to publish the resolved ce */
     php_scylladb_class_register_fn       register_;
     struct php_scylladb_class_descriptor *next;       /* internals */
     bool                                 registered;
 } php_scylladb_class_descriptor_t;
 
-void php_scylladb_class_registry_add(php_scylladb_class_descriptor_t *d);
+[[gnu::nonnull(1)]] void php_scylladb_class_registry_add(php_scylladb_class_descriptor_t *d);
 void php_scylladb_class_registry_minit(void);
 
 /*
@@ -51,7 +46,7 @@ void php_scylladb_class_registry_minit(void);
  *   slug         — unique C identifier suffix
  *   _name        — FQN string literal
  *   _ce_out      — &php_scylladb_*_ce
- *   _parent      — FQN string literal, or NULL/nullptr for no parent
+ *   _parent      — FQN string literal, or nullptr/nullptr for no parent
  *   _register_fn — zend_class_entry *(*)(zend_class_entry *const *deps).
  *                  For zero-parent it can ignore deps; for single-parent
  *                  read deps[0].
@@ -73,7 +68,7 @@ void php_scylladb_class_registry_minit(void);
 
 /*
  * Declare a class with N (>=1) dependencies. `_deps_array` must be a
- * NULL-terminated `static const char *const xxx[]` defined in the same file.
+ * nullptr-terminated `static const char *const xxx[]` defined in the same file.
  * register_fn reads deps[0], deps[1], … in the same order.
  *
  * Use this for classes that extend one class AND implement an interface, or
@@ -92,7 +87,3 @@ void php_scylladb_class_registry_minit(void);
     static void scylladb_cls_register_##slug##_ctor(void) {                     \
         php_scylladb_class_registry_add(&scylladb_cls_##slug);                  \
     }
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

@@ -51,7 +51,7 @@ static void php_scylladb_rows_create(php_scylladb_rows *current, zval *result )
         rows->statement = current->statement;
         ZVAL_COPY(&rows->session, &current->session);
         rows->result        = current->next_result;
-        current->next_result = NULL;
+        current->next_result = nullptr;
     }
 }
 
@@ -66,7 +66,7 @@ ZEND_METHOD(Cassandra_Rows, __construct)
 
 ZEND_METHOD(Cassandra_Rows, count)
 {
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
         return;
@@ -78,7 +78,7 @@ ZEND_METHOD(Cassandra_Rows, count)
 
 ZEND_METHOD(Cassandra_Rows, rewind)
 {
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
         return;
@@ -95,11 +95,11 @@ ZEND_METHOD(Cassandra_Rows, current)
         return;
     }
 
-    php_scylladb_rows *self = PHP_SCYLLADB_GET_ROWS(getThis());
+    auto self = PHP_SCYLLADB_GET_ROWS(getThis());
 
     zval *entry = zend_hash_get_current_data(Z_ARRVAL(self->rows));
 
-    if (entry != NULL)
+    if (entry != nullptr)
     {
         RETURN_ZVAL(entry, 1, 0);
     }
@@ -109,7 +109,7 @@ ZEND_METHOD(Cassandra_Rows, key)
 {
     zend_ulong num_index;
     zend_string* str_index;
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
         return;
@@ -123,7 +123,7 @@ ZEND_METHOD(Cassandra_Rows, key)
 
 ZEND_METHOD(Cassandra_Rows, next)
 {
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
     {
@@ -137,7 +137,7 @@ ZEND_METHOD(Cassandra_Rows, next)
 
 ZEND_METHOD(Cassandra_Rows, valid)
 {
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
         return;
@@ -150,7 +150,7 @@ ZEND_METHOD(Cassandra_Rows, valid)
 ZEND_METHOD(Cassandra_Rows, offsetExists)
 {
     zval *offset;
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_ZVAL(offset)
@@ -170,7 +170,7 @@ ZEND_METHOD(Cassandra_Rows, offsetGet)
 {
     zval *offset;
     zval *value;
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_ZVAL(offset)
@@ -182,7 +182,7 @@ ZEND_METHOD(Cassandra_Rows, offsetGet)
     }
 
     self = PHP_SCYLLADB_GET_ROWS(getThis());
-    if ((value = zend_hash_index_find(Z_ARRVAL(self->rows), (zend_ulong)(Z_LVAL_P(offset)))) != NULL)
+    if ((value = zend_hash_index_find(Z_ARRVAL(self->rows), (zend_ulong)(Z_LVAL_P(offset)))) != nullptr)
     {
         RETURN_ZVAL(value, 1, 0);
     }
@@ -210,14 +210,14 @@ ZEND_METHOD(Cassandra_Rows, offsetUnset)
 
 ZEND_METHOD(Cassandra_Rows, isLastPage)
 {
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
         return;
 
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
-    if (self->result == NULL && Z_ISUNDEF(self->next_rows) && Z_ISUNDEF(self->future_next_page))
+    if (self->result == nullptr && Z_ISUNDEF(self->next_rows) && Z_ISUNDEF(self->future_next_page))
     {
         RETURN_TRUE;
     }
@@ -227,8 +227,8 @@ ZEND_METHOD(Cassandra_Rows, isLastPage)
 
 ZEND_METHOD(Cassandra_Rows, nextPage)
 {
-    zval *timeout = NULL;
-    php_scylladb_rows *self = PHP_SCYLLADB_GET_ROWS(getThis());
+    zval *timeout = nullptr;
+    auto self = PHP_SCYLLADB_GET_ROWS(getThis());
 
     ZEND_PARSE_PARAMETERS_START(0, 1)
         Z_PARAM_OPTIONAL
@@ -239,7 +239,7 @@ ZEND_METHOD(Cassandra_Rows, nextPage)
     {
         if (!Z_ISUNDEF(self->future_next_page))
         {
-            php_scylladb_future_rows *future_rows = NULL;
+            php_scylladb_future_rows *future_rows = nullptr;
 
             if (Z_TYPE(self->future_next_page) != IS_OBJECT ||
                 !instanceof_function(Z_OBJCE(self->future_next_page),
@@ -259,14 +259,14 @@ ZEND_METHOD(Cassandra_Rows, nextPage)
             /* Take ownership of FutureRows' result — the FutureRows is
                about to be discarded along with the future_next_page. */
             self->next_result    = future_rows->result;
-            future_rows->result  = NULL;
+            future_rows->result  = nullptr;
         }
         else
         {
-            const CassResult *result = NULL;
-            CassFuture *future = NULL;
+            const CassResult *result = nullptr;
+            CassFuture *future = nullptr;
 
-            if (self->result == NULL)
+            if (self->result == nullptr)
             {
                 return;
             }
@@ -313,8 +313,8 @@ ZEND_METHOD(Cassandra_Rows, nextPage)
 
 ZEND_METHOD(Cassandra_Rows, nextPageAsync)
 {
-    php_scylladb_rows *self = NULL;
-    php_scylladb_future_rows *future_rows = NULL;
+    php_scylladb_rows *self = nullptr;
+    php_scylladb_future_rows *future_rows = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
         return;
@@ -337,7 +337,7 @@ ZEND_METHOD(Cassandra_Rows, nextPageAsync)
         RETURN_ZVAL(&self->future_next_page, 1, 0);
     }
 
-    if (self->result == NULL)
+    if (self->result == nullptr)
     {
         object_init_ex(return_value, php_scylladb_future_value_ce);
         return;
@@ -363,7 +363,7 @@ ZEND_METHOD(Cassandra_Rows, pagingStateToken)
 {
     const char *paging_state;
     size_t paging_state_size;
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
     {
@@ -372,7 +372,7 @@ ZEND_METHOD(Cassandra_Rows, pagingStateToken)
 
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
-    if (self->result == NULL)
+    if (self->result == nullptr)
         return;
 
     ASSERT_SUCCESS(
@@ -384,7 +384,7 @@ ZEND_METHOD(Cassandra_Rows, first)
 {
     HashPosition pos;
     zval *entry;
-    php_scylladb_rows *self = NULL;
+    php_scylladb_rows *self = nullptr;
 
     if (zend_parse_parameters_none() == FAILURE)
     {
@@ -394,7 +394,7 @@ ZEND_METHOD(Cassandra_Rows, first)
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
     zend_hash_internal_pointer_reset_ex(Z_ARRVAL(self->rows), &pos);
-    if ((entry = zend_hash_get_current_data(Z_ARRVAL(self->rows))) != NULL)
+    if ((entry = zend_hash_get_current_data(Z_ARRVAL(self->rows))) != nullptr)
     {
         RETVAL_ZVAL(entry, 1, 0);
     }
@@ -418,19 +418,19 @@ int php_scylladb_rows_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_rows_free(zend_object *object)
 {
-    php_scylladb_rows *self = php_scylladb_rows_object_fetch(object);
+    auto self = php_scylladb_rows_object_fetch(object);
 
     if (self->result) {
         cass_result_free((CassResult *)self->result);
-        self->result = NULL;
+        self->result = nullptr;
     }
     if (self->next_result) {
         cass_result_free((CassResult *)self->next_result);
-        self->next_result = NULL;
+        self->next_result = nullptr;
     }
     if (self->statement) {
         zend_list_delete(self->statement);
-        self->statement = NULL;
+        self->statement = nullptr;
     }
     if (!Z_ISUNDEF(self->session)) {
         zval_ptr_dtor(&self->session);
@@ -446,19 +446,18 @@ void php_scylladb_rows_free(zend_object *object)
 
 zend_object *php_scylladb_rows_new(zend_class_entry *ce)
 {
-    php_scylladb_rows *self = (php_scylladb_rows *)ecalloc(1, sizeof(php_scylladb_rows) + zend_object_properties_size(ce));
+    php_scylladb_rows *self =
+        PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_rows, ce, &php_scylladb_rows_handlers);
 
-    self->statement = NULL;
-    self->result = NULL;
-    self->next_result = NULL;
+    self->statement = nullptr;
+    self->result = nullptr;
+    self->next_result = nullptr;
     ZVAL_UNDEF(&self->session);
     ZVAL_UNDEF(&self->rows);
     ZVAL_UNDEF(&self->next_rows);
     ZVAL_UNDEF(&self->future_next_page);
 
-    zend_object_std_init(&self->zendObject, ce);
   php_scylladb_rows_handlers.offset = XtOffsetOf(php_scylladb_rows, zendObject);
   php_scylladb_rows_handlers.free_obj = php_scylladb_rows_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_rows_handlers;
   return &self->zendObject;
 }

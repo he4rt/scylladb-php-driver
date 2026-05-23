@@ -206,9 +206,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, indexOptions)
 HashTable *
 php_scylladb_default_column_gc(zend_object *object, zval** table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -232,7 +232,7 @@ php_scylladb_default_column_compare(zval *obj1, zval *obj2 )
 void
 php_scylladb_default_column_free(zend_object *object )
 {
-  php_scylladb_column *self = php_scylladb_column_object_fetch(object);
+  auto self = php_scylladb_column_object_fetch(object);
 
   zval_ptr_dtor(&self->name);
   zval_ptr_dtor(&self->type);
@@ -241,7 +241,7 @@ php_scylladb_default_column_free(zend_object *object )
     zval_ptr_dtor(&self->schema);
     ZVAL_UNDEF(&self->schema);
   }
-  self->meta = NULL;
+  self->meta = nullptr;
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -251,18 +251,16 @@ zend_object*
 php_scylladb_default_column_new(zend_class_entry *ce )
 {
   php_scylladb_column *self =
-      (php_scylladb_column *)ecalloc(1, sizeof(php_scylladb_column) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_column, ce, &php_scylladb_default_column_handlers);
 
   self->reversed = 0;
   self->frozen   = 0;
   ZVAL_UNDEF(&self->schema);
-  self->meta     = NULL;
+  self->meta     = nullptr;
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->type);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_default_column_handlers.offset = XtOffsetOf(php_scylladb_column, zendObject);
   php_scylladb_default_column_handlers.free_obj = php_scylladb_default_column_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_column_handlers;
   return &self->zendObject;
 }

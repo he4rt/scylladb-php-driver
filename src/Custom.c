@@ -19,7 +19,7 @@
 
 #include <Registry/Registry.h>
 
-zend_class_entry* php_scylladb_custom_ce = NULL;
+zend_class_entry* php_scylladb_custom_ce = nullptr;
 
 static zend_function_entry php_scylladb_custom_methods[] = {
   PHP_FE_END

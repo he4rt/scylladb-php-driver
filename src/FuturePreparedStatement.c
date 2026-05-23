@@ -24,10 +24,10 @@ extern zend_object_handlers php_scylladb_future_prepared_statement_handlers;
 
 ZEND_METHOD(Cassandra_FuturePreparedStatement, get)
 {
-  zval *timeout = NULL;
-  php_scylladb_statement *prepared_statement = NULL;
+  zval *timeout = nullptr;
+  php_scylladb_statement *prepared_statement = nullptr;
 
-  php_scylladb_future_prepared_statement *self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
 
   if (!Z_ISUNDEF(self->prepared_statement)) {
     RETURN_ZVAL(&self->prepared_statement, 1, 0);
@@ -77,7 +77,7 @@ void php_scylladb_future_prepared_statement_free(zend_object *object)
 
   if (self->future) {
     cass_future_free(self->future);
-    self->future = NULL;
+    self->future = nullptr;
   }
 
   zval_ptr_dtor(&self->prepared_statement);
@@ -88,12 +88,10 @@ void php_scylladb_future_prepared_statement_free(zend_object *object)
 zend_object *php_scylladb_future_prepared_statement_new(zend_class_entry *ce)
 {
   php_scylladb_future_prepared_statement *self =
-      (php_scylladb_future_prepared_statement *)ecalloc(1, sizeof(php_scylladb_future_prepared_statement) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_prepared_statement, ce,
+                                &php_scylladb_future_prepared_statement_handlers);
 
-  self->future = NULL;
+  self->future = nullptr;
   ZVAL_UNDEF(&self->prepared_statement);
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_future_prepared_statement_handlers;
   return &self->zendObject;
 }

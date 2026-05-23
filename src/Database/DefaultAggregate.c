@@ -132,7 +132,7 @@ ZEND_METHOD(Cassandra_DefaultAggregate, initialCondition)
   self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
   if (Z_ISUNDEF(self->initial_condition)) {
     const CassValue *value = cass_aggregate_meta_init_cond(self->meta);
-    const CassDataType *data_type = NULL;
+    const CassDataType *data_type = nullptr;
     if (!value) {
       return;
     }
@@ -198,9 +198,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, signature)
 HashTable *
 php_scylladb_default_aggregate_gc(zend_object *object, zval** table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -224,7 +224,7 @@ php_scylladb_default_aggregate_compare(zval *obj1, zval *obj2 )
 void
 php_scylladb_default_aggregate_free(zend_object *object )
 {
-  php_scylladb_aggregate *self = php_scylladb_aggregate_object_fetch(object);
+  auto self = php_scylladb_aggregate_object_fetch(object);
 
   zval_ptr_dtor(&self->simple_name);
   zval_ptr_dtor(&self->argument_types);
@@ -239,7 +239,7 @@ php_scylladb_default_aggregate_free(zend_object *object )
     zval_ptr_dtor(&self->schema);
     ZVAL_UNDEF(&self->schema);
   }
-  self->meta = NULL;
+  self->meta = nullptr;
 
   zend_object_std_dtor(&self->zendObject);
 
@@ -249,7 +249,7 @@ zend_object*
 php_scylladb_default_aggregate_new(zend_class_entry *ce )
 {
   php_scylladb_aggregate *self =
-      (php_scylladb_aggregate *)ecalloc(1, sizeof(php_scylladb_aggregate) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_aggregate, ce, &php_scylladb_default_aggregate_handlers);
 
   ZVAL_UNDEF(&self->simple_name);
   ZVAL_UNDEF(&self->argument_types);
@@ -261,11 +261,9 @@ php_scylladb_default_aggregate_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->signature);
 
   ZVAL_UNDEF(&self->schema);
-  self->meta = NULL;
+  self->meta = nullptr;
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_default_aggregate_handlers.offset = XtOffsetOf(php_scylladb_aggregate, zendObject);
   php_scylladb_default_aggregate_handlers.free_obj = php_scylladb_default_aggregate_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_aggregate_handlers;
   return &self->zendObject;
 }

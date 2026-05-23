@@ -36,7 +36,7 @@ php_scylladb_collection_add(php_scylladb_collection *collection, zval *object)
 }
 
 static int
-php_scylladb_collection_del(php_scylladb_collection *collection, ulong index)
+php_scylladb_collection_del(php_scylladb_collection *collection, zend_ulong index)
 {
   if (zend_hash_index_del(&collection->values, index) == SUCCESS) {
     collection->dirty = 1;
@@ -47,10 +47,10 @@ php_scylladb_collection_del(php_scylladb_collection *collection, ulong index)
 }
 
 static int
-php_scylladb_collection_get(php_scylladb_collection *collection, ulong index, zval *zvalue)
+php_scylladb_collection_get(php_scylladb_collection *collection, zend_ulong index, zval *zvalue)
 {
   zval *value;
-  if ((value = zend_hash_index_find(&collection->values, (zend_ulong)(index))) != NULL) {
+  if ((value = zend_hash_index_find(&collection->values, (zend_ulong)(index))) != nullptr) {
     *zvalue = *value;
     return 1;
   }
@@ -119,14 +119,14 @@ PHP_METHOD(Cassandra_Collection, __construct)
 /* {{{ Collection::type() */
 PHP_METHOD(Cassandra_Collection, type)
 {
-  php_scylladb_collection *self = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  auto self = PHP_SCYLLADB_GET_COLLECTION(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 
 /* {{{ Collection::values() */
 PHP_METHOD(Cassandra_Collection, values)
 {
-  php_scylladb_collection *collection = NULL;
+  php_scylladb_collection *collection = nullptr;
   array_init(return_value);
   collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   php_scylladb_collection_populate(collection, return_value);
@@ -136,8 +136,8 @@ PHP_METHOD(Cassandra_Collection, values)
 /* {{{ Collection::add(mixed) */
 PHP_METHOD(Cassandra_Collection, add)
 {
-  php_scylladb_collection *self = NULL;
-  zval* args = NULL;
+  php_scylladb_collection *self = nullptr;
+  zval* args = nullptr;
   int argc = 0, i;
   php_scylladb_type *type;
 
@@ -176,7 +176,7 @@ PHP_METHOD(Cassandra_Collection, add)
 PHP_METHOD(Cassandra_Collection, get)
 {
   zend_long key;
-  php_scylladb_collection *self = NULL;
+  php_scylladb_collection *self = nullptr;
   zval value;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -185,7 +185,7 @@ PHP_METHOD(Cassandra_Collection, get)
 
   self = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
-  if (php_scylladb_collection_get(self, (ulong) key, &value))
+  if (php_scylladb_collection_get(self, (zend_ulong) key, &value))
     RETURN_ZVAL(&value, 1, 0);
 }
 /* }}} */
@@ -194,7 +194,7 @@ PHP_METHOD(Cassandra_Collection, get)
 PHP_METHOD(Cassandra_Collection, find)
 {
   zval *object;
-  php_scylladb_collection *collection = NULL;
+  php_scylladb_collection *collection = nullptr;
   long index;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -211,7 +211,7 @@ PHP_METHOD(Cassandra_Collection, find)
 /* {{{ Collection::count() */
 PHP_METHOD(Cassandra_Collection, count)
 {
-  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  auto collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   RETURN_LONG(zend_hash_num_elements(&collection->values));
 }
 /* }}} */
@@ -220,9 +220,9 @@ PHP_METHOD(Cassandra_Collection, count)
 PHP_METHOD(Cassandra_Collection, current)
 {
   zval *current;
-  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  auto collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
-  if ((current = zend_hash_get_current_data(&collection->values)) != NULL) {
+  if ((current = zend_hash_get_current_data(&collection->values)) != nullptr) {
     RETURN_ZVAL(current, 1, 0);
   }
 }
@@ -232,8 +232,8 @@ PHP_METHOD(Cassandra_Collection, current)
 PHP_METHOD(Cassandra_Collection, key)
 {
   zend_ulong num_key;
-  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
-  if (zend_hash_get_current_key(&collection->values, NULL, &num_key) == HASH_KEY_IS_LONG) {
+  auto collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  if (zend_hash_get_current_key(&collection->values, nullptr, &num_key) == HASH_KEY_IS_LONG) {
     RETURN_LONG(num_key);
   }
 }
@@ -242,7 +242,7 @@ PHP_METHOD(Cassandra_Collection, key)
 /* {{{ Collection::next() */
 PHP_METHOD(Cassandra_Collection, next)
 {
-  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  auto collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   zend_hash_move_forward(&collection->values);
 }
 /* }}} */
@@ -250,7 +250,7 @@ PHP_METHOD(Cassandra_Collection, next)
 /* {{{ Collection::valid() */
 PHP_METHOD(Cassandra_Collection, valid)
 {
-  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  auto collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   RETURN_BOOL(zend_hash_has_more_elements(&collection->values) == SUCCESS);
 }
 /* }}} */
@@ -258,7 +258,7 @@ PHP_METHOD(Cassandra_Collection, valid)
 /* {{{ Collection::rewind() */
 PHP_METHOD(Cassandra_Collection, rewind)
 {
-  php_scylladb_collection *collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
+  auto collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
   zend_hash_internal_pointer_reset(&collection->values);
 }
 /* }}} */
@@ -267,7 +267,7 @@ PHP_METHOD(Cassandra_Collection, rewind)
 PHP_METHOD(Cassandra_Collection, remove)
 {
   zend_long index;
-  php_scylladb_collection *collection = NULL;
+  php_scylladb_collection *collection = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_LONG(index)
@@ -275,7 +275,7 @@ PHP_METHOD(Cassandra_Collection, remove)
 
   collection = PHP_SCYLLADB_GET_COLLECTION(getThis());
 
-  if (php_scylladb_collection_del(collection, (ulong) index)) {
+  if (php_scylladb_collection_del(collection, (zend_ulong) index)) {
     RETURN_TRUE;
   }
 
@@ -296,7 +296,7 @@ php_scylladb_collection_properties(zend_object *object)
 {
   zval values;
 
-  php_scylladb_collection  *self = php_scylladb_collection_object_fetch(object);
+  auto self = php_scylladb_collection_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -347,8 +347,8 @@ php_scylladb_collection_compare(zval *obj1, zval *obj2)
   zend_hash_internal_pointer_reset_ex(&collection1->values, &pos1);
   zend_hash_internal_pointer_reset_ex(&collection2->values, &pos2);
 
-  while ((current1 = zend_hash_get_current_data_ex(&collection1->values, &pos1)) != NULL &&
-         (current2 = zend_hash_get_current_data_ex(&collection2->values, &pos2)) != NULL) {
+  while ((current1 = zend_hash_get_current_data_ex(&collection1->values, &pos1)) != nullptr &&
+         (current2 = zend_hash_get_current_data_ex(&collection2->values, &pos2)) != nullptr) {
     result = php_scylladb_value_compare(current1,
                                          current2);
     if (result != 0) return result;
@@ -364,7 +364,7 @@ php_scylladb_collection_hash_value(zval *obj)
 {
   zval *current;
   unsigned hashv = 0;
-  php_scylladb_collection *self = PHP_SCYLLADB_GET_COLLECTION(obj);
+  auto self = PHP_SCYLLADB_GET_COLLECTION(obj);
 
   if (!self->dirty) return self->hashv;
 
@@ -396,22 +396,19 @@ zend_object*
 php_scylladb_collection_new(zend_class_entry *ce)
 {
   php_scylladb_collection *self =
-      (php_scylladb_collection *)ecalloc(1, sizeof(php_scylladb_collection) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_collection, ce, &php_scylladb_collection_handlers);
 
-  zend_hash_init(&self->values, 0, NULL, ZVAL_PTR_DTOR, 0);
+  zend_hash_init(&self->values, 0, nullptr, ZVAL_PTR_DTOR, 0);
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_collection_handlers.std.offset = XtOffsetOf(php_scylladb_collection, zendObject);
   php_scylladb_collection_handlers.std.free_obj = php_scylladb_collection_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_collection_handlers;
   return &self->zendObject;
 }
 
 
-void php_scylladb_collection_post_register(zend_class_entry *ce)
+void php_scylladb_collection_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_collection_handlers.std.offset = XtOffsetOf(php_scylladb_collection, zendObject);
 }

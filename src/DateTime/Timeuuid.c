@@ -139,7 +139,7 @@ ZEND_METHOD(Cassandra_Timeuuid, time) {
 HashTable *php_scylladb_timeuuid_gc(zend_object *object, zval** table, int *n) {
   *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *php_scylladb_timeuuid_properties(zend_object *object) {
@@ -191,24 +191,21 @@ unsigned php_scylladb_timeuuid_hash_value(zval *obj) {
 }
 
 void php_scylladb_timeuuid_free(zend_object *object) {
-  php_scylladb_uuid *self = php_scylladb_uuid_object_fetch(object);
+  auto self = php_scylladb_uuid_object_fetch(object);
   zend_object_std_dtor(&self->zendObject);
 }
 
 zend_object* php_scylladb_timeuuid_new(zend_class_entry *ce) {
   php_scylladb_uuid *self =
-      (php_scylladb_uuid *)ecalloc(1, sizeof(php_scylladb_uuid) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_uuid, ce, &php_scylladb_timeuuid_handlers);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_timeuuid_handlers.std.offset = XtOffsetOf(php_scylladb_uuid, zendObject);
   php_scylladb_timeuuid_handlers.std.free_obj = php_scylladb_timeuuid_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_timeuuid_handlers;
   return &self->zendObject;
 }
 
 
-void php_scylladb_timeuuid_post_register(zend_class_entry *ce)
+void php_scylladb_timeuuid_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_timeuuid_handlers.std.offset = XtOffsetOf(php_scylladb_uuid, zendObject);
 }

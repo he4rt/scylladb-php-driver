@@ -34,7 +34,7 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspace)
 
   self = PHP_SCYLLADB_GET_SCHEMA(getThis());
   meta = cass_schema_meta_keyspace_by_name_n(self->schema_meta, name, name_len);
-  if (meta == NULL) {
+  if (meta == nullptr) {
     RETURN_FALSE;
   }
 
@@ -114,11 +114,11 @@ php_scylladb_default_schema_compare(zval *obj1, zval *obj2 )
 void
 php_scylladb_default_schema_free(zend_object *object )
 {
-  php_scylladb_schema *self = php_scylladb_schema_object_fetch(object);
+  auto self = php_scylladb_schema_object_fetch(object);
 
   if (self->schema_meta) {
     cass_schema_meta_free(self->schema_meta);
-    self->schema_meta = NULL;
+    self->schema_meta = nullptr;
   }
 
   zend_object_std_dtor(&self->zendObject);
@@ -129,13 +129,11 @@ zend_object*
 php_scylladb_default_schema_new(zend_class_entry *ce )
 {
   php_scylladb_schema *self =
-      (php_scylladb_schema *)ecalloc(1, sizeof(php_scylladb_schema) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_schema, ce, &php_scylladb_default_schema_handlers);
 
-  self->schema_meta = NULL;
+  self->schema_meta = nullptr;
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_default_schema_handlers.offset = XtOffsetOf(php_scylladb_schema, zendObject);
   php_scylladb_default_schema_handlers.free_obj = php_scylladb_default_schema_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_default_schema_handlers;
   return &self->zendObject;
 }

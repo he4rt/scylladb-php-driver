@@ -53,7 +53,7 @@ ZEND_METHOD(Cassandra_Type_Collection, valueType) {
 
 ZEND_METHOD(Cassandra_Type_Collection, __toString) {
   php_scylladb_type* self;
-  smart_str string = {NULL,0};
+  smart_str string = {nullptr,0};
 
   if (zend_parse_parameters_none() == FAILURE) {
     return;
@@ -71,7 +71,7 @@ ZEND_METHOD(Cassandra_Type_Collection, __toString) {
 ZEND_METHOD(Cassandra_Type_Collection, create) {
   php_scylladb_type* self;
   php_scylladb_collection* collection;
-  zval* args = NULL;
+  zval* args = nullptr;
   int argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
@@ -107,9 +107,9 @@ HashTable* php_scylladb_type_collection_gc(
     zendObject* object,
 #endif
     zval** table, int* n) {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable* php_scylladb_type_collection_properties(
@@ -120,9 +120,9 @@ HashTable* php_scylladb_type_collection_properties(
 #endif
 ) {
 #if PHP_MAJOR_VERSION >= 8
-  php_scylladb_type* self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 #else
-  php_scylladb_type* self = PHP_SCYLLADB_GET_TYPE(object);
+  auto self = PHP_SCYLLADB_GET_TYPE(object);
 #endif
   if (object->properties) {
     zend_array_release(object->properties);
@@ -140,14 +140,14 @@ int php_scylladb_type_collection_compare(zval* obj1, zval* obj2) {
 #if PHP_MAJOR_VERSION >= 8
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 #endif
-  php_scylladb_type* type1 = PHP_SCYLLADB_GET_TYPE(obj1);
-  php_scylladb_type* type2 = PHP_SCYLLADB_GET_TYPE(obj2);
+  auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
+  auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
   return php_scylladb_type_compare(type1, type2);
 }
 
 void php_scylladb_type_collection_free(zend_object* object) {
-  php_scylladb_type* self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
   zval_ptr_dtor(&self->data.collection.value_type);
@@ -158,16 +158,15 @@ void php_scylladb_type_collection_free(zend_object* object) {
 
 zend_object* php_scylladb_type_collection_new(
     zend_class_entry* ce) {
-  php_scylladb_type* self = (php_scylladb_type *)ecalloc(1, sizeof(php_scylladb_type) + zend_object_properties_size(ce));
+  php_scylladb_type* self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_type, ce, &php_scylladb_type_collection_handlers);
 
   self->type = CASS_VALUE_TYPE_LIST;
   self->data_type = cass_data_type_new(self->type);
   ZVAL_UNDEF(&self->data.collection.value_type);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_type_collection_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
   php_scylladb_type_collection_handlers.free_obj = php_scylladb_type_collection_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_type_collection_handlers;
   return &self->zendObject;
 }
 

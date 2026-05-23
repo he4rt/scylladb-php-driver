@@ -158,8 +158,8 @@ int php_scylladb_validate_object(zval* object, zval* ztype) {
       if (!INSTANCE_OF(php_scylladb_map_ce)) {
         EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Map");
       } else {
-        php_scylladb_map* map = PHP_SCYLLADB_GET_MAP(object);
-        php_scylladb_type* map_type = PHP_SCYLLADB_GET_TYPE(&(map->type));
+        auto map = PHP_SCYLLADB_GET_MAP(object);
+        auto map_type = PHP_SCYLLADB_GET_TYPE(&(map->type));
         if (php_scylladb_type_compare(map_type, type) != 0) {
           return 0;
         }
@@ -170,8 +170,8 @@ int php_scylladb_validate_object(zval* object, zval* ztype) {
       if (!INSTANCE_OF(php_scylladb_set_ce)) {
         EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Set");
       } else {
-        php_scylladb_set* set = PHP_SCYLLADB_GET_SET(object);
-        php_scylladb_type* set_type = PHP_SCYLLADB_GET_TYPE(&(set->type));
+        auto set = PHP_SCYLLADB_GET_SET(object);
+        auto set_type = PHP_SCYLLADB_GET_TYPE(&(set->type));
         if (php_scylladb_type_compare(set_type, type) != 0) {
           return 0;
         }
@@ -182,8 +182,8 @@ int php_scylladb_validate_object(zval* object, zval* ztype) {
       if (!INSTANCE_OF(php_scylladb_collection_ce)) {
         EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Collection");
       } else {
-        php_scylladb_collection* collection = PHP_SCYLLADB_GET_COLLECTION(object);
-        php_scylladb_type* collection_type = PHP_SCYLLADB_GET_TYPE(&(collection->type));
+        auto collection = PHP_SCYLLADB_GET_COLLECTION(object);
+        auto collection_type = PHP_SCYLLADB_GET_TYPE(&(collection->type));
         if (php_scylladb_type_compare(collection_type, type) != 0) {
           return 0;
         }
@@ -194,8 +194,8 @@ int php_scylladb_validate_object(zval* object, zval* ztype) {
       if (!INSTANCE_OF(php_scylladb_tuple_ce)) {
         EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\Tuple");
       } else {
-        php_scylladb_tuple* tuple = PHP_SCYLLADB_GET_TUPLE(object);
-        php_scylladb_type* tuple_type = PHP_SCYLLADB_GET_TYPE(&(tuple->type));
+        auto tuple = PHP_SCYLLADB_GET_TUPLE(object);
+        auto tuple_type = PHP_SCYLLADB_GET_TYPE(&(tuple->type));
         if (php_scylladb_type_compare(tuple_type, type) != 0) {
           return 0;
         }
@@ -206,8 +206,8 @@ int php_scylladb_validate_object(zval* object, zval* ztype) {
       if (!INSTANCE_OF(php_scylladb_user_type_value_ce)) {
         EXPECTING_VALUE("an instance of " PHP_SCYLLADB_NAMESPACE "\\UserTypeValue");
       } else {
-        php_scylladb_user_type_value* user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(object);
-        php_scylladb_type* user_type = PHP_SCYLLADB_GET_TYPE(&(user_type_value->type));
+        auto user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(object);
+        auto user_type = PHP_SCYLLADB_GET_TYPE(&(user_type_value->type));
         if (php_scylladb_type_compare(user_type, type) != 0) {
           return 0;
         }
@@ -713,7 +713,7 @@ int php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** col
   type = PHP_SCYLLADB_GET_TYPE(&set->type);
   value_type = PHP_SCYLLADB_GET_TYPE(&type->data.set.value_type);
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(set->entries));
-  if (collection == NULL) {
+  if (collection == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassCollection for set");
     return 0;
@@ -746,7 +746,7 @@ int php_scylladb_collection_from_collection(php_scylladb_collection* coll,
   value_type = PHP_SCYLLADB_GET_TYPE(&(type->data.collection.value_type));
   collection =
       cass_collection_new_from_data_type(type->data_type, zend_hash_num_elements(&coll->values));
-  if (collection == NULL) {
+  if (collection == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassCollection for list");
     return 0;
@@ -780,7 +780,7 @@ int php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** col
   value_type = PHP_SCYLLADB_GET_TYPE(&(type->data.map.value_type));
   key_type = PHP_SCYLLADB_GET_TYPE(&(type->data.map.key_type));
   collection = cass_collection_new_from_data_type(type->data_type, HASH_COUNT(map->entries));
-  if (collection == NULL) {
+  if (collection == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassCollection for map");
     return 0;
@@ -813,7 +813,7 @@ int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output)
 
   type = PHP_SCYLLADB_GET_TYPE(&(tuple->type));
   tup = cass_tuple_new_from_data_type(type->data_type);
-  if (tup == NULL) {
+  if (tup == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassTuple");
     return 0;
@@ -822,7 +822,7 @@ int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output)
   ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
     php_scylladb_type* sub_type;
-    if ((zsub_type = zend_hash_index_find(&type->data.tuple.types, (zend_ulong)(num_key))) == NULL ||
+    if ((zsub_type = zend_hash_index_find(&type->data.tuple.types, (zend_ulong)(num_key))) == nullptr ||
         !php_scylladb_validate_object((current), (zsub_type))) {
       result = 0;
       break;
@@ -853,7 +853,7 @@ int php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* us
 
   type = PHP_SCYLLADB_GET_TYPE(&user_type_value->type);
   ut = cass_user_type_new_from_data_type(type->data_type);
-  if (ut == NULL) {
+  if (ut == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to allocate a CassUserType");
     return 0;
@@ -862,7 +862,7 @@ int php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* us
   ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
     zval* zsub_type;
     php_scylladb_type* sub_type;
-    if ((zsub_type = zend_hash_str_find(&type->data.udt.types, ZSTR_VAL(name), (size_t)(ZSTR_LEN(name) + 1 - 1))) == NULL ||
+    if ((zsub_type = zend_hash_str_find(&type->data.udt.types, ZSTR_VAL(name), (size_t)(ZSTR_LEN(name) + 1 - 1))) == nullptr ||
         !php_scylladb_validate_object((current), (zsub_type))) {
       result = 0;
       break;

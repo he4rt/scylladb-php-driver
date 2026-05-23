@@ -35,12 +35,12 @@ static cass_int64_t php_scylladb_time_now_ns(void) {
   cass_int64_t seconds;
   cass_int64_t nanoseconds;
 #if defined(__APPLE__) && defined(__MACH__)
-  struct timeval ts = {0};
-  gettimeofday(&ts, NULL);
+  struct timeval ts = {};
+  gettimeofday(&ts, nullptr);
   seconds = (cass_int64_t)ts.tv_sec;
   nanoseconds = (cass_int64_t)ts.tv_usec * 1000;
 #else
-  struct timespec ts = {0};
+  struct timespec ts = {};
   clock_gettime(CLOCK_REALTIME, &ts);
   seconds = (cass_int64_t)ts.tv_sec;
   nanoseconds = (cass_int64_t)ts.tv_nsec;
@@ -182,7 +182,7 @@ ZEND_METHOD(Cassandra_Time, __toString) {
 HashTable *php_scylladb_time_gc(zend_object *object, zval **table, int *n) {
   *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *php_scylladb_time_properties(zend_object *object) {
@@ -227,8 +227,7 @@ zend_object *php_scylladb_time_new(zend_class_entry *ce) {
 
 
 
-void php_scylladb_time_post_register(zend_class_entry *ce)
+void php_scylladb_time_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_time_handlers.std.offset = XtOffsetOf(php_scylladb_time, zendObject);
 }

@@ -17,6 +17,6 @@
 
 #include <cassandra.h>
 
-void php_scylladb_uuid_generate_random(CassUuid* out);
-void php_scylladb_uuid_generate_time(CassUuid* out);
-void php_scylladb_uuid_generate_from_time(long timestamp, CassUuid* out);
+[[gnu::nonnull(1)]] void php_scylladb_uuid_generate_random(CassUuid* out);
+[[gnu::nonnull(1)]] void php_scylladb_uuid_generate_time(CassUuid* out);
+[[gnu::nonnull(2)]] void php_scylladb_uuid_generate_from_time(long timestamp, CassUuid* out);

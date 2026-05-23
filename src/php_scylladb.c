@@ -233,7 +233,7 @@ static void php_scylladb_log(const CassLogMessage *message, void *data) {
     fd = fopen(log, "a");
     if (fd) {
       time_t log_time;
-      struct tm log_tm = {0};
+      struct tm log_tm = {};
       char log_time_str[64];
       size_t needed = 0;
       char *tmp = nullptr;

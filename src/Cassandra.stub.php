@@ -11,39 +11,65 @@ namespace {
  */
 final class Cassandra
 {
-    /* CassConsistency — matches values in cassandra.h */
-    public const int CONSISTENCY_ANY          = 0x0000;
-    public const int CONSISTENCY_ONE          = 0x0001;
-    public const int CONSISTENCY_TWO          = 0x0002;
-    public const int CONSISTENCY_THREE        = 0x0003;
-    public const int CONSISTENCY_QUORUM       = 0x0004;
-    public const int CONSISTENCY_ALL          = 0x0005;
-    public const int CONSISTENCY_LOCAL_QUORUM = 0x0006;
-    public const int CONSISTENCY_EACH_QUORUM  = 0x0007;
-    public const int CONSISTENCY_SERIAL       = 0x0008;
-    public const int CONSISTENCY_LOCAL_SERIAL = 0x0009;
-    public const int CONSISTENCY_LOCAL_ONE    = 0x000A;
+    /* CassConsistency — values bound to cassandra.h via @cvalue. */
+
+    /** @cvalue CASS_CONSISTENCY_ANY */
+    public const int CONSISTENCY_ANY = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_ONE */
+    public const int CONSISTENCY_ONE = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_TWO */
+    public const int CONSISTENCY_TWO = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_THREE */
+    public const int CONSISTENCY_THREE = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_QUORUM */
+    public const int CONSISTENCY_QUORUM = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_ALL */
+    public const int CONSISTENCY_ALL = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_LOCAL_QUORUM */
+    public const int CONSISTENCY_LOCAL_QUORUM = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_EACH_QUORUM */
+    public const int CONSISTENCY_EACH_QUORUM = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_SERIAL */
+    public const int CONSISTENCY_SERIAL = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_LOCAL_SERIAL */
+    public const int CONSISTENCY_LOCAL_SERIAL = UNKNOWN;
+    /** @cvalue CASS_CONSISTENCY_LOCAL_ONE */
+    public const int CONSISTENCY_LOCAL_ONE = UNKNOWN;
 
     /* CassSslVerifyFlags */
-    public const int VERIFY_NONE          = 0x00;
-    public const int VERIFY_PEER_CERT     = 0x01;
-    public const int VERIFY_PEER_IDENTITY = 0x02;
+    /** @cvalue CASS_SSL_VERIFY_NONE */
+    public const int VERIFY_NONE = UNKNOWN;
+    /** @cvalue CASS_SSL_VERIFY_PEER_CERT */
+    public const int VERIFY_PEER_CERT = UNKNOWN;
+    /** @cvalue CASS_SSL_VERIFY_PEER_IDENTITY */
+    public const int VERIFY_PEER_IDENTITY = UNKNOWN;
 
     /* CassBatchType */
-    public const int BATCH_LOGGED   = 0x00;
-    public const int BATCH_UNLOGGED = 0x01;
-    public const int BATCH_COUNTER  = 0x02;
+    /** @cvalue CASS_BATCH_TYPE_LOGGED */
+    public const int BATCH_LOGGED = UNKNOWN;
+    /** @cvalue CASS_BATCH_TYPE_UNLOGGED */
+    public const int BATCH_UNLOGGED = UNKNOWN;
+    /** @cvalue CASS_BATCH_TYPE_COUNTER */
+    public const int BATCH_COUNTER = UNKNOWN;
 
     /* CassLogLevel */
-    public const int LOG_DISABLED = 0;
-    public const int LOG_CRITICAL = 1;
-    public const int LOG_ERROR    = 2;
-    public const int LOG_WARN     = 3;
-    public const int LOG_INFO     = 4;
-    public const int LOG_DEBUG    = 5;
-    public const int LOG_TRACE    = 6;
+    /** @cvalue CASS_LOG_DISABLED */
+    public const int LOG_DISABLED = UNKNOWN;
+    /** @cvalue CASS_LOG_CRITICAL */
+    public const int LOG_CRITICAL = UNKNOWN;
+    /** @cvalue CASS_LOG_ERROR */
+    public const int LOG_ERROR = UNKNOWN;
+    /** @cvalue CASS_LOG_WARN */
+    public const int LOG_WARN = UNKNOWN;
+    /** @cvalue CASS_LOG_INFO */
+    public const int LOG_INFO = UNKNOWN;
+    /** @cvalue CASS_LOG_DEBUG */
+    public const int LOG_DEBUG = UNKNOWN;
+    /** @cvalue CASS_LOG_TRACE */
+    public const int LOG_TRACE = UNKNOWN;
 
-    /* CQL primitive type name constants (used by Type\Scalar) */
+    /* CQL primitive type name constants (used by Type\Scalar).
+       These are the canonical wire names; no C-side identifier to bind to. */
     public const string TYPE_TEXT      = "text";
     public const string TYPE_ASCII     = "ascii";
     public const string TYPE_VARCHAR   = "varchar";
@@ -63,11 +89,12 @@ final class Cassandra
     public const string TYPE_TIMEUUID  = "timeuuid";
     public const string TYPE_INET      = "inet";
 
-    /* VERSION and CPP_DRIVER_VERSION are populated at MINIT
-       (CPP_DRIVER_VERSION is runtime-computed from the linked libcassandra
-       or libscylla-cpp-driver). The literals here are placeholders
-       overridden by src/Core.cpp before any user code runs. */
-    public const string VERSION            = "0.0.0";
+    /** Driver version. @cvalue resolves to the PHP_SCYLLADB_VERSION macro. */
+    /** @cvalue PHP_SCYLLADB_VERSION */
+    public const string VERSION = UNKNOWN;
+
+    /** Linked Cassandra C/C++ driver version. Runtime-computed; the stub
+        placeholder is overridden in src/Core.c#php_scylladb_core_post_register. */
     public const string CPP_DRIVER_VERSION = "0.0.0";
 
     public static function cluster(): \Cassandra\Cluster\Builder {}

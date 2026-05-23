@@ -7,11 +7,6 @@
 #include <unistd.h>
 #include <version.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>
@@ -47,9 +42,25 @@ static zend_always_inline zend_class_entry *zend_register_internal_class_with_fl
 
 #define PHP_SCYLLADB_CORE_ME(name, arg_info, flags) PHP_ME(Cassandra, name, arg_info, flags)
 
-#define SAFE_STR(a) ((a) ? a : "")
+/* C23: typeof + statement expression avoids double-evaluation of the argument. */
+#define SAFE_STR(a) ({ typeof(a) _php_scylladb_v = (a); _php_scylladb_v ? _php_scylladb_v : ""; })
 
-#define SAFE_ZEND_STRING(a) ((a != NULL) ? ZSTR_VAL(a) : "")
+#define SAFE_ZEND_STRING(a) ({ zend_string *_php_scylladb_zs = (a); _php_scylladb_zs != nullptr ? ZSTR_VAL(_php_scylladb_zs) : ""; })
+
+/* Branch-prediction hints — gcc/clang builtins, both are C23-compatible. */
+#define PHP_SCYLLADB_LIKELY(x)   __builtin_expect(!!(x), 1)
+#define PHP_SCYLLADB_UNLIKELY(x) __builtin_expect(!!(x), 0)
+
+/* Scope-bound cleanup. The destructor must take `T **` (cleanup attribute passes
+ * a pointer to the variable). Example:
+ *
+ *     static inline void php_scylladb_zs_release(zend_string **p) {
+ *         if (*p) zend_string_release(*p);
+ *     }
+ *     PHP_SCYLLADB_CLEANUP(php_scylladb_zs_release) zend_string *s = zend_string_init(...);
+ *
+ * Fires on every exit path (return / break / goto / fall-through). */
+#define PHP_SCYLLADB_CLEANUP(fn) __attribute__((cleanup(fn)))
 
 #ifdef ZTS
 #include "TSRM.h"
@@ -65,22 +76,23 @@ static zend_always_inline zend_class_entry *zend_register_internal_class_with_fl
 
 #define CURRENT_CPP_DRIVER_VERSION CPP_DRIVER_VERSION(CASS_VERSION_MAJOR, CASS_VERSION_MINOR, CASS_VERSION_PATCH)
 
-typedef unsigned long ulong;
-
-    extern zend_module_entry php_scylladb_module_entry;
+extern zend_module_entry php_scylladb_module_entry;
 #define phpext_cassandra_ptr &php_scylladb_module_entry
 
-    PHP_MINIT_FUNCTION(php_scylladb);
-    PHP_MSHUTDOWN_FUNCTION(php_scylladb);
-    PHP_RINIT_FUNCTION(php_scylladb);
-    PHP_RSHUTDOWN_FUNCTION(php_scylladb);
-    PHP_MINFO_FUNCTION(php_scylladb);
-    PHP_INI_MH(OnUpdateLogLevel);
-    PHP_INI_MH(OnUpdateLog);
+PHP_MINIT_FUNCTION(php_scylladb);
+PHP_MSHUTDOWN_FUNCTION(php_scylladb);
+PHP_RINIT_FUNCTION(php_scylladb);
+PHP_RSHUTDOWN_FUNCTION(php_scylladb);
+PHP_MINFO_FUNCTION(php_scylladb);
+PHP_INI_MH(OnUpdateLogLevel);
+PHP_INI_MH(OnUpdateLog);
 
-    zend_class_entry *exception_class(CassError rc);
+/* The error → exception_ce mapping is a closed lookup with no side effects
+ * and no memory reads beyond its argument — `const` is exact. */
+[[gnu::const]] zend_class_entry *exception_class(CassError rc);
 
-    void throw_invalid_argument(const zval *object, const char *object_name, const char *expected_type);
+[[gnu::nonnull(1, 2, 3)]]
+void throw_invalid_argument(const zval *object, const char *object_name, const char *expected_type);
 
 #define INVALID_ARGUMENT(object, expected)                                                                             \
     do                                                                                                                 \
@@ -110,12 +122,9 @@ typedef unsigned long ulong;
 
 #define ASSERT_SUCCESS_VALUE(rc, value) ASSERT_SUCCESS_BLOCK(rc, return value;)
 
-#define PHP_SCYLLADB_DEFAULT_CONSISTENCY CASS_CONSISTENCY_LOCAL_ONE
+/* C23 constexpr — value, not preprocessor identity. Cannot be used in #if. */
+static constexpr CassConsistency PHP_SCYLLADB_DEFAULT_CONSISTENCY = CASS_CONSISTENCY_LOCAL_ONE;
 
+/* String-literal concatenation forces these to stay as #define. */
 #define PHP_SCYLLADB_DEFAULT_LOG PHP_SCYLLADB_NAME ".log"
 #define PHP_SCYLLADB_DEFAULT_LOG_LEVEL "ERROR"
-
-
-#ifdef __cplusplus
-}
-#endif

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Cassandra\RetryPolicy {
     /**
      * @strict-properties
+     * @not-serializable
      * @deprecated
      *
      * This still works, but should not be used in new applications.

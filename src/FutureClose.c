@@ -24,8 +24,8 @@ extern zend_object_handlers php_scylladb_future_close_handlers;
 
 ZEND_METHOD(Cassandra_FutureClose, get)
 {
-  zval *timeout = NULL;
-  php_scylladb_future_close *self = NULL;
+  zval *timeout = nullptr;
+  php_scylladb_future_close *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(0, 1)
     Z_PARAM_OPTIONAL
@@ -59,7 +59,7 @@ int php_scylladb_future_close_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_future_close_free(zend_object *object)
 {
-  php_scylladb_future_close *self = php_scylladb_future_close_object_fetch(object);
+  auto self = php_scylladb_future_close_object_fetch(object);
 
   if (self->future)
     cass_future_free(self->future);
@@ -69,11 +69,9 @@ void php_scylladb_future_close_free(zend_object *object)
 
 zend_object *php_scylladb_future_close_new(zend_class_entry *ce)
 {
-  php_scylladb_future_close *self = (php_scylladb_future_close *)ecalloc(1, sizeof(php_scylladb_future_close) + zend_object_properties_size(ce));
+  php_scylladb_future_close *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_close, ce, &php_scylladb_future_close_handlers);
 
-  self->future = NULL;
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_future_close_handlers;
+  self->future = nullptr;
   return &self->zendObject;
 }

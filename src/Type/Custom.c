@@ -66,15 +66,15 @@ HashTable *php_scylladb_type_custom_gc(
     zendObject *object,
 #endif
     zval **table, int *n) {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *php_scylladb_type_custom_properties(zend_object *object) {
   zval name;
 
-  php_scylladb_type *self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -89,19 +89,19 @@ HashTable *php_scylladb_type_custom_properties(zend_object *object) {
 
 int php_scylladb_type_custom_compare(zval *obj1, zval *obj2) {
   ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
-  php_scylladb_type *type1 = PHP_SCYLLADB_GET_TYPE(obj1);
-  php_scylladb_type *type2 = PHP_SCYLLADB_GET_TYPE(obj2);
+  auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
+  auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
   return php_scylladb_type_compare(type1, type2);
 }
 
 void php_scylladb_type_custom_free(zend_object *object) {
-  php_scylladb_type *self = php_scylladb_type_object_fetch(object);
+  auto self = php_scylladb_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
   if (self->data.custom.class_name) {
     efree(self->data.custom.class_name);
-    self->data.custom.class_name = NULL;
+    self->data.custom.class_name = nullptr;
   }
 
   zend_object_std_dtor(&self->zendObject);
@@ -109,16 +109,15 @@ void php_scylladb_type_custom_free(zend_object *object) {
 }
 
 zend_object *php_scylladb_type_custom_new(zend_class_entry *ce) {
-  php_scylladb_type *self = (php_scylladb_type *)ecalloc(1, sizeof(php_scylladb_type) + zend_object_properties_size(ce));
+  php_scylladb_type *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_type, ce, &php_scylladb_type_custom_handlers);
 
   self->type = CASS_VALUE_TYPE_CUSTOM;
   self->data_type = cass_data_type_new(self->type);
-  self->data.custom.class_name = NULL;
+  self->data.custom.class_name = nullptr;
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_type_custom_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
   php_scylladb_type_custom_handlers.free_obj = php_scylladb_type_custom_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_type_custom_handlers;
   return &self->zendObject;
 }
 

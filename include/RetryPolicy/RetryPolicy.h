@@ -20,10 +20,10 @@ extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_fallthrough_
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_logging_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_retry_policy_ce;
 
-[[nodiscard]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_policy_instantiate(zval *dst);
-[[nodiscard]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_downgrading_consistency_instantiate(zval *dst);
-[[nodiscard]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_fallthrough_instantiate(zval *dst);
-[[nodiscard]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_logging_instantiate(zval *dst, php_scylladb_retry_policy *retry_policy);
+[[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_default_policy_instantiate(zval *dst);
+[[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_downgrading_consistency_instantiate(zval *dst);
+[[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_fallthrough_instantiate(zval *dst);
+[[nodiscard, gnu::nonnull(1, 2)]] PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_logging_instantiate(zval *dst, php_scylladb_retry_policy *retry_policy);
 
 static zend_always_inline php_scylladb_retry_policy *php_scylladb_retry_policy_from_obj(zend_object *obj) {
   return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, obj);

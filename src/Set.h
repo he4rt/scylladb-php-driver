@@ -19,5 +19,5 @@
 #include <php.h>
 #include <php_scylladb_types.h>
 BEGIN_EXTERN_C()
-int php_scylladb_set_add(php_scylladb_set *set, zval *object);
+[[gnu::nonnull(1, 2)]] int php_scylladb_set_add(php_scylladb_set *set, zval *object);
 END_EXTERN_C()

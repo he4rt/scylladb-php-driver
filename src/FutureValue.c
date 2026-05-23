@@ -23,8 +23,8 @@ extern zend_object_handlers php_scylladb_future_value_handlers;
 
 ZEND_METHOD(Cassandra_FutureValue, get)
 {
-  zval *timeout = NULL;
-  php_scylladb_future_value *self = NULL;
+  zval *timeout = nullptr;
+  php_scylladb_future_value *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(0, 1)
     Z_PARAM_OPTIONAL
@@ -56,7 +56,7 @@ int php_scylladb_future_value_compare(zval *obj1, zval *obj2)
 
 void php_scylladb_future_value_free(zend_object *object)
 {
-  php_scylladb_future_value *self = php_scylladb_future_value_object_fetch(object);
+  auto self = php_scylladb_future_value_object_fetch(object);
 
   zval_ptr_dtor(&self->value);
 
@@ -65,12 +65,9 @@ void php_scylladb_future_value_free(zend_object *object)
 
 zend_object *php_scylladb_future_value_new(zend_class_entry *ce)
 {
-  php_scylladb_future_value *self = (php_scylladb_future_value *)ecalloc(
-      1, sizeof(php_scylladb_future_value) + zend_object_properties_size(ce));
+  php_scylladb_future_value *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_value, ce, &php_scylladb_future_value_handlers);
 
   ZVAL_UNDEF(&self->value);
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = &php_scylladb_future_value_handlers;
   return &self->zendObject;
 }

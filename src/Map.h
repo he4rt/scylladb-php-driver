@@ -20,5 +20,5 @@
 #include "php_scylladb_types.h"
 
 BEGIN_EXTERN_C()
-int php_scylladb_map_set(php_scylladb_map* map, zval* zkey, zval* zvalue);
+[[gnu::nonnull(1, 2, 3)]] int php_scylladb_map_set(php_scylladb_map* map, zval* zkey, zval* zvalue);
 END_EXTERN_C()

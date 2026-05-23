@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace Cassandra {
     /**
      * @strict-properties
+     * @not-serializable
  * @scylladb-struct php_scylladb_execution_options
  */    final class ExecutionOptions {
         /** @deprecated */

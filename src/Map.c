@@ -56,7 +56,7 @@ php_scylladb_map_set(php_scylladb_map *map, zval *zkey, zval *zvalue)
 
   map->dirty = 1;
   HASH_FIND_ZVAL(map->entries, zkey, entry);
-  if (entry == NULL) {
+  if (entry == nullptr) {
     entry = (php_scylladb_map_entry *) emalloc(sizeof(php_scylladb_map_entry));
     ZVAL_COPY(&entry->key, zkey);
     ZVAL_COPY(&entry->value, zvalue);
@@ -84,7 +84,7 @@ php_scylladb_map_get(php_scylladb_map *map, zval *zkey, zval *zvalue)
   }
 
   HASH_FIND_ZVAL(map->entries, zkey, entry);
-  if (entry != NULL) {
+  if (entry != nullptr) {
     *zvalue = entry->value;
     result = 1;
   }
@@ -106,7 +106,7 @@ php_scylladb_map_del(php_scylladb_map *map, zval *zkey)
   }
 
   HASH_FIND_ZVAL(map->entries, zkey, entry);
-  if (entry != NULL) {
+  if (entry != nullptr) {
     map->dirty = 1;
     if (entry == map->iter_temp) {
       map->iter_temp = (php_scylladb_map_entry *)map->iter_temp->hh.next;
@@ -135,7 +135,7 @@ php_scylladb_map_has(php_scylladb_map *map, zval *zkey)
   }
 
   HASH_FIND_ZVAL(map->entries, zkey, entry);
-  if (entry != NULL) {
+  if (entry != nullptr) {
     result = 1;
   }
 
@@ -231,14 +231,14 @@ PHP_METHOD(Cassandra_Map, __construct)
 /* {{{ Map::type() */
 PHP_METHOD(Cassandra_Map, type)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(getThis());
+  auto self = PHP_SCYLLADB_GET_MAP(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 /* }}} */
 
 PHP_METHOD(Cassandra_Map, keys)
 {
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
   array_init(return_value);
   self = PHP_SCYLLADB_GET_MAP(getThis());
   php_scylladb_map_populate_keys(self, return_value );
@@ -246,7 +246,7 @@ PHP_METHOD(Cassandra_Map, keys)
 
 PHP_METHOD(Cassandra_Map, values)
 {
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
   array_init(return_value);
   self = PHP_SCYLLADB_GET_MAP(getThis());
   php_scylladb_map_populate_values(self, return_value );
@@ -255,7 +255,7 @@ PHP_METHOD(Cassandra_Map, values)
 PHP_METHOD(Cassandra_Map, set)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
   zval *value;
 
   ZEND_PARSE_PARAMETERS_START(2, 2)
@@ -274,7 +274,7 @@ PHP_METHOD(Cassandra_Map, set)
 PHP_METHOD(Cassandra_Map, get)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
   zval value;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -290,7 +290,7 @@ PHP_METHOD(Cassandra_Map, get)
 PHP_METHOD(Cassandra_Map, remove)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(key)
@@ -307,7 +307,7 @@ PHP_METHOD(Cassandra_Map, remove)
 PHP_METHOD(Cassandra_Map, has)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(key)
@@ -323,48 +323,48 @@ PHP_METHOD(Cassandra_Map, has)
 
 PHP_METHOD(Cassandra_Map, count)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(getThis());
+  auto self = PHP_SCYLLADB_GET_MAP(getThis());
   RETURN_LONG((long)HASH_COUNT(self->entries));
 }
 
 PHP_METHOD(Cassandra_Map, current)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(getThis());
-  if (self->iter_curr != NULL)
+  auto self = PHP_SCYLLADB_GET_MAP(getThis());
+  if (self->iter_curr != nullptr)
     RETURN_ZVAL(&self->iter_curr->value, 1, 0);
 }
 
 PHP_METHOD(Cassandra_Map, key)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(getThis());
-  if (self->iter_curr != NULL)
+  auto self = PHP_SCYLLADB_GET_MAP(getThis());
+  if (self->iter_curr != nullptr)
     RETURN_ZVAL(&self->iter_curr->key, 1, 0);
 }
 
 PHP_METHOD(Cassandra_Map, next)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(getThis());
+  auto self = PHP_SCYLLADB_GET_MAP(getThis());
   self->iter_curr = self->iter_temp;
-  self->iter_temp = self->iter_temp != NULL ? (php_scylladb_map_entry *)self->iter_temp->hh.next : NULL;
+  self->iter_temp = self->iter_temp != nullptr ? (php_scylladb_map_entry *)self->iter_temp->hh.next : nullptr;
 }
 
 PHP_METHOD(Cassandra_Map, valid)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(getThis());
-  RETURN_BOOL(self->iter_curr != NULL);
+  auto self = PHP_SCYLLADB_GET_MAP(getThis());
+  RETURN_BOOL(self->iter_curr != nullptr);
 }
 
 PHP_METHOD(Cassandra_Map, rewind)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(getThis());
+  auto self = PHP_SCYLLADB_GET_MAP(getThis());
   self->iter_curr = self->entries;
-  self->iter_temp = self->entries != NULL ? (php_scylladb_map_entry *)self->entries->hh.next : NULL;
+  self->iter_temp = self->entries != nullptr ? (php_scylladb_map_entry *)self->entries->hh.next : nullptr;
 }
 
 PHP_METHOD(Cassandra_Map, offsetSet)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
   zval *value;
 
   ZEND_PARSE_PARAMETERS_START(2, 2)
@@ -380,7 +380,7 @@ PHP_METHOD(Cassandra_Map, offsetSet)
 PHP_METHOD(Cassandra_Map, offsetGet)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
   zval value;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -396,7 +396,7 @@ PHP_METHOD(Cassandra_Map, offsetGet)
 PHP_METHOD(Cassandra_Map, offsetUnset)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(key)
@@ -410,7 +410,7 @@ PHP_METHOD(Cassandra_Map, offsetUnset)
 PHP_METHOD(Cassandra_Map, offsetExists)
 {
   zval *key;
-  php_scylladb_map *self = NULL;
+  php_scylladb_map *self = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(key)
@@ -438,7 +438,7 @@ php_scylladb_map_properties(zend_object *object)
   zval keys;
   zval values;
 
-  php_scylladb_map *self = php_scylladb_map_object_fetch(object);
+  auto self = php_scylladb_map_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -491,9 +491,9 @@ php_scylladb_map_compare(zval *obj1, zval *obj2)
   }
 
   HASH_ITER(hh, map1->entries, curr, temp) {
-    php_scylladb_map_entry *entry = NULL;
+    php_scylladb_map_entry *entry = nullptr;
     HASH_FIND_ZVAL(map2->entries, &curr->key, entry);
-    if (entry == NULL) {
+    if (entry == nullptr) {
       return 1;
     }
     result = php_scylladb_value_compare(&curr->value,
@@ -507,7 +507,7 @@ php_scylladb_map_compare(zval *obj1, zval *obj2)
 unsigned
 php_scylladb_map_hash_value(zval *obj)
 {
-  php_scylladb_map *self = PHP_SCYLLADB_GET_MAP(obj);
+  auto self = PHP_SCYLLADB_GET_MAP(obj);
   php_scylladb_map_entry *curr, *temp;
   unsigned hashv = 0;
 
@@ -529,7 +529,7 @@ php_scylladb_map_hash_value(zval *obj)
 void
 php_scylladb_map_free(zend_object *object)
 {
-  php_scylladb_map *self = php_scylladb_map_object_fetch(object);
+  auto self = php_scylladb_map_object_fetch(object);
   php_scylladb_map_entry *curr, *temp;
 
   HASH_ITER(hh, self->entries, curr, temp) {
@@ -549,22 +549,19 @@ zend_object*
 php_scylladb_map_new(zend_class_entry *ce)
 {
   php_scylladb_map *self =
-      (php_scylladb_map *)ecalloc(1, sizeof(php_scylladb_map) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_map, ce, &php_scylladb_map_handlers);
 
-  self->entries = self->iter_curr = self->iter_temp = NULL;
+  self->entries = self->iter_curr = self->iter_temp = nullptr;
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_map_handlers.std.offset = XtOffsetOf(php_scylladb_map, zendObject);
   php_scylladb_map_handlers.std.free_obj = php_scylladb_map_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_map_handlers;
   return &self->zendObject;
 }
 
 
-void php_scylladb_map_post_register(zend_class_entry *ce)
+void php_scylladb_map_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_map_handlers.std.offset = XtOffsetOf(php_scylladb_map, zendObject);
 }

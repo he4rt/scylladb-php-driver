@@ -62,7 +62,7 @@ static int get_param(zval* value,
     *destination = parsed_big_int;
   } else if (Z_TYPE_P(value) == IS_OBJECT &&
              instanceof_function(Z_OBJCE_P(value), php_scylladb_bigint_ce )) {
-    php_scylladb_numeric *bigint = PHP_SCYLLADB_GET_NUMERIC(value);
+    auto bigint = PHP_SCYLLADB_GET_NUMERIC(value);
     cass_int64_t bigint_value = bigint->data.bigint.value;
 
     if (bigint_value > max || bigint_value < min) {
@@ -194,7 +194,7 @@ ZEND_METHOD(Cassandra_Duration, days)
 
 ZEND_METHOD(Cassandra_Duration, nanos)
 {
-  php_scylladb_duration *self = NULL;
+  php_scylladb_duration *self = nullptr;
 
   if (zend_parse_parameters_none() == FAILURE)
     return;
@@ -206,9 +206,9 @@ ZEND_METHOD(Cassandra_Duration, nanos)
 
 HashTable *php_scylladb_duration_gc(zend_object *object, zval **table, int *n)
 {
-  *table = NULL;
+  *table = nullptr;
   *n = 0;
-  return NULL;
+  return nullptr;
 }
 
 HashTable *
@@ -220,7 +220,7 @@ php_scylladb_duration_properties(zend_object *object)
   object->properties = zend_new_array(3);
   HashTable *props = object->properties;
 
-  php_scylladb_duration  *self = php_scylladb_duration_object_fetch(object);
+  auto self = php_scylladb_duration_object_fetch(object);
   zval wrapped_months, wrapped_days, wrapped_nanos;
 
   ZVAL_LONG(&wrapped_months, self->months);
@@ -270,7 +270,7 @@ php_scylladb_duration_compare(zval *obj1, zval *obj2 )
 unsigned
 php_scylladb_duration_hash_value(zval *obj )
 {
-  php_scylladb_duration *self = PHP_SCYLLADB_GET_DURATION(obj);
+  auto self = PHP_SCYLLADB_GET_DURATION(obj);
   unsigned hashv = 0;
 
   hashv = php_scylladb_combine_hash(hashv, (unsigned) self->months);
@@ -283,7 +283,7 @@ php_scylladb_duration_hash_value(zval *obj )
 void
 php_scylladb_duration_free(zend_object *object )
 {
-  php_scylladb_duration *self = php_scylladb_duration_object_fetch(object);
+  auto self = php_scylladb_duration_object_fetch(object);
 
   /* Clean up */
 
@@ -294,16 +294,13 @@ php_scylladb_duration_free(zend_object *object )
 zend_object*
 php_scylladb_duration_new(zend_class_entry *ce )
 {
-  php_scylladb_duration *self = (php_scylladb_duration *)ecalloc(1, sizeof(php_scylladb_duration) + zend_object_properties_size(ce));
-
-  zend_object_std_init(&self->zendObject, ce);
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_duration_handlers;
+  php_scylladb_duration *self =
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_duration, ce, &php_scylladb_duration_handlers);
   return &self->zendObject;
 }
 
 
-void php_scylladb_duration_post_register(zend_class_entry *ce)
+void php_scylladb_duration_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_duration_handlers.std.offset = XtOffsetOf(php_scylladb_duration, zendObject);
 }

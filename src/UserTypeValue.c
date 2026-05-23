@@ -42,7 +42,6 @@ php_scylladb_user_type_value_populate(php_scylladb_user_type_value *user_type_va
 {
   zend_string *name;
   php_scylladb_type *type;
-  zval *current;
   zval null;
 
 
@@ -50,11 +49,10 @@ php_scylladb_user_type_value_populate(php_scylladb_user_type_value *user_type_va
 
   type = PHP_SCYLLADB_GET_TYPE(&user_type_value->type);
 
-  ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
-    zval *value = NULL;
+  ZEND_HASH_FOREACH_STR_KEY(&type->data.udt.types, name) {
+    zval *value = nullptr;
     size_t name_len = ZSTR_LEN(name);
-    (void) current;
-    if ((value = zend_hash_str_find(&user_type_value->values, ZSTR_VAL(name), name_len)) != NULL) {
+    if ((value = zend_hash_str_find(&user_type_value->values, ZSTR_VAL(name), name_len)) != nullptr) {
       add_assoc_zval_ex(array, ZSTR_VAL(name), name_len, value);
       Z_TRY_ADDREF_P(value);
     } else {
@@ -126,14 +124,14 @@ ZEND_METHOD(Cassandra_UserTypeValue, __construct)
 /* {{{ UserTypeValue::type() */
 ZEND_METHOD(Cassandra_UserTypeValue, type)
 {
-  php_scylladb_user_type_value *self = PHP_SCYLLADB_GET_USER_TYPE_VALUE(getThis());
+  auto self = PHP_SCYLLADB_GET_USER_TYPE_VALUE(getThis());
   RETURN_ZVAL(&self->type, 1, 0);
 }
 
 /* {{{ UserTypeValue::values() */
 ZEND_METHOD(Cassandra_UserTypeValue, values)
 {
-  php_scylladb_user_type_value *self = NULL;
+  php_scylladb_user_type_value *self = nullptr;
   self = PHP_SCYLLADB_GET_USER_TYPE_VALUE(getThis());
 
   array_init(return_value);
@@ -144,7 +142,7 @@ ZEND_METHOD(Cassandra_UserTypeValue, values)
 /* {{{ UserTypeValue::set(name, mixed) */
 ZEND_METHOD(Cassandra_UserTypeValue, set)
 {
-  php_scylladb_user_type_value *self = NULL;
+  php_scylladb_user_type_value *self = nullptr;
   php_scylladb_type *type;
   zval *sub_type;
   char *name;
@@ -159,7 +157,7 @@ ZEND_METHOD(Cassandra_UserTypeValue, set)
   self = PHP_SCYLLADB_GET_USER_TYPE_VALUE(getThis());
   type = PHP_SCYLLADB_GET_TYPE(&self->type);
 
-  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, name_length)) == NULL) {
+  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, name_length)) == nullptr) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
@@ -177,7 +175,7 @@ ZEND_METHOD(Cassandra_UserTypeValue, set)
 /* {{{ UserTypeValue::get(name) */
 ZEND_METHOD(Cassandra_UserTypeValue, get)
 {
-  php_scylladb_user_type_value *self = NULL;
+  php_scylladb_user_type_value *self = nullptr;
   php_scylladb_type *type;
   zval *sub_type;
   char *name;
@@ -191,13 +189,13 @@ ZEND_METHOD(Cassandra_UserTypeValue, get)
   self = PHP_SCYLLADB_GET_USER_TYPE_VALUE(getThis());
   type = PHP_SCYLLADB_GET_TYPE(&self->type);
 
-  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, name_length)) == NULL) {
+  if ((sub_type = zend_hash_str_find(&type->data.udt.types, name, name_length)) == nullptr) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
                             "Invalid name '%s'", name);
     return;
   }
 
-  if ((value = zend_hash_str_find(&self->values, name, name_length)) != NULL) {
+  if ((value = zend_hash_str_find(&self->values, name, name_length)) != nullptr) {
     RETURN_ZVAL(value, 1, 0);
   }
 }
@@ -222,9 +220,9 @@ ZEND_METHOD(Cassandra_UserTypeValue, current)
       PHP_SCYLLADB_GET_USER_TYPE_VALUE(getThis());
   php_scylladb_type *type =
       PHP_SCYLLADB_GET_TYPE(&self->type);
-  if (zend_hash_get_current_key_ex(&type->data.udt.types, &key, NULL, &self->pos) == HASH_KEY_IS_STRING) {
+  if (zend_hash_get_current_key_ex(&type->data.udt.types, &key, nullptr, &self->pos) == HASH_KEY_IS_STRING) {
     zval *value;
-    if ((value = zend_hash_str_find(&self->values, key->val, key->len)) != NULL) {
+    if ((value = zend_hash_str_find(&self->values, key->val, key->len)) != nullptr) {
       RETURN_ZVAL(value, 1, 0);
     }
   }
@@ -239,7 +237,7 @@ ZEND_METHOD(Cassandra_UserTypeValue, key)
       PHP_SCYLLADB_GET_USER_TYPE_VALUE(getThis());
   php_scylladb_type *type =
       PHP_SCYLLADB_GET_TYPE(&self->type);
-  if (zend_hash_get_current_key_ex(&type->data.udt.types, &key, NULL, &self->pos) == HASH_KEY_IS_STRING) {
+  if (zend_hash_get_current_key_ex(&type->data.udt.types, &key, nullptr, &self->pos) == HASH_KEY_IS_STRING) {
     RETURN_STR(key);
   }
 }
@@ -291,7 +289,7 @@ php_scylladb_user_type_value_properties(zend_object *object)
 {
   zval values;
 
-  php_scylladb_user_type_value *self = php_scylladb_user_type_value_object_fetch(object);
+  auto self = php_scylladb_user_type_value_object_fetch(object);
   if (object->properties) {
     zend_array_release(object->properties);
   }
@@ -342,8 +340,8 @@ php_scylladb_user_type_value_compare(zval *obj1, zval *obj2)
   zend_hash_internal_pointer_reset_ex(&user_type_value1->values, &pos1);
   zend_hash_internal_pointer_reset_ex(&user_type_value2->values, &pos2);
 
-  while ((current1 = zend_hash_get_current_data_ex(&user_type_value1->values, &pos1)) != NULL &&
-         (current2 = zend_hash_get_current_data_ex(&user_type_value2->values, &pos2)) != NULL) {
+  while ((current1 = zend_hash_get_current_data_ex(&user_type_value1->values, &pos1)) != nullptr &&
+         (current2 = zend_hash_get_current_data_ex(&user_type_value2->values, &pos2)) != nullptr) {
     result = php_scylladb_value_compare(current1,
                                          current2 );
     if (result != 0) return result;
@@ -359,7 +357,7 @@ php_scylladb_user_type_value_hash_value(zval *obj)
 {
   zval *current;
   unsigned hashv = 0;
-  php_scylladb_user_type_value *self = PHP_SCYLLADB_GET_USER_TYPE_VALUE(obj);
+  auto self = PHP_SCYLLADB_GET_USER_TYPE_VALUE(obj);
 
   if (!self->dirty) return self->hashv;
 
@@ -391,23 +389,20 @@ zend_object*
 php_scylladb_user_type_value_new(zend_class_entry *ce)
 {
   php_scylladb_user_type_value *self =
-      (php_scylladb_user_type_value *)ecalloc(1, sizeof(php_scylladb_user_type_value) + zend_object_properties_size(ce));
+      PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_user_type_value, ce, &php_scylladb_user_type_value_handlers);
 
-  zend_hash_init(&self->values, 0, NULL, ZVAL_PTR_DTOR, 0);
+  zend_hash_init(&self->values, 0, nullptr, ZVAL_PTR_DTOR, 0);
   self->pos = HT_INVALID_IDX;
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  zend_object_std_init(&self->zendObject, ce);
   php_scylladb_user_type_value_handlers.std.offset = XtOffsetOf(php_scylladb_user_type_value, zendObject);
   php_scylladb_user_type_value_handlers.std.free_obj = php_scylladb_user_type_value_free;
-  self->zendObject.handlers = (zend_object_handlers *)&php_scylladb_user_type_value_handlers;
   return &self->zendObject;
 }
 
 
-void php_scylladb_user_type_value_post_register(zend_class_entry *ce)
+void php_scylladb_user_type_value_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    (void)ce;
     php_scylladb_user_type_value_handlers.std.offset = XtOffsetOf(php_scylladb_user_type_value, zendObject);
 }

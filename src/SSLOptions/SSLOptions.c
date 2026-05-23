@@ -47,8 +47,7 @@ zend_object *php_scylladb_ssl_options_new(zend_class_entry *ce) {
   return &self->zendObject;
 }
 
-void php_scylladb_ssl_options_post_register(zend_class_entry *ce) {
-  (void)ce;
+void php_scylladb_ssl_options_post_register([[maybe_unused]] zend_class_entry *ce) {
   php_scylladb_ssl_options_handlers.clone_obj = nullptr;
 }
 
@@ -59,6 +58,6 @@ PHP_SCYLLADB_API php_scylladb_ssl *php_scylladb_ssl_instantiate(zval *object) {
   }
 
   ZVAL_OBJ(object, Z_OBJ(val));
-  php_scylladb_ssl *ssl = Z_SCYLLADB_SSL_P(object);
+  auto ssl = Z_SCYLLADB_SSL_P(object);
   return ssl;
 }

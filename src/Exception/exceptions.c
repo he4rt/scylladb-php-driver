@@ -51,10 +51,8 @@ zend_class_entry *php_scylladb_overloaded_exception_ce       = nullptr;
  * there's no cross-module ordering to manage. The umbrella interface
  * Cassandra\Exception is the only ce_out the registry tracks; the children
  * are set as side effects (no other registry-owned class extends them). */
-static zend_class_entry *php_scylladb_register_exceptions(zend_class_entry *const *deps)
+static zend_class_entry *php_scylladb_register_exceptions([[maybe_unused]] zend_class_entry *const *deps)
 {
-    (void)deps;
-
     /* Cassandra\Exception interface */
     php_scylladb_exception_ce = register_class_Cassandra_Exception();
 

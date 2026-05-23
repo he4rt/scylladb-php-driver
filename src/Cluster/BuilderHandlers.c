@@ -47,7 +47,7 @@ HashTable *php_scylladb_cluster_builder_properties(zend_object *object)
     zval randomizedContactPoints;
     zval connectionHeartbeatInterval;
 
-    php_scylladb_cluster_builder *self = php_scylladb_cluster_builder_object_fetch(object);
+    auto self = php_scylladb_cluster_builder_object_fetch(object);
     if (object->properties) {
         zend_array_release(object->properties);
     }
@@ -231,7 +231,7 @@ int php_scylladb_cluster_builder_compare(zval *obj1, zval *obj2)
 }
 void php_scylladb_cluster_builder_free(zend_object *object)
 {
-    php_scylladb_cluster_builder *self = php_scylladb_cluster_builder_object_fetch(object);
+    auto self = php_scylladb_cluster_builder_object_fetch(object);
 
     zend_string_release(self->contact_points);
     self->contact_points = nullptr;
@@ -306,8 +306,8 @@ void php_scylladb_cluster_builder_free(zend_object *object)
 }
 zend_object *php_scylladb_cluster_builder_new(zend_class_entry *ce)
 {
-    php_scylladb_cluster_builder *self = (php_scylladb_cluster_builder *)
-        emalloc(sizeof(php_scylladb_cluster_builder) + zend_object_properties_size(ce));
+    php_scylladb_cluster_builder *self =
+        PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_cluster_builder, ce, &php_scylladb_cluster_builder_handlers);
 
     self->contact_points = zend_string_init_fast(ZEND_STRL("127.0.0.1"));
     self->port = 9042;
@@ -345,10 +345,6 @@ zend_object *php_scylladb_cluster_builder_new(zend_class_entry *ce)
     self->ssl_options = nullptr;
 
     ZVAL_UNDEF(&self->default_timeout);
-
-    zend_object_std_init(&self->zendObject, ce);
-    object_properties_init(&self->zendObject, ce);
-    self->zendObject.handlers = &php_scylladb_cluster_builder_handlers;
 
     return &self->zendObject;
 }
