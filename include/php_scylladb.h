@@ -42,10 +42,20 @@ static zend_always_inline zend_class_entry *zend_register_internal_class_with_fl
 
 #define PHP_SCYLLADB_CORE_ME(name, arg_info, flags) PHP_ME(Cassandra, name, arg_info, flags)
 
-/* C23: typeof + statement expression avoids double-evaluation of the argument. */
-#define SAFE_STR(a) ({ typeof(a) _php_scylladb_v = (a); _php_scylladb_v ? _php_scylladb_v : ""; })
+/* Inline functions give us single-evaluation of the argument without the
+ * GNU statement-expression extension that -Wpedantic complains about. */
+[[gnu::const]]
+static inline const char *php_scylladb_safe_str(const char *s) {
+    return s ? s : "";
+}
 
-#define SAFE_ZEND_STRING(a) ({ zend_string *_php_scylladb_zs = (a); _php_scylladb_zs != nullptr ? ZSTR_VAL(_php_scylladb_zs) : ""; })
+[[gnu::pure]]
+static inline const char *php_scylladb_safe_zend_string(const zend_string *s) {
+    return s != nullptr ? ZSTR_VAL(s) : "";
+}
+
+#define SAFE_STR(a)         php_scylladb_safe_str(a)
+#define SAFE_ZEND_STRING(a) php_scylladb_safe_zend_string(a)
 
 /* Branch-prediction hints — gcc/clang builtins, both are C23-compatible. */
 #define PHP_SCYLLADB_LIKELY(x)   __builtin_expect(!!(x), 1)
