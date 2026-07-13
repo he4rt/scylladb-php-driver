@@ -1,0 +1,59 @@
+name: "Backport"
+
+# Cherry-picks a merged PR onto a maintenance branch.
+#
+# Usage:
+#   Add one (or both) of these labels to a pull request:
+#     backport/1.x   ->  cherry-picks onto branch  v1.x
+#     backport/2.x   ->  cherry-picks onto branch  v2.x
+#   The label may be added before or after the PR is merged. On merge the bot
+#   cherry-picks the merged commit onto the target branch and opens a PR.
+#   If the cherry-pick conflicts, it still opens the PR (with conflict markers)
+#   and comments the manual `git` steps instead of failing silently.
+#
+# The label suffix is NOT the branch name, so each label is mapped to its
+# target branch explicitly in the matrix below.
+
+on:
+  pull_request_target:
+    types: [closed, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backport:
+    name: Backport ${{ matrix.branch }}
+    runs-on: ubuntu-24.04
+    if: github.event.pull_request.merged == true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "backport/1.x"
+            branch: "v1.x"
+          - label: "backport/2.x"
+            branch: "v2.x"
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        if: contains(github.event.pull_request.labels.*.name, matrix.label)
+        with:
+          fetch-depth: 0
+
+      - name: Backport to ${{ matrix.branch }}
+        if: contains(github.event.pull_request.labels.*.name, matrix.label)
+        uses: korthout/backport-action@2e830a1d0b8269505846ddd407a70876913ad1f8 # v4.6.0
+        with:
+          # Drive the target branch explicitly instead of parsing it from the
+          # label (label suffix `1.x` != branch name `v1.x`). The default
+          # label_pattern `^backport ([^ ]+)$` requires a space, so our
+          # `backport/...` labels never match it — only target_branches applies.
+          target_branches: ${{ matrix.branch }}
+          pull_title: "[Backport ${target_branch}] ${pull_title}"
+          pull_description: |-
+            Automated backport of #${pull_number} to `${target_branch}`.
+
+            > Cherry-picked by the Backport workflow. Review the diff and CI
+            > before merging.
+          merge_commits: "skip"

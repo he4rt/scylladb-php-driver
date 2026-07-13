@@ -38,7 +38,7 @@ jobs:
     name: "Lint: no legacy zend_parse_parameters"
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Reject zend_parse_parameters() (use ZEND_PARSE_PARAMETERS_START/END)
         run: |
           set -e
@@ -55,7 +55,7 @@ jobs:
     name: "Lint: clang-tidy (DebugPHP8.5NTS)"
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -69,7 +69,7 @@ jobs:
           sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-19 100
           clang-tidy --version
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: "8.5"
           ini-file: development
@@ -81,12 +81,12 @@ jobs:
           debug: true
 
       - name: Setup CMake
-        uses: jwlawson/actions-setup-cmake@v2
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
         with:
           cmake-version: "3.30"
 
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
         with:
           key: clang-tidy-${{ runner.os }}-8.5-nts
           max-size: 500M
@@ -175,7 +175,7 @@ jobs:
           - "scylla-rust"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 1
           submodules: recursive
@@ -186,7 +186,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             pkg-config build-essential ninja-build libuv1-dev
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: ${{ matrix.php }}
           ini-file: development
@@ -199,14 +199,14 @@ jobs:
           fail-fast: true
 
       - name: Setup CMake
-        uses: jwlawson/actions-setup-cmake@v2
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
         with:
           cmake-version: "3.30"
 
       # ccache must be set up before any cmake build step so all
       # C/C++ compilation (cpp-driver, extension) benefits from it.
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
         with:
           key: ${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}
           restore-keys: |
@@ -227,7 +227,7 @@ jobs:
           cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: vendor
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.json', 'composer.lock') }}
@@ -261,7 +261,7 @@ jobs:
           - "cassandra"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 1
           submodules: recursive
@@ -272,7 +272,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             pkg-config build-essential libssl-dev libuv1-dev
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: ${{ matrix.php }}
           ini-file: development
@@ -283,7 +283,7 @@ jobs:
           debug: true
 
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
         with:
           key: pie-${{ runner.os }}-${{ matrix.php }}-${{ matrix.driver }}
           restore-keys: |
