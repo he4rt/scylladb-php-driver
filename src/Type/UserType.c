@@ -232,7 +232,14 @@ php_scylladb_type_user_type_gc(
         zval** table, int *n
 )
 {
-  return zend_std_get_gc(object, table, n);
+  auto self = php_scylladb_type_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zval *current;
+  ZEND_HASH_FOREACH_VAL(&self->data.udt.types, current) {
+    zend_get_gc_buffer_add_zval(buffer, current);
+  } ZEND_HASH_FOREACH_END();
+  zend_get_gc_buffer_use(buffer, table, n);
+  return nullptr;
 }
 
 HashTable *

@@ -9,7 +9,15 @@ extern zend_object_handlers php_scylladb_cluster_builder_handlers;
 
 HashTable *php_scylladb_cluster_builder_gc(zend_object *object, zval **table, int *n)
 {
-    return zend_std_get_gc(object, table, n);
+    /* Expose the only zval the builder holds (default_timeout) via the GC
+     * buffer. Going through zend_std_get_gc would instead invoke the
+     * side-effecting get_properties (it rebuilds object->properties on every
+     * call), which corrupts refcounts across the collector's mark/scan passes. */
+    auto self = php_scylladb_cluster_builder_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->default_timeout);
+    zend_get_gc_buffer_use(buffer, table, n);
+    return nullptr;
 }
 HashTable *php_scylladb_cluster_builder_properties(zend_object *object)
 {

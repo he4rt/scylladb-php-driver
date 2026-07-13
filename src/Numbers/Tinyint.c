@@ -104,10 +104,10 @@ void php_scylladb_tinyint_init(INTERNAL_FUNCTION_PARAMETERS)
         {
             if (!php_scylladb_parse_int(Z_STRVAL_P(value), Z_STRLEN_P(value), &number ))
             {
-                // If the parsing function fails, it would have set an exception. If it's
-                // a range error, the error message would be wrong because the parsing
-                // function supports all 32-bit values, so the "valid" range it reports would
-                // be too large for Tinyint. Reset the exception in that case.
+                // parse_int reports a 32-bit overflow via errno == ERANGE without
+                // throwing (its 32-bit bounds are too wide for Tinyint); emit the
+                // narrower range error here. Any other failure already carries its
+                // own exception.
 
                 if (errno == ERANGE)
                 {

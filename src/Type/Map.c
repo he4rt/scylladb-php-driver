@@ -130,8 +130,11 @@ php_scylladb_type_map_gc(
         zval** table, int *n
 )
 {
-  *table = nullptr;
-  *n = 0;
+  auto self = php_scylladb_type_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zend_get_gc_buffer_add_zval(buffer, &self->data.map.key_type);
+  zend_get_gc_buffer_add_zval(buffer, &self->data.map.value_type);
+  zend_get_gc_buffer_use(buffer, table, n);
   return nullptr;
 }
 

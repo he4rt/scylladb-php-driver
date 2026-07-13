@@ -429,7 +429,17 @@ PHP_METHOD(Cassandra_Map, offsetExists)
 HashTable *
 php_scylladb_map_gc(zend_object *object, zval** table, int *n)
 {
-  return zend_std_get_gc(object, table, n);
+  auto self = php_scylladb_map_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zend_get_gc_buffer_add_zval(buffer, &self->type);
+  php_scylladb_map_entry *curr, *temp;
+  HASH_ITER(hh, self->entries, curr, temp)
+  {
+    zend_get_gc_buffer_add_zval(buffer, &curr->key);
+    zend_get_gc_buffer_add_zval(buffer, &curr->value);
+  }
+  zend_get_gc_buffer_use(buffer, table, n);
+  return nullptr;
 }
 
 HashTable *
