@@ -3,7 +3,9 @@ name: "Test PHP Extension"
 on:
   push:
     branches:
-      - v1.3.x
+      - trunk
+      - v1.x
+      - v2.x
     paths:
       - 'cmake/**'
       - 'src/**'
@@ -17,7 +19,9 @@ on:
       - '.github/actions/**'
   pull_request:
     branches:
-      - v1.3.x
+      - trunk
+      - v1.x
+      - v2.x
     paths:
       - 'cmake/**'
       - 'src/**'
