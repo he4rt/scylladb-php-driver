@@ -141,8 +141,17 @@ php_scylladb_type_tuple_gc(
   zval** table,
   int* n )
 {
-  *table = nullptr;
-  *n     = 0;
+  /* Expose the sub-type objects held in the C struct so the cycle collector
+   * accounts for them instead of treating this type as reference-free. */
+  auto self = php_scylladb_type_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+
+  zval *current;
+  ZEND_HASH_FOREACH_VAL(&self->data.tuple.types, current) {
+    zend_get_gc_buffer_add_zval(buffer, current);
+  } ZEND_HASH_FOREACH_END();
+
+  zend_get_gc_buffer_use(buffer, table, n);
   return nullptr;
 }
 

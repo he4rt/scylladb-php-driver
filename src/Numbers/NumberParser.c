@@ -137,8 +137,11 @@ php_scylladb_parse_int(char* in, int in_len, cass_int32_t* number )
   }
 
   if (errno == ERANGE) {
-    zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 ,
-                            "value must be between %d and %d, %s given", INT_MIN, INT_MAX, in);
+    /* Signal the overflow through errno (still ERANGE here) and return without
+     * throwing. The only callers are Tinyint/Smallint, which emit their own
+     * narrower "must be between ..." range error; throwing here would both
+     * report the wrong (32-bit) bounds and clobber errno via the exception
+     * machinery before the caller can inspect it. */
     return 0;
   }
 

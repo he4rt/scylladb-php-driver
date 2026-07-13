@@ -386,7 +386,13 @@ HashTable *php_scylladb_varint_gc(
 #endif
     zval** table, int *n )
 {
-    return zend_std_get_gc(object, table, n);
+    /* Holds no zvals (mpz_t only). Report no roots directly instead of going
+     * through zend_std_get_gc, which would invoke the side-effecting
+     * get_properties (it rebuilds object->properties on every call) and corrupt
+     * refcounts across the collector's mark/scan passes. */
+    *table = nullptr;
+    *n = 0;
+    return nullptr;
 }
 
 HashTable *php_scylladb_varint_properties(

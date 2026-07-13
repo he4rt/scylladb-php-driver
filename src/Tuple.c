@@ -259,7 +259,22 @@ ZEND_METHOD(Cassandra_Tuple, rewind)
 HashTable *
 php_scylladb_tuple_gc(zend_object *object, zval** table, int *n)
 {
-  return zend_std_get_gc(object, table, n);
+  /* Expose the internal zvals (the tuple type and every element value) to the
+   * cycle collector. These live in the C struct, not in std properties, so the
+   * default handler would hide them and the GC could prematurely free a still
+   * referenced type/value. */
+  auto self = php_scylladb_tuple_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+
+  zend_get_gc_buffer_add_zval(buffer, &self->type);
+
+  zval *current;
+  ZEND_HASH_FOREACH_VAL(&self->values, current) {
+    zend_get_gc_buffer_add_zval(buffer, current);
+  } ZEND_HASH_FOREACH_END();
+
+  zend_get_gc_buffer_use(buffer, table, n);
+  return nullptr;
 }
 
 HashTable *
