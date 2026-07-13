@@ -99,7 +99,11 @@ void php_scylladb_bigint_init(INTERNAL_FUNCTION_PARAMETERS)
             return;
         }
 
-        self->data.bigint.value = (cass_int64_t)Z_DVAL_P(value);
+        /* zend_dval_to_lval gives PHP's well-defined double->int64 conversion.
+         * A raw (int64_t) cast is undefined when double_value == 2^63 (which
+         * (double)INT64_MAX rounds up to, so the bound check above lets it
+         * through) and saturates differently per platform. */
+        self->data.bigint.value = zend_dval_to_lval(double_value);
     }
     else if (Z_TYPE_P(value) == IS_STRING)
     {

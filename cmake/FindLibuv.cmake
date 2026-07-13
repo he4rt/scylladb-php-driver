@@ -34,6 +34,29 @@ else ()
 
     if (LINK_LIBUV_STATIC)
         pkg_check_modules(LIBUV REQUIRED IMPORTED_TARGET libuv-static)
+
+        # libuv-static.pc lists the archive as "-l:libuv.a" (GNU ld name-form).
+        # GNU ld resolves it, but Apple's ld64 cannot parse the "-l:name" form
+        # and fails with: ld: library ':libuv.a' not found. On Apple, resolve
+        # the archive to an absolute path and substitute it into the imported
+        # target's link interface so the bare name never reaches the linker.
+        if (APPLE)
+            find_library(LIBUV_STATIC_ARCHIVE
+                    NAMES libuv.a uv_a
+                    HINTS ${LIBUV_STATIC_LIBRARY_DIRS} ${LIBUV_LIBRARY_DIRS})
+            if (NOT LIBUV_STATIC_ARCHIVE)
+                message(FATAL_ERROR
+                        "LINK_LIBUV_STATIC=ON but no libuv static archive was found in "
+                        "'${LIBUV_STATIC_LIBRARY_DIRS}'. Install a static libuv "
+                        "or configure with -DLINK_LIBUV_STATIC=OFF.")
+            endif ()
+            get_target_property(_libuv_link_libs PkgConfig::LIBUV INTERFACE_LINK_LIBRARIES)
+            list(TRANSFORM _libuv_link_libs
+                    REPLACE "^(-l)?:?libuv\\.a$" "${LIBUV_STATIC_ARCHIVE}")
+            set_target_properties(PkgConfig::LIBUV PROPERTIES
+                    INTERFACE_LINK_LIBRARIES "${_libuv_link_libs}")
+            unset(_libuv_link_libs)
+        endif ()
     else ()
         pkg_check_modules(LIBUV REQUIRED IMPORTED_TARGET libuv)
     endif ()

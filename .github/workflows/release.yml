@@ -15,13 +15,13 @@ jobs:
       version:    ${{ steps.tag.outputs.tag }}
       prerelease: ${{ steps.prerelease.outputs.is_prerelease || 'false' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 1
 
       - name: Get Tag
         id: tag
-        uses: olegtarasov/get-tag@v2.1.3
+        uses: olegtarasov/get-tag@45e6ac666e58c4737f7f0d22a2aabf67a7b36c0d # v2.1.3
         with:
           tagRegex: "v(.*)"
 
@@ -56,7 +56,7 @@ jobs:
           - "cassandra"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 1
           submodules: recursive
@@ -67,7 +67,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             pkg-config build-essential ninja-build libuv1-dev
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: ${{ matrix.php }}
           ini-file: production
@@ -77,12 +77,12 @@ jobs:
           phpts: ${{ matrix.phpts }}
 
       - name: Setup CMake
-        uses: jwlawson/actions-setup-cmake@v2
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
         with:
           cmake-version: "3.30"
 
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
         with:
           key: release-${{ runner.os }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}
           restore-keys: |
@@ -112,7 +112,7 @@ jobs:
           tar czf "${ARTIFACT}.tar.gz" cassandra.so cassandra.ini
           echo "ARTIFACT=${ARTIFACT}" >> "$GITHUB_ENV"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ env.ARTIFACT }}
           path: ${{ env.ARTIFACT }}.tar.gz
@@ -124,13 +124,13 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [build, tag]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: /tmp/artifacts
           merge-multiple: true
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         id: release
         with:
           make_latest: ${{ needs.tag.outputs.prerelease == 'false' }}
@@ -142,13 +142,13 @@ jobs:
           files: /tmp/artifacts/*.tar.gz
           fail_on_unmatched_files: true
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 1
           ref: v1.3.x
 
       - name: Generate changelog
-        uses: heinrichreimer/action-github-changelog-generator@v2.4
+        uses: heinrichreimer/action-github-changelog-generator@e60b5a2bd9fcd88dadf6345ff8327863fb8b490f # v2.4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           author: true
@@ -156,7 +156,7 @@ jobs:
           issues: true
           pullRequests: true
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
         with:
           commit_message: "chore: update CHANGELOG.md for ${{ needs.tag.outputs.version }}"
           branch: v1.3.x
