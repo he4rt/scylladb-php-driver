@@ -70,3 +70,11 @@ src/*_descriptor.c
 tools/gen_stub/PHP-Parser-*/
 cmake-build/
 cmake-build-*/
+
+# PhpBench result storage (baselines / history)
+/.phpbench/
+
+# Benchmark sources are always tracked, even when a name matches a broad
+# build-cruft glob above (e.g. `ex*.php` catches Live/ExecuteBench.php on a
+# case-insensitive filesystem).
+!/benchmarks/**

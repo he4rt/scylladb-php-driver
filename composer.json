@@ -17,7 +17,8 @@
   "require-dev": {
     "pestphp/pest": "^3.8",
     "nesbot/carbon": "^3.5",
-    "symfony/process": "^7.0"
+    "symfony/process": "^7.0",
+    "phpbench/phpbench": "^1.4"
   },
   "config": {
     "platform": {
@@ -29,11 +30,19 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Cassandra\\Tests\\": "./tests"
+      "Cassandra\\Tests\\": "./tests",
+      "Cassandra\\Benchmarks\\": "./benchmarks"
     },
     "files": [
       "tests/Support/helpers.php"
     ]
+  },
+  "scripts": {
+    "bench": "phpbench run --report=aggregate",
+    "bench:offline": "phpbench run --group=offline --report=aggregate",
+    "bench:live": "phpbench run --group=live --report=aggregate",
+    "bench:baseline": "phpbench run --tag=baseline --progress=none --store",
+    "bench:diff": "phpbench run --ref=baseline --report=aggregate"
   },
   "php-ext": {
     "extension-name": "cassandra",
