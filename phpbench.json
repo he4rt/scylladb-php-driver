@@ -1,0 +1,13 @@
+{
+    "$schema": "./vendor/phpbench/phpbench/phpbench.schema.json",
+    "runner.bootstrap": "benchmarks/bootstrap.php",
+    "runner.path": "benchmarks",
+    "runner.file_pattern": "*Bench.php",
+    "runner.php_config": {
+        "extension": "cassandra"
+    },
+    "runner.iterations": 5,
+    "runner.warmup": 1,
+    "runner.retry_threshold": 5.0,
+    "storage.xml_storage_path": ".phpbench/storage"
+}
