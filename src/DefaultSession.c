@@ -484,7 +484,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(statement)
     Z_PARAM_OPTIONAL
-    Z_PARAM_ZVAL(options)
+    Z_PARAM_ZVAL_OR_NULL(options)
   ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_SCYLLADB_GET_SESSION(getThis());
@@ -634,7 +634,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(statement)
     Z_PARAM_OPTIONAL
-    Z_PARAM_ZVAL(options)
+    Z_PARAM_ZVAL_OR_NULL(options)
   ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_SCYLLADB_GET_SESSION(getThis());
@@ -736,7 +736,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(cql)
     Z_PARAM_OPTIONAL
-    Z_PARAM_ZVAL(options)
+    Z_PARAM_ZVAL_OR_NULL(options)
   ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_SCYLLADB_GET_SESSION(getThis());
@@ -843,7 +843,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepareAsync) {
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_ZVAL(cql)
     Z_PARAM_OPTIONAL
-    Z_PARAM_ZVAL(options)
+    Z_PARAM_ZVAL_OR_NULL(options)
   ZEND_PARSE_PARAMETERS_END();
 
   self = PHP_SCYLLADB_GET_SESSION(getThis());

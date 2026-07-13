@@ -21,6 +21,10 @@ inputs:
     required: false
     default: 'ON'
     description: 'Link the C++ driver statically (ON bundles it into the .so)'
+  sanitize_address:
+    required: false
+    default: 'OFF'
+    description: 'Build with AddressSanitizer (ON enables ENABLE_SANITIZERS + SANITIZE_ADDRESS)'
 
 runs:
   using: composite
@@ -43,6 +47,9 @@ runs:
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DPHP_SCYLLADB_STATIC="${{ inputs.static_driver }}" \
           -DPHP_SCYLLADB_BACKEND="${BACKEND}" \
+          -DENABLE_SANITIZERS="${{ inputs.sanitize_address }}" \
+          -DSANITIZE_ADDRESS="${{ inputs.sanitize_address }}" \
+          -DSANITIZE_UNDEFINED=OFF \
           -DENABLE_LTO="${{ inputs.enable_lto }}"
 
     - name: Build

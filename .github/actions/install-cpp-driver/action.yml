@@ -54,7 +54,7 @@ runs:
 
     - name: Restore driver cache
       id: cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
         key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
@@ -76,7 +76,7 @@ runs:
 
     - name: Install Rust toolchain
       if: steps.cache.outputs.cache-hit != 'true' && steps.meta.outputs.kind == 'rust'
-      uses: dtolnay/rust-toolchain@stable
+      uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
 
     - name: Clone driver source
       if: steps.cache.outputs.cache-hit != 'true'
@@ -133,7 +133,7 @@ runs:
     # Save only when we built (cache miss) AND the build succeeded.
     - name: Save driver cache
       if: steps.cache.outputs.cache-hit != 'true' && success()
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
         key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
