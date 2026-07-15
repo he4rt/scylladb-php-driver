@@ -11,6 +11,7 @@ on:
       - 'scripts/**'
       - 'src/**'
       - 'include/**'
+      - 'lib/**'
       - 'util/**'
       - 'ZendCPP/**'
       - 'tests/**'
@@ -28,6 +29,7 @@ on:
       - 'scripts/**'
       - 'src/**'
       - 'include/**'
+      - 'lib/**'
       - 'util/**'
       - 'ZendCPP/**'
       - 'tests/**'
@@ -359,6 +361,124 @@ jobs:
         env:
           SCYLLADB_HOSTS: "127.0.0.1"
           SCYLLADB_PHP_BACKEND: ${{ steps.driver.outputs.backend }}
+
+  swoole:
+    name: "Swoole: PHP ${{ matrix.php }} / ${{ matrix.flavor }}"
+    runs-on: ubuntu-24.04
+
+    services:
+      scylladb:
+        image: scylladb/scylla:2026.1
+        options: >-
+          --health-cmd "cqlsh -e 'SELECT cluster_name FROM system.local' 2>/dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 60s
+        ports:
+          - 9042:9042
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Native (Open)Swoole coroutine support built with the opt-in flag and
+        # exercised against the matching runtime. openswoole lags PHP support, so
+        # it is pinned to 8.3. The C++ shim is compiled against the runtime's own
+        # source headers (checked out at the installed version for ABI match).
+        include:
+          - php: "8.3"
+            flavor: swoole
+            repo: swoole/swoole-src
+          - php: "8.4"
+            flavor: swoole
+            repo: swoole/swoole-src
+          - php: "8.3"
+            flavor: openswoole
+            repo: openswoole/swoole-src
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev libssl-dev
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: ${{ matrix.php }}
+          ini-file: development
+          coverage: none
+          tools: composer, php-config, phpize
+          extensions: pcntl, mbstring, curl, intl, ${{ matrix.flavor }}
+        env:
+          phpts: nts
+          debug: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: swoole-${{ runner.os }}-${{ matrix.php }}-${{ matrix.flavor }}
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - name: Fetch ${{ matrix.flavor }} source headers (ABI-matched)
+        run: |
+          set -e
+          VER="$(php -r "echo phpversion('${{ matrix.flavor }}');")"
+          echo "Installed ${{ matrix.flavor }} version: ${VER}"
+          git clone --depth 1 --branch "v${VER}" "https://github.com/${{ matrix.repo }}.git" /tmp/swoole-src \
+            || git clone --depth 1 --branch "${VER}" "https://github.com/${{ matrix.repo }}.git" /tmp/swoole-src
+
+      - name: Build extension (native ${{ matrix.flavor }})
+        run: |
+          set -e
+          export PKG_CONFIG_PATH="${{ steps.driver.outputs.pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
+          if [ "${{ matrix.flavor }}" = "openswoole" ]; then
+            SWOOLE_FLAG="-DPHP_SCYLLADB_ENABLE_OPENSWOOLE=ON"
+          else
+            SWOOLE_FLAG="-DPHP_SCYLLADB_ENABLE_SWOOLE=ON"
+          fi
+          cmake -G Ninja -B cmake-build \
+            -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DPHP_SCYLLADB_STATIC=ON \
+            -DPHP_SCYLLADB_BACKEND=scylla-cpp \
+            ${SWOOLE_FLAG} \
+            -DPHP_SCYLLADB_SWOOLE_SRC=/tmp/swoole-src \
+            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags-only-I openssl 2>/dev/null || true)"
+          cmake --build cmake-build --parallel "$(nproc)"
+          sudo cmake --install cmake-build --component extension
+
+      - name: Install Composer dependencies
+        run: |
+          php -d extension=cassandra "$(command -v composer)" \
+            install --no-ansi --no-interaction --no-progress --prefer-dist
+
+      - name: Run Swoole tests
+        # Load the coroutine runtime BEFORE the extension so its symbols are
+        # available to the native shim.
+        run: |
+          php -d extension=${{ matrix.flavor }} -d extension=cassandra \
+            ./vendor/bin/pest --group=swoole --colors=always
+        env:
+          SCYLLADB_HOSTS: "127.0.0.1"
 
   pie-build:
     name: PIE / PHP ${{ matrix.php }}-nts / ${{ matrix.driver }}
