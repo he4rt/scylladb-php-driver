@@ -301,7 +301,12 @@ jobs:
           ini-file: development
           coverage: none
           tools: composer, php-config, phpize
-          extensions: pcntl, mbstring, curl, intl
+          # PHP 8.4's runner dlopen()s opcache/mysqlnd with RTLD_DEEPBIND, which
+          # the sanitizer runtime rejects (aborts before any test runs). Disable
+          # them on 8.4 only — 8.5's runner doesn't hit this, and disabling
+          # mysqlnd there would break the mysqli↔mysqlnd dependency at startup.
+          # None of these are the memory-safety target and the suite is not MySQL.
+          extensions: pcntl, mbstring, curl, intl${{ matrix.php == '8.4' && ', :opcache, :mysqli, :pdo_mysql, :mysqlnd' || '' }}
         env:
           phpts: nts
           debug: true
