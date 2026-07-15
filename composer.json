@@ -18,7 +18,18 @@
     "pestphp/pest": "^3.8",
     "nesbot/carbon": "^3.5",
     "symfony/process": "^7.0",
-    "phpbench/phpbench": "^1.4"
+    "phpbench/phpbench": "^1.4",
+    "revolt/event-loop": "^1.0",
+    "amphp/amp": "^3.0",
+    "react/event-loop": "^1.5",
+    "react/promise": "^3.0"
+  },
+  "suggest": {
+    "ext-swoole": "Await Cassandra\\Future inside Swoole coroutines via Cassandra\\Async\\Swoole",
+    "revolt/event-loop": "Framework-agnostic fiber await via Cassandra\\Async\\Revolt (recommended default)",
+    "amphp/amp": "Await Cassandra\\Future as an Amp\\Future via Cassandra\\Async\\Amp",
+    "react/event-loop": "Await Cassandra\\Future as a React promise via Cassandra\\Async\\ReactPhp",
+    "react/promise": "Required alongside react/event-loop for Cassandra\\Async\\ReactPhp"
   },
   "config": {
     "platform": {
@@ -26,6 +37,11 @@
     },
     "allow-plugins": {
       "pestphp/pest-plugin": true
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Cassandra\\Async\\": "lib/Async/"
     }
   },
   "autoload-dev": {
@@ -42,6 +58,7 @@
     "bench:offline": "phpbench run --group=offline --report=aggregate",
     "bench:live": "phpbench run --group=live --report=aggregate",
     "bench:baseline": "phpbench run --tag=baseline --progress=none --store",
+    "bench:baseline:export": "bash benchmarks/baseline.sh",
     "bench:diff": "phpbench run --ref=baseline --report=aggregate"
   },
   "php-ext": {
@@ -79,6 +96,19 @@
       {
         "name": "enable-libcassandra",
         "description": "whether to link with libcassandra"
+      },
+      {
+        "name": "enable-swoole",
+        "description": "build native Swoole coroutine support (needs --with-swoole-src)"
+      },
+      {
+        "name": "enable-openswoole",
+        "description": "build native OpenSwoole coroutine support (needs --with-swoole-src)"
+      },
+      {
+        "name": "with-swoole-src",
+        "description": "path to the (open)swoole-src tree providing swoole_coroutine*.h",
+        "needs-value": true
       }
     ]
   }

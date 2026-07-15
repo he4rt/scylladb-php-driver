@@ -1,6 +1,7 @@
 php_scylladb_module(src ext_scylladb::src)
 
 target_sources(src PRIVATE
+        Async/Reactor.c
         BatchStatement.c
         Blob.c
         Collection.c
@@ -11,6 +12,7 @@ target_sources(src PRIVATE
         FutureRows.c
         FutureSession.c
         FutureClose.c
+        FutureNotifier.c
         FutureUtil.c
         FutureValue.c
         Inet.c
@@ -28,7 +30,41 @@ target_sources(src PRIVATE
 )
 
 
+# ── Native (Open)Swoole coroutine bridge (opt-in) ─────────────────────────────
+# The ONLY C++ translation unit; compiled solely when a swoole flag is set.
+# Swoole's own C++ symbols resolve lazily from the loaded (open)swoole extension
+# at runtime, so we add its headers to the include path but do not link libswoole.
+if (PHP_SCYLLADB_ENABLE_SWOOLE AND PHP_SCYLLADB_ENABLE_OPENSWOOLE)
+    message(FATAL_ERROR
+            "PHP_SCYLLADB_ENABLE_SWOOLE and PHP_SCYLLADB_ENABLE_OPENSWOOLE are "
+            "mutually exclusive — a build targets one coroutine runtime. Enable "
+            "only one and point PHP_SCYLLADB_SWOOLE_SRC at that source tree.")
+endif ()
+
+if (PHP_SCYLLADB_ENABLE_SWOOLE OR PHP_SCYLLADB_ENABLE_OPENSWOOLE)
+    if (NOT PHP_SCYLLADB_SWOOLE_SRC OR NOT EXISTS "${PHP_SCYLLADB_SWOOLE_SRC}")
+        message(FATAL_ERROR
+                "Native Swoole support requires the source headers. Pass "
+                "-DPHP_SCYLLADB_SWOOLE_SRC=/path/to/(open)swoole-src (the tree "
+                "containing include/swoole_coroutine_system.h).")
+    endif ()
+
+    target_sources(src PRIVATE Async/SwooleBridge.cc)
+    # The bridge is C++; the rest of the target stays C23.
+    set_target_properties(src PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+    target_include_directories(src PRIVATE
+            "${PHP_SCYLLADB_SWOOLE_SRC}"
+            "${PHP_SCYLLADB_SWOOLE_SRC}/include"
+            "${PHP_SCYLLADB_SWOOLE_SRC}/ext-src")
+    target_compile_definitions(src PRIVATE HAVE_SWOOLE_COROUTINE)
+    if (PHP_SCYLLADB_ENABLE_OPENSWOOLE)
+        target_compile_definitions(src PRIVATE PHP_SCYLLADB_OPENSWOOLE)
+    endif ()
+    message(STATUS "Native Swoole coroutine support: ON (src ${PHP_SCYLLADB_SWOOLE_SRC})")
+endif ()
+
 php_scylladb_generate_arginfo(src
+        Async/Reactor.stub.php
         BatchStatement.stub.php
         Inet.stub.php
         Blob.stub.php
@@ -59,6 +95,7 @@ php_scylladb_generate_arginfo(src
 )
 
 php_scylladb_generate_descriptor(src
+        Async/Reactor.stub.php
         Type/Type.stub.php
         Value.stub.php
         UuidInterface.stub.php

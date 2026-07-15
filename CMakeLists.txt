@@ -105,6 +105,16 @@ option(PHP_THREAD_SAFE "Target a ZTS (thread-safe) PHP build" OFF)
 # ── Dependency options ────────────────────────────────────────────────────────
 option(PHP_SCYLLADB_STATIC  "Link the C++ driver statically"                OFF)
 
+# ── Native Swoole / OpenSwoole coroutine support (opt-in) ─────────────────────
+# When enabled, one C++ shim (src/Async/SwooleBridge.cc) is compiled against the
+# (open)swoole source headers so Future::get() suspends the current coroutine
+# instead of blocking. OFF by default keeps the build pure C. Requires the
+# matching source tree via -DPHP_SCYLLADB_SWOOLE_SRC=/path/to/(open)swoole-src.
+option(PHP_SCYLLADB_ENABLE_SWOOLE     "Build native Swoole coroutine support"     OFF)
+option(PHP_SCYLLADB_ENABLE_OPENSWOOLE "Build native OpenSwoole coroutine support" OFF)
+set(PHP_SCYLLADB_SWOOLE_SRC "" CACHE PATH
+        "Path to the (open)swoole-src tree providing swoole.h / swoole_coroutine*.h")
+
 # Backend selection — see cmake/FindCPPDriver.cmake. USE_LIBCASSANDRA is kept
 # for backwards compatibility and is consumed there.
 option(USE_LIBCASSANDRA   "(deprecated) Alias: ON → PHP_SCYLLADB_BACKEND=cassandra" OFF)

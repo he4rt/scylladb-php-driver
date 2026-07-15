@@ -17,6 +17,7 @@
 #include "php_scylladb.h"
 #include "php_scylladb_types.h"
 #include "FutureUtil.h"
+#include "FutureNotifier.h"
 #include "Database/ResultDecoder.h"
 
 #include "FutureRows_arginfo.h"
@@ -28,7 +29,7 @@ int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, z
   if (!future_rows->result) {
     const CassResult *result = nullptr;
 
-    if (php_scylladb_future_wait_timed(future_rows->future, timeout) == FAILURE) {
+    if (php_scylladb_future_wait_coro(future_rows->future, &future_rows->notifier, timeout) == FAILURE) {
       return FAILURE;
     }
 
@@ -88,6 +89,30 @@ ZEND_METHOD(Cassandra_FutureRows, get)
   }
 }
 
+ZEND_METHOD(Cassandra_FutureRows, getResource)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
+
+  if (self->reactor_reg != nullptr) {
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                            "This future is registered with Cassandra\\Async\\Reactor; "
+                            "use one async model per future");
+    return;
+  }
+
+  php_scylladb_future_get_resource(self->future, &self->notifier, &self->notify_stream, return_value);
+}
+
+ZEND_METHOD(Cassandra_FutureRows, isReady)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
+  RETURN_BOOL(php_scylladb_future_is_ready(self->future));
+}
+
 HashTable *php_scylladb_future_rows_properties(zend_object *object)
 {
   HashTable *props = zend_std_get_properties(object);
@@ -127,6 +152,16 @@ void php_scylladb_future_rows_free(zend_object *object)
     cass_future_free(self->future);
   }
 
+  /* Drop the notification stream (closes the read fd) and our notifier ref;
+     a late driver callback only touches the refcounted notifier, never this
+     object. */
+  if (!Z_ISUNDEF(self->notify_stream)) {
+    zval_ptr_dtor(&self->notify_stream);
+    ZVAL_UNDEF(&self->notify_stream);
+  }
+  php_scylladb_notifier_unref(self->notifier);
+  self->notifier = nullptr;
+
   zend_object_std_dtor(&self->zendObject);
 }
 
@@ -135,10 +170,13 @@ zend_object *php_scylladb_future_rows_new(zend_class_entry *ce)
   php_scylladb_future_rows *self =
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_rows, ce, &php_scylladb_future_rows_handlers);
 
-  self->future    = nullptr;
-  self->statement = nullptr;
-  self->result    = nullptr;
+  self->future      = nullptr;
+  self->statement   = nullptr;
+  self->result      = nullptr;
+  self->notifier    = nullptr;
+  self->reactor_reg = nullptr;
   ZVAL_UNDEF(&self->session);
   ZVAL_UNDEF(&self->rows);
+  ZVAL_UNDEF(&self->notify_stream);
   return &self->zendObject;
 }

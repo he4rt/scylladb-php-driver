@@ -81,6 +81,44 @@ final class AsyncBench extends LiveBenchCase
         }
     }
 
+    /**
+     * Event-loop style: fire all requests, then await completion by watching
+     * each future's notification fd (Future::getResource()) with a single
+     * stream_select() loop — the exact path ReactPHP/AMPHP/Swoole take. The
+     * delta versus benchPipelined is the overhead of the fd-notification layer
+     * (pipe + callback + select) over a blind blocking drain, and unlike
+     * benchPipelined it never blocks a thread that a real reactor could use for
+     * other IO.
+     */
+    public function benchEventLoopConcurrent(array $params): void
+    {
+        /** @var array<int, FutureRows> $pending */
+        $pending   = [];
+        $resources = [];
+        for ($i = 0, $n = $params['requests']; $i < $n; $i++) {
+            $future             = $this->session->executeAsync($this->select, ['arguments' => [$this->seedId]]);
+            $resource           = $future->getResource();
+            $id                 = (int) $resource;
+            $pending[$id]       = $future;
+            $resources[$id]     = $resource;
+        }
+
+        while ($pending !== []) {
+            $read  = $resources;
+            $write = $except = [];
+            if (stream_select($read, $write, $except, 5) < 1) {
+                break;
+            }
+
+            foreach ($read as $resource) {
+                $id = (int) $resource;
+                foreach ($pending[$id]->get() as $_) {
+                }
+                unset($pending[$id], $resources[$id]);
+            }
+        }
+    }
+
     /** @return iterable<string, array{requests: int}> */
     public function provideConcurrency(): iterable
     {

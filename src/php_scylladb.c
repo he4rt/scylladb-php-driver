@@ -16,6 +16,7 @@
 
 #include <src/DateTime/DateTimeInternal.h>
 #include <Registry/Registry.h>
+#include <Async/Reactor.h>
 
 #include <fcntl.h>
 #include <php_scylladb.h>
@@ -420,6 +421,7 @@ PHP_INI_MH(OnUpdateLog) {
 }
 
 static PHP_GINIT_FUNCTION(php_scylladb) {
+  php_scylladb_globals->reactor = nullptr;
   php_scylladb_globals->uuid_gen = nullptr;
   php_scylladb_globals->uuid_gen_pid = 0;
   php_scylladb_globals->persistent_clusters = 0;
@@ -445,6 +447,13 @@ static PHP_GINIT_FUNCTION(php_scylladb) {
 }
 
 static PHP_GSHUTDOWN_FUNCTION(php_scylladb) {
+  /* Process/thread end: free the reactor's eventfd + mutex (kept alive across
+     requests). RSHUTDOWN already drained its request-scoped state. */
+  if (php_scylladb_globals->reactor) {
+    php_scylladb_reactor_destroy(php_scylladb_globals->reactor);
+    php_scylladb_globals->reactor = nullptr;
+  }
+
   if (php_scylladb_globals->uuid_gen) {
     cass_uuid_gen_free(php_scylladb_globals->uuid_gen);
   }
@@ -497,6 +506,13 @@ PHP_RINIT_FUNCTION(php_scylladb) {
 }
 
 PHP_RSHUTDOWN_FUNCTION(php_scylladb) {
+  /* Reset the shared async reactor: drain request-scoped futures (so no driver
+     callback fires against freed request memory) and drop the cached stream,
+     but keep its eventfd + mutex for the next request. */
+  if (PHP_SCYLLADB_G(reactor)) {
+    php_scylladb_reactor_reset(PHP_SCYLLADB_G(reactor));
+  }
+
 #define XX_SCALAR(name, value) zval_ptr_dtor(&PHP_SCYLLADB_G(type_## name));
   PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
