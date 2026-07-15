@@ -87,12 +87,22 @@ it('surfaces a failed query through poll() and get()', function () {
     $session = scyllaDbConnection();
     Reactor::add($session->executeAsync(new SimpleStatement('SELECT * FROM nope_ks_zz.nope')));
 
+    // Loop until the future is dispatched — the reactor's eventfd is
+    // level-triggered and can report a spurious wake (harmless empty poll), so a
+    // single select+poll is not guaranteed to return the result on the first tick.
     $resource = Reactor::resource();
-    $read = [$resource];
-    $write = $except = [];
-    expect(stream_select($read, $write, $except, 5))->toBeGreaterThan(0);
+    $ready    = [];
+    while (Reactor::pending() > 0) {
+        $read = [$resource];
+        $write = $except = [];
+        if (stream_select($read, $write, $except, 5) < 1) {
+            break;
+        }
+        foreach (Reactor::poll() as $future) {
+            $ready[] = $future;
+        }
+    }
 
-    $ready = Reactor::poll();
     expect($ready)->toHaveCount(1)
         ->and(fn () => $ready[0]->get())->toThrow(Exception::class)
         ->and(Reactor::pending())->toBe(0);

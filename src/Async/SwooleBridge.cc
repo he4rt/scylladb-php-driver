@@ -25,6 +25,12 @@
  * select which source tree's headers are on the include path.
  */
 
+/* Guarded by HAVE_SWOOLE_COROUTINE so this TU is empty unless the build actually
+   enabled Swoole (which also puts the swoole-src headers on the include path).
+   This keeps standalone tooling — e.g. clang-tidy over the default build, which
+   does not compile this file — from choking on the absent <swoole.h>. */
+#ifdef HAVE_SWOOLE_COROUTINE
+
 #include <swoole.h>
 #include <swoole_coroutine.h>
 #include <swoole_coroutine_system.h>
@@ -44,3 +50,5 @@ php_scylladb_swoole_wait_readable(int fd, double timeout)
      other coroutine until `fd` is readable (or the timeout elapses). */
   return swoole::coroutine::System::wait_event(fd, SW_EVENT_READ, timeout);
 }
+
+#endif /* HAVE_SWOOLE_COROUTINE */

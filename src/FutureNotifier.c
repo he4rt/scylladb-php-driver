@@ -265,21 +265,23 @@ php_scylladb_notifier_ensure(CassFuture* future, php_scylladb_notifier** notifie
   }
 
   /* The callback owns a reference until it fires (rule: refcount the notifier,
-     never the future). Register BEFORE re-checking readiness. */
+     never the future). Register BEFORE re-checking readiness. Refcount is now 2
+     (creation + callback). */
   php_scylladb_notifier_addref(notifier);
   CassError rc = cass_future_set_callback(future, php_scylladb_notify_cb, notifier);
 
-  if (rc != CASS_OK) {
-    /* Callback will never fire (error or CASS_ERROR_LIB_CALLBACK_ALREADY_SET):
-       drop the ref we took for it and self-notify below. */
-    php_scylladb_notifier_unref(notifier);
-  }
-
   /* Register-then-recheck: if the future already resolved (or the callback
      could not be registered), poke the pipe ourselves. Idempotent — an extra
-     wakeup is harmless because userland re-checks via get()/isReady(). */
+     wakeup is harmless because userland re-checks via get()/isReady(). Poke
+     BEFORE dropping the callback ref so the notifier is unambiguously alive. */
   if (rc != CASS_OK || cass_future_ready(future)) {
     php_scylladb_notifier_poke(notifier);
+  }
+
+  if (rc != CASS_OK) {
+    /* Callback will never fire (error or CASS_ERROR_LIB_CALLBACK_ALREADY_SET):
+       drop the ref we took for it. Refcount 2→1 — the creation ref survives. */
+    php_scylladb_notifier_unref(notifier);
   }
 
   *notifier_slot = notifier; /* Future object keeps the creation reference */
