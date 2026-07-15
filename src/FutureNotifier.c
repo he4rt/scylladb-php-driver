@@ -279,9 +279,13 @@ php_scylladb_notifier_ensure(CassFuture* future, php_scylladb_notifier** notifie
   }
 
   if (rc != CASS_OK) {
-    /* Callback will never fire (error or CASS_ERROR_LIB_CALLBACK_ALREADY_SET):
-       drop the ref we took for it. Refcount 2→1 — the creation ref survives. */
-    php_scylladb_notifier_unref(notifier);
+    /* Callback will never fire (error or CASS_ERROR_LIB_CALLBACK_ALREADY_SET) and
+       set_callback failing means no IO thread ever held a ref, so drop the
+       callback ref directly. Refcount is exactly 2 here → 1: the creation ref
+       always survives, so this can never free — decrement inline (not via unref)
+       so static analysis doesn't model an impossible free of the pointer we
+       return in *notifier_slot below. */
+    atomic_fetch_sub_explicit(&notifier->refcount, 1, memory_order_acq_rel);
   }
 
   *notifier_slot = notifier; /* Future object keeps the creation reference */

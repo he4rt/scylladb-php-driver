@@ -128,11 +128,14 @@ reg_create(php_scylladb_reactor* reactor, zend_object* future_obj)
   return reg;
 }
 
-/* Main thread only. */
+/* Release both of a reg's references (ready-list + registered) at once and free
+ * it if that was the last reference. Consuming a reg always drops exactly these
+ * two, and doing it in a single atomic decrement (rather than two calls) keeps
+ * the free path unambiguous for static analysis. Main thread only. */
 static void
-reg_unref(php_scylladb_reg* reg)
+reg_release(php_scylladb_reg* reg)
 {
-  if (atomic_fetch_sub_explicit(&reg->refcount, 1, memory_order_acq_rel) == 1) {
+  if (atomic_fetch_sub_explicit(&reg->refcount, 2, memory_order_acq_rel) == 2) {
     if (reg->future_obj) { /* safety net; normally cleared at dispatch */
       OBJ_RELEASE(reg->future_obj);
     }
@@ -224,8 +227,7 @@ reactor_consume(php_scylladb_reactor* reactor, php_scylladb_reg* head, zval* out
       reg->future_obj = nullptr;
     }
 
-    reg_unref(reg); /* ready-list ref */
-    reg_unref(reg); /* registered ref → frees */
+    reg_release(reg); /* drop ready-list + registered refs → frees */
   }
 }
 

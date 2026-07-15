@@ -301,10 +301,11 @@ jobs:
           ini-file: development
           coverage: none
           tools: composer, php-config, phpize
-          # Disable opcache under ASan: PHP dlopen()s opcache with RTLD_DEEPBIND,
-          # which the sanitizer runtime rejects (aborts before any test runs).
-          # opcache is not the memory-safety target here.
-          extensions: pcntl, mbstring, curl, intl, :opcache
+          # Disable extensions the runner dlopen()s with RTLD_DEEPBIND (opcache,
+          # mysqlnd + the mysql family) — the sanitizer runtime rejects that flag
+          # and aborts before any test runs. None are the memory-safety target
+          # here, and the suite doesn't use MySQL.
+          extensions: pcntl, mbstring, curl, intl, :opcache, :mysqli, :pdo_mysql, :mysqlnd
         env:
           phpts: nts
           debug: true
