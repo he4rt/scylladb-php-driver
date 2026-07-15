@@ -138,6 +138,10 @@ jobs:
           else
             find src -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) > changed.txt
           fi
+          # SwooleBridge.cc only compiles with the swoole build flag + the
+          # (open)swoole source headers, which this lint build doesn't have.
+          grep -vE 'src/Async/SwooleBridge\.cc$' changed.txt > changed.tmp || true
+          mv changed.tmp changed.txt
           echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "Files to lint:"
           cat changed.txt || true
@@ -472,10 +476,10 @@ jobs:
             install --no-ansi --no-interaction --no-progress --prefer-dist
 
       - name: Run Swoole tests
-        # Load the coroutine runtime BEFORE the extension so its symbols are
-        # available to the native shim.
+        # setup-php already loads the coroutine runtime via php.ini (so it is
+        # available to the native shim); only cassandra needs adding here.
         run: |
-          php -d extension=${{ matrix.flavor }} -d extension=cassandra \
+          php -d extension=cassandra \
             ./vendor/bin/pest --group=swoole --colors=always
         env:
           SCYLLADB_HOSTS: "127.0.0.1"
