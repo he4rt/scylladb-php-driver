@@ -301,11 +301,7 @@ jobs:
           ini-file: development
           coverage: none
           tools: composer, php-config, phpize
-          # Disable extensions the runner dlopen()s with RTLD_DEEPBIND (opcache,
-          # mysqlnd + the mysql family) — the sanitizer runtime rejects that flag
-          # and aborts before any test runs. None are the memory-safety target
-          # here, and the suite doesn't use MySQL.
-          extensions: pcntl, mbstring, curl, intl, :opcache, :mysqli, :pdo_mysql, :mysqlnd
+          extensions: pcntl, mbstring, curl, intl
         env:
           phpts: nts
           debug: true
