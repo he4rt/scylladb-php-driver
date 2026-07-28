@@ -68,13 +68,44 @@ function(php_extension_install target)
         )
     endif ()
 
-    # ── Verification target: runs after install ───────────────────────────────
-    # `cmake --install build && cmake --build build --target verify-extension`
+    # ── Verification target ───────────────────────────────────────────────────
+    # `cmake --build build --target verify-extension`
+    #
+    # Two checks on the freshly built module, not the installed copy:
+    #
+    # 1. A static dependency audit (scripts/check-module-symbols.sh) — every
+    #    symbol the module references must be provided by a library it actually
+    #    declares, or by PHP itself. This is the real gh-117 guard: it depends
+    #    on nothing about the machine running it.
+    #
+    # 2. An isolated load. -n ignores php.ini so no other extension is loaded
+    #    first (PHP dlopen()s extensions RTLD_GLOBAL, so an earlier ext/gmp
+    #    silently donates the mpz_* symbols), and LD_BIND_NOW forces the eager
+    #    binding musl does by default, instead of glibc's lazy binding which
+    #    defers a missing dependency until first call. Weaker than check 1 —
+    #    a php binary that itself links libgmp masks the fault — but it also
+    #    catches failures a symbol audit cannot, such as a broken MINIT.
     if (PHP_BINARY)
+        # macOS links PHP extensions with -undefined dynamic_lookup, so
+        # unresolved symbols are expected there and eager binding is meaningless.
+        if (APPLE)
+            set(_verify_launcher)
+        else ()
+            set(_verify_launcher "${CMAKE_COMMAND}" -E env LD_BIND_NOW=1)
+        endif ()
+
         add_custom_target(verify-extension
-                COMMAND "${PHP_BINARY}" -r "dl('cassandra.so'); echo 'cassandra extension loaded OK\\n';"
-                COMMENT "Verifying cassandra extension loads in PHP"
+                COMMAND "${CMAKE_COMMAND}" -E env sh
+                        "${PROJECT_SOURCE_DIR}/scripts/check-module-symbols.sh"
+                        "$<TARGET_FILE:${target}>" "${PHP_BINARY}"
+                COMMAND ${_verify_launcher}
+                        "${PHP_BINARY}" -n
+                        -d "extension=$<TARGET_FILE:${target}>"
+                        -r "if (!extension_loaded('cassandra')) { fwrite(STDERR, 'cassandra extension failed to load' . PHP_EOL); exit(1); } echo 'cassandra extension loaded OK', PHP_EOL;"
+                COMMENT "Verifying cassandra extension loads (no php.ini, eager symbol binding)"
                 VERBATIM
         )
+        add_dependencies(verify-extension "${target}")
+        unset(_verify_launcher)
     endif ()
 endfunction()
