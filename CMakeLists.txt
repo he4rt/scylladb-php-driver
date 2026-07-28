@@ -103,8 +103,6 @@ option(PHP_DEBUG       "Target a debug PHP build"       ON)
 option(PHP_THREAD_SAFE "Target a ZTS (thread-safe) PHP build" OFF)
 
 # ── Dependency options ────────────────────────────────────────────────────────
-option(LINK_LIBUV_STATIC  "Link libuv statically"                         OFF)
-option(BUILD_LIBUV_FROM_SRC "Fetch and build libuv via CPM instead of system" OFF)
 option(PHP_SCYLLADB_STATIC  "Link the C++ driver statically"                OFF)
 
 # Backend selection — see cmake/FindCPPDriver.cmake. USE_LIBCASSANDRA is kept
@@ -135,7 +133,6 @@ if (ENABLE_SANITIZERS)
     find_package(Sanitizers REQUIRED)
 endif ()
 
-find_package(Libuv    REQUIRED)
 find_package(LibGMP   REQUIRED)
 find_package(CPPDriver REQUIRED)
 
@@ -163,7 +160,6 @@ target_sources(ext_scylladb
 )
 
 target_link_libraries(ext_scylladb PRIVATE
-        Libuv::Libuv
         # Self-registering class descriptors live in these static libs. Their
         # .o files have no externally-referenced symbols once the legacy
         # define_*() functions are gone — without WHOLE_ARCHIVE the linker

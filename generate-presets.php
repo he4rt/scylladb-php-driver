@@ -62,7 +62,6 @@ function preset(
             'SANITIZE_ADDRESS' => $buildType === BuildType::Debug ? 'ON' : 'OFF',
             'PHP_SCYLLADB_BACKEND' => $backend->value,
             'PHP_VERSION_FOR_PHP_CONFIG' => $phpVersion->value,
-            'LINK_LIBUV_STATIC' => 'ON',
             'PHP_SCYLLADB_STATIC' => 'ON',
             'PHP_THREAD_SAFE' => $phpTS === PHPTS::ZTS ? 'ON' : 'OFF',
         ],

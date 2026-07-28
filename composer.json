@@ -73,10 +73,6 @@
         "description": "Enable AVX2"
       },
       {
-        "name": "enable-libuv-static",
-        "description": "whether to link with libuv statically"
-      },
-      {
         "name": "enable-driver-static",
         "description": "whether to link with driver statically"
       },

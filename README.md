@@ -70,7 +70,7 @@ foreach ($result as $row) {
 
 #### 1. Install native dependencies
 
-PIE builds the extension from source, so libuv and the C/C++ driver must be present first.
+PIE builds the extension from source, so the C/C++ driver (and its own dependency, libuv) must be present first.
 
 ```bash
 # libuv
@@ -107,7 +107,7 @@ PIE places the compiled `cassandra.so` in your PHP extension directory and enabl
 
 ### Prerequisites
 
-The driver requires **libuv** and the **ScyllaDB C/C++ driver** (or DataStax libcassandra). Use the provided scripts to build them from source:
+The extension links against the **ScyllaDB C/C++ driver** (or DataStax libcassandra), which in turn needs **libuv**. Use the provided scripts to build them from source:
 
 ```bash
 # Install libuv (latest stable)
@@ -170,8 +170,7 @@ option(PHP_DEBUG       "Debug build of PHP"    ON)
 option(PHP_THREAD_SAFE "ZTS (thread-safe) PHP" OFF)
 
 # Linking
-option(LINK_LIBUV_STATIC    "Statically link libuv"             OFF)
-option(PHP_DRIVER_STATIC    "Statically link the PHP driver"    OFF)
+option(PHP_SCYLLADB_STATIC  "Statically link the C/C++ driver"  OFF)
 option(USE_LIBCASSANDRA     "Use DataStax libcassandra instead" OFF)
 ```
 

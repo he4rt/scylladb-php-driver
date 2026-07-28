@@ -22,7 +22,7 @@
 #include <php_scylladb_globals.h>
 #include <php_scylladb_types.h>
 #include <php_ini.h>
-#include <uv.h>
+#include <pthread.h>
 #include <version.h>
 
 #include <time.h>
@@ -57,8 +57,11 @@
 #define PHP_SCYLLADB_SESSION_RES_NAME PHP_SCYLLADB_NAMESPACE " Session"
 #define PHP_SCYLLADB_PREPARED_STATEMENT_RES_NAME PHP_SCYLLADB_NAMESPACE " PreparedStatement"
 
+/* Statically initialised: the driver's log callback runs on the C/C++ driver's
+ * event-loop threads, which can fire before MINIT finishes registering the INI
+ * entries that write log_location. */
 static char *log_location = nullptr;
-static uv_rwlock_t log_lock;
+static pthread_rwlock_t log_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 // cpp-rs-driver uses its own 1.x versioning track (it's a rewrite, not a
 // successor of the 2.x cpp-driver line). Skip the legacy version check on
@@ -201,15 +204,15 @@ static void php_scylladb_cass_statement_dtor(zend_resource* rsrc) {
 static void php_scylladb_log(const CassLogMessage *message, void *data);
 
 static void php_scylladb_log_cleanup(void) {
-  uv_rwlock_destroy(&log_lock);
+  pthread_rwlock_wrlock(&log_lock);
   if (log_location) {
     free(log_location);
     log_location = nullptr;
   }
+  pthread_rwlock_unlock(&log_lock);
 }
 
 static void php_scylladb_log_initialize(void) {
-  uv_rwlock_init(&log_lock);
   cass_log_set_level(CASS_LOG_ERROR);
   cass_log_set_callback(php_scylladb_log, nullptr);
 }
@@ -219,12 +222,12 @@ static void php_scylladb_log(const CassLogMessage *message, void *data) {
   uint log_length = 0;
 
   /* Making a copy here because location could be updated by a PHP thread. */
-  uv_rwlock_rdlock(&log_lock);
+  pthread_rwlock_rdlock(&log_lock);
   if (log_location) {
     log_length = MIN(strlen(log_location), MAXPATHLEN);
     memcpy(log, log_location, log_length);
   }
-  uv_rwlock_rdunlock(&log_lock);
+  pthread_rwlock_unlock(&log_lock);
 
   log[log_length] = '\0';
 
@@ -394,7 +397,7 @@ PHP_INI_MH(OnUpdateLogLevel) {
 PHP_INI_MH(OnUpdateLog) {
   /* If TSRM is enabled then the last thread to update this wins */
 
-  uv_rwlock_wrlock(&log_lock);
+  pthread_rwlock_wrlock(&log_lock);
   if (log_location) {
     free(log_location);
     log_location = nullptr;
@@ -411,7 +414,7 @@ PHP_INI_MH(OnUpdateLog) {
       log_location = strdup(ZSTR_VAL(new_value));
     }
   }
-  uv_rwlock_wrunlock(&log_lock);
+  pthread_rwlock_unlock(&log_lock);
 
   return SUCCESS;
 }
