@@ -331,6 +331,21 @@ jobs:
         run: |
           composer install --no-ansi --no-interaction --no-progress --prefer-dist
 
+      # PHP dlopen()s zend_extensions with RTLD_DEEPBIND, which the ASan runtime
+      # refuses to work with (google/sanitizers#611). Combined with
+      # abort_on_error=1 below that kills the process before a single test runs,
+      # so the job "failed" without ever exercising the extension. setup-php
+      # enables opcache on 8.4 but not 8.5 — that is the whole difference
+      # between the two matrix legs. opcache is irrelevant to what this job
+      # guards, so drop it rather than weaken ASAN_OPTIONS.
+      - name: Disable opcache (incompatible with the ASan runtime)
+        run: |
+          sudo rm -fv /etc/php/${{ matrix.php }}/cli/conf.d/*opcache*.ini
+          php -r 'if (extension_loaded("Zend OPcache")) {
+            fwrite(STDERR, "opcache is still loaded; ASan will abort at startup\n");
+            exit(1);
+          }'
+
       - name: Run tests under AddressSanitizer
         # The extension is ASan-instrumented but the setup-php binary is not, so
         # the ASan runtime is LD_PRELOADed and USE_ZEND_ALLOC=0 routes Zend
