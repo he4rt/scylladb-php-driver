@@ -267,7 +267,7 @@ php_scylladb_default_index_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->schema);
   self->meta = nullptr;
 
-  php_scylladb_default_index_handlers.offset = XtOffsetOf(php_scylladb_index, zendObject);
+  php_scylladb_default_index_handlers.offset = offsetof(php_scylladb_index, zendObject);
   php_scylladb_default_index_handlers.free_obj = php_scylladb_default_index_free;
   return &self->zendObject;
 }

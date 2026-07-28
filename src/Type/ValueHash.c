@@ -97,7 +97,10 @@ php_scylladb_value_compare(zval* zvalue1, zval* zvalue2)
   case IS_FALSE:
     return Z_TYPE_P(zvalue2) == IS_FALSE ? 0 : -1;
   case IS_STRING:
-    return zend_binary_zval_strcmp(zvalue1, zvalue2);
+    return zend_binary_strcmp(Z_STRVAL_P(zvalue1),
+                              Z_STRLEN_P(zvalue1),
+                              Z_STRVAL_P(zvalue2),
+                              Z_STRLEN_P(zvalue2));
   case IS_OBJECT:
     return Z_OBJ_P(zvalue1)->handlers->compare(zvalue1, zvalue2);
   default:

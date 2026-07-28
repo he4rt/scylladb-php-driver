@@ -468,7 +468,7 @@ zend_object* php_scylladb_default_keyspace_new(zend_class_entry *ce) {
   self->meta = nullptr;
   ZVAL_UNDEF(&self->schema);
 
-  php_scylladb_default_keyspace_handlers.offset = XtOffsetOf(php_scylladb_keyspace, zendObject);
+  php_scylladb_default_keyspace_handlers.offset = offsetof(php_scylladb_keyspace, zendObject);
   php_scylladb_default_keyspace_handlers.free_obj = php_scylladb_default_keyspace_free;
   return &self->zendObject;
 }

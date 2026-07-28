@@ -308,7 +308,7 @@ php_scylladb_type_user_type_new(zend_class_entry *ce )
   self->data.udt.keyspace = self->data.udt.type_name = nullptr;
   zend_hash_init(&self->data.udt.types, 0, nullptr, ZVAL_PTR_DTOR, 0);
 
-  php_scylladb_type_user_type_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
+  php_scylladb_type_user_type_handlers.offset = offsetof(php_scylladb_type, zendObject);
   php_scylladb_type_user_type_handlers.free_obj = php_scylladb_type_user_type_free;
   return &self->zendObject;
 }

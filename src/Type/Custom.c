@@ -116,7 +116,7 @@ zend_object *php_scylladb_type_custom_new(zend_class_entry *ce) {
   self->data_type = cass_data_type_new(self->type);
   self->data.custom.class_name = nullptr;
 
-  php_scylladb_type_custom_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
+  php_scylladb_type_custom_handlers.offset = offsetof(php_scylladb_type, zendObject);
   php_scylladb_type_custom_handlers.free_obj = php_scylladb_type_custom_free;
   return &self->zendObject;
 }

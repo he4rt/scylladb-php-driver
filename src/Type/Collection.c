@@ -167,7 +167,7 @@ zend_object* php_scylladb_type_collection_new(
   self->data_type = cass_data_type_new(self->type);
   ZVAL_UNDEF(&self->data.collection.value_type);
 
-  php_scylladb_type_collection_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
+  php_scylladb_type_collection_handlers.offset = offsetof(php_scylladb_type, zendObject);
   php_scylladb_type_collection_handlers.free_obj = php_scylladb_type_collection_free;
   return &self->zendObject;
 }

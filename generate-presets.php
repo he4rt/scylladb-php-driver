@@ -14,6 +14,7 @@ enum PHPVersion: string
     case PHP83 = '8.3';
     case PHP84 = '8.4';
     case PHP85 = '8.5';
+    case PHP86 = '8.6';
 }
 
 enum PHPTS: string

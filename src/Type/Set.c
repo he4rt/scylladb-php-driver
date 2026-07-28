@@ -176,7 +176,7 @@ php_scylladb_type_set_new(zend_class_entry *ce )
   self->data_type = cass_data_type_new(self->type);
   ZVAL_UNDEF(&self->data.set.value_type);
 
-  php_scylladb_type_set_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
+  php_scylladb_type_set_handlers.offset = offsetof(php_scylladb_type, zendObject);
   php_scylladb_type_set_handlers.free_obj = php_scylladb_type_set_free;
   return &self->zendObject;
 }

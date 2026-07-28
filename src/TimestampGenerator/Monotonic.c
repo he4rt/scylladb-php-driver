@@ -45,5 +45,5 @@ php_scylladb_timestamp_generator_monotonic_new(zend_class_entry *ce)
 
 void php_scylladb_timestamp_generator_monotonic_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_timestamp_generator_monotonic_handlers.offset = XtOffsetOf(php_scylladb_timestamp_gen, zendObject);
+    php_scylladb_timestamp_generator_monotonic_handlers.offset = offsetof(php_scylladb_timestamp_gen, zendObject);
 }

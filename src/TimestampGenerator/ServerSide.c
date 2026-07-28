@@ -45,5 +45,5 @@ php_scylladb_timestamp_generator_server_side_new(zend_class_entry *ce)
 
 void php_scylladb_timestamp_generator_server_side_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_timestamp_generator_server_side_handlers.offset = XtOffsetOf(php_scylladb_timestamp_gen, zendObject);
+    php_scylladb_timestamp_generator_server_side_handlers.offset = offsetof(php_scylladb_timestamp_gen, zendObject);
 }

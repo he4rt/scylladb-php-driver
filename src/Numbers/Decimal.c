@@ -653,5 +653,5 @@ zend_object* php_scylladb_decimal_new(zend_class_entry *ce)
 
 void php_scylladb_decimal_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_decimal_handlers.std.offset = XtOffsetOf(php_scylladb_numeric, zendObject);
+    php_scylladb_decimal_handlers.std.offset = offsetof(php_scylladb_numeric, zendObject);
 }

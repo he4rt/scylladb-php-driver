@@ -203,7 +203,7 @@ php_scylladb_type_map_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->data.map.key_type);
   ZVAL_UNDEF(&self->data.map.value_type);
 
-  php_scylladb_type_map_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
+  php_scylladb_type_map_handlers.offset = offsetof(php_scylladb_type, zendObject);
   php_scylladb_type_map_handlers.free_obj = php_scylladb_type_map_free;
   return &self->zendObject;
 }

@@ -260,7 +260,7 @@ php_scylladb_default_column_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->type);
 
-  php_scylladb_default_column_handlers.offset = XtOffsetOf(php_scylladb_column, zendObject);
+  php_scylladb_default_column_handlers.offset = offsetof(php_scylladb_column, zendObject);
   php_scylladb_default_column_handlers.free_obj = php_scylladb_default_column_free;
   return &self->zendObject;
 }

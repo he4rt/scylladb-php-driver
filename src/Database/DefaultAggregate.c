@@ -263,7 +263,7 @@ php_scylladb_default_aggregate_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->schema);
   self->meta = nullptr;
 
-  php_scylladb_default_aggregate_handlers.offset = XtOffsetOf(php_scylladb_aggregate, zendObject);
+  php_scylladb_default_aggregate_handlers.offset = offsetof(php_scylladb_aggregate, zendObject);
   php_scylladb_default_aggregate_handlers.free_obj = php_scylladb_default_aggregate_free;
   return &self->zendObject;
 }

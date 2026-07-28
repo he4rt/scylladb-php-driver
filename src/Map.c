@@ -565,7 +565,7 @@ php_scylladb_map_new(zend_class_entry *ce)
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  php_scylladb_map_handlers.std.offset = XtOffsetOf(php_scylladb_map, zendObject);
+  php_scylladb_map_handlers.std.offset = offsetof(php_scylladb_map, zendObject);
   php_scylladb_map_handlers.std.free_obj = php_scylladb_map_free;
   return &self->zendObject;
 }
@@ -573,5 +573,5 @@ php_scylladb_map_new(zend_class_entry *ce)
 
 void php_scylladb_map_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_map_handlers.std.offset = XtOffsetOf(php_scylladb_map, zendObject);
+    php_scylladb_map_handlers.std.offset = offsetof(php_scylladb_map, zendObject);
 }

@@ -13,10 +13,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -32,10 +32,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -51,10 +51,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -70,10 +70,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -89,10 +89,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -108,10 +108,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -127,10 +127,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -146,10 +146,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -165,10 +165,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -184,10 +184,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -203,10 +203,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -222,10 +222,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -241,10 +241,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -260,10 +260,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -279,10 +279,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -298,10 +298,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -317,10 +317,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -336,10 +336,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.3",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -355,10 +355,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -374,10 +374,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -393,10 +393,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -412,10 +412,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -431,10 +431,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -450,10 +450,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -469,10 +469,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -488,10 +488,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -507,10 +507,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -526,10 +526,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -545,10 +545,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -564,10 +564,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -583,10 +583,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -602,10 +602,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -621,10 +621,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -640,10 +640,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -659,10 +659,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -678,10 +678,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.4",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -697,10 +697,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -716,10 +716,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -735,10 +735,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -754,10 +754,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -773,10 +773,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -792,10 +792,10 @@
                 "ENABLE_SANITIZERS": "ON",
                 "SANITIZE_UNDEFINED": "ON",
                 "SANITIZE_ADDRESS": "ON",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -811,10 +811,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -830,10 +830,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -849,10 +849,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -868,10 +868,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -887,10 +887,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -906,10 +906,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -925,10 +925,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -944,10 +944,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-cpp",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -963,10 +963,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -982,10 +982,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "cassandra",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         },
@@ -1001,10 +1001,10 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "ON"
             }
         },
@@ -1020,10 +1020,352 @@
                 "ENABLE_SANITIZERS": "OFF",
                 "SANITIZE_UNDEFINED": "OFF",
                 "SANITIZE_ADDRESS": "OFF",
-                "PHP_DRIVER_BACKEND": "scylla-rust",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
                 "PHP_VERSION_FOR_PHP_CONFIG": "8.5",
                 "LINK_LIBUV_STATIC": "ON",
-                "PHP_DRIVER_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "DebugPHP8.6ZTS",
+            "displayName": "DebugPHP8.6ZTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.6ZTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.6ZTS/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "DebugPHP8.6NTS",
+            "displayName": "DebugPHP8.6NTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.6NTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.6NTS/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "DebugPHP8.6ZTSCassandra",
+            "displayName": "DebugPHP8.6ZTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.6ZTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.6ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "DebugPHP8.6NTSCassandra",
+            "displayName": "DebugPHP8.6NTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.6NTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.6NTSCassandra/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "DebugPHP8.6ZTSScyllaRust",
+            "displayName": "DebugPHP8.6ZTSScyllaRust",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.6ZTSScyllaRust",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.6ZTSScyllaRust/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "DebugPHP8.6NTSScyllaRust",
+            "displayName": "DebugPHP8.6NTSScyllaRust",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/DebugPHP8.6NTSScyllaRust",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "./out/DebugPHP8.6NTSScyllaRust/install",
+                "ENABLE_SANITIZERS": "ON",
+                "SANITIZE_UNDEFINED": "ON",
+                "SANITIZE_ADDRESS": "ON",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "ReleasePHP8.6ZTS",
+            "displayName": "ReleasePHP8.6ZTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.6ZTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.6ZTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "ReleasePHP8.6NTS",
+            "displayName": "ReleasePHP8.6NTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.6NTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.6NTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "ReleasePHP8.6ZTSCassandra",
+            "displayName": "ReleasePHP8.6ZTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.6ZTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.6ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "ReleasePHP8.6NTSCassandra",
+            "displayName": "ReleasePHP8.6NTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.6NTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.6NTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "ReleasePHP8.6ZTSScyllaRust",
+            "displayName": "ReleasePHP8.6ZTSScyllaRust",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.6ZTSScyllaRust",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.6ZTSScyllaRust/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "ReleasePHP8.6NTSScyllaRust",
+            "displayName": "ReleasePHP8.6NTSScyllaRust",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/ReleasePHP8.6NTSScyllaRust",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "./out/ReleasePHP8.6NTSScyllaRust/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "RelWithDebInfoPHP8.6ZTS",
+            "displayName": "RelWithDebInfoPHP8.6ZTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebInfoPHP8.6ZTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.6ZTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebInfoPHP8.6NTS",
+            "displayName": "RelWithDebInfoPHP8.6NTS",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebInfoPHP8.6NTS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.6NTS/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-cpp",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "RelWithDebInfoPHP8.6ZTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.6ZTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebInfoPHP8.6ZTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.6ZTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebInfoPHP8.6NTSCassandra",
+            "displayName": "RelWithDebInfoPHP8.6NTSCassandra",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebInfoPHP8.6NTSCassandra",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.6NTSCassandra/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "cassandra",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "OFF"
+            }
+        },
+        {
+            "name": "RelWithDebInfoPHP8.6ZTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.6ZTSScyllaRust",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebInfoPHP8.6ZTSScyllaRust",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.6ZTSScyllaRust/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
+                "PHP_THREAD_SAFE": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebInfoPHP8.6NTSScyllaRust",
+            "displayName": "RelWithDebInfoPHP8.6NTSScyllaRust",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "./out/RelWithDebInfoPHP8.6NTSScyllaRust",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "./out/RelWithDebInfoPHP8.6NTSScyllaRust/install",
+                "ENABLE_SANITIZERS": "OFF",
+                "SANITIZE_UNDEFINED": "OFF",
+                "SANITIZE_ADDRESS": "OFF",
+                "PHP_SCYLLADB_BACKEND": "scylla-rust",
+                "PHP_VERSION_FOR_PHP_CONFIG": "8.6",
+                "LINK_LIBUV_STATIC": "ON",
+                "PHP_SCYLLADB_STATIC": "ON",
                 "PHP_THREAD_SAFE": "OFF"
             }
         }

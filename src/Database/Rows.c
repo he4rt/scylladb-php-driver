@@ -457,7 +457,7 @@ zend_object *php_scylladb_rows_new(zend_class_entry *ce)
     ZVAL_UNDEF(&self->next_rows);
     ZVAL_UNDEF(&self->future_next_page);
 
-  php_scylladb_rows_handlers.offset = XtOffsetOf(php_scylladb_rows, zendObject);
+  php_scylladb_rows_handlers.offset = offsetof(php_scylladb_rows, zendObject);
   php_scylladb_rows_handlers.free_obj = php_scylladb_rows_free;
   return &self->zendObject;
 }

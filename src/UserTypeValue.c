@@ -404,7 +404,7 @@ php_scylladb_user_type_value_new(zend_class_entry *ce)
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  php_scylladb_user_type_value_handlers.std.offset = XtOffsetOf(php_scylladb_user_type_value, zendObject);
+  php_scylladb_user_type_value_handlers.std.offset = offsetof(php_scylladb_user_type_value, zendObject);
   php_scylladb_user_type_value_handlers.std.free_obj = php_scylladb_user_type_value_free;
   return &self->zendObject;
 }
@@ -412,5 +412,5 @@ php_scylladb_user_type_value_new(zend_class_entry *ce)
 
 void php_scylladb_user_type_value_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_user_type_value_handlers.std.offset = XtOffsetOf(php_scylladb_user_type_value, zendObject);
+    php_scylladb_user_type_value_handlers.std.offset = offsetof(php_scylladb_user_type_value, zendObject);
 }

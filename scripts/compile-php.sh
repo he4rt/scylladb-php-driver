@@ -154,8 +154,14 @@ CONFIG_ARGS=(
     --enable-sockets
     --enable-mbstring
     --disable-short-tags
-    --with-pic
 )
+
+# PHP 8.6 renamed --with-pic to --enable-pic; the old spelling now hard-errors.
+if [[ "$(printf '%s\n8.6\n' "$PHP_VERSION" | sort -V | head -1)" == "8.6" ]]; then
+    CONFIG_ARGS+=(--enable-pic)
+else
+    CONFIG_ARGS+=(--with-pic)
+fi
 
 if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
     BREW_PREFIX="$(brew --prefix)"

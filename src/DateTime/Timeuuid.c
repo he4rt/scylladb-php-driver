@@ -199,7 +199,7 @@ zend_object* php_scylladb_timeuuid_new(zend_class_entry *ce) {
   php_scylladb_uuid *self =
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_uuid, ce, &php_scylladb_timeuuid_handlers);
 
-  php_scylladb_timeuuid_handlers.std.offset = XtOffsetOf(php_scylladb_uuid, zendObject);
+  php_scylladb_timeuuid_handlers.std.offset = offsetof(php_scylladb_uuid, zendObject);
   php_scylladb_timeuuid_handlers.std.free_obj = php_scylladb_timeuuid_free;
   return &self->zendObject;
 }
@@ -207,5 +207,5 @@ zend_object* php_scylladb_timeuuid_new(zend_class_entry *ce) {
 
 void php_scylladb_timeuuid_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_timeuuid_handlers.std.offset = XtOffsetOf(php_scylladb_uuid, zendObject);
+    php_scylladb_timeuuid_handlers.std.offset = offsetof(php_scylladb_uuid, zendObject);
 }
