@@ -265,11 +265,20 @@ jobs:
         ports:
           - 9042:9042
 
+    # 8.5 only, deliberately. This job LD_PRELOADs the ASan runtime into a
+    # stock (non-instrumented) setup-php binary, and PHP <= 8.4 dlopen()s
+    # shared extensions with RTLD_DEEPBIND, which the sanitizer runtime
+    # refuses to work with (google/sanitizers#611). With abort_on_error=1
+    # that is a SIGABRT during startup — on opcache.so, then mysqlnd.so, and
+    # ultimately on cassandra.so itself — so the 8.4 leg aborted before it
+    # could run a single test and had been permanently red while guarding
+    # nothing. It is not fixable by disabling individual extensions: the
+    # extension under test is itself a shared object. 8.5 does not pass
+    # RTLD_DEEPBIND and runs the full suite clean.
     strategy:
       fail-fast: false
       matrix:
         php:
-          - "8.4"
           - "8.5"
 
     steps:
@@ -330,21 +339,6 @@ jobs:
       - name: Install Composer dependencies
         run: |
           composer install --no-ansi --no-interaction --no-progress --prefer-dist
-
-      # PHP dlopen()s zend_extensions with RTLD_DEEPBIND, which the ASan runtime
-      # refuses to work with (google/sanitizers#611). Combined with
-      # abort_on_error=1 below that kills the process before a single test runs,
-      # so the job "failed" without ever exercising the extension. setup-php
-      # enables opcache on 8.4 but not 8.5 — that is the whole difference
-      # between the two matrix legs. opcache is irrelevant to what this job
-      # guards, so drop it rather than weaken ASAN_OPTIONS.
-      - name: Disable opcache (incompatible with the ASan runtime)
-        run: |
-          sudo rm -fv /etc/php/${{ matrix.php }}/cli/conf.d/*opcache*.ini
-          php -r 'if (extension_loaded("Zend OPcache")) {
-            fwrite(STDERR, "opcache is still loaded; ASan will abort at startup\n");
-            exit(1);
-          }'
 
       - name: Run tests under AddressSanitizer
         # The extension is ASan-instrumented but the setup-php binary is not, so
