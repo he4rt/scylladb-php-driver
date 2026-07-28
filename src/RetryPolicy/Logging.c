@@ -63,13 +63,13 @@ php_scylladb_retry_policy_logging_new(zend_class_entry *ce)
 
 PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_logging_instantiate(zval *dst, php_scylladb_retry_policy *retry_policy)
 {
-  zval val;
-
-  if (object_init_ex(&val, php_scylladb_retry_policy_default_policy_ce) == FAILURE) {
+  if (retry_policy->policy == nullptr) {
     return nullptr;
   }
 
-  ZVAL_OBJ(dst, Z_OBJ(val));
+  if (object_init_ex(dst, php_scylladb_retry_policy_logging_ce) == FAILURE) {
+    return nullptr;
+  }
 
   php_scylladb_retry_policy *obj = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, Z_OBJ_P(dst));
   obj->policy = cass_retry_policy_logging_new(retry_policy->policy);

@@ -30,17 +30,11 @@ extern zend_object_handlers php_scylladb_retry_policy_fallthrough_handlers;
 
 PHP_SCYLLADB_API php_scylladb_retry_policy *php_scylladb_retry_policy_fallthrough_instantiate(zval *dst)
 {
-  zval val;
-
-  if (object_init_ex(&val, php_scylladb_retry_policy_default_policy_ce) == FAILURE) {
+  if (object_init_ex(dst, php_scylladb_retry_policy_fallthrough_ce) == FAILURE) {
     return nullptr;
   }
 
-  ZVAL_OBJ(dst, Z_OBJ(val));
-
-  php_scylladb_retry_policy *obj = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, Z_OBJ_P(dst));
-  obj->policy = cass_retry_policy_fallthrough_new();
-  return obj;
+  return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, Z_OBJ_P(dst));
 }
 
 void php_scylladb_retry_policy_fallthrough_free(zend_object *object)

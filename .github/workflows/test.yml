@@ -265,11 +265,20 @@ jobs:
         ports:
           - 9042:9042
 
+    # 8.5 only, deliberately. This job LD_PRELOADs the ASan runtime into a
+    # stock (non-instrumented) setup-php binary, and PHP <= 8.4 dlopen()s
+    # shared extensions with RTLD_DEEPBIND, which the sanitizer runtime
+    # refuses to work with (google/sanitizers#611). With abort_on_error=1
+    # that is a SIGABRT during startup — on opcache.so, then mysqlnd.so, and
+    # ultimately on cassandra.so itself — so the 8.4 leg aborted before it
+    # could run a single test and had been permanently red while guarding
+    # nothing. It is not fixable by disabling individual extensions: the
+    # extension under test is itself a shared object. 8.5 does not pass
+    # RTLD_DEEPBIND and runs the full suite clean.
     strategy:
       fail-fast: false
       matrix:
         php:
-          - "8.4"
           - "8.5"
 
     steps:
