@@ -56,6 +56,23 @@ runs:
       shell: bash
       run: cmake --build cmake-build --parallel "$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
 
+    # Regression guard for gh-117: cassandra.so must declare every native
+    # library it uses (libgmp in particular) as a DT_NEEDED entry.
+    #
+    # A plain `php -d extension=cassandra -m` cannot catch a missing one:
+    # PHP dlopen()s extensions RTLD_LAZY|RTLD_GLOBAL, so on glibc an unresolved
+    # symbol is deferred until first call, and any earlier-loaded extension
+    # (ext/gmp) donates its symbols to us. On musl there is no lazy binding, so
+    # the identical .so fails outright at dlopen — which is how gh-117 surfaced
+    # on Alpine while CI stayed green.
+    #
+    # Skipped under ASan: that build needs the ASan runtime LD_PRELOADed, which
+    # the target does not set up.
+    - name: Verify extension loads (isolated, eager binding)
+      if: inputs.sanitize_address != 'ON'
+      shell: bash
+      run: cmake --build cmake-build --target verify-extension
+
     - name: Install extension
       shell: bash
       run: sudo cmake --install cmake-build --component extension

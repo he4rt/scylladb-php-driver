@@ -8,6 +8,7 @@ on:
       - v2.x
     paths:
       - 'cmake/**'
+      - 'scripts/**'
       - 'src/**'
       - 'include/**'
       - 'util/**'
@@ -24,6 +25,7 @@ on:
       - v2.x
     paths:
       - 'cmake/**'
+      - 'scripts/**'
       - 'src/**'
       - 'include/**'
       - 'util/**'
@@ -426,9 +428,15 @@ jobs:
           CC: ccache gcc
           CXX: ccache g++
 
-      - name: Verify extension loads
+      # The PIE path does not go through CMake, so the same gh-117 guard is
+      # invoked directly here: every symbol the module references must come
+      # from a library it declares, not from whichever extension happened to
+      # load first. The isolated load (-n, no php.ini) is a second, weaker
+      # check — see scripts/check-module-symbols.sh for why it is not enough.
+      - name: Verify extension loads (isolated, eager binding)
         run: |
           EXT_SO=$(find ~/.config/pie -name "cassandra.so" | head -1)
           echo "Built: ${EXT_SO}"
           test -f "${EXT_SO}"
-          php -d extension="${EXT_SO}" -m | grep -i cassandra
+          sh scripts/check-module-symbols.sh "${EXT_SO}" "$(command -v php)"
+          LD_BIND_NOW=1 php -n -d extension="${EXT_SO}" -m | grep -i cassandra

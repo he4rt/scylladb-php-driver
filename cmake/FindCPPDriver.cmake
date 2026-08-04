@@ -83,10 +83,27 @@ endif ()
 
 set(_cpp_driver_version "${LIBCPPDRIVER_VERSION}")
 
+# ── Static-link dependencies not declared by the driver's .pc ────────────────
+# Linking the driver statically pulls its object code into cassandra.so, so we
+# inherit its dependencies. The driver is built with CASS_USE_ZLIB=ON but
+# scylla-cpp-driver_static.pc lists neither a Libs.private nor zlib, so nothing
+# tells us to link it — cassandra.so ends up referencing inflate/crc32 with no
+# libz in DT_NEEDED. That resolves by accident on hosts whose php binary links
+# libz, and is the gh-117 failure mode (see scripts/check-module-symbols.sh).
+#
+# Harmless if the driver was built without zlib: the reference disappears and
+# the linker drops the unused entry.
+if (PHP_SCYLLADB_STATIC)
+    find_package(ZLIB REQUIRED)
+endif ()
+
 # ── Create CppDriver::Driver INTERFACE IMPORTED target ───────────────────────
 if (NOT TARGET CppDriver::Driver)
     add_library(CppDriver::Driver INTERFACE IMPORTED GLOBAL)
     target_link_libraries(CppDriver::Driver INTERFACE PkgConfig::LIBCPPDRIVER)
+    if (PHP_SCYLLADB_STATIC)
+        target_link_libraries(CppDriver::Driver INTERFACE ZLIB::ZLIB)
+    endif ()
     target_compile_definitions(CppDriver::Driver INTERFACE "${_cpp_driver_define}")
 endif ()
 
