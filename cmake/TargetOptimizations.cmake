@@ -87,9 +87,20 @@ function(scylladb_php_library target)
     )
 
     # ── Platform-specific linker flags ────────────────────────────────────────
+    # --exclude-libs,ALL keeps symbols pulled in from static archives local to
+    # the module. Without it, ELF's flat namespace lets a statically linked
+    # third-party copy (libuv, OpenSSL, …) interpose on the *same* symbols that
+    # the shared C/C++ driver resolves against its own dependency — the driver
+    # then runs a different build of that library than it was compiled for
+    # (see issue #106). macOS is unaffected: two-level namespaces bind each
+    # dylib to its own dependencies at link time.
     target_link_options(${target} PRIVATE
             $<$<PLATFORM_ID:Darwin>:-undefined;dynamic_lookup>
     )
+
+    if (NOT APPLE)
+        target_link_options(${target} PRIVATE "LINKER:--exclude-libs,ALL")
+    endif ()
 
     # ── Sanitizers ────────────────────────────────────────────────────────────
     if (ENABLE_SANITIZERS)

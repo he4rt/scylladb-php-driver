@@ -33,11 +33,6 @@ PHP_ARG_ENABLE([sanitizers],
   [  --enable-sanitizers      Enable AddressSanitizer + UBSan],
   [no], [no])
 
-PHP_ARG_ENABLE([libuv-static],
-  [whether to link libuv statically],
-  [  --enable-libuv-static    Link libuv statically],
-  [no], [no])
-
 PHP_ARG_ENABLE([driver-static],
   [whether to link the C++ driver statically],
   [  --enable-driver-static   Link ScyllaDB/Cassandra C++ driver statically],
@@ -86,9 +81,6 @@ if test "$PHP_CASSANDRA" != "no"; then
     CMAKE_ENABLE_SANITIZERS="OFF"
     if test "$PHP_SANITIZERS" = "yes"; then CMAKE_ENABLE_SANITIZERS="ON"; fi
 
-    CMAKE_LINK_LIBUV_STATIC="OFF"
-    if test "$PHP_LIBUV_STATIC" = "yes"; then CMAKE_LINK_LIBUV_STATIC="ON"; fi
-
     CMAKE_DRIVER_STATIC="OFF"
     if test "$PHP_DRIVER_STATIC" = "yes"; then CMAKE_DRIVER_STATIC="ON"; fi
 
@@ -118,8 +110,7 @@ CMAKE_FLAGS    = -G "$CMAKE_GENERATOR" \\
                  -DENABLE_AVX=$CMAKE_ENABLE_AVX \\
                  -DENABLE_AVX2=$CMAKE_ENABLE_AVX2 \\
                  -DENABLE_SANITIZERS=$CMAKE_ENABLE_SANITIZERS \\
-                 -DLINK_LIBUV_STATIC=$CMAKE_LINK_LIBUV_STATIC \\
-                 -DPHP_DRIVER_STATIC=$CMAKE_DRIVER_STATIC \\
+                 -DPHP_SCYLLADB_STATIC=$CMAKE_DRIVER_STATIC \\
                  -DUSE_LIBCASSANDRA=$CMAKE_USE_LIBCASSANDRA
 CMAKE_BUILD_DIR = $CMAKE_BUILD_DIR
 
