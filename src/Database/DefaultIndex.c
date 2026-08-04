@@ -129,7 +129,7 @@ void php_scylladb_index_build_option(php_scylladb_index *index)
       if (cass_value_get_string(value, &value_str, &value_str_length) != CASS_OK) {
         continue;
       }
-      add_assoc_stringl_ex(&index->options, key_str, key_str_length, (char *)(value_str), (size_t)(value_str_length));
+      add_assoc_stringl_ex(&index->options, key_str, key_str_length, (char *)(value_str), value_str_length);
     }
   }
 }

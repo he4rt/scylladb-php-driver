@@ -50,7 +50,7 @@ static int
 php_scylladb_collection_get(php_scylladb_collection *collection, zend_ulong index, zval *zvalue)
 {
   zval *value;
-  if ((value = zend_hash_index_find(&collection->values, (zend_ulong)(index))) != nullptr) {
+  if ((value = zend_hash_index_find(&collection->values, index)) != nullptr) {
     *zvalue = *value;
     return 1;
   }

@@ -137,7 +137,7 @@ ZEND_METHOD(Cassandra_Timestamp, microtime) {
   }
 
   long sec = (long)(self->timestamp / 1000);
-  double usec = (double)(((double)self->timestamp - (double)(sec * 1000)) / 1000.00);
+  double usec = ((double)self->timestamp - (double)(sec * 1000)) / 1000.00;
 
   char ret[128];
   memset(ret, 0, sizeof(ret));
