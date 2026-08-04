@@ -94,10 +94,21 @@ function(php_extension_install target)
             set(_verify_launcher "${CMAKE_COMMAND}" -E env LD_BIND_NOW=1)
         endif ()
 
+        # cpp-rs-driver does not implement the cass_*_meta_* schema APIs the
+        # extension calls, so that backend has unresolved symbols no matter how
+        # it is linked. Report them, but do not fail a build that is already
+        # marked experimental in CI.
+        if (PHP_SCYLLADB_BACKEND STREQUAL "scylla-rust")
+            set(_verify_symbol_mode "--warn-only")
+        else ()
+            set(_verify_symbol_mode "")
+        endif ()
+
         add_custom_target(verify-extension
                 COMMAND "${CMAKE_COMMAND}" -E env sh
                         "${PROJECT_SOURCE_DIR}/scripts/check-module-symbols.sh"
                         "$<TARGET_FILE:${target}>" "${PHP_BINARY}"
+                        ${_verify_symbol_mode}
                 COMMAND ${_verify_launcher}
                         "${PHP_BINARY}" -n
                         -d "extension=$<TARGET_FILE:${target}>"
@@ -107,5 +118,6 @@ function(php_extension_install target)
         )
         add_dependencies(verify-extension "${target}")
         unset(_verify_launcher)
+        unset(_verify_symbol_mode)
     endif ()
 endfunction()
