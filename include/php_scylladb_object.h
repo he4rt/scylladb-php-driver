@@ -11,7 +11,7 @@
  *   Recover a pointer to the user struct from the embedded zend_object*.
  *
  * PHP_SCYLLADB_OBJ_ALLOCATE(T, ce, handlers):
- *   Allocate a user struct (size = sizeof(T), offset = XtOffsetOf(T, zendObject)),
+ *   Allocate a user struct (size = sizeof(T), offset = offsetof(T, zendObject)),
  *   zero-init the user-fields prefix, call zend_object_std_init /
  *   object_properties_init on the embedded zend_object, and wire its
  *   handlers. Returns the user struct.
@@ -20,7 +20,7 @@
 #include <php.h>
 
 #define PHP_SCYLLADB_OBJ_FETCH(T, obj) \
-    ((T *)((char *)(obj) - XtOffsetOf(T, zendObject)))
+    ((T *)((char *)(obj) - offsetof(T, zendObject)))
 
 [[nodiscard]] static zend_always_inline void *php_scylladb_obj_allocate(
     size_t size, size_t obj_offset, zend_class_entry *ce, void *handlers)
@@ -56,4 +56,4 @@
 }
 
 #define PHP_SCYLLADB_OBJ_ALLOCATE(T, ce, handlers) \
-    ((T *)php_scylladb_obj_allocate(sizeof(T), XtOffsetOf(T, zendObject), (ce), (handlers)))
+    ((T *)php_scylladb_obj_allocate(sizeof(T), offsetof(T, zendObject), (ce), (handlers)))

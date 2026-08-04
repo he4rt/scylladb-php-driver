@@ -441,7 +441,7 @@ function emit_class_descriptor(array $cls): array
     $handlerWiring = "  memcpy(&$handlersVar$stdAccess, zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n";
     if (!empty($cls['struct'])) {
         $struct = $cls['struct'];
-        $handlerWiring .= "  $handlersVar$stdAccess.offset = XtOffsetOf($struct, zendObject);\n";
+        $handlerWiring .= "  $handlersVar$stdAccess.offset = offsetof($struct, zendObject);\n";
     }
     $handlerWiring .= "  if (&php_scylladb_{$snake}_free)       $handlersVar$stdAccess.free_obj       = php_scylladb_{$snake}_free;\n";
     $handlerWiring .= "  if (&php_scylladb_{$snake}_properties) $handlersVar$stdAccess.get_properties = php_scylladb_{$snake}_properties;\n";

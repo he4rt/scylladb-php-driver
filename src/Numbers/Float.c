@@ -487,5 +487,5 @@ php_scylladb_float_new(zend_class_entry *ce )
 
 void php_scylladb_float_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_float_handlers.std.offset = XtOffsetOf(php_scylladb_numeric, zendObject);
+    php_scylladb_float_handlers.std.offset = offsetof(php_scylladb_numeric, zendObject);
 }

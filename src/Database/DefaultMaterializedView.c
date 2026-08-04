@@ -595,7 +595,7 @@ php_scylladb_default_materialized_view_new(zend_class_entry *ce )
   self->meta   = nullptr;
   ZVAL_UNDEF(&self->schema);
 
-  php_scylladb_default_materialized_view_handlers.offset = XtOffsetOf(php_scylladb_materialized_view, zendObject);
+  php_scylladb_default_materialized_view_handlers.offset = offsetof(php_scylladb_materialized_view, zendObject);
   php_scylladb_default_materialized_view_handlers.free_obj = php_scylladb_default_materialized_view_free;
   return &self->zendObject;
 }

@@ -250,7 +250,7 @@ php_scylladb_default_function_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->schema);
   self->meta = nullptr;
 
-  php_scylladb_default_function_handlers.offset = XtOffsetOf(php_scylladb_function, zendObject);
+  php_scylladb_default_function_handlers.offset = offsetof(php_scylladb_function, zendObject);
   php_scylladb_default_function_handlers.free_obj = php_scylladb_default_function_free;
   return &self->zendObject;
 }

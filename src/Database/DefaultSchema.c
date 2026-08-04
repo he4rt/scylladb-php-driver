@@ -133,7 +133,7 @@ php_scylladb_default_schema_new(zend_class_entry *ce )
 
   self->schema_meta = nullptr;
 
-  php_scylladb_default_schema_handlers.offset = XtOffsetOf(php_scylladb_schema, zendObject);
+  php_scylladb_default_schema_handlers.offset = offsetof(php_scylladb_schema, zendObject);
   php_scylladb_default_schema_handlers.free_obj = php_scylladb_default_schema_free;
   return &self->zendObject;
 }

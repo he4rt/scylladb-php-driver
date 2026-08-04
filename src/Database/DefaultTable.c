@@ -691,7 +691,7 @@ php_scylladb_default_table_new(zend_class_entry *ce )
   self->meta   = nullptr;
   ZVAL_UNDEF(&self->schema);
 
-  php_scylladb_default_table_handlers.offset = XtOffsetOf(php_scylladb_table, zendObject);
+  php_scylladb_default_table_handlers.offset = offsetof(php_scylladb_table, zendObject);
   php_scylladb_default_table_handlers.free_obj = php_scylladb_default_table_free;
   return &self->zendObject;
 }

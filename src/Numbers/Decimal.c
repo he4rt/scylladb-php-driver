@@ -60,9 +60,13 @@ static void to_mpf(mpf_t result, php_scylladb_numeric *decimal)
  * E = exponent
  * M = mantissa
  */
-#define DOUBLE_MANTISSA_BITS 52
+enum : uint8_t
+{
+    DOUBLE_MANTISSA_BITS = 52,
+    DOUBLE_EXPONENT_BITS = 11,
+};
+
 #define DOUBLE_MANTISSA_MASK (cass_int64_t)((1LL << DOUBLE_MANTISSA_BITS) - 1)
-#define DOUBLE_EXPONENT_BITS 11
 #define DOUBLE_EXPONENT_MASK (cass_int64_t)((1LL << DOUBLE_EXPONENT_BITS) - 1)
 
 static void from_double(php_scylladb_numeric *result, double value)
@@ -653,5 +657,5 @@ zend_object* php_scylladb_decimal_new(zend_class_entry *ce)
 
 void php_scylladb_decimal_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_decimal_handlers.std.offset = XtOffsetOf(php_scylladb_numeric, zendObject);
+    php_scylladb_decimal_handlers.std.offset = offsetof(php_scylladb_numeric, zendObject);
 }

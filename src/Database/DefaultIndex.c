@@ -129,7 +129,7 @@ void php_scylladb_index_build_option(php_scylladb_index *index)
       if (cass_value_get_string(value, &value_str, &value_str_length) != CASS_OK) {
         continue;
       }
-      add_assoc_stringl_ex(&index->options, key_str, key_str_length, (char *)(value_str), (size_t)(value_str_length));
+      add_assoc_stringl_ex(&index->options, key_str, key_str_length, (char *)(value_str), value_str_length);
     }
   }
 }
@@ -267,7 +267,7 @@ php_scylladb_default_index_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->schema);
   self->meta = nullptr;
 
-  php_scylladb_default_index_handlers.offset = XtOffsetOf(php_scylladb_index, zendObject);
+  php_scylladb_default_index_handlers.offset = offsetof(php_scylladb_index, zendObject);
   php_scylladb_default_index_handlers.free_obj = php_scylladb_default_index_free;
   return &self->zendObject;
 }

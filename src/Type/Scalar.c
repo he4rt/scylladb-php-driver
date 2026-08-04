@@ -116,7 +116,7 @@ zend_object* php_scylladb_type_scalar_new(zend_class_entry *ce) {
   self->type = CASS_VALUE_TYPE_UNKNOWN;
   self->data_type = nullptr;
 
-  php_scylladb_type_scalar_handlers.offset = XtOffsetOf(php_scylladb_type, zendObject);
+  php_scylladb_type_scalar_handlers.offset = offsetof(php_scylladb_type, zendObject);
   php_scylladb_type_scalar_handlers.free_obj = php_scylladb_type_scalar_free;
   return &self->zendObject;
 }

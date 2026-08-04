@@ -137,7 +137,7 @@ ZEND_METHOD(Cassandra_Timestamp, microtime) {
   }
 
   long sec = (long)(self->timestamp / 1000);
-  double usec = (double)(((double)self->timestamp - (double)(sec * 1000)) / 1000.00);
+  double usec = ((double)self->timestamp - (double)(sec * 1000)) / 1000.00;
 
   char ret[128];
   memset(ret, 0, sizeof(ret));
@@ -292,5 +292,5 @@ zend_object *php_scylladb_timestamp_new(zend_class_entry *ce) {
 
 void php_scylladb_timestamp_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_timestamp_handlers.std.offset = XtOffsetOf(php_scylladb_timestamp, zendObject);
+    php_scylladb_timestamp_handlers.std.offset = offsetof(php_scylladb_timestamp, zendObject);
 }

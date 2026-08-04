@@ -50,7 +50,7 @@ static int
 php_scylladb_collection_get(php_scylladb_collection *collection, zend_ulong index, zval *zvalue)
 {
   zval *value;
-  if ((value = zend_hash_index_find(&collection->values, (zend_ulong)(index))) != nullptr) {
+  if ((value = zend_hash_index_find(&collection->values, index)) != nullptr) {
     *zvalue = *value;
     return 1;
   }
@@ -410,7 +410,7 @@ php_scylladb_collection_new(zend_class_entry *ce)
   self->dirty = 1;
   ZVAL_UNDEF(&self->type);
 
-  php_scylladb_collection_handlers.std.offset = XtOffsetOf(php_scylladb_collection, zendObject);
+  php_scylladb_collection_handlers.std.offset = offsetof(php_scylladb_collection, zendObject);
   php_scylladb_collection_handlers.std.free_obj = php_scylladb_collection_free;
   return &self->zendObject;
 }
@@ -418,5 +418,5 @@ php_scylladb_collection_new(zend_class_entry *ce)
 
 void php_scylladb_collection_post_register([[maybe_unused]] zend_class_entry *ce)
 {
-    php_scylladb_collection_handlers.std.offset = XtOffsetOf(php_scylladb_collection, zendObject);
+    php_scylladb_collection_handlers.std.offset = offsetof(php_scylladb_collection, zendObject);
 }
