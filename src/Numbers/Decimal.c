@@ -60,9 +60,13 @@ static void to_mpf(mpf_t result, php_scylladb_numeric *decimal)
  * E = exponent
  * M = mantissa
  */
-#define DOUBLE_MANTISSA_BITS 52
+enum : uint8_t
+{
+    DOUBLE_MANTISSA_BITS = 52,
+    DOUBLE_EXPONENT_BITS = 11,
+};
+
 #define DOUBLE_MANTISSA_MASK (cass_int64_t)((1LL << DOUBLE_MANTISSA_BITS) - 1)
-#define DOUBLE_EXPONENT_BITS 11
 #define DOUBLE_EXPONENT_MASK (cass_int64_t)((1LL << DOUBLE_EXPONENT_BITS) - 1)
 
 static void from_double(php_scylladb_numeric *result, double value)

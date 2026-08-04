@@ -50,7 +50,7 @@ php_scylladb_tuple_populate(php_scylladb_tuple *tuple, zval *array)
 
   ZEND_HASH_FOREACH_NUM_KEY(&type->data.tuple.types, index) {
     zval *value = nullptr;
-    if ((value = zend_hash_index_find(&tuple->values, (zend_ulong)(index))) != nullptr) {
+    if ((value = zend_hash_index_find(&tuple->values, index)) != nullptr) {
       if (add_next_index_zval(array, value) == SUCCESS)
         Z_TRY_ADDREF_P(value);
       else
@@ -208,7 +208,7 @@ ZEND_METHOD(Cassandra_Tuple, current)
 
   if (zend_hash_get_current_key_ex(&type->data.tuple.types, nullptr, &index, &self->pos) == HASH_KEY_IS_LONG) {
     zval *value;
-    if ((value = zend_hash_index_find(&self->values, (zend_ulong)(index))) != nullptr) {
+    if ((value = zend_hash_index_find(&self->values, index)) != nullptr) {
       RETURN_ZVAL(value, 1, 0);
     }
   }
