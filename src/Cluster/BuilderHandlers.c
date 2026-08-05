@@ -84,7 +84,10 @@ HashTable *php_scylladb_cluster_builder_properties(zend_object *object)
     if (self->username)
     {
         ZVAL_STR_COPY(&username, self->username);
-        ZVAL_STR_COPY(&password, self->password);
+        /* Never put the credential itself in the properties table: it would be
+         * printed by var_dump/print_r/(array) and by every framework debug
+         * renderer, defeating the #[\SensitiveParameter] on withCredentials(). */
+        ZVAL_STRINGL(&password, "***", 3);
     }
     else
     {
