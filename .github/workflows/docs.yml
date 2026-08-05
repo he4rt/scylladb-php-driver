@@ -1,0 +1,83 @@
+name: Documentation
+
+on:
+  push:
+    branches: [trunk]
+    paths:
+      - 'website/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'website/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  # Never cancel a deploy that is already talking to the Pages API.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0 # lastUpdated needs the git history
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        if: github.ref == 'refs/heads/trunk' && github.event_name != 'pull_request'
+
+      # actions/upload-pages-artifact is composite and calls an unpinned
+      # actions/upload-artifact@v4, which the org SHA-pin policy rejects.
+      # These two steps are what it does internally.
+      # Runs on pull requests too, so a mistake here fails the PR and not the
+      # first deploy after the merge.
+      - name: Archive artifact
+        run: |
+          tar --dereference --hard-dereference \
+            --directory .vitepress/dist \
+            -cf "$RUNNER_TEMP/artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            .
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: github.ref == 'refs/heads/trunk' && github.event_name != 'pull_request'
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy
+    if: github.ref == 'refs/heads/trunk' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

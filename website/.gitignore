@@ -1,0 +1,6 @@
+node_modules/
+.vitepress/dist/
+.vitepress/cache/
+
+# The repository root ignores `config.*` for the autotools build.
+!.vitepress/config.mts
