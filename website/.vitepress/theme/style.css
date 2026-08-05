@@ -1,0 +1,187 @@
+/**
+ * ScyllaDB PHP driver — theme overrides.
+ * Palette: ScyllaDB violet -> cyan, on a near-black neutral ramp.
+ */
+
+:root {
+  --vp-c-brand-1: #5b3fd9;
+  --vp-c-brand-2: #4a32b8;
+  --vp-c-brand-3: #6d4aff;
+  --vp-c-brand-soft: rgba(109, 74, 255, 0.14);
+
+  --vp-c-tip-1: var(--vp-c-brand-1);
+  --vp-c-tip-2: var(--vp-c-brand-2);
+  --vp-c-tip-3: var(--vp-c-brand-3);
+  --vp-c-tip-soft: var(--vp-c-brand-soft);
+
+  --vp-code-block-bg: #f6f6f9;
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(110deg, #6d4aff 10%, #a855f7 45%, #06b6d4 100%);
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    rgba(109, 74, 255, 0.55),
+    rgba(6, 182, 212, 0.45)
+  );
+  --vp-home-hero-image-filter: blur(48px);
+
+  --vp-button-brand-bg: var(--vp-c-brand-3);
+  --vp-button-brand-hover-bg: #5a3aff;
+  --vp-button-brand-active-bg: #4e2ff5;
+  --vp-button-brand-border: transparent;
+}
+
+.dark {
+  --vp-c-brand-1: #a78bfa;
+  --vp-c-brand-2: #c4b5fd;
+  --vp-c-brand-3: #7c5cff;
+  --vp-c-brand-soft: rgba(124, 92, 255, 0.2);
+
+  --vp-c-bg: #0c0c11;
+  --vp-c-bg-alt: #08080c;
+  --vp-c-bg-soft: #131320;
+  --vp-c-bg-elv: #14141f;
+
+  --vp-code-block-bg: #0a0a12;
+  --vp-c-divider: rgba(140, 140, 180, 0.16);
+  --vp-c-gutter: rgba(140, 140, 180, 0.16);
+}
+
+/* Hero ---------------------------------------------------------------- */
+
+.VPHero .name {
+  letter-spacing: -0.02em;
+}
+
+.VPHero .tagline {
+  max-width: 46ch;
+}
+
+@media (min-width: 640px) {
+  .VPHome {
+    position: relative;
+  }
+
+  .VPHome::before {
+    content: '';
+    position: absolute;
+    inset: -20% 0 auto 0;
+    height: 620px;
+    pointer-events: none;
+    z-index: -1;
+    background:
+      radial-gradient(60% 55% at 22% 22%, rgba(109, 74, 255, 0.22), transparent 70%),
+      radial-gradient(45% 45% at 80% 12%, rgba(6, 182, 212, 0.16), transparent 70%);
+  }
+}
+
+/* Feature cards ------------------------------------------------------- */
+
+.VPFeature {
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+  transition:
+    border-color 0.25s,
+    transform 0.25s,
+    box-shadow 0.25s;
+}
+
+.VPFeature:hover {
+  border-color: var(--vp-c-brand-3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -18px rgba(109, 74, 255, 0.9);
+}
+
+.VPFeature .icon {
+  background: linear-gradient(135deg, rgba(109, 74, 255, 0.18), rgba(6, 182, 212, 0.14));
+  border: 1px solid var(--vp-c-divider);
+}
+
+/* Content ------------------------------------------------------------- */
+
+/* Reference tables carry long PHP signatures, so give the doc column more
+   room than the VitePress default. */
+
+:root {
+  --vp-layout-max-width: 1560px;
+}
+
+@media (min-width: 1280px) {
+  .VPContent .VPDoc.has-aside .content-container {
+    max-width: 760px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .VPContent .VPDoc.has-aside .content-container {
+    max-width: 940px;
+  }
+}
+
+.vp-doc h2 {
+  border-top: 1px solid var(--vp-c-divider);
+  padding-top: 26px;
+  letter-spacing: -0.01em;
+}
+
+/* Keep VitePress's `display: block; overflow-x: auto` so wide tables scroll
+   inside their own box instead of widening the page. */
+
+.vp-doc table {
+  font-size: 14.5px;
+}
+
+.vp-doc th {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-2);
+  background: var(--vp-c-bg-soft);
+}
+
+.vp-doc tr {
+  background: transparent;
+}
+
+.vp-doc td code,
+.vp-doc th code {
+  font-size: 13px;
+}
+
+.vp-doc td:first-child {
+  min-width: 14rem;
+}
+
+.vp-doc div[class*='language-'] {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+}
+
+/* A compact key/value grid used for option tables that do not fit a table. */
+
+.opt-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: 20px 0;
+}
+
+.opt-grid > div {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--vp-c-bg-soft);
+}
+
+.opt-grid strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.opt-grid p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--vp-c-text-2);
+  line-height: 1.55;
+}
