@@ -1,6 +1,7 @@
 #include <php.h>
 
 #include <php_scylladb.h>
+#include <php_scylladb_globals.h>
 #include <php_scylladb_types.h>
 
 #include "BuilderHandlers.h"
@@ -84,10 +85,18 @@ HashTable *php_scylladb_cluster_builder_properties(zend_object *object)
     if (self->username)
     {
         ZVAL_STR_COPY(&username, self->username);
-        /* Never put the credential itself in the properties table: it would be
-         * printed by var_dump/print_r/(array) and by every framework debug
-         * renderer, defeating the #[\SensitiveParameter] on withCredentials(). */
-        ZVAL_STRINGL(&password, "***", 3);
+        /* The credential reaches var_dump/print_r/(array) and every framework
+         * debug renderer from here, which would defeat the
+         * #[\SensitiveParameter] on withCredentials(). Redact unless the
+         * operator asked for the real value with cassandra.expose_credentials. */
+        if (PHP_SCYLLADB_G(expose_credentials))
+        {
+            ZVAL_STR_COPY(&password, self->password);
+        }
+        else
+        {
+            ZVAL_STRINGL(&password, "***", 3);
+        }
     }
     else
     {

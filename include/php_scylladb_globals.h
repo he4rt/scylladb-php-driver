@@ -8,6 +8,7 @@ ZEND_BEGIN_MODULE_GLOBALS(php_scylladb)
   unsigned int  persistent_clusters;
   unsigned int  persistent_sessions;
   unsigned int  persistent_prepared_statements;
+  bool          expose_credentials;
   zval  type_varchar;
   zval  type_text;
   zval  type_blob;
