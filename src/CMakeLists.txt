@@ -49,6 +49,12 @@ if (PHP_SCYLLADB_ENABLE_SWOOLE OR PHP_SCYLLADB_ENABLE_OPENSWOOLE)
                 "containing include/swoole_coroutine_system.h).")
     endif ()
 
+    # The project declares LANGUAGES C; CXX is otherwise enabled late (by the
+    # legacy .cpp modules added after src/). This subdir is configured before
+    # them, so enable CXX explicitly here or CMake silently drops the .cc on a
+    # fresh configure (it compiled locally only because CXX was cached).
+    enable_language(CXX)
+
     target_sources(src PRIVATE Async/SwooleBridge.cc)
     # The bridge is C++; the rest of the target stays C23.
     set_target_properties(src PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
