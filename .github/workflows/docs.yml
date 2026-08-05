@@ -17,7 +17,8 @@ permissions:
 
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel a deploy that is already talking to the Pages API.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -47,8 +48,9 @@ jobs:
       # actions/upload-pages-artifact is composite and calls an unpinned
       # actions/upload-artifact@v4, which the org SHA-pin policy rejects.
       # These two steps are what it does internally.
+      # Runs on pull requests too, so a mistake here fails the PR and not the
+      # first deploy after the merge.
       - name: Archive artifact
-        if: github.ref == 'refs/heads/trunk' && github.event_name != 'pull_request'
         run: |
           tar --dereference --hard-dereference \
             --directory .vitepress/dist \
