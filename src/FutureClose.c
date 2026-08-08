@@ -17,6 +17,7 @@
 #include <php_scylladb.h>
 #include <php_scylladb_types.h>
 #include "FutureUtil.h"
+#include "FutureNotifier.h"
 
 #include "FutureClose_arginfo.h"
 
@@ -34,11 +35,33 @@ ZEND_METHOD(Cassandra_FutureClose, get)
 
   self = PHP_SCYLLADB_GET_FUTURE_CLOSE(getThis());
 
-  if (php_scylladb_future_wait_timed(self->future, timeout) == FAILURE)
+  if (php_scylladb_future_wait_coro(self->future, &self->notifier, self->reactor_reg, timeout) ==
+      FAILURE)
     return;
 
   if (php_scylladb_future_is_error(self->future) == FAILURE)
     return;
+}
+
+ZEND_METHOD(Cassandra_FutureClose, getResource)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  auto self = PHP_SCYLLADB_GET_FUTURE_CLOSE(getThis());
+
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+    return;
+  }
+
+  php_scylladb_future_get_resource(self->future, &self->notifier, &self->notify_stream, return_value);
+}
+
+ZEND_METHOD(Cassandra_FutureClose, isReady)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  auto self = PHP_SCYLLADB_GET_FUTURE_CLOSE(getThis());
+  RETURN_BOOL(php_scylladb_future_is_ready(self->future));
 }
 
 HashTable *php_scylladb_future_close_properties(zend_object *object)
@@ -64,6 +87,13 @@ void php_scylladb_future_close_free(zend_object *object)
   if (self->future)
     cass_future_free(self->future);
 
+  if (!Z_ISUNDEF(self->notify_stream)) {
+    zval_ptr_dtor(&self->notify_stream);
+    ZVAL_UNDEF(&self->notify_stream);
+  }
+  php_scylladb_notifier_unref(self->notifier);
+  self->notifier = nullptr;
+
   zend_object_std_dtor(&self->zendObject);
 }
 
@@ -72,6 +102,9 @@ zend_object *php_scylladb_future_close_new(zend_class_entry *ce)
   php_scylladb_future_close *self =
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_close, ce, &php_scylladb_future_close_handlers);
 
-  self->future = nullptr;
+  self->future      = nullptr;
+  self->notifier    = nullptr;
+  self->reactor_reg = nullptr;
+  ZVAL_UNDEF(&self->notify_stream);
   return &self->zendObject;
 }

@@ -214,10 +214,27 @@ execution thread, so:
 
 - **A future does not free the PHP process.** Between `executeAsync()` and `get()`, PHP can run
   other PHP code, not other requests.
-- **There is no callback and no event loop integration** in this release. You cannot register a
-  handler that fires when the future resolves.
-- **`get()` is the only way to observe completion.** Collect futures in the order you want to
-  consume them.
+- **The result still decodes on the PHP thread.** A future removes the wait, not the work.
 
 Within those limits, concurrency across many queries is real and large. The work happens on the C
 driver IO threads while PHP waits once instead of many times.
+
+## Waiting without blocking
+
+Everything above still stops the process at `get()`. In an event loop that is not acceptable: one
+blocking `get()` freezes every other socket and timer the loop owns.
+
+Every future can instead hand you a descriptor that becomes readable when the driver resolves it:
+
+```php
+$future   = $session->executeAsync($statement);
+$resource = $future->getResource();
+
+// Register $resource with your loop. When it is readable, get() does no
+// network wait.
+```
+
+That primitive carries adapters for Revolt, AMPHP, ReactPHP and Swoole, a shared reactor that folds
+thousands of futures onto one descriptor, and native `Io\Poll` support on PHP 8.6.
+
+See [event loops and non-blocking waits](/guide/event-loops).

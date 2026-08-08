@@ -114,27 +114,43 @@ command -v make  >/dev/null 2>&1 || die "make not found in PATH"
 command -v bison >/dev/null 2>&1 || die "bison not found in PATH"
 command -v re2c  >/dev/null 2>&1 || die "re2c not found in PATH"
 
-FULL_PHP_VERSION="$(fetch_latest_php_version)"
-[[ -n "$FULL_PHP_VERSION" ]] || die "Could not resolve PHP $PHP_VERSION version from GitHub API"
+# Source selection, in order of precedence:
+#   PHP_SRC_BRANCH=master      → branch tip, for a version with no tag yet
+#   PHP_FULL_VERSION=8.6.0alpha3 → an exact tag, including pre-releases
+#   (neither)                  → newest stable tag for -v <minor>
+# Tag lookup only matches stable releases, hence the two overrides.
+if [[ -n "${PHP_SRC_BRANCH:-}" ]]; then
+    FULL_PHP_VERSION="$PHP_SRC_BRANCH"
+    TARBALL_NAME="branch-${PHP_SRC_BRANCH//\//-}"
+    TARBALL_URL="https://github.com/php/php-src/archive/refs/heads/${PHP_SRC_BRANCH}.tar.gz"
+    SRC_DIR_NAME="php-src-${PHP_SRC_BRANCH//\//-}"
+else
+    FULL_PHP_VERSION="${PHP_FULL_VERSION:-$(fetch_latest_php_version)}"
+    [[ -n "$FULL_PHP_VERSION" ]] || die "Could not resolve PHP $PHP_VERSION version from GitHub API"
+    TARBALL_NAME="php-${FULL_PHP_VERSION}"
+    TARBALL_URL="https://github.com/php/php-src/archive/refs/tags/php-${FULL_PHP_VERSION}.tar.gz"
+    SRC_DIR_NAME="php-src-php-${FULL_PHP_VERSION}"
+fi
 
 OUTPUT_PATH="$(build_output_path)"
 echo "==> Building PHP $FULL_PHP_VERSION → $OUTPUT_PATH"
 
 TARBALL_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/php-src"
 mkdir -p "$TARBALL_DIR"
-TARBALL="$TARBALL_DIR/php-${FULL_PHP_VERSION}.tar.gz"
-TARBALL_URL="https://github.com/php/php-src/archive/refs/tags/php-${FULL_PHP_VERSION}.tar.gz"
+TARBALL="$TARBALL_DIR/${TARBALL_NAME}.tar.gz"
 
 mkdir -p "$OUTPUT_PATH"
 
-if [[ ! -f "$TARBALL" ]]; then
+# A branch tarball moves, so never reuse a cached copy of one.
+if [[ -n "${PHP_SRC_BRANCH:-}" || ! -f "$TARBALL" ]]; then
     echo "==> Downloading $TARBALL_URL"
     curl -fL -o "${TARBALL}.tmp" "$TARBALL_URL" && mv "${TARBALL}.tmp" "$TARBALL"
 fi
 
 echo "==> Extracting sources"
+rm -rf "$OUTPUT_PATH/src"
 tar -C "$OUTPUT_PATH" -xzf "$TARBALL"
-mv "$OUTPUT_PATH/php-src-php-${FULL_PHP_VERSION}" "$OUTPUT_PATH/src"
+mv "$OUTPUT_PATH/$SRC_DIR_NAME" "$OUTPUT_PATH/src"
 
 [[ "$KEEP_SRC" == "no" ]] && rm -f "$TARBALL"
 

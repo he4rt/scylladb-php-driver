@@ -11,8 +11,10 @@
  * each dep to a zend_class_entry*, and invokes the descriptor's register_
  * callback in dependency order.
  *
- * Dependencies that are not themselves registry-owned (e.g. SPL classes) are
- * looked up via zend_lookup_class — so cross-extension parents work too.
+ * Dependencies that are not themselves registry-owned (e.g. SPL classes, or
+ * Io\Poll\Handle from ext/standard) are looked up in CG(class_table) — so
+ * parents and interfaces from another extension work too, as long as that
+ * extension's MINIT ran first.
  *
  * The payoff: no central define_*() list, no order-dependent MINIT,
  * dependencies are explicit by FQN string, missing/cyclic deps fail loudly at

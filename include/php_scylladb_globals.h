@@ -2,7 +2,13 @@
 #define PHP_SCYLLADB_GLOBALS_H
 
 BEGIN_EXTERN_C()
+
+/* Shared async reactor (see src/Async/Reactor.c); per-request, per-thread under
+   ZTS. Forward-declared to avoid a hard include here. */
+typedef struct php_scylladb_reactor_ php_scylladb_reactor;
+
 ZEND_BEGIN_MODULE_GLOBALS(php_scylladb)
+  php_scylladb_reactor *reactor;
   CassUuidGen  *uuid_gen;
   pid_t         uuid_gen_pid;
   unsigned int  persistent_clusters;

@@ -25,6 +25,10 @@ inputs:
     required: false
     default: 'OFF'
     description: 'Build with AddressSanitizer (ON enables ENABLE_SANITIZERS + SANITIZE_ADDRESS)'
+  enable_poll_api:
+    required: false
+    default: 'OFF'
+    description: 'Io\\Poll integration (PHP >= 8.6): OFF | AUTO | ON (ON requires main/php_poll.h)'
 
 runs:
   using: composite
@@ -50,6 +54,7 @@ runs:
           -DENABLE_SANITIZERS="${{ inputs.sanitize_address }}" \
           -DSANITIZE_ADDRESS="${{ inputs.sanitize_address }}" \
           -DSANITIZE_UNDEFINED=OFF \
+          -DPHP_SCYLLADB_ENABLE_POLL_API="${{ inputs.enable_poll_api }}" \
           -DENABLE_LTO="${{ inputs.enable_lto }}"
 
     - name: Build

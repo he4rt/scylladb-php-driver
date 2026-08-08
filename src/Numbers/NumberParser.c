@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <gmp.h>
 #include <stdlib.h>
@@ -350,7 +351,7 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
      * contain only digits and we must set the scale properly.
      */
     memcpy(&out[negative], &in[start], dot - start);
-    memcpy(&out[negative + dot - start], &in[dot + 1], point - dot);
+    memcpy(&out[negative + dot - start], &in[dot + 1], point - dot - 1);
 
     out_len = point - start + negative - 1;
     *scale  = point - 1 - dot;
@@ -384,7 +385,8 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
    * saw an 'e' or an 'E'.
    */
   if (point < in_len) {
-    int diff;
+    char* exponent_end;
+    long diff;
 
     point++;
     /* Ignore a '+' sign. */
@@ -400,7 +402,17 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
       return 0;
     }
 
-    if (!sscanf(&in[point], "%d", &diff)) {
+    /* strtol() skips leading whitespace and stops at the first character it
+       cannot use. Reject anything it would silently accept or leave behind, so
+       "1e 2" and "1e2foo" fail instead of parsing as 1e2. */
+    if (in[point] != '-' && !isdigit((unsigned char) in[point])) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%s'", in);
+      return 0;
+    }
+
+    errno = 0;
+    diff = strtol(&in[point], &exponent_end, 10);
+    if (exponent_end != &in[in_len] || errno == ERANGE) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%s'", in);
       return 0;
     }
@@ -425,9 +437,11 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
 {
   char* tmp    = nullptr;
   size_t total = 0;
-  size_t len   = mpz_sizeinbase(number, 10);
+  size_t len   = 0;
+  size_t need  = 0;
   int negative = 0;
-  int point    = -1;
+  long point   = 0;
+  bool plain   = false;
 
   if (scale == 0) {
     php_scylladb_format_integer(number, out, out_len);
@@ -437,25 +451,32 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
   if (mpz_sgn(number) < 0)
     negative = 1;
 
-  // Ultimately, we want to return a string representation of this decimal. So allocate
-  // a buffer that could hold this decimal in the worst possible conservative case.
-
-  // absolute length + negative sign + point sign + scale (in case we end up with a number with leading 0s) +
-  // exponent modifier and sign.
-  tmp = (char*) emalloc(len + negative + 1 + scale + 2);
+  // GMP needs mpz_sizeinbase() + 2 bytes for the digits, the sign and the terminator.
+  // mpz_sizeinbase() can overshoot by one, so the exact length is only known after
+  // the conversion; the buffer is grown to the final size below.
+  tmp = (char*) emalloc(mpz_sizeinbase(number, 10) + 2);
   mpz_get_str(tmp, 10, number);
 
-  // Update len to be the true length of the string representation of |number|. mpz_sizeinbase
-  // can return a higher result than the actual length.
+  // Update len to be the true length of the string representation of |number|.
   // NOTE: the length of the string includes the negative sign (if present); account for that.
   len = strlen(tmp) - negative;
 
-  point = len - scale;
+  point = (long) len - scale;
 
-  // We only support numbers with scale >= 0.
-  assert(scale >= 0);
+  // Plain notation applies to a non-negative scale with an adjusted exponent of at least
+  // -6, which is the rule BigDecimal.toString() uses. A negative scale always gets
+  // scientific notation, so an unscaled 1 with scale -3 prints as 1E+3, not as 1000.
+  plain = scale > 0 && (point - 1) >= -6;
 
-  if ((point - 1) >= -6) {
+  if (plain) {
+    need = point <= 0 ? (size_t) negative + 2 + (size_t) -point + len + 1 : len + (size_t) negative + 2;
+  } else {
+    // digits, sign, decimal point, then "E" and a signed long exponent.
+    need = len + (size_t) negative + 24;
+  }
+  tmp = (char*) erealloc(tmp, need);
+
+  if (plain) {
     if (point <= 0) {
       // e.g. -0.002 and 0.002
       int shift_start = negative;
@@ -499,15 +520,12 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
       tmp[total] = '\0';
     }
   } else {
-    // Very small positive or negative number that we want to express in scientific notation:
-    // 0.000000004, -0.000000004
+    // A number we want to express in scientific notation: either very small
+    // (0.000000004, -0.000000004) or held with a negative scale (1E+3).
 
-    int exponent      = -1;
-    int exponent_size = -1;
-
-    // Calculate the exponent value and its size.
-    exponent      = point - 1;
-    exponent_size = (int) ceil(log10(abs(exponent) + 2)) + 1;
+    // The adjusted exponent, i.e. the exponent that goes with a single leading digit.
+    long exponent = point - 1;
+    int written   = 0;
 
     // If we only have one significant digit, we want to produce a string like
     // 1E-9. If we have more significant digits, then 1.123E-9.
@@ -515,17 +533,17 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
     if (len == 1) {
       // Simple case; tmp is already leading with our number as we want it. Append E(exp) to it
       // and we're done.
-      sprintf(&(tmp[1 + negative]), "E%+d", exponent);
-      total = 1 + negative + 1 + exponent_size;
+      written = sprintf(&(tmp[1 + negative]), "E%+ld", exponent);
+      total   = (size_t) (1 + negative) + (size_t) written;
     } else {
       // We have a more complex number. Insert a decimal point after the first digit.
-      point = negative ? 2 : 1;
-      memmove(&(tmp[point + 1]), &(tmp[point]), len - 1);
-      tmp[point] = '.';
+      int dot = negative ? 2 : 1;
+      memmove(&(tmp[dot + 1]), &(tmp[dot]), len - 1);
+      tmp[dot] = '.';
 
       // Now append the exponent to the end and we're done.
-      sprintf(&(tmp[point + len]), "E%+d", exponent);
-      total = point + len + 1 + exponent_size;
+      written = sprintf(&(tmp[dot + len]), "E%+ld", exponent);
+      total   = (size_t) dot + len + (size_t) written;
     }
   }
 

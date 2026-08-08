@@ -63,6 +63,11 @@ See [results and paging](/guide/results).
 interface Future
 {
     public function get(int|float|null $timeout = null): mixed;
+
+    /** @return resource */
+    public function getResource(): mixed;
+
+    public function isReady(): bool;
 }
 ```
 
@@ -90,14 +95,23 @@ try {
 }
 ```
 
+### Awaiting without blocking
+
+`getResource()` returns a stream that becomes readable when the future resolves, and `isReady()`
+answers the same question without one. When the stream is readable, `get()` does no network wait.
+
+That is what event loop integration is built on: framework adapters, the shared
+`Cassandra\Async\Reactor`, and native `Io\Poll` support on PHP 8.6. See
+[async and event loops](/reference/async) for the API and
+[event loops](/guide/event-loops) for the guide.
+
 ### Limits
 
 `get()` blocks the PHP process. The C driver resolves futures on its own IO threads, so many
 requests really do run at once, but:
 
-- There is no callback and no event loop integration in this release.
-- `get()` is the only way to observe completion.
 - Between `executeAsync()` and `get()`, PHP can run other PHP code, not other requests.
+- The result still decodes on the PHP thread, whichever model you wait with.
 
 See [asynchronous queries](/guide/async).
 

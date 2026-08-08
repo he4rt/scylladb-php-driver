@@ -17,6 +17,7 @@
 #include "php_scylladb.h"
 #include "php_scylladb_types.h"
 #include "FutureUtil.h"
+#include "FutureNotifier.h"
 
 #include "FuturePreparedStatement_arginfo.h"
 
@@ -38,7 +39,8 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, get)
     Z_PARAM_ZVAL(timeout)
   ZEND_PARSE_PARAMETERS_END();
 
-  if (php_scylladb_future_wait_timed(self->future, timeout) == FAILURE) {
+  if (php_scylladb_future_wait_coro(self->future, &self->notifier, self->reactor_reg, timeout) ==
+      FAILURE) {
     return;
   }
 
@@ -52,6 +54,33 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, get)
   prepared_statement = PHP_SCYLLADB_GET_STATEMENT(return_value);
 
   prepared_statement->data.prepared.prepared = cass_future_get_prepared(self->future);
+}
+
+ZEND_METHOD(Cassandra_FuturePreparedStatement, getResource)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
+
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+    return;
+  }
+
+  /* Already resolved and cached: hand back an eagerly-readable stream. */
+  if (!Z_ISUNDEF(self->prepared_statement)) {
+    php_scylladb_future_get_ready_resource(&self->notifier, &self->notify_stream, return_value);
+    return;
+  }
+
+  php_scylladb_future_get_resource(self->future, &self->notifier, &self->notify_stream, return_value);
+}
+
+ZEND_METHOD(Cassandra_FuturePreparedStatement, isReady)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
+  RETURN_BOOL(!Z_ISUNDEF(self->prepared_statement) || php_scylladb_future_is_ready(self->future));
 }
 
 HashTable *php_scylladb_future_prepared_statement_properties(zend_object *object)
@@ -82,6 +111,13 @@ void php_scylladb_future_prepared_statement_free(zend_object *object)
 
   zval_ptr_dtor(&self->prepared_statement);
 
+  if (!Z_ISUNDEF(self->notify_stream)) {
+    zval_ptr_dtor(&self->notify_stream);
+    ZVAL_UNDEF(&self->notify_stream);
+  }
+  php_scylladb_notifier_unref(self->notifier);
+  self->notifier = nullptr;
+
   zend_object_std_dtor(&self->zendObject);
 }
 
@@ -91,7 +127,10 @@ zend_object *php_scylladb_future_prepared_statement_new(zend_class_entry *ce)
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_prepared_statement, ce,
                                 &php_scylladb_future_prepared_statement_handlers);
 
-  self->future = nullptr;
+  self->future      = nullptr;
+  self->notifier    = nullptr;
+  self->reactor_reg = nullptr;
   ZVAL_UNDEF(&self->prepared_statement);
+  ZVAL_UNDEF(&self->notify_stream);
   return &self->zendObject;
 }

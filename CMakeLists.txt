@@ -105,6 +105,34 @@ option(PHP_THREAD_SAFE "Target a ZTS (thread-safe) PHP build" OFF)
 # ── Dependency options ────────────────────────────────────────────────────────
 option(PHP_SCYLLADB_STATIC  "Link the C++ driver statically"                OFF)
 
+# ── Native Swoole / OpenSwoole coroutine support (opt-in) ─────────────────────
+# When enabled, one C++ shim (src/Async/SwooleBridge.cc) is compiled against the
+# (open)swoole source headers so Future::get() suspends the current coroutine
+# instead of blocking. OFF by default keeps the build pure C. Requires the
+# matching source tree via -DPHP_SCYLLADB_SWOOLE_SRC=/path/to/(open)swoole-src.
+option(PHP_SCYLLADB_ENABLE_SWOOLE     "Build native Swoole coroutine support"     OFF)
+option(PHP_SCYLLADB_ENABLE_OPENSWOOLE "Build native OpenSwoole coroutine support" OFF)
+set(PHP_SCYLLADB_SWOOLE_SRC "" CACHE PATH
+        "Path to the (open)swoole-src tree providing swoole.h / swoole_coroutine*.h")
+
+# ── Io\Poll integration (PHP >= 8.6) ──────────────────────────────────────────
+# PHP 8.6 added an epoll/kqueue polling API (RFC: poll_api) with an internal
+# handle interface. When enabled, src/Async/Poll.c and PollHandle.c are compiled
+# and Cassandra\Async\Poll / PollHandle expose the driver's completion
+# descriptors to it natively.
+#
+# OFF by default until PHP 8.6 is released. The API is still moving in 8.6-dev —
+# Io\Poll\Context::wait() changed shape after 8.6.0alpha3 — so a default-on build
+# would track a moving target. Turn it on explicitly:
+#
+#   cmake --preset DebugPHP8.6NTS -DPHP_SCYLLADB_ENABLE_POLL_API=ON
+#
+# AUTO enables it whenever the PHP being built against provides main/php_poll.h;
+# ON does the same but makes a missing header a hard error.
+set(PHP_SCYLLADB_ENABLE_POLL_API "OFF" CACHE STRING
+        "Io\\Poll integration: OFF (default), AUTO (on when PHP >= 8.6 provides php_poll.h), ON (require)")
+set_property(CACHE PHP_SCYLLADB_ENABLE_POLL_API PROPERTY STRINGS AUTO ON OFF)
+
 # Backend selection — see cmake/FindCPPDriver.cmake. USE_LIBCASSANDRA is kept
 # for backwards compatibility and is consumed there.
 option(USE_LIBCASSANDRA   "(deprecated) Alias: ON → PHP_SCYLLADB_BACKEND=cassandra" OFF)
@@ -112,6 +140,30 @@ option(USE_LIBCASSANDRA   "(deprecated) Alias: ON → PHP_SCYLLADB_BACKEND=cassa
 # ── Dependencies ──────────────────────────────────────────────────────────────
 find_package(PHPConfig REQUIRED)
 find_package(PHP      REQUIRED)
+
+# ── Io\Poll capability probe ──────────────────────────────────────────────────
+# Needs PHP_VERSION_NUM and PHP_INCLUDES from find_package(PHP). php-config
+# --includes lists both <include>/php and <include>/php/main, so search the base
+# name and the main/ suffix. Result is read by src/CMakeLists.txt.
+set(PHP_SCYLLADB_HAVE_POLL_API OFF)
+if (NOT PHP_SCYLLADB_ENABLE_POLL_API STREQUAL "OFF")
+    find_file(PHP_SCYLLADB_PHP_POLL_HEADER
+            NAMES php_poll.h
+            PATHS ${PHP_INCLUDES}
+            PATH_SUFFIXES main
+            NO_DEFAULT_PATH
+            DOC "Path to PHP's main/php_poll.h (PHP >= 8.6)"
+    )
+
+    if (PHP_VERSION_NUM GREATER_EQUAL 80600 AND PHP_SCYLLADB_PHP_POLL_HEADER)
+        set(PHP_SCYLLADB_HAVE_POLL_API ON)
+    elseif (PHP_SCYLLADB_ENABLE_POLL_API STREQUAL "ON")
+        message(FATAL_ERROR
+                "PHP_SCYLLADB_ENABLE_POLL_API=ON but the polling API is not available: "
+                "PHP ${PHP_VERSION} (vernum ${PHP_VERSION_NUM}) and php_poll.h "
+                "'${PHP_SCYLLADB_PHP_POLL_HEADER}'. It needs PHP >= 8.6. Use AUTO or OFF.")
+    endif ()
+endif ()
 
 # Must come after find_package(PHP) — reads PHP_PREFIX, PHP_EXTENSION_DIR etc.
 include(cmake/PhpExtensionHelpers.cmake)

@@ -118,7 +118,7 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
       auto decimal = PHP_SCYLLADB_GET_NUMERIC(value);
       size_t size;
       PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
-      cass_byte_t* data = (cass_byte_t*)export_twos_complement(decimal->data.decimal.value, &size);
+      cass_byte_t* data = export_twos_complement(decimal->data.decimal.value, &size);
       CHECK_RESULT(cass_statement_bind_decimal(statement, index, data, size, decimal->data.decimal.scale));
     }
 
@@ -239,7 +239,7 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
       auto varint = PHP_SCYLLADB_GET_NUMERIC(value);
       size_t size;
       PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
-      cass_byte_t* data = (cass_byte_t*)export_twos_complement(varint->data.varint.value, &size);
+      cass_byte_t* data = export_twos_complement(varint->data.varint.value, &size);
       CHECK_RESULT(cass_statement_bind_bytes_by_name(statement, name, data, size));
     }
 
@@ -247,7 +247,7 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
       auto decimal = PHP_SCYLLADB_GET_NUMERIC(value);
       size_t size;
       PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
-      cass_byte_t* data = (cass_byte_t*)export_twos_complement(decimal->data.decimal.value, &size);
+      cass_byte_t* data = export_twos_complement(decimal->data.decimal.value, &size);
       CHECK_RESULT(cass_statement_bind_decimal_by_name(statement, name, data, size,
                                                        decimal->data.decimal.scale));
     }

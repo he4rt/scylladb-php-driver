@@ -11,18 +11,28 @@
   "license": "Apache-2.0",
   "description": "ScyllaDB/Cassandra PHP driver",
   "require": {
-    "php": "^8.3|^8.4|^8.5",
+    "php": "^8.3|^8.4|^8.5|^8.6",
     "ext-date": "*"
   },
   "require-dev": {
     "pestphp/pest": "^3.8",
     "nesbot/carbon": "^3.5",
     "symfony/process": "^7.0",
-    "phpbench/phpbench": "^1.4"
+    "phpbench/phpbench": "^1.4",
+    "revolt/event-loop": "^1.0",
+    "amphp/amp": "^3.0",
+    "react/event-loop": "^1.5",
+    "react/promise": "^3.0",
+    "codelieutenant/scylla-driver-async-adapters": "@dev"
+  },
+  "suggest": {
+    "codelieutenant/scylla-driver-async-adapters": "Adapters for Revolt, Amp, ReactPHP and Swoole event loops. Not needed when the extension is built with --enable-poll-api on PHP 8.6+, which gives you the native Cassandra\\Async\\Poll loop.",
+    "ext-swoole": "Await Cassandra\\Future inside Swoole coroutines (native when built with --enable-swoole)"
   },
   "config": {
     "platform": {
-      "php": "8.3.0"
+      "php": "8.3.0",
+      "ext-cassandra": "1.4.0"
     },
     "allow-plugins": {
       "pestphp/pest-plugin": true
@@ -42,6 +52,7 @@
     "bench:offline": "phpbench run --group=offline --report=aggregate",
     "bench:live": "phpbench run --group=live --report=aggregate",
     "bench:baseline": "phpbench run --tag=baseline --progress=none --store",
+    "bench:baseline:export": "bash benchmarks/baseline.sh",
     "bench:diff": "phpbench run --ref=baseline --report=aggregate"
   },
   "php-ext": {
@@ -79,7 +90,30 @@
       {
         "name": "enable-libcassandra",
         "description": "whether to link with libcassandra"
+      },
+      {
+        "name": "enable-swoole",
+        "description": "build native Swoole coroutine support (needs --with-swoole-src)"
+      },
+      {
+        "name": "enable-openswoole",
+        "description": "build native OpenSwoole coroutine support (needs --with-swoole-src)"
+      },
+      {
+        "name": "with-swoole-src",
+        "description": "path to the (open)swoole-src tree providing swoole_coroutine*.h",
+        "needs-value": true
+      },
+      {
+        "name": "enable-poll-api",
+        "description": "build the PHP 8.6 Io\\Poll integration (off by default while 8.6 is in development)"
       }
     ]
-  }
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "packages/async-adapters"
+    }
+  ]
 }

@@ -73,6 +73,9 @@ dataset('scalar_round_trip', [
     'boolean_f' => ['boolean',  false],
     'date'      => ['date',     new Date(0)],
     'decimal'   => ['decimal',  new Decimal('3.14')],
+    // A positive exponent gives a negative scale, which the protocol allows.
+    'decimal_negative_scale' => ['decimal', new Decimal('1e3')],
+    'decimal_negative_scale_fraction' => ['decimal', new Decimal('-1.5e2')],
     'double'    => ['double',   3.14],
     'duration_zero' => ['duration', new Duration(0, 0, 0)],
     'duration_pos'  => ['duration', new Duration(1, 2, 3)],

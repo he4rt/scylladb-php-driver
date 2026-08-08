@@ -16,6 +16,7 @@
 
 #include "php_scylladb.h"
 #include "php_scylladb_types.h"
+#include "FutureNotifier.h"
 
 #include "FutureValue_arginfo.h"
 
@@ -36,6 +37,27 @@ ZEND_METHOD(Cassandra_FutureValue, get)
   if (!Z_ISUNDEF(self->value)) {
     RETURN_ZVAL(&self->value, 1, 0);
   }
+}
+
+ZEND_METHOD(Cassandra_FutureValue, getResource)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  /* FutureValue is always already resolved — hand back a readable stream. */
+  auto self = PHP_SCYLLADB_GET_FUTURE_VALUE(getThis());
+
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+    return;
+  }
+
+  php_scylladb_future_get_ready_resource(&self->notifier, &self->notify_stream, return_value);
+}
+
+ZEND_METHOD(Cassandra_FutureValue, isReady)
+{
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  RETURN_TRUE;
 }
 
 HashTable *php_scylladb_future_value_properties(zend_object *object)
@@ -60,6 +82,13 @@ void php_scylladb_future_value_free(zend_object *object)
 
   zval_ptr_dtor(&self->value);
 
+  if (!Z_ISUNDEF(self->notify_stream)) {
+    zval_ptr_dtor(&self->notify_stream);
+    ZVAL_UNDEF(&self->notify_stream);
+  }
+  php_scylladb_notifier_unref(self->notifier);
+  self->notifier = nullptr;
+
   zend_object_std_dtor(&self->zendObject);
 }
 
@@ -68,6 +97,9 @@ zend_object *php_scylladb_future_value_new(zend_class_entry *ce)
   php_scylladb_future_value *self =
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_value, ce, &php_scylladb_future_value_handlers);
 
+  self->notifier    = nullptr;
+  self->reactor_reg = nullptr;
   ZVAL_UNDEF(&self->value);
+  ZVAL_UNDEF(&self->notify_stream);
   return &self->zendObject;
 }

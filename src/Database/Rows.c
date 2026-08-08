@@ -85,7 +85,7 @@ ZEND_METHOD(Cassandra_Rows, rewind)
 
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
-    zend_hash_internal_pointer_reset(Z_ARRVAL(self->rows));
+    zend_hash_internal_pointer_reset_ex(Z_ARRVAL(self->rows), &self->pos);
 }
 
 ZEND_METHOD(Cassandra_Rows, current)
@@ -97,7 +97,7 @@ ZEND_METHOD(Cassandra_Rows, current)
 
     auto self = PHP_SCYLLADB_GET_ROWS(getThis());
 
-    zval *entry = zend_hash_get_current_data(Z_ARRVAL(self->rows));
+    zval *entry = zend_hash_get_current_data_ex(Z_ARRVAL(self->rows), &self->pos);
 
     if (entry != nullptr)
     {
@@ -116,7 +116,7 @@ ZEND_METHOD(Cassandra_Rows, key)
 
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
-    if (zend_hash_get_current_key(Z_ARRVAL(self->rows), &str_index, &num_index) ==
+    if (zend_hash_get_current_key_ex(Z_ARRVAL(self->rows), &str_index, &num_index, &self->pos) ==
         HASH_KEY_IS_LONG)
         RETURN_LONG(num_index);
 }
@@ -132,7 +132,7 @@ ZEND_METHOD(Cassandra_Rows, next)
 
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
-    zend_hash_move_forward(Z_ARRVAL(self->rows));
+    zend_hash_move_forward_ex(Z_ARRVAL(self->rows), &self->pos);
 }
 
 ZEND_METHOD(Cassandra_Rows, valid)
@@ -144,7 +144,7 @@ ZEND_METHOD(Cassandra_Rows, valid)
 
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
-    RETURN_BOOL(zend_hash_has_more_elements(Z_ARRVAL(self->rows)) == SUCCESS);
+    RETURN_BOOL(zend_hash_has_more_elements_ex(Z_ARRVAL(self->rows), &self->pos) == SUCCESS);
 }
 
 ZEND_METHOD(Cassandra_Rows, offsetExists)
@@ -394,7 +394,7 @@ ZEND_METHOD(Cassandra_Rows, first)
     self = PHP_SCYLLADB_GET_ROWS(getThis());
 
     zend_hash_internal_pointer_reset_ex(Z_ARRVAL(self->rows), &pos);
-    if ((entry = zend_hash_get_current_data(Z_ARRVAL(self->rows))) != nullptr)
+    if ((entry = zend_hash_get_current_data_ex(Z_ARRVAL(self->rows), &pos)) != nullptr)
     {
         RETVAL_ZVAL(entry, 1, 0);
     }
@@ -456,6 +456,7 @@ zend_object *php_scylladb_rows_new(zend_class_entry *ce)
     ZVAL_UNDEF(&self->rows);
     ZVAL_UNDEF(&self->next_rows);
     ZVAL_UNDEF(&self->future_next_page);
+    self->pos = 0;
 
   php_scylladb_rows_handlers.offset = offsetof(php_scylladb_rows, zendObject);
   php_scylladb_rows_handlers.free_obj = php_scylladb_rows_free;

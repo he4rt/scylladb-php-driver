@@ -1,0 +1,684 @@
+{
+    "php": "8.5.7",
+    "generated": "2026-07-15T09:46:57Z",
+    "group": "offline",
+    "benchmarks": [
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchConstruct",
+            "params": {
+                "bytes": "64"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 0.561,
+            "mode_us": 0.565,
+            "rstdev_pct": 1.28,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchConstruct",
+            "params": {
+                "bytes": "1024"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 0.585,
+            "mode_us": 0.583,
+            "rstdev_pct": 2.51,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchConstruct",
+            "params": {
+                "bytes": "65536"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 1.461,
+            "mode_us": 1.448,
+            "rstdev_pct": 1.77,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchConstruct",
+            "params": {
+                "bytes": "1048576"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 21.312,
+            "mode_us": 21.375,
+            "rstdev_pct": 0.6,
+            "mem_peak_bytes": 2726680
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchRoundTrip",
+            "params": {
+                "bytes": "64"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 0.909,
+            "mode_us": 0.9,
+            "rstdev_pct": 2.38,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchRoundTrip",
+            "params": {
+                "bytes": "1024"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 2.851,
+            "mode_us": 2.835,
+            "rstdev_pct": 1.12,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchRoundTrip",
+            "params": {
+                "bytes": "65536"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 134.503,
+            "mode_us": 134.567,
+            "rstdev_pct": 0.13,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\BlobBench",
+            "subject": "benchRoundTrip",
+            "params": {
+                "bytes": "1048576"
+            },
+            "revs": 300,
+            "iterations": 5,
+            "time_avg_us": 2518.004,
+            "mode_us": 2519.42,
+            "rstdev_pct": 0.18,
+            "mem_peak_bytes": 6953768
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ClusterBuilderBench",
+            "subject": "benchBuildPersistentOff",
+            "params": [],
+            "revs": 2000,
+            "iterations": 5,
+            "time_avg_us": 4.791,
+            "mode_us": 4.81,
+            "rstdev_pct": 0.55,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ClusterBuilderBench",
+            "subject": "benchBuildPersistentOn",
+            "params": [],
+            "revs": 2000,
+            "iterations": 5,
+            "time_avg_us": 2.77,
+            "mode_us": 2.794,
+            "rstdev_pct": 1.25,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ClusterBuilderBench",
+            "subject": "benchBuilderChain",
+            "params": [],
+            "revs": 20000,
+            "iterations": 5,
+            "time_avg_us": 1.699,
+            "mode_us": 1.708,
+            "rstdev_pct": 1.21,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchListBuild",
+            "params": {
+                "count": "1"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1.132,
+            "mode_us": 1.104,
+            "rstdev_pct": 3.55,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchListBuild",
+            "params": {
+                "count": "10"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 3.716,
+            "mode_us": 3.707,
+            "rstdev_pct": 0.97,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchListBuild",
+            "params": {
+                "count": "100"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 30.432,
+            "mode_us": 30.317,
+            "rstdev_pct": 1.27,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchListBuild",
+            "params": {
+                "count": "1000"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 289.31,
+            "mode_us": 286.483,
+            "rstdev_pct": 2.13,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchMapBuild",
+            "params": {
+                "count": "1"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1.303,
+            "mode_us": 1.293,
+            "rstdev_pct": 1.76,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchMapBuild",
+            "params": {
+                "count": "10"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 4.564,
+            "mode_us": 4.522,
+            "rstdev_pct": 1.43,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchMapBuild",
+            "params": {
+                "count": "100"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 41.731,
+            "mode_us": 42.208,
+            "rstdev_pct": 1.68,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchMapBuild",
+            "params": {
+                "count": "1000"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 442.402,
+            "mode_us": 441.545,
+            "rstdev_pct": 1.28,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuild",
+            "params": {
+                "count": "1"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1.091,
+            "mode_us": 1.085,
+            "rstdev_pct": 0.89,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuild",
+            "params": {
+                "count": "10"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 3.713,
+            "mode_us": 3.713,
+            "rstdev_pct": 1.54,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuild",
+            "params": {
+                "count": "100"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 30.542,
+            "mode_us": 30.408,
+            "rstdev_pct": 1.59,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuild",
+            "params": {
+                "count": "1000"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 324.027,
+            "mode_us": 322.231,
+            "rstdev_pct": 1.3,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuildAndRead",
+            "params": {
+                "count": "1"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1.275,
+            "mode_us": 1.264,
+            "rstdev_pct": 1.38,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuildAndRead",
+            "params": {
+                "count": "10"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 3.954,
+            "mode_us": 3.923,
+            "rstdev_pct": 1.2,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuildAndRead",
+            "params": {
+                "count": "100"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 31.891,
+            "mode_us": 32.126,
+            "rstdev_pct": 1.73,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchSetBuildAndRead",
+            "params": {
+                "count": "1000"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 331.627,
+            "mode_us": 330.183,
+            "rstdev_pct": 0.82,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchTupleBuild",
+            "params": {
+                "count": "1"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1.577,
+            "mode_us": 1.587,
+            "rstdev_pct": 1.11,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchTupleBuild",
+            "params": {
+                "count": "10"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 12.357,
+            "mode_us": 12.405,
+            "rstdev_pct": 1.83,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchTupleBuild",
+            "params": {
+                "count": "100"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 116.618,
+            "mode_us": 117.125,
+            "rstdev_pct": 1.83,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchTupleBuild",
+            "params": {
+                "count": "1000"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1149.874,
+            "mode_us": 1142.208,
+            "rstdev_pct": 1.49,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchUdtBuild",
+            "params": {
+                "count": "1"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1.711,
+            "mode_us": 1.718,
+            "rstdev_pct": 1.46,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchUdtBuild",
+            "params": {
+                "count": "10"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 13.173,
+            "mode_us": 13.276,
+            "rstdev_pct": 1.8,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchUdtBuild",
+            "params": {
+                "count": "100"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 125.456,
+            "mode_us": 123.55,
+            "rstdev_pct": 2.04,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\CollectionBench",
+            "subject": "benchUdtBuild",
+            "params": {
+                "count": "1000"
+            },
+            "revs": 200,
+            "iterations": 5,
+            "time_avg_us": 1228.094,
+            "mode_us": 1236.742,
+            "rstdev_pct": 1.63,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\StatementBench",
+            "subject": "benchBatchAdd",
+            "params": {
+                "count": "1"
+            },
+            "revs": 500,
+            "iterations": 5,
+            "time_avg_us": 1.578,
+            "mode_us": 1.594,
+            "rstdev_pct": 2.4,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\StatementBench",
+            "subject": "benchBatchAdd",
+            "params": {
+                "count": "10"
+            },
+            "revs": 500,
+            "iterations": 5,
+            "time_avg_us": 6.943,
+            "mode_us": 7.02,
+            "rstdev_pct": 2.27,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\StatementBench",
+            "subject": "benchBatchAdd",
+            "params": {
+                "count": "100"
+            },
+            "revs": 500,
+            "iterations": 5,
+            "time_avg_us": 59.804,
+            "mode_us": 60.113,
+            "rstdev_pct": 3.19,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\StatementBench",
+            "subject": "benchBatchAdd",
+            "params": {
+                "count": "1000"
+            },
+            "revs": 500,
+            "iterations": 5,
+            "time_avg_us": 565.93,
+            "mode_us": 567.035,
+            "rstdev_pct": 0.31,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\StatementBench",
+            "subject": "benchEmptyBatch",
+            "params": [],
+            "revs": 20000,
+            "iterations": 5,
+            "time_avg_us": 0.495,
+            "mode_us": 0.492,
+            "rstdev_pct": 2.38,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\StatementBench",
+            "subject": "benchSimpleStatement",
+            "params": [],
+            "revs": 20000,
+            "iterations": 5,
+            "time_avg_us": 0.51,
+            "mode_us": 0.511,
+            "rstdev_pct": 0.82,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchBigint",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.742,
+            "mode_us": 0.731,
+            "rstdev_pct": 2.47,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchBlobSmall",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.723,
+            "mode_us": 0.72,
+            "rstdev_pct": 2.32,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchDecimal",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.931,
+            "mode_us": 0.937,
+            "rstdev_pct": 1.66,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchDecimalArithmetic",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 1.24,
+            "mode_us": 1.246,
+            "rstdev_pct": 1.68,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchDuration",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.793,
+            "mode_us": 0.802,
+            "rstdev_pct": 2.78,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchInet",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 1.657,
+            "mode_us": 1.662,
+            "rstdev_pct": 0.84,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchSmallint",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.614,
+            "mode_us": 0.607,
+            "rstdev_pct": 2.39,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchTimestamp",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.71,
+            "mode_us": 0.707,
+            "rstdev_pct": 1.14,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchTimeuuidGenerate",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.448,
+            "mode_us": 0.445,
+            "rstdev_pct": 1.29,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchTinyint",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.638,
+            "mode_us": 0.642,
+            "rstdev_pct": 1.52,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchUuidFromString",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.526,
+            "mode_us": 0.518,
+            "rstdev_pct": 2.15,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchUuidGenerate",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.446,
+            "mode_us": 0.45,
+            "rstdev_pct": 2.19,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchUuidRoundTrip",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.721,
+            "mode_us": 0.714,
+            "rstdev_pct": 2.51,
+            "mem_peak_bytes": 1557512
+        },
+        {
+            "benchmark": "Cassandra\\Benchmarks\\Offline\\ValueBench",
+            "subject": "benchVarint",
+            "params": [],
+            "revs": 10000,
+            "iterations": 5,
+            "time_avg_us": 0.802,
+            "mode_us": 0.803,
+            "rstdev_pct": 1.23,
+            "mem_peak_bytes": 1557512
+        }
+    ]
+}

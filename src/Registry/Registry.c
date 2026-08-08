@@ -9,7 +9,7 @@
 #include <Zend/zend.h>
 #include <Zend/zend_API.h>
 
-#define MAX_DEPS_PER_CLASS 8
+enum { MAX_DEPS_PER_CLASS = 8 };
 
 /* Singly linked list of all descriptors registered at .so load time.
  * Constructors run single-threaded during dlopen, so no locking needed. */
@@ -48,8 +48,14 @@ static zend_class_entry *resolve_dep(const char *fqn, bool *deferred) {
         }
         return *(p->ce_out);
     }
-    zend_string *lookup = zend_string_init(fqn, strlen(fqn), 0);
-    zend_class_entry *ce = zend_lookup_class(lookup);
+    /* Not zend_lookup_class(): that reads EG(class_table), which init_executor()
+       only fills at request start, so at MINIT it dereferences a null table.
+       CG(class_table) is live from zend_startup() and holds every internal class
+       an earlier module registered, keyed by lowercased FQN. */
+    size_t len = strlen(fqn);
+    zend_string *lookup = zend_string_alloc(len, 0);
+    zend_str_tolower_copy(ZSTR_VAL(lookup), fqn, len);
+    zend_class_entry *ce = zend_hash_find_ptr(CG(class_table), lookup);
     zend_string_release(lookup);
     return ce;
 }
@@ -86,7 +92,9 @@ void php_scylladb_class_registry_minit(void) {
                     }
                     if (ce == nullptr) {
                         zend_error_noreturn(E_CORE_ERROR,
-                            "scylladb registry: class '%s' declares dep '%s' which is neither registered nor known to Zend",
+                            "scylladb registry: class '%s' declares dep '%s', which is neither "
+                            "registry-owned nor an internal class. An internal dep has to come "
+                            "from a module whose MINIT runs before this one",
                             d->name, d->deps[i]);
                     }
                     resolved[i] = ce;

@@ -356,13 +356,13 @@ static int php_scylladb_collection_append(CassCollection* collection, zval* valu
       break;
     case CASS_VALUE_TYPE_VARINT:
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
-      data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
+      data = export_twos_complement(numeric->data.varint.value, &size);
       CHECK_ERROR(cass_collection_append_bytes(collection, data, size));
       free(data);
       break;
     case CASS_VALUE_TYPE_DECIMAL:
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
-      data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
+      data = export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(
           cass_collection_append_decimal(collection, data, size, numeric->data.decimal.scale));
       free(data);
@@ -501,13 +501,13 @@ static int php_scylladb_tuple_set(CassTuple* tuple, zend_ulong index, zval* valu
       break;
     case CASS_VALUE_TYPE_VARINT:
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
-      data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
+      data = export_twos_complement(numeric->data.varint.value, &size);
       CHECK_ERROR(cass_tuple_set_bytes(tuple, index, data, size));
       free(data);
       break;
     case CASS_VALUE_TYPE_DECIMAL:
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
-      data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
+      data = export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(cass_tuple_set_decimal(tuple, index, data, size, numeric->data.decimal.scale));
       free(data);
       break;
@@ -645,13 +645,13 @@ static int php_scylladb_user_type_set(CassUserType* ut, const char* name, zval* 
       break;
     case CASS_VALUE_TYPE_VARINT:
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
-      data = (cass_byte_t*)export_twos_complement(numeric->data.varint.value, &size);
+      data = export_twos_complement(numeric->data.varint.value, &size);
       CHECK_ERROR(cass_user_type_set_bytes_by_name(ut, name, data, size));
       free(data);
       break;
     case CASS_VALUE_TYPE_DECIMAL:
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
-      data = (cass_byte_t*)export_twos_complement(numeric->data.decimal.value, &size);
+      data = export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(
           cass_user_type_set_decimal_by_name(ut, name, data, size, numeric->data.decimal.scale));
       free(data);
@@ -822,7 +822,7 @@ int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output)
   ZEND_HASH_FOREACH_NUM_KEY_VAL(&tuple->values, num_key, current) {
     zval* zsub_type;
     php_scylladb_type* sub_type;
-    if ((zsub_type = zend_hash_index_find(&type->data.tuple.types, (zend_ulong)(num_key))) == nullptr ||
+    if ((zsub_type = zend_hash_index_find(&type->data.tuple.types, num_key)) == nullptr ||
         !php_scylladb_validate_object((current), (zsub_type))) {
       result = 0;
       break;

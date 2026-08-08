@@ -49,6 +49,47 @@ it('correctly parses strings and numbers', function ($input, $value, $scale, $st
     ['-0.000000015', '-15', 9, '-1.5E-8'],
 ]);
 
+it('parses exponent notation', function ($input, $value, $scale, $string) {
+    $number = new Decimal($input);
+    expect($number->value())->toEqual($value)
+        ->and($number->scale())->toEqual($scale)
+        ->and((string) $number)->toEqual($string)
+        ->and($number->toDouble())->toEqualWithDelta((float) $input, abs((float) $input) * 1e-9);
+})->with([
+    // A positive exponent leaves a negative scale, which prints in scientific notation.
+    ['1e3', '1', -3, '1E+3'],
+    ['1E3', '1', -3, '1E+3'],
+    ['1e+3', '1', -3, '1E+3'],
+    ['-1e3', '-1', -3, '-1E+3'],
+    ['2e10', '2', -10, '2E+10'],
+    ['-2e10', '-2', -10, '-2E+10'],
+    ['1.5e2', '15', -1, '1.5E+2'],
+    // A zero exponent, and a positive exponent that the fraction cancels out.
+    ['1e0', '1', 0, '1'],
+    ['1.5e0', '15', 1, '1.5'],
+    ['123.456e3', '123456', 0, '123456'],
+    // A negative exponent leaves a positive scale.
+    ['1e-3', '1', 3, '0.001'],
+    ['-1.5e-2', '-15', 3, '-0.015'],
+    ['12345e-2', '12345', 2, '123.45'],
+    ['1.123e-9', '1123', 12, '1.123E-9'],
+]);
+
+it('rejects a malformed exponent', function ($input, $message) {
+    new Decimal($input);
+})->with([
+    ['1e', "No exponent following e or E in value: '1e'"],
+    ['1e+', "No exponent following e or E in value: '1e+'"],
+    ['1ex', "Malformed exponent in value: '1ex'"],
+    ['1e99999999999999999999999', "Malformed exponent in value: '1e99999999999999999999999'"],
+    // The exponent token must be consumed in full — no trailing garbage.
+    ['1e2foo', "Malformed exponent in value: '1e2foo'"],
+    ['1e-2x', "Malformed exponent in value: '1e-2x'"],
+    ['1e2.5', "Malformed exponent in value: '1e2.5'"],
+    // strtol() skips leading whitespace; the parser must not.
+    ['1e 2', "Malformed exponent in value: '1e 2'"],
+])->throws(InvalidArgumentException::class);
+
 it('adds two decimals', function () {
     $decimal1 = new Decimal('1');
     $decimal2 = new Decimal('0.5');

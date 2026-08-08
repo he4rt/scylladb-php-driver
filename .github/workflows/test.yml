@@ -11,6 +11,7 @@ on:
       - 'scripts/**'
       - 'src/**'
       - 'include/**'
+      - 'packages/**'
       - 'util/**'
       - 'ZendCPP/**'
       - 'tests/**'
@@ -28,6 +29,7 @@ on:
       - 'scripts/**'
       - 'src/**'
       - 'include/**'
+      - 'packages/**'
       - 'util/**'
       - 'ZendCPP/**'
       - 'tests/**'
@@ -35,6 +37,7 @@ on:
       - 'composer.json'
       - '.github/workflows/test.yml'
       - '.github/actions/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -136,6 +139,11 @@ jobs:
           else
             find src -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) > changed.txt
           fi
+          # Sources this PHP 8.5 lint build cannot parse:
+          #   SwooleBridge.cc needs the swoole build flag + (open)swoole headers.
+          #   Poll.c / PollHandle.c need main/php_poll.h, which only PHP >= 8.6 ships.
+          grep -vE 'src/Async/(SwooleBridge\.cc|Poll\.c|PollHandle\.c)$' changed.txt > changed.tmp || true
+          mv changed.tmp changed.txt
           echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "Files to lint:"
           cat changed.txt || true
@@ -359,6 +367,218 @@ jobs:
         env:
           SCYLLADB_HOSTS: "127.0.0.1"
           SCYLLADB_PHP_BACKEND: ${{ steps.driver.outputs.backend }}
+
+  poll:
+    name: "Io\\Poll: PHP 8.6 / scylladb"
+    runs-on: ubuntu-24.04
+    # PHP 8.6 is unreleased and the polling API is still moving (Context::wait()
+    # changed shape after 8.6.0alpha3), so the job cannot build reliably yet.
+    # Run it on demand only. Remove this gate when PHP 8.6 is stable.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    continue-on-error: true
+
+    services:
+      scylladb:
+        image: scylladb/scylla:2026.1
+        options: >-
+          --health-cmd "cqlsh -e 'SELECT cluster_name FROM system.local' 2>/dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 60s
+        ports:
+          - 9042:9042
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: "8.6"
+          ini-file: development
+          coverage: none
+          tools: composer, php-config, phpize
+          extensions: pcntl, mbstring, curl, intl
+
+      - name: Verify this PHP ships the polling API
+        run: |
+          php -r 'exit(class_exists("Io\\Poll\\Context") ? 0 : 1);' \
+            || { echo "::error::PHP $(php -r 'echo PHP_VERSION;') has no Io\Poll — nothing to test"; exit 1; }
+          test -f "$(php-config --include-dir)/main/php_poll.h" \
+            || { echo "::error::main/php_poll.h is missing from this PHP's headers"; exit 1; }
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: poll-${{ runner.os }}-8.6
+          restore-keys: poll-${{ runner.os }}-
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      # ON, not AUTO: a PHP without the header must fail the build loudly rather
+      # than quietly produce an extension with no Poll classes and tests that
+      # skip themselves green.
+      - uses: ./.github/actions/build-extension
+        with:
+          driver: scylladb
+          cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
+          enable_poll_api: "ON"
+
+      - name: Verify the Poll classes are present
+        run: |
+          php -d extension=cassandra -r '
+            exit(class_exists("Cassandra\\Async\\Poll")
+              && class_exists("Cassandra\\Async\\PollHandle") ? 0 : 1);' \
+            || { echo "::error::extension built without Cassandra\Async\Poll"; exit 1; }
+
+      - name: Install Composer dependencies
+        run: |
+          php -d extension=cassandra "$(command -v composer)" \
+            install --no-ansi --no-interaction --no-progress --prefer-dist --ignore-platform-req=php
+
+      - name: Run tests
+        run: |
+          php -d extension=cassandra ./vendor/bin/pest --colors=always
+        env:
+          SCYLLADB_HOSTS: "127.0.0.1"
+          SCYLLADB_PHP_BACKEND: ${{ steps.driver.outputs.backend }}
+
+  swoole:
+    name: "Swoole: PHP ${{ matrix.php }} / ${{ matrix.flavor }}"
+    runs-on: ubuntu-24.04
+
+    services:
+      scylladb:
+        image: scylladb/scylla:2026.1
+        options: >-
+          --health-cmd "cqlsh -e 'SELECT cluster_name FROM system.local' 2>/dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 60s
+        ports:
+          - 9042:9042
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Native (Open)Swoole coroutine support built with the opt-in flag and
+        # exercised against the matching runtime. openswoole lags PHP support, so
+        # it is pinned to 8.3. The C++ shim is compiled against the runtime's own
+        # source headers (checked out at the installed version for ABI match).
+        include:
+          - php: "8.3"
+            flavor: swoole
+            repo: swoole/swoole-src
+          - php: "8.4"
+            flavor: swoole
+            repo: swoole/swoole-src
+          - php: "8.3"
+            flavor: openswoole
+            repo: openswoole/swoole-src
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev libssl-dev
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: ${{ matrix.php }}
+          ini-file: development
+          coverage: none
+          tools: composer, php-config, phpize
+          extensions: pcntl, mbstring, curl, intl, ${{ matrix.flavor }}
+        env:
+          phpts: nts
+          debug: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: swoole-${{ runner.os }}-${{ matrix.php }}-${{ matrix.flavor }}
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - name: Fetch ${{ matrix.flavor }} source headers (ABI-matched)
+        run: |
+          set -e
+          VER="$(php -r "echo phpversion('${{ matrix.flavor }}');")"
+          echo "Installed ${{ matrix.flavor }} version: ${VER}"
+          git clone --depth 1 --branch "v${VER}" "https://github.com/${{ matrix.repo }}.git" /tmp/swoole-src \
+            || git clone --depth 1 --branch "${VER}" "https://github.com/${{ matrix.repo }}.git" /tmp/swoole-src
+
+      - name: Build extension (native ${{ matrix.flavor }})
+        run: |
+          set -e
+          export PKG_CONFIG_PATH="${{ steps.driver.outputs.pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
+          if [ "${{ matrix.flavor }}" = "openswoole" ]; then
+            SWOOLE_FLAG="-DPHP_SCYLLADB_ENABLE_OPENSWOOLE=ON"
+          else
+            SWOOLE_FLAG="-DPHP_SCYLLADB_ENABLE_SWOOLE=ON"
+          fi
+          cmake -G Ninja -B cmake-build \
+            -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DPHP_SCYLLADB_STATIC=ON \
+            -DPHP_SCYLLADB_BACKEND=scylla-cpp \
+            ${SWOOLE_FLAG} \
+            -DPHP_SCYLLADB_SWOOLE_SRC=/tmp/swoole-src \
+            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags-only-I openssl 2>/dev/null || true)"
+          cmake --build cmake-build --parallel "$(nproc)"
+          sudo cmake --install cmake-build --component extension
+
+      - name: Install Composer dependencies
+        run: |
+          php -d extension=cassandra "$(command -v composer)" \
+            install --no-ansi --no-interaction --no-progress --prefer-dist
+
+      - name: Run Swoole tests
+        # setup-php already loads the coroutine runtime via php.ini (so it is
+        # available to the native shim); only cassandra needs adding here.
+        run: |
+          php -d extension=cassandra \
+            ./vendor/bin/pest --group=swoole --colors=always
+        env:
+          SCYLLADB_HOSTS: "127.0.0.1"
 
   pie-build:
     name: PIE / PHP ${{ matrix.php }}-nts / ${{ matrix.driver }}

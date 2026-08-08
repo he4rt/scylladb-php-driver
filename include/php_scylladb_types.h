@@ -26,6 +26,21 @@
 
 BEGIN_EXTERN_C()
 
+/* Event-loop completion notifier (see FutureNotifier.h). Forward-declared here
+   so the Future structs can hold a pointer without a hard include.
+
+   MUST stay a heap pointer (never embed by value), regardless of how small the
+   struct is: it is reference-counted and persistent-malloc'd so it can OUTLIVE
+   the Future object. The cpp-driver completion callback runs on an IO thread and
+   may fire after this (emalloc'd, main-thread-freed) Future is destroyed;
+   cass_future_free() does not cancel it. Embedding the notifier would let that
+   late callback write into freed memory — a cross-thread use-after-free. */
+typedef struct php_scylladb_notifier_ php_scylladb_notifier;
+
+/* Shared reactor registration (see src/Async/Reactor.c). Forward-declared so
+   FutureRows can hold a pointer without a hard include. */
+typedef struct php_scylladb_reg_ php_scylladb_reg;
+
 #define PHP_SCYLLADB_GET_NUMERIC(obj) php_scylladb_numeric_object_fetch(Z_OBJ_P(obj))
 #define PHP_SCYLLADB_GET_BLOB(obj) php_scylladb_blob_object_fetch(Z_OBJ_P(obj))
 #define PHP_SCYLLADB_GET_UUID(obj) php_scylladb_uuid_object_fetch(Z_OBJ_P(obj))
@@ -313,6 +328,10 @@ typedef struct php_scylladb_rows_
     const CassResult *result;       /* owned; freed in free_obj */
     const CassResult *next_result;  /* owned; freed in free_obj */
     zval future_next_page;
+    /* Iterator cursor. Private to this object: `rows` is a refcounted copy of
+       the array the producing FutureRows caches, so the array's own internal
+       pointer is shared between every Rows built from one future. */
+    HashPosition pos;
     zend_object zendObject;
 } php_scylladb_rows;
 static zend_always_inline php_scylladb_rows *php_scylladb_rows_object_fetch(zend_object *obj)
@@ -327,6 +346,9 @@ typedef struct php_scylladb_future_rows_
     zval rows;
     const CassResult *result;       /* owned; freed in free_obj */
     CassFuture *future;
+    php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
+    zval notify_stream;              /* async: cached readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_rows;
 static zend_always_inline php_scylladb_future_rows *php_scylladb_future_rows_object_fetch(zend_object *obj)
@@ -396,6 +418,9 @@ typedef struct php_scylladb_future_prepared_statement_
 {
     CassFuture *future;
     zval prepared_statement;
+    php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
+    zval notify_stream;              /* async: cached readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_prepared_statement;
 static zend_always_inline php_scylladb_future_prepared_statement *php_scylladb_future_prepared_statement_object_fetch(
@@ -408,6 +433,9 @@ static zend_always_inline php_scylladb_future_prepared_statement *php_scylladb_f
 typedef struct php_scylladb_future_value_
 {
     zval value;
+    php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
+    zval notify_stream;              /* async: cached eagerly-readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_value;
 static zend_always_inline php_scylladb_future_value *php_scylladb_future_value_object_fetch(zend_object *obj)
@@ -418,6 +446,9 @@ static zend_always_inline php_scylladb_future_value *php_scylladb_future_value_o
 typedef struct php_scylladb_future_close_
 {
     CassFuture *future;
+    php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
+    zval notify_stream;              /* async: cached readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_close;
 static zend_always_inline php_scylladb_future_close *php_scylladb_future_close_object_fetch(zend_object *obj)
@@ -435,6 +466,9 @@ typedef struct php_scylladb_future_session_
     char *exception_message;
     CassError exception_code;
     char *session_keyspace;
+    php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
+    zval notify_stream;              /* async: cached readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_session;
 static zend_always_inline php_scylladb_future_session *php_scylladb_future_session_object_fetch(zend_object *obj)
@@ -665,11 +699,29 @@ extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_collection_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_tuple_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_user_type_value_ce;
 
+/*
+ * Cassandra\Async\Poll — an Io\Poll\Context plus the futures watched on it (see
+ * src/Async/Poll.c). Declared unconditionally (it names no Io\Poll type), but
+ * only defined in a build with HAVE_PHP_POLL_API.
+ */
+typedef struct php_scylladb_async_poll_
+{
+    zval        context; /* the Io\Poll\Context this loop owns */
+    HashTable  *watched; /* watcher object handle → php_scylladb_poll_watch */
+    zend_object zendObject;
+} php_scylladb_async_poll;
+static zend_always_inline php_scylladb_async_poll *php_scylladb_async_poll_object_fetch(zend_object *obj)
+{
+    return (php_scylladb_async_poll *)((char *)obj - offsetof(php_scylladb_async_poll, zendObject));
+}
+#define PHP_SCYLLADB_GET_ASYNC_POLL(zv) php_scylladb_async_poll_object_fetch(Z_OBJ_P(zv))
+
 /* Exceptions */
 
 /* Types */
 
 /* Classes */
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_async_poll_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_core_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_default_cluster_ce;
