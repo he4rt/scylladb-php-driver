@@ -33,7 +33,6 @@ use PhpBench\Attributes as Bench;
 #[Bench\Revs(3)]
 #[Bench\Iterations(3)]
 #[Bench\Warmup(1)]
-#[Bench\ParamProviders('provideConcurrency')]
 #[Bench\OutputTimeUnit('milliseconds', precision: 3)]
 final class ReactorBench extends LiveBenchCase
 {
@@ -63,6 +62,7 @@ final class ReactorBench extends LiveBenchCase
         $this->select = $this->session->prepare('SELECT id, payload FROM ' . self::TABLE . ' WHERE id = ?');
     }
 
+    #[Bench\ParamProviders('provideConcurrency')]
     public function benchPerFutureFds(array $params): void
     {
         /** @var array<int, FutureRows> $pending */
@@ -91,6 +91,7 @@ final class ReactorBench extends LiveBenchCase
         }
     }
 
+    #[Bench\ParamProviders('provideConcurrency')]
     public function benchSharedReactor(array $params): void
     {
         $this->drainViaReactor($params['requests']);
