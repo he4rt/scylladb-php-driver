@@ -204,15 +204,22 @@ PHP_METHOD(Cassandra_Map, __construct)
     return;
   }
 
+  /* From here on we own a reference to key_type — either the one
+   * php_scylladb_type_scalar() handed back or the one we added above. It is
+   * only consumed by php_scylladb_type_map() at the very end, so every early
+   * exit must release it. */
   if (Z_TYPE_P(value_type) == IS_STRING) {
     CassValueType type;
-    if (!php_scylladb_value_type(Z_STRVAL_P(value_type), &type ))
+    if (!php_scylladb_value_type(Z_STRVAL_P(value_type), &type )) {
+      zval_ptr_dtor(key_type);
       return;
+    }
     scalar_value_type = php_scylladb_type_scalar(type );
     value_type = &scalar_value_type;
   } else if (Z_TYPE_P(value_type) == IS_OBJECT &&
              instanceof_function(Z_OBJCE_P(value_type), php_scylladb_type_ce )) {
     if (!php_scylladb_type_validate(value_type, "valueType" )) {
+      zval_ptr_dtor(key_type);
       return;
     }
     Z_ADDREF_P(value_type);

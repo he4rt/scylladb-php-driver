@@ -245,9 +245,11 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
   int dot = -1;
   /*
    * out will be storing the string representation of the integer part
-   * of the decimal value
+   * of the decimal value. It is allocated only once the input is known to
+   * be a real decimal — the hex/binary/octal paths below hand off to
+   * php_scylladb_parse_varint() and never touch it.
    */
-  char* out = (char*) ecalloc((in_len + 1), sizeof(char));
+  char* out = nullptr;
   /*  holds length of the formatted integer number */
   int out_len = 0;
 
@@ -336,6 +338,8 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
     return php_scylladb_parse_varint(in, in_len, number );
   }
 
+  out = (char*) ecalloc((in_len + 1), sizeof(char));
+
   /* Prepend a negative sign if necessary. */
   if (negative)
     out[0] = '-';
@@ -362,6 +366,7 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
 
   if (out_len == 0) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "No digits seen in value: '%s'", in);
+    efree(out);
     return 0;
   }
 
