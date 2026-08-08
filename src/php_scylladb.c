@@ -121,6 +121,10 @@ ZEND_DLEXPORT zend_module_entry *get_module(void) { return &php_scylladb_module_
 PHP_INI_BEGIN()
   PHP_INI_ENTRY(PHP_SCYLLADB_NAME ".log", PHP_SCYLLADB_DEFAULT_LOG, PHP_INI_SYSTEM, OnUpdateLog)
   PHP_INI_ENTRY(PHP_SCYLLADB_NAME ".log_level", PHP_SCYLLADB_DEFAULT_LOG_LEVEL, PHP_INI_SYSTEM, OnUpdateLogLevel)
+  /* PHP_INI_SYSTEM, so no ini_set() in a request can flip it: turning it on is
+   * an operator decision, not something a library or a debug handler can do. */
+  STD_PHP_INI_BOOLEAN(PHP_SCYLLADB_NAME ".expose_credentials", "0", PHP_INI_SYSTEM, OnUpdateBool,
+                      expose_credentials, zend_php_scylladb_globals, php_scylladb_globals)
 PHP_INI_END()
 // clang-format on
 
@@ -427,6 +431,7 @@ static PHP_GINIT_FUNCTION(php_scylladb) {
   php_scylladb_globals->persistent_clusters = 0;
   php_scylladb_globals->persistent_sessions = 0;
   php_scylladb_globals->persistent_prepared_statements = 0;
+  php_scylladb_globals->expose_credentials = false;
   ZVAL_UNDEF(&php_scylladb_globals->type_varchar);
   ZVAL_UNDEF(&php_scylladb_globals->type_text);
   ZVAL_UNDEF(&php_scylladb_globals->type_blob);

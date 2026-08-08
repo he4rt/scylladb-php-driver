@@ -44,7 +44,7 @@ permissions:
 jobs:
   lint-zpp:
     name: "Lint: no legacy zend_parse_parameters"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Reject zend_parse_parameters() (use ZEND_PARSE_PARAMETERS_START/END)
@@ -61,7 +61,7 @@ jobs:
 
   lint-clang-tidy:
     name: "Lint: clang-tidy (DebugPHP8.5NTS)"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -155,7 +155,7 @@ jobs:
 
   test:
     name: PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # scylla-rust is experimental — don't fail the whole CI when it breaks
     continue-on-error: ${{ matrix.driver == 'scylla-rust' }}
 
@@ -259,7 +259,7 @@ jobs:
 
   test-asan:
     name: "ASan: PHP ${{ matrix.php }}-nts / scylladb (memory-safety guard)"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     services:
       scylladb:
@@ -486,7 +486,7 @@ jobs:
 
   pie-build:
     name: PIE / PHP ${{ matrix.php }}-nts / ${{ matrix.driver }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     strategy:
       fail-fast: false

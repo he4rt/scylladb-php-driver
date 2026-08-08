@@ -11,6 +11,8 @@
 [![PHP](https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-8892BF)](https://www.php.net)
 [![ScyllaDB](https://img.shields.io/badge/ScyllaDB-Developers-4C388C)](https://discord.gg/B6rutCXvgp)
 
+**[Read the documentation →](https://he4rt.github.io/scylladb-php-driver/)**
+
 </div>
 
 A high-performance PHP extension for [ScyllaDB](https://www.scylladb.com) and [Apache Cassandra](https://cassandra.apache.org) 3.0+, built on top of the [ScyllaDB C/C++ Driver](https://github.com/scylladb/cpp-driver). Communicates exclusively over the native CQL binary protocol.

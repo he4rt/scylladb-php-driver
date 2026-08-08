@@ -439,9 +439,24 @@ function emit_class_descriptor(array $cls): array
     // Without this, offset stays 0 and Zend efrees/derefs the wrong
     // address → zend_mm_heap corrupted at runtime.
     $handlerWiring = "  memcpy(&$handlersVar$stdAccess, zend_get_std_object_handlers(), sizeof(zend_object_handlers));\n";
-    if (!empty($cls['struct'])) {
+    if (!empty($cls['struct']) && $cls['struct'] !== 'none') {
         $struct = $cls['struct'];
         $handlerWiring .= "  $handlersVar$stdAccess.offset = offsetof($struct, zendObject);\n";
+    } elseif (empty($cls['struct'])) {
+        // No annotation at all. If the module nonetheless supplies a custom
+        // create_object, offset stays 0 and Zend efrees the zend_object
+        // instead of the enclosing struct — a leak at best, a corrupted heap
+        // at worst. The weak symbol is only resolved at link time, so this
+        // has to be a load-time check rather than a static assertion.
+        // `@scylladb-struct none` opts out for classes that really do
+        // allocate a bare zend_object.
+        $handlerWiring .= "  if (&php_scylladb_{$snake}_new) {\n"
+            . "    zend_error_noreturn(E_CORE_ERROR,\n"
+            . "        \"$fqnLit defines php_scylladb_{$snake}_new() but its stub has no \"\n"
+            . "        \"@scylladb-struct annotation, so handlers.offset stays 0. Add \"\n"
+            . "        \"@scylladb-struct <type> to the stub, or @scylladb-struct none \"\n"
+            . "        \"if the class allocates a bare zend_object.\");\n"
+            . "  }\n";
     }
     $handlerWiring .= "  if (&php_scylladb_{$snake}_free)       $handlersVar$stdAccess.free_obj       = php_scylladb_{$snake}_free;\n";
     $handlerWiring .= "  if (&php_scylladb_{$snake}_properties) $handlersVar$stdAccess.get_properties = php_scylladb_{$snake}_properties;\n";
