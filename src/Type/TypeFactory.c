@@ -202,14 +202,12 @@ static inline int php5to7_string_compare(zend_string* s1, zend_string* s2) {
 }
 
 zval php_scylladb_type_from_data_type(const CassDataType* data_type) {
-  zval ztype;
-  zval key_type;
-  zval value_type;
+  zval ztype = {};
+  zval key_type = {};
+  zval value_type = {};
   const char* class_name;
   size_t class_name_length;
   CassValueType type = cass_data_type_type(data_type);
-
-  ZVAL_UNDEF(&ztype);
 
   switch (type) {
 #define XX_SCALAR(name, value)             \
@@ -708,8 +706,7 @@ void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
 #define TYPE_CODE(m) type_##m
 
 zval php_scylladb_type_scalar(CassValueType type) {
-  zval result;
-  ZVAL_UNDEF(&result);
+  zval result = {};
 
 #define XX_SCALAR(name, value)                                          \
   if (value == type) {                                                  \
@@ -1248,8 +1245,9 @@ static zval php_scylladb_create_type(struct node_s* node) {
   }
 
   if (type == CASS_VALUE_TYPE_UNKNOWN) {
-    zval undef;
-    ZVAL_UNDEF(&undef);
+    /* Zero-initialised so the whole zval is defined, not only the type tag:
+     * callers copy it by value and inspect it with Z_ISUNDEF. */
+    zval undef = {};
     return undef;
   }
 
@@ -1262,10 +1260,8 @@ static zval php_scylladb_create_type(struct node_s* node) {
     smart_str_free(&class_name);
     return ztype;
   } else if (type == CASS_VALUE_TYPE_MAP) {
-    zval key_type;
-    zval value_type;
-    ZVAL_UNDEF(&key_type);
-    ZVAL_UNDEF(&value_type);
+    zval key_type = {};
+    zval value_type = {};
 
     if (node->first_child) {
       key_type = php_scylladb_create_type(node->first_child);
@@ -1273,15 +1269,13 @@ static zval php_scylladb_create_type(struct node_s* node) {
     }
     return php_scylladb_type_map(&key_type, &value_type);
   } else if (type == CASS_VALUE_TYPE_LIST) {
-    zval value_type;
-    ZVAL_UNDEF(&value_type);
+    zval value_type = {};
     if (node->first_child) {
       value_type = php_scylladb_create_type(node->first_child);
     }
     return php_scylladb_type_collection(&value_type);
   } else if (type == CASS_VALUE_TYPE_SET) {
-    zval value_type;
-    ZVAL_UNDEF(&value_type);
+    zval value_type = {};
     if (node->first_child) {
       value_type = php_scylladb_create_type(node->first_child);
     }

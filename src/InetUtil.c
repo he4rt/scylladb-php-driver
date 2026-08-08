@@ -22,10 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define IPV4 1
-#define IPV6 2
-#define TOKEN_MAX_LEN 4
-#define IP_MAX_ADDRLEN 50
+enum { IPV4 = 1, IPV6 = 2, TOKEN_MAX_LEN = 4, IP_MAX_ADDRLEN = 50 };
+
 #define EXPECTING_TOKEN(expected)                                                               \
   zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,                          \
                           "Unexpected %s at position %d in address \"%s\", expected " expected, \
@@ -227,10 +225,10 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
         break;
       }
 
-      /* Add the IPv6 field bytes. */
-      sscanf(token, "%x", &field);
+      /* Add the IPv6 field bytes. The tokenizer only produces 1 to 4 hex
+       * digits here, so the value always fits and strtoul cannot fail. */
+      field = (unsigned int)strtoul(token, nullptr, 16);
       address[++pos] = (field & 0xff00) >> 8;
-      ;
       address[++pos] = (field & 0x00ff);
       continue;
     }
@@ -286,7 +284,8 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
           return 0;
         }
 
-        ipv4_byte = atoi(token);
+        /* TOKEN_DEC is 1 to 4 decimal digits, so the value always fits. */
+        ipv4_byte = (int)strtol(token, nullptr, 10);
 
         if (ipv4_byte < 0 || ipv4_byte > 255) {
           zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
