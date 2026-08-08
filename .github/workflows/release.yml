@@ -147,7 +147,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 1
-          ref: v1.3.x
+          ref: v1.x
 
       - name: Generate changelog
         uses: heinrichreimer/action-github-changelog-generator@e60b5a2bd9fcd88dadf6345ff8327863fb8b490f # v2.4
@@ -161,6 +161,6 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
         with:
           commit_message: "chore: update CHANGELOG.md for ${{ needs.tag.outputs.version }}"
-          branch: v1.3.x
+          branch: v1.x
           commit_options: "--no-verify --signoff"
           file_pattern: CHANGELOG.md
