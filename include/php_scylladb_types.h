@@ -328,6 +328,10 @@ typedef struct php_scylladb_rows_
     const CassResult *result;       /* owned; freed in free_obj */
     const CassResult *next_result;  /* owned; freed in free_obj */
     zval future_next_page;
+    /* Iterator cursor. Private to this object: `rows` is a refcounted copy of
+       the array the producing FutureRows caches, so the array's own internal
+       pointer is shared between every Rows built from one future. */
+    HashPosition pos;
     zend_object zendObject;
 } php_scylladb_rows;
 static zend_always_inline php_scylladb_rows *php_scylladb_rows_object_fetch(zend_object *obj)
