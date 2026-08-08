@@ -10,7 +10,7 @@ on:
 
 jobs:
   tag:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       version:    ${{ steps.tag.outputs.tag }}
       prerelease: ${{ steps.prerelease.outputs.is_prerelease || 'false' }}
@@ -36,7 +36,7 @@ jobs:
 
   build:
     name: ${{ matrix.os }} / PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [tag]
     strategy:
       fail-fast: true
@@ -49,6 +49,7 @@ jobs:
           - "ubuntu-22.04"
           - "ubuntu-24.04"
           - "ubuntu-26.04"
+          - "ubuntu-26.04-arm"
         phpts:
           - "nts"
           - "ts"
@@ -122,7 +123,7 @@ jobs:
           overwrite: true
 
   release:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [build, tag]
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4

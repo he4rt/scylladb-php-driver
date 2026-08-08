@@ -25,7 +25,7 @@ permissions:
 jobs:
   backport:
     name: Backport ${{ matrix.branch }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.event.pull_request.merged == true
     strategy:
       fail-fast: false
