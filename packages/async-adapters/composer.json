@@ -1,0 +1,35 @@
+{
+  "name": "codelieutenant/scylla-driver-async-adapters",
+  "type": "library",
+  "description": "Optional event-loop adapters for the ScyllaDB PHP driver (Revolt, Amp, ReactPHP, Swoole)",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Dusan Malusev",
+      "email": "dusan@dusanmalusev.dev"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": "^8.3|^8.4|^8.5|^8.6",
+    "ext-cassandra": "*"
+  },
+  "require-dev": {
+    "revolt/event-loop": "^1.0",
+    "amphp/amp": "^3.0",
+    "react/event-loop": "^1.5",
+    "react/promise": "^3.0"
+  },
+  "suggest": {
+    "ext-swoole": "Await Cassandra\\Future inside Swoole coroutines via Cassandra\\Async\\Swoole",
+    "revolt/event-loop": "Framework-agnostic fiber await via Cassandra\\Async\\Revolt",
+    "amphp/amp": "Await Cassandra\\Future as an Amp\\Future via Cassandra\\Async\\Amp",
+    "react/event-loop": "Await Cassandra\\Future as a React promise via Cassandra\\Async\\ReactPhp",
+    "react/promise": "Required alongside react/event-loop for Cassandra\\Async\\ReactPhp"
+  },
+  "autoload": {
+    "psr-4": {
+      "Cassandra\\Async\\": "src/"
+    }
+  }
+}

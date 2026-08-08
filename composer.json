@@ -11,7 +11,7 @@
   "license": "Apache-2.0",
   "description": "ScyllaDB/Cassandra PHP driver",
   "require": {
-    "php": "^8.3|^8.4|^8.5",
+    "php": "^8.3|^8.4|^8.5|^8.6",
     "ext-date": "*"
   },
   "require-dev": {
@@ -22,26 +22,20 @@
     "revolt/event-loop": "^1.0",
     "amphp/amp": "^3.0",
     "react/event-loop": "^1.5",
-    "react/promise": "^3.0"
+    "react/promise": "^3.0",
+    "codelieutenant/scylla-driver-async-adapters": "@dev"
   },
   "suggest": {
-    "ext-swoole": "Await Cassandra\\Future inside Swoole coroutines via Cassandra\\Async\\Swoole",
-    "revolt/event-loop": "Framework-agnostic fiber await via Cassandra\\Async\\Revolt (recommended default)",
-    "amphp/amp": "Await Cassandra\\Future as an Amp\\Future via Cassandra\\Async\\Amp",
-    "react/event-loop": "Await Cassandra\\Future as a React promise via Cassandra\\Async\\ReactPhp",
-    "react/promise": "Required alongside react/event-loop for Cassandra\\Async\\ReactPhp"
+    "codelieutenant/scylla-driver-async-adapters": "Adapters for Revolt, Amp, ReactPHP and Swoole event loops. Not needed when the extension is built with --enable-poll-api on PHP 8.6+, which gives you the native Cassandra\\Async\\Poll loop.",
+    "ext-swoole": "Await Cassandra\\Future inside Swoole coroutines (native when built with --enable-swoole)"
   },
   "config": {
     "platform": {
-      "php": "8.3.0"
+      "php": "8.3.0",
+      "ext-cassandra": "1.4.0"
     },
     "allow-plugins": {
       "pestphp/pest-plugin": true
-    }
-  },
-  "autoload": {
-    "psr-4": {
-      "Cassandra\\Async\\": "lib/Async/"
     }
   },
   "autoload-dev": {
@@ -109,7 +103,17 @@
         "name": "with-swoole-src",
         "description": "path to the (open)swoole-src tree providing swoole_coroutine*.h",
         "needs-value": true
+      },
+      {
+        "name": "enable-poll-api",
+        "description": "build the PHP 8.6 Io\\Poll integration (off by default while 8.6 is in development)"
       }
     ]
-  }
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "packages/async-adapters"
+    }
+  ]
 }
