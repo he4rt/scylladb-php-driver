@@ -691,11 +691,29 @@ extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_collection_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_tuple_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_user_type_value_ce;
 
+/*
+ * Cassandra\Async\Poll — an Io\Poll\Context plus the futures watched on it (see
+ * src/Async/Poll.c). Declared unconditionally (it names no Io\Poll type), but
+ * only defined in a build with HAVE_PHP_POLL_API.
+ */
+typedef struct php_scylladb_async_poll_
+{
+    zval        context; /* the Io\Poll\Context this loop owns */
+    HashTable  *watched; /* watcher object handle → php_scylladb_poll_watch */
+    zend_object zendObject;
+} php_scylladb_async_poll;
+static zend_always_inline php_scylladb_async_poll *php_scylladb_async_poll_object_fetch(zend_object *obj)
+{
+    return (php_scylladb_async_poll *)((char *)obj - offsetof(php_scylladb_async_poll, zendObject));
+}
+#define PHP_SCYLLADB_GET_ASYNC_POLL(zv) php_scylladb_async_poll_object_fetch(Z_OBJ_P(zv))
+
 /* Exceptions */
 
 /* Types */
 
 /* Classes */
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_async_poll_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_core_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_default_cluster_ce;

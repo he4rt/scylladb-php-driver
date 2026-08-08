@@ -69,6 +69,19 @@ if (PHP_SCYLLADB_ENABLE_SWOOLE OR PHP_SCYLLADB_ENABLE_OPENSWOOLE)
     message(STATUS "Native Swoole coroutine support: ON (src ${PHP_SCYLLADB_SWOOLE_SRC})")
 endif ()
 
+# ── Io\Poll handle (PHP >= 8.6) ───────────────────────────────────────────────
+# Detected in the root CMakeLists.txt. The class, its stub and the whole
+# translation unit are absent from a build against an older PHP.
+if (PHP_SCYLLADB_HAVE_POLL_API)
+    target_sources(src PRIVATE Async/PollHandle.c Async/Poll.c)
+    target_compile_definitions(src PRIVATE HAVE_PHP_POLL_API)
+    php_scylladb_generate_arginfo(src Async/PollHandle.stub.php Async/Poll.stub.php)
+    # PollHandle registers itself by hand (its layout is php-src's
+    # php_poll_handle_object, so the generator's zendObject offset does not fit).
+    php_scylladb_generate_descriptor(src Async/Poll.stub.php)
+    message(STATUS "Io\\Poll integration: ON (Cassandra\\Async\\Poll, PollHandle)")
+endif ()
+
 php_scylladb_generate_arginfo(src
         Async/Reactor.stub.php
         BatchStatement.stub.php

@@ -43,3 +43,14 @@ void php_scylladb_reactor_reset(php_scylladb_reactor* reactor);
 /* GSHUTDOWN (process/thread end): reset, then free the eventfd + mutex and the
  * reactor itself (drops the module-globals reference). Null-safe. */
 void php_scylladb_reactor_destroy(php_scylladb_reactor* reactor);
+
+#ifdef HAVE_PHP_POLL_API
+typedef struct php_scylladb_notifier_ php_scylladb_notifier;
+
+/* Io\Poll bridge (see Async/PollHandle.c). Creates the reactor if needed, then
+ * hands back its shared notifier plus the request-scoped slot that caches the
+ * Cassandra\Async\PollHandle object — the poll-API twin of the cached stream
+ * that resource() returns. Returns false with an exception thrown when the
+ * reactor cannot be created. */
+bool php_scylladb_reactor_poll_slots(php_scylladb_notifier** notifier_out, zval** handle_slot_out);
+#endif
