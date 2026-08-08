@@ -37,6 +37,7 @@ on:
       - 'composer.json'
       - '.github/workflows/test.yml'
       - '.github/actions/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -138,9 +139,10 @@ jobs:
           else
             find src -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) > changed.txt
           fi
-          # SwooleBridge.cc only compiles with the swoole build flag + the
-          # (open)swoole source headers, which this lint build doesn't have.
-          grep -vE 'src/Async/SwooleBridge\.cc$' changed.txt > changed.tmp || true
+          # Sources this PHP 8.5 lint build cannot parse:
+          #   SwooleBridge.cc needs the swoole build flag + (open)swoole headers.
+          #   Poll.c / PollHandle.c need main/php_poll.h, which only PHP >= 8.6 ships.
+          grep -vE 'src/Async/(SwooleBridge\.cc|Poll\.c|PollHandle\.c)$' changed.txt > changed.tmp || true
           mv changed.tmp changed.txt
           echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "Files to lint:"
@@ -370,7 +372,9 @@ jobs:
     name: "Io\\Poll: PHP 8.6 / scylladb"
     runs-on: ubuntu-24.04
     # PHP 8.6 is unreleased and the polling API is still moving (Context::wait()
-    # changed shape after 8.6.0alpha3), so this job reports without gating.
+    # changed shape after 8.6.0alpha3), so the job cannot build reliably yet.
+    # Run it on demand only. Remove this gate when PHP 8.6 is stable.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     continue-on-error: true
 
     services:

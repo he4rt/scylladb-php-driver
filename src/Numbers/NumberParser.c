@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <gmp.h>
 #include <stdlib.h>
@@ -401,9 +402,17 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
       return 0;
     }
 
+    /* strtol() skips leading whitespace and stops at the first character it
+       cannot use. Reject anything it would silently accept or leave behind, so
+       "1e 2" and "1e2foo" fail instead of parsing as 1e2. */
+    if (in[point] != '-' && !isdigit((unsigned char) in[point])) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%s'", in);
+      return 0;
+    }
+
     errno = 0;
     diff = strtol(&in[point], &exponent_end, 10);
-    if (exponent_end == &in[point] || errno == ERANGE) {
+    if (exponent_end != &in[in_len] || errno == ERANGE) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%s'", in);
       return 0;
     }

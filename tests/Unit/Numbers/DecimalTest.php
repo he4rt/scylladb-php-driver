@@ -82,6 +82,12 @@ it('rejects a malformed exponent', function ($input, $message) {
     ['1e+', "No exponent following e or E in value: '1e+'"],
     ['1ex', "Malformed exponent in value: '1ex'"],
     ['1e99999999999999999999999', "Malformed exponent in value: '1e99999999999999999999999'"],
+    // The exponent token must be consumed in full — no trailing garbage.
+    ['1e2foo', "Malformed exponent in value: '1e2foo'"],
+    ['1e-2x', "Malformed exponent in value: '1e-2x'"],
+    ['1e2.5', "Malformed exponent in value: '1e2.5'"],
+    // strtol() skips leading whitespace; the parser must not.
+    ['1e 2', "Malformed exponent in value: '1e 2'"],
 ])->throws(InvalidArgumentException::class);
 
 it('adds two decimals', function () {
