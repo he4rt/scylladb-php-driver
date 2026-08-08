@@ -81,6 +81,22 @@ covers almost every such case.
 ->withReconnectInterval(2.0)              // seconds, default 2
 ```
 
+::: danger Known defect in 1.4.x: the heartbeat interval is 1000 times too long
+`withConnectionHeartbeatInterval()` converts the value to milliseconds, but the underlying C driver
+expects seconds. `withConnectionHeartbeatInterval(30.0)` therefore asks for 30000 seconds, which is
+about 8 hours, and heartbeats effectively stop.
+
+The default of 30 seconds is correct, because it never passes through the conversion. **Call the
+method only if you need a value other than the default**, and divide by 1000 until the fix ships:
+
+```php
+->withConnectionHeartbeatInterval(0.02)   // asks for 20 seconds today
+```
+
+`withTCPKeepalive()` has the same defect. See
+[TCP options](#tcp-options).
+:::
+
 The heartbeat sends a lightweight request on an idle connection. It has two jobs: it detects a
 connection that a firewall or a load balancer silently dropped, and it stops idle timeouts from
 closing the connection.
@@ -104,6 +120,17 @@ and Nagle adds delay for no gain.
 TCP keepalive is the kernel-level probe. It is off by default because the driver heartbeat covers
 the same failure at the protocol level. Turn it on when a network device drops idle flows below the
 protocol layer.
+
+::: danger Known defect in 1.4.x: the keepalive delay is 1000 times too long
+`withTCPKeepalive()` converts the value to milliseconds, but the underlying C driver expects
+seconds. `withTCPKeepalive(60.0)` asks for 60000 seconds. Divide by 1000 until the fix ships:
+
+```php
+->withTCPKeepalive(0.06)   // asks for 60 seconds today
+```
+
+Passing `null` still disables keepalive correctly, because that path skips the conversion.
+:::
 
 ## Protocol version
 
@@ -152,7 +179,7 @@ $cluster = Cassandra::cluster()
     ->withIOThreads(1)
 
     // Survive an idle-flow-killing firewall.
-    ->withConnectionHeartbeatInterval(20.0)
+    ->withConnectionHeartbeatInterval(0.02)   // 20 seconds, see the defect note above
     ->withReconnectInterval(2.0)
     ->withTCPNodelay(true)
 

@@ -142,7 +142,12 @@ cassandra.log_level = ERROR
 
 ; Log file path. An empty value sends the log to stderr.
 cassandra.log = /var/log/php-cassandra.log
+
+; Show the real password in the Cluster\Builder properties. Development only.
+cassandra.expose_credentials = Off
 ```
+
+Every setting is `PHP_INI_SYSTEM`. See [metrics and logging](/guide/observability#logging).
 
 Check the result:
 

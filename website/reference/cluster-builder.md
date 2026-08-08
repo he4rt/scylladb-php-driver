@@ -33,9 +33,9 @@ $cluster = Cassandra::cluster()
 | `withConnectionsPerHost` | `int $core, int $max = 2` | `1`, `2` | Pool size per node. Each value must be 1 to 128 |
 | `withIOThreads` | `int $count` | `1` | Event loop threads in the C driver. 1 to 128 |
 | `withReconnectInterval` | `float $interval` | `2.0` | Seconds between attempts to reach a node that is down |
-| `withConnectionHeartbeatInterval` | `float $interval` | `30.0` | Seconds between keepalive requests on an idle connection |
+| `withConnectionHeartbeatInterval` | `float $interval` | `30.0` | Seconds between keepalive requests on an idle connection. [Defect in 1.4.x](/guide/connection-tuning#heartbeats-and-reconnection) |
 | `withTCPNodelay` | `bool $enabled = true` | `true` | Disable Nagle's algorithm |
-| `withTCPKeepalive` | `?float $delay` | disabled | Seconds. Pass `null` to disable |
+| `withTCPKeepalive` | `?float $delay` | disabled | Seconds. Pass `null` to disable. [Defect in 1.4.x](/guide/connection-tuning#tcp-options) |
 | `withProtocolVersion` | `int $version` | `4` | CQL protocol version |
 | `withPersistentSessions` | `bool $enabled = true` | `true` | Cache the session in the PHP worker process |
 | `withSchemaMetadata` | `bool $enabled = true` | `true` | Fetch and track the schema. Required for token awareness |
@@ -88,7 +88,7 @@ See [load balancing and routing](/guide/load-balancing).
 ->withConnectTimeout(5.0)
 ->withRequestTimeout(12.0)
 ->withReconnectInterval(2.0)
-->withConnectionHeartbeatInterval(30.0)
+->withConnectionHeartbeatInterval(0.03)   // 30 seconds, see the defect note in the guide
 ->withTCPNodelay(true)
 ->withTCPKeepalive(null)
 ```
@@ -143,12 +143,18 @@ The exposed names are: `contactPoints`, `loadBalancingPolicy`, `localDatacenter`
 `blacklist_hosts`, `whitelist_hosts`, `blacklist_dcs`, `whitelist_dcs`, `hostnameResolution`,
 `randomizedContactPoints`, and `connectionHeartbeatInterval`. The port is not among them.
 
-::: danger The password is readable
-`password` returns the value in clear text. `var_dump()`, `print_r()`, and any framework debug
-panel that dumps objects will print it. The `SensitiveParameter` attribute hides the password in
-stack traces, not here.
+::: warning The password is redacted, unless an operator turns that off
+`password` returns `***`. `var_dump()`, `print_r()`, and framework debug panels therefore print the
+placeholder, not the credential.
 
-Never dump a builder in a context that reaches a log, an error page, or a user.
+The `cassandra.expose_credentials` INI setting puts the real value back:
+
+```ini
+cassandra.expose_credentials = On
+```
+
+The setting is `PHP_INI_SYSTEM`, so `ini_set()` inside a request cannot turn the redaction off. Only
+an operator can, through `php.ini` or `php -d`. Use it in development only.
 :::
 
 ## Persistent session cache
