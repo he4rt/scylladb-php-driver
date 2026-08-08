@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { allSidebars, isArchived, latest, versionNav } from './versions'
 
 const repo = 'https://github.com/he4rt/scylladb-php-driver'
 
@@ -36,13 +37,21 @@ export default defineConfig({
     hostname: 'https://he4rt.github.io/scylladb-php-driver/',
   },
 
+  // An archived version keeps its own copy of every page. Without this, a
+  // search for "withPort" returns one hit per version.
+  transformPageData(pageData) {
+    if (isArchived(pageData.relativePath)) {
+      pageData.frontmatter.search = false
+    }
+  },
+
   themeConfig: {
     logo: '/logo.svg',
     siteTitle: 'ScyllaDB PHP',
 
     nav: [
-      { text: 'Guide', link: '/guide/introduction', activeMatch: '/guide/' },
-      { text: 'Reference', link: '/reference/cluster-builder', activeMatch: '/reference/' },
+      { text: 'Guide', link: '/guide/introduction', activeMatch: '^/guide/' },
+      { text: 'Reference', link: '/reference/cluster-builder', activeMatch: '^/reference/' },
       {
         text: 'Resources',
         items: [
@@ -52,72 +61,10 @@ export default defineConfig({
           { text: 'Discord', link: 'https://discord.gg/B6rutCXvgp' },
         ],
       },
+      versionNav(),
     ],
 
-    sidebar: {
-      '/guide/': [
-        {
-          text: 'Getting started',
-          collapsed: false,
-          items: [
-            { text: 'Introduction', link: '/guide/introduction' },
-            { text: 'Installation', link: '/guide/installation' },
-            { text: 'Quick start', link: '/guide/quickstart' },
-          ],
-        },
-        {
-          text: 'Connecting',
-          collapsed: false,
-          items: [
-            { text: 'Clusters and sessions', link: '/guide/connecting' },
-            { text: 'Authentication', link: '/guide/authentication' },
-            { text: 'TLS and SSL', link: '/guide/tls' },
-            { text: 'Load balancing and routing', link: '/guide/load-balancing' },
-            { text: 'Connection pool and timeouts', link: '/guide/connection-tuning' },
-            { text: 'Retry policies', link: '/guide/retry-policies' },
-          ],
-        },
-        {
-          text: 'Working with data',
-          collapsed: false,
-          items: [
-            { text: 'Queries and statements', link: '/guide/queries' },
-            { text: 'Results and paging', link: '/guide/results' },
-            { text: 'Data types', link: '/guide/data-types' },
-            { text: 'Collections and UDTs', link: '/guide/collections' },
-            { text: 'Batches', link: '/guide/batches' },
-            { text: 'Asynchronous queries', link: '/guide/async' },
-            { text: 'Schema metadata', link: '/guide/schema-metadata' },
-          ],
-        },
-        {
-          text: 'Operating',
-          collapsed: false,
-          items: [
-            { text: 'Error handling', link: '/guide/error-handling' },
-            { text: 'Performance', link: '/guide/performance' },
-            { text: 'Metrics and logging', link: '/guide/observability' },
-            { text: 'Troubleshooting', link: '/guide/troubleshooting' },
-          ],
-        },
-      ],
-      '/reference/': [
-        {
-          text: 'API reference',
-          collapsed: false,
-          items: [
-            { text: 'Cluster\\Builder', link: '/reference/cluster-builder' },
-            { text: 'Cluster and Session', link: '/reference/session' },
-            { text: 'Statements', link: '/reference/statements' },
-            { text: 'Rows and Futures', link: '/reference/rows-futures' },
-            { text: 'Value classes', link: '/reference/values' },
-            { text: 'Type factory', link: '/reference/types' },
-            { text: 'Constants', link: '/reference/constants' },
-            { text: 'Exceptions', link: '/reference/exceptions' },
-          ],
-        },
-      ],
-    },
+    sidebar: allSidebars(),
 
     socialLinks: [{ icon: 'github', link: repo }],
 
@@ -128,12 +75,20 @@ export default defineConfig({
 
     search: {
       provider: 'local',
+      options: {
+        // Belt and braces: transformPageData already sets search: false, but a
+        // future page added under an archived directory must never leak in.
+        _render(src, env, md) {
+          if (isArchived(env.relativePath)) return ''
+          return md.render(src, env)
+        },
+      },
     },
 
     outline: { level: [2, 3], label: 'On this page' },
 
     footer: {
-      message: 'Released under the Apache License 2.0.',
+      message: `Version ${latest}. Released under the Apache License 2.0.`,
       copyright: 'Copyright © DataStax, Inc. and contributors.',
     },
   },

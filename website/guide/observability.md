@@ -104,11 +104,27 @@ cassandra.log = /var/log/php-cassandra.log
 | --- | --- | --- |
 | `cassandra.log_level` | `ERROR` | `CRITICAL`, `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE` |
 | `cassandra.log` | `cassandra.log` | An absolute path, or an empty value for stderr |
+| `cassandra.expose_credentials` | `Off` | `On` shows the real password in the builder properties |
 
-::: warning Both settings are PHP_INI_SYSTEM
-They can be changed in `php.ini` only. `ini_set()` at runtime has no effect, because the log callback
-runs on driver IO threads that have no PHP context.
+::: warning Every setting is PHP_INI_SYSTEM
+They can be changed in `php.ini` or with `php -d` only. `ini_set()` at runtime has no effect. For
+the log settings, the callback runs on driver IO threads that have no PHP context. For
+`cassandra.expose_credentials`, the restriction is deliberate: a library or a debug handler must not
+be able to unredact a credential.
 :::
+
+### `cassandra.expose_credentials`
+
+`Cassandra\Cluster\Builder` exposes its configuration as object properties, which `var_dump()`,
+`print_r()`, and framework debug panels read. The password is shown as `***` by default. Turn this
+setting on to see the real value while you debug a connection problem.
+
+```ini
+cassandra.expose_credentials = On
+```
+
+Leave it off everywhere except a development machine. See the
+[`Cluster\Builder` reference](/reference/cluster-builder#reading-the-configuration-back).
 
 ::: tip Set an absolute path
 The default is the relative name `cassandra.log`, which resolves against the current working

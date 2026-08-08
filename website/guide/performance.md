@@ -148,7 +148,7 @@ Defaults suit PHP-FPM. Change them only against a measurement. See
 | --- | --- | --- |
 | `withConnectionsPerHost(core, max)` | 1, 2 | Latency rises while node CPU stays low |
 | `withIOThreads(n)` | 1 | One process drives many concurrent futures |
-| `withConnectionHeartbeatInterval(s)` | 30 | Never raise. Lower it behind an idle-flow-killing firewall |
+| `withConnectionHeartbeatInterval(s)` | 30 | Never raise. Lower it behind an idle-flow-killing firewall. [Defect in 1.4.x](/guide/connection-tuning#heartbeats-and-reconnection) |
 
 Remember the multiplier: connections per host times nodes times PHP worker processes is the total
 socket count from one machine.
