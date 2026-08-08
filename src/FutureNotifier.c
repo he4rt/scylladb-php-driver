@@ -198,6 +198,12 @@ php_scylladb_notifier_drain(php_scylladb_notifier* notifier)
 #endif
 }
 
+int
+php_scylladb_notifier_fd(const php_scylladb_notifier* notifier)
+{
+  return notifier == nullptr ? -1 : notifier->read_fd;
+}
+
 /* Wrap the notifier's read end in an unbuffered php_stream resource and publish
  * it into stream_slot / return_value (cached — returns the same resource on
  * repeat calls). The stream gets its own dup of the read fd. Returns SUCCESS or
@@ -216,7 +222,22 @@ php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
      on GC while the notifier keeps its own read end open (see unref). Both
      duplicates share the same pipe, so the stream stays readable when the
      driver writes the wakeup byte. */
+#ifdef F_DUPFD_CLOEXEC
   int stream_fd = fcntl(notifier->read_fd, F_DUPFD_CLOEXEC, 0);
+#else
+  /* F_DUPFD_CLOEXEC is POSIX.1-2008 but not universal; fall back to the
+     two-step dup + FD_CLOEXEC. */
+  int stream_fd = dup(notifier->read_fd);
+  if (stream_fd >= 0) {
+    int fdflags = fcntl(stream_fd, F_GETFD, 0);
+    if (fdflags < 0 || fcntl(stream_fd, F_SETFD, fdflags | FD_CLOEXEC) < 0) {
+      int saved = errno;
+      close(stream_fd);
+      stream_fd = -1;
+      errno     = saved;
+    }
+  }
+#endif
   if (stream_fd < 0) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to duplicate the async notification fd: %s", strerror(errno));
@@ -244,8 +265,8 @@ php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
  * the caller), register the driver completion callback, and self-notify if the
  * future already resolved. No-op if the notifier already exists. Returns
  * SUCCESS or FAILURE (exception thrown). */
-static int
-php_scylladb_notifier_ensure(CassFuture* future, php_scylladb_notifier** notifier_slot)
+int
+php_scylladb_future_ensure_notifier(CassFuture* future, php_scylladb_notifier** notifier_slot)
 {
   if (*notifier_slot != nullptr) {
     return SUCCESS;
@@ -270,22 +291,29 @@ php_scylladb_notifier_ensure(CassFuture* future, php_scylladb_notifier** notifie
   php_scylladb_notifier_addref(notifier);
   CassError rc = cass_future_set_callback(future, php_scylladb_notify_cb, notifier);
 
-  /* Register-then-recheck: if the future already resolved (or the callback
-     could not be registered), poke the pipe ourselves. Idempotent — an extra
-     wakeup is harmless because userland re-checks via get()/isReady(). Poke
-     BEFORE dropping the callback ref so the notifier is unambiguously alive. */
-  if (rc != CASS_OK || cass_future_ready(future)) {
-    php_scylladb_notifier_poke(notifier);
+  if (rc != CASS_OK) {
+    /* No callback will ever fire (error, or CASS_ERROR_LIB_CALLBACK_ALREADY_SET).
+       set_callback failing means no IO thread ever took the ref, so drop it here. */
+    php_scylladb_notifier_unref(notifier);
+
+    /* Without a callback the "readable => get() will not block" contract can only
+       hold for a future that is already resolved. Poking a still-pending future
+       would wake the loop early and make get() block, so fail loudly instead. */
+    if (!cass_future_ready(future)) {
+      php_scylladb_notifier_unref(notifier); /* creation ref → frees */
+      zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                              "Failed to register the async completion callback: %s. "
+                              "The future cannot be watched",
+                              cass_error_desc(rc));
+      return FAILURE;
+    }
   }
 
-  if (rc != CASS_OK) {
-    /* Callback will never fire (error or CASS_ERROR_LIB_CALLBACK_ALREADY_SET) and
-       set_callback failing means no IO thread ever held a ref, so drop the
-       callback ref directly. Refcount is exactly 2 here → 1: the creation ref
-       always survives, so this can never free — decrement inline (not via unref)
-       so static analysis doesn't model an impossible free of the pointer we
-       return in *notifier_slot below. */
-    atomic_fetch_sub_explicit(&notifier->refcount, 1, memory_order_acq_rel);
+  /* Register-then-recheck: a future that resolved before (or during) registration
+     may not get a callback, so poke the fd ourselves. Idempotent — an extra
+     wakeup is harmless because userland re-checks via get()/isReady(). */
+  if (cass_future_ready(future)) {
+    php_scylladb_notifier_poke(notifier);
   }
 
   *notifier_slot = notifier; /* Future object keeps the creation reference */
@@ -303,11 +331,32 @@ php_scylladb_future_get_resource(CassFuture*             future,
     return SUCCESS;
   }
 
-  if (php_scylladb_notifier_ensure(future, notifier_slot) == FAILURE) {
+  if (php_scylladb_future_ensure_notifier(future, notifier_slot) == FAILURE) {
     return FAILURE;
   }
 
   return php_scylladb_notifier_publish(*notifier_slot, stream_slot, return_value);
+}
+
+int
+php_scylladb_future_ensure_ready_notifier(php_scylladb_notifier** notifier_slot)
+{
+  if (*notifier_slot != nullptr) {
+    return SUCCESS;
+  }
+
+  php_scylladb_notifier* notifier = php_scylladb_notifier_create();
+  if (notifier == nullptr) {
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                            "Failed to create async notification pipe: %s", strerror(errno));
+    return FAILURE;
+  }
+
+  /* Already resolved: readable from the first poll. */
+  php_scylladb_notifier_poke(notifier);
+
+  *notifier_slot = notifier;
+  return SUCCESS;
 }
 
 int
@@ -320,23 +369,11 @@ php_scylladb_future_get_ready_resource(php_scylladb_notifier** notifier_slot,
     return SUCCESS;
   }
 
-  php_scylladb_notifier* notifier = php_scylladb_notifier_create();
-  if (notifier == nullptr) {
-    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "Failed to create async notification pipe: %s", strerror(errno));
+  if (php_scylladb_future_ensure_ready_notifier(notifier_slot) == FAILURE) {
     return FAILURE;
   }
 
-  if (php_scylladb_notifier_publish(notifier, stream_slot, return_value) == FAILURE) {
-    php_scylladb_notifier_unref(notifier);
-    return FAILURE;
-  }
-
-  /* Already resolved: make the stream immediately readable. */
-  php_scylladb_notifier_poke(notifier);
-
-  *notifier_slot = notifier;
-  return SUCCESS;
+  return php_scylladb_notifier_publish(*notifier_slot, stream_slot, return_value);
 }
 
 bool
@@ -397,11 +434,17 @@ php_scylladb_timeout_seconds(zval* timeout)
 int
 php_scylladb_future_wait_coro(CassFuture*             future,
                               php_scylladb_notifier** notifier_slot,
+                              const php_scylladb_reg* reactor_reg,
                               zval*                   timeout)
 {
 #ifdef HAVE_SWOOLE_COROUTINE
-  if (future != nullptr && !cass_future_ready(future) && php_scylladb_swoole_active()) {
-    if (php_scylladb_notifier_ensure(future, notifier_slot) == FAILURE) {
+  /* A reactor-registered future already carries the driver's completion
+     callback, so the coroutine path cannot install a notifier on it. Wait the
+     plain way — poll() only hands back futures that already resolved, so this
+     does not block in practice. */
+  if (reactor_reg == nullptr && future != nullptr && !cass_future_ready(future) &&
+      php_scylladb_swoole_active()) {
+    if (php_scylladb_future_ensure_notifier(future, notifier_slot) == FAILURE) {
       return FAILURE;
     }
 
@@ -419,5 +462,98 @@ php_scylladb_future_wait_coro(CassFuture*             future,
   }
 #endif
 
+  (void)reactor_reg;
+  (void)notifier_slot;
   return php_scylladb_future_wait_timed(future, timeout);
+}
+
+/* ─── uniform Future slot access ──────────────────────────────────────────────
+ * One place that knows where each concrete Future keeps its notifier and its
+ * reactor registration. See FutureNotifier.h. */
+
+bool
+php_scylladb_future_slots_try(zval* future_zv, php_scylladb_future_slots* out)
+{
+  zend_class_entry* ce = Z_OBJCE_P(future_zv);
+
+  if (ce == php_scylladb_future_rows_ce) {
+    php_scylladb_future_rows* self = PHP_SCYLLADB_GET_FUTURE_ROWS(future_zv);
+    *out = (php_scylladb_future_slots){ self->future, &self->notifier, &self->reactor_reg };
+    return true;
+  }
+
+  if (ce == php_scylladb_future_session_ce) {
+    php_scylladb_future_session* self = PHP_SCYLLADB_GET_FUTURE_SESSION(future_zv);
+    *out = (php_scylladb_future_slots){ self->future, &self->notifier, &self->reactor_reg };
+    return true;
+  }
+
+  if (ce == php_scylladb_future_prepared_statement_ce) {
+    php_scylladb_future_prepared_statement* self =
+        PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(future_zv);
+    *out = (php_scylladb_future_slots){ self->future, &self->notifier, &self->reactor_reg };
+    return true;
+  }
+
+  if (ce == php_scylladb_future_close_ce) {
+    php_scylladb_future_close* self = PHP_SCYLLADB_GET_FUTURE_CLOSE(future_zv);
+    *out = (php_scylladb_future_slots){ self->future, &self->notifier, &self->reactor_reg };
+    return true;
+  }
+
+  if (ce == php_scylladb_future_value_ce) {
+    /* Resolved on construction — no CassFuture to wait on. */
+    php_scylladb_future_value* self = PHP_SCYLLADB_GET_FUTURE_VALUE(future_zv);
+    *out = (php_scylladb_future_slots){ nullptr, &self->notifier, &self->reactor_reg };
+    return true;
+  }
+
+  return false;
+}
+
+bool
+php_scylladb_future_slots_get(zval* future_zv, php_scylladb_future_slots* out)
+{
+  if (php_scylladb_future_slots_try(future_zv, out)) {
+    return true;
+  }
+
+  zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                          "%s does not expose an async notification descriptor",
+                          ZSTR_VAL(Z_OBJCE_P(future_zv)->name));
+  return false;
+}
+
+bool
+php_scylladb_future_claim_notifier(zend_object* obj, const php_scylladb_reg* reactor_reg)
+{
+  if (reactor_reg != nullptr) {
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                            "%s is registered with Cassandra\\Async\\Reactor; "
+                            "use one async model per future",
+                            ZSTR_VAL(obj->ce->name));
+    return false;
+  }
+  return true;
+}
+
+bool
+php_scylladb_future_claim_reactor(zend_object*                 obj,
+                                  const php_scylladb_reg*      reactor_reg,
+                                  const php_scylladb_notifier* notifier)
+{
+  if (reactor_reg != nullptr) {
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                            "%s is already registered with the reactor",
+                            ZSTR_VAL(obj->ce->name));
+    return false;
+  }
+  if (notifier != nullptr) {
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                            "%s already exposes a per-future descriptor (getResource / "
+                            "PollHandle::forFuture); use one async model per future",
+                            ZSTR_VAL(obj->ce->name));
+    return false;
+  }
+  return true;
 }

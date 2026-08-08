@@ -63,6 +63,22 @@ void php_scylladb_notifier_signal(php_scylladb_notifier* notifier);
  * the PHP thread after consuming completions so the watched stream settles. */
 void php_scylladb_notifier_drain(php_scylladb_notifier* notifier);
 
+/* The notifier's own read end (NOT a duplicate — do not close it). Valid while
+ * the caller holds a reference. Returns -1 for a null notifier. Used by the
+ * Io\Poll handle, which registers the raw fd instead of wrapping it in a
+ * php_stream. */
+int php_scylladb_notifier_fd(const php_scylladb_notifier* notifier);
+
+/* Create the notifier for `future` (into *notifier_slot) and register the driver
+ * completion callback, without publishing a php_stream. No-op when the slot is
+ * already populated. Returns SUCCESS or FAILURE (thrown). */
+int php_scylladb_future_ensure_notifier(CassFuture*             future,
+                                        php_scylladb_notifier** notifier_slot);
+
+/* Same, for an already-resolved future with no CassFuture (FutureValue): creates
+ * an eagerly-readable notifier. Returns SUCCESS or FAILURE (thrown). */
+int php_scylladb_future_ensure_ready_notifier(php_scylladb_notifier** notifier_slot);
+
 /* Wrap the notifier's read end in a cached, unbuffered php_stream resource
  * (its own dup of the fd) and return it. Returns SUCCESS or FAILURE (thrown). */
 int php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
@@ -117,4 +133,37 @@ bool php_scylladb_future_is_ready(CassFuture* future);
  */
 int php_scylladb_future_wait_coro(CassFuture*             future,
                                   php_scylladb_notifier** notifier_slot,
+                                  const php_scylladb_reg* reactor_reg,
                                   zval*                   timeout);
+
+/*
+ * Uniform access to a concrete Future's async slots.
+ *
+ * Every Cassandra\Future subtype keeps its notifier — and its shared-reactor
+ * registration — in its own struct at its own offset. This resolves them once by
+ * class so the reactor, the Io\Poll handle and the poll loop do not each carry a
+ * copy of the same class ladder.
+ */
+typedef struct php_scylladb_reg_ php_scylladb_reg;
+
+typedef struct
+{
+  /* Borrowed. nullptr for a Future that resolves on construction (FutureValue),
+     which therefore has no driver callback to register. */
+  CassFuture*             future;
+  php_scylladb_notifier** notifier;
+  php_scylladb_reg**      reactor_reg;
+} php_scylladb_future_slots;
+
+/* Resolve `future_zv`'s slots. Returns false with a thrown exception when the
+ * class is not one of the concrete futures. The _try form reports the same
+ * failure without touching EG(exception), for callers that already carry one. */
+bool php_scylladb_future_slots_get(zval* future_zv, php_scylladb_future_slots* out);
+bool php_scylladb_future_slots_try(zval* future_zv, php_scylladb_future_slots* out);
+
+/* Guards against binding one future to both async models. Each returns false
+ * with a thrown exception when the future is already spoken for. */
+bool php_scylladb_future_claim_notifier(zend_object* obj, const php_scylladb_reg* reactor_reg);
+bool php_scylladb_future_claim_reactor(zend_object*                 obj,
+                                       const php_scylladb_reg*      reactor_reg,
+                                       const php_scylladb_notifier* notifier);

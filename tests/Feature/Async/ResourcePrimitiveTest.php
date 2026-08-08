@@ -113,3 +113,83 @@ it('notifies on a failed query and rethrows the driver error from get()', functi
 
     expect(fn () => $future->get())->toThrow(Exception::class);
 })->group('feature', 'async');
+
+it('keeps the descriptor readable until the result is consumed', function () {
+    $session = scyllaDbConnection();
+    $future  = $session->executeAsync(new SimpleStatement(ASYNC_READ_CQL));
+
+    $resource = $future->getResource();
+
+    $read = [$resource];
+    $write = $except = [];
+    expect(stream_select($read, $write, $except, 10))->toBeGreaterThan(0);
+
+    // Level-triggered: nothing drains the descriptor on the driver's behalf, so
+    // a loop that wakes twice before dispatching still sees the completion the
+    // second time. A one-shot edge would lose it.
+    for ($i = 0; $i < 3; $i++) {
+        $read = [$resource];
+        $write = $except = [];
+        expect(stream_select($read, $write, $except, 0))
+            ->toBeGreaterThan(0, "descriptor went quiet on poll $i");
+    }
+
+    $future->get();
+})->group('feature', 'async');
+
+it('returns the same result from repeated get() calls', function () {
+    $session = scyllaDbConnection();
+    $future  = $session->executeAsync(new SimpleStatement(ASYNC_READ_CQL));
+
+    $first  = $future->get();
+    $second = $future->get();
+
+    expect($first->count())->toBe($second->count())
+        ->and($first->first())->toBe($second->first());
+
+    // Iterating one must not move the other's cursor.
+    foreach ($first as $_) {
+    }
+    $seen = 0;
+    foreach ($second as $_) {
+        $seen++;
+    }
+    expect($seen)->toBe($second->count());
+})->group('feature', 'async');
+
+it('honours a timeout on get() for a future that never resolves in time', function () {
+    $session = scyllaDbConnection();
+    $future  = $session->executeAsync(new SimpleStatement(ASYNC_READ_CQL));
+
+    // A zero/near-zero timeout either wins the race or times out; both are
+    // correct. What must never happen is a hang or a wrong-typed error.
+    try {
+        $rows = $future->get(0.000001);
+        expect($rows->count())->toBeGreaterThanOrEqual(0);
+    } catch (Cassandra\Exception\TimeoutException $e) {
+        expect($e->getMessage())->not->toBeEmpty();
+        // The future is still usable after a timeout.
+        expect($future->get(10)->count())->toBeGreaterThan(0);
+    }
+})->group('feature', 'async');
+
+it('lets the descriptor outlive a future that is never read', function () {
+    $session = scyllaDbConnection();
+
+    $resource = null;
+    (function () use ($session, &$resource) {
+        $future   = $session->executeAsync(new SimpleStatement(ASYNC_READ_CQL));
+        $resource = $future->getResource();
+    })();
+
+    gc_collect_cycles();
+
+    // The stream owns its own dup of the read end, so it stays a valid resource
+    // after the future is gone. The driver's late write lands on the notifier's
+    // own copy and cannot raise SIGPIPE.
+    expect(is_resource($resource))->toBeTrue();
+
+    $read = [$resource];
+    $write = $except = [];
+    stream_select($read, $write, $except, 5);
+})->group('feature', 'async');

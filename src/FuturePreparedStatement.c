@@ -39,7 +39,8 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, get)
     Z_PARAM_ZVAL(timeout)
   ZEND_PARSE_PARAMETERS_END();
 
-  if (php_scylladb_future_wait_coro(self->future, &self->notifier, timeout) == FAILURE) {
+  if (php_scylladb_future_wait_coro(self->future, &self->notifier, self->reactor_reg, timeout) ==
+      FAILURE) {
     return;
   }
 
@@ -60,6 +61,10 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, getResource)
   ZEND_PARSE_PARAMETERS_NONE();
 
   auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
+
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+    return;
+  }
 
   /* Already resolved and cached: hand back an eagerly-readable stream. */
   if (!Z_ISUNDEF(self->prepared_statement)) {
@@ -122,8 +127,9 @@ zend_object *php_scylladb_future_prepared_statement_new(zend_class_entry *ce)
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_prepared_statement, ce,
                                 &php_scylladb_future_prepared_statement_handlers);
 
-  self->future   = nullptr;
-  self->notifier = nullptr;
+  self->future      = nullptr;
+  self->notifier    = nullptr;
+  self->reactor_reg = nullptr;
   ZVAL_UNDEF(&self->prepared_statement);
   ZVAL_UNDEF(&self->notify_stream);
   return &self->zendObject;

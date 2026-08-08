@@ -45,6 +45,11 @@ ZEND_METHOD(Cassandra_FutureValue, getResource)
 
   /* FutureValue is always already resolved — hand back a readable stream. */
   auto self = PHP_SCYLLADB_GET_FUTURE_VALUE(getThis());
+
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+    return;
+  }
+
   php_scylladb_future_get_ready_resource(&self->notifier, &self->notify_stream, return_value);
 }
 
@@ -92,7 +97,8 @@ zend_object *php_scylladb_future_value_new(zend_class_entry *ce)
   php_scylladb_future_value *self =
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_future_value, ce, &php_scylladb_future_value_handlers);
 
-  self->notifier = nullptr;
+  self->notifier    = nullptr;
+  self->reactor_reg = nullptr;
   ZVAL_UNDEF(&self->value);
   ZVAL_UNDEF(&self->notify_stream);
   return &self->zendObject;

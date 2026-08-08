@@ -42,7 +42,18 @@ typedef struct php_scylladb_reg_
   _Atomic uint32_t     refcount;
   _Atomic bool         enqueued;   /* CAS-guards the single ready-list push */
   php_scylladb_reactor* reactor;
-  zend_object*         future_obj; /* pinned FutureRows (GC_ADDREF'd); nulled on dispatch */
+  zend_object*         future_obj; /* pinned Future (GC_ADDREF'd); nulled on dispatch */
+  /* Resolved once by add(). `reg_slot` points into the pinned object's own
+     struct, which stays alive for this reg's whole life, so neither pointer
+     needs re-deriving from the class on dispatch. `future` is null for a
+     FutureValue, which resolves on construction. */
+  CassFuture*          future;
+  php_scylladb_reg**   reg_slot;
+  /* Optional completion callback. Resolved once by add() and held through
+     zend_fcc_dup, so a dispatch costs no callable re-resolution. Main thread
+     only — the IO-thread callback never reads it. Left uninitialised when
+     add() got none. */
+  zend_fcall_info_cache fcc;
   struct php_scylladb_reg_* next_ready; /* MPSC ready-list (cross-thread, mutex) */
   struct php_scylladb_reg_* prev_reg;   /* registered-list (main thread) */
   struct php_scylladb_reg_* next_reg;
@@ -58,6 +69,7 @@ struct php_scylladb_reactor_
   php_scylladb_reg*     registered;  /* all outstanding regs (main thread) */
   uint32_t              pending;
   zval                  stream;      /* cached resource returned by resource() */
+  zval                  poll_handle; /* cached Io\Poll handle (PHP >= 8.6) */
 };
 
 /* ─── reactor refcount (main thread only; reg_unref may free it) ─────────────── */
@@ -74,6 +86,9 @@ php_scylladb_reactor_unref(php_scylladb_reactor* reactor)
   if (atomic_fetch_sub_explicit(&reactor->refcount, 1, memory_order_acq_rel) == 1) {
     if (!Z_ISUNDEF(reactor->stream)) {
       zval_ptr_dtor(&reactor->stream);
+    }
+    if (!Z_ISUNDEF(reactor->poll_handle)) {
+      zval_ptr_dtor(&reactor->poll_handle);
     }
     pthread_mutex_destroy(&reactor->mutex);
     php_scylladb_notifier_unref(reactor->fd);
@@ -98,6 +113,7 @@ php_scylladb_reactor_create(void)
   reactor->registered = nullptr;
   reactor->pending    = 0;
   ZVAL_UNDEF(&reactor->stream);
+  ZVAL_UNDEF(&reactor->poll_handle);
   return reactor;
 }
 
@@ -106,7 +122,10 @@ php_scylladb_reactor_create(void)
 /* Create a reg for `future_obj`, pin the object, and link it into the
  * registered-list. Main thread only. */
 static php_scylladb_reg*
-reg_create(php_scylladb_reactor* reactor, zend_object* future_obj)
+reg_create(php_scylladb_reactor*            reactor,
+           zend_object*                     future_obj,
+           const php_scylladb_future_slots* slots,
+           const zend_fcall_info_cache*     callback)
 {
   php_scylladb_reg* reg = pemalloc(sizeof(*reg), 1);
   atomic_init(&reg->refcount, 2);
@@ -116,6 +135,14 @@ reg_create(php_scylladb_reactor* reactor, zend_object* future_obj)
 
   GC_ADDREF(future_obj); /* pin until dispatched */
   reg->future_obj = future_obj;
+  reg->future     = slots->future;
+  reg->reg_slot   = slots->reactor_reg;
+  *reg->reg_slot  = reg;
+
+  reg->fcc = empty_fcall_info_cache;
+  if (callback != nullptr && ZEND_FCC_INITIALIZED(*callback)) {
+    zend_fcc_dup(&reg->fcc, callback);
+  }
 
   reg->next_ready = nullptr;
   reg->prev_reg   = nullptr;
@@ -138,6 +165,9 @@ reg_release(php_scylladb_reg* reg)
   if (atomic_fetch_sub_explicit(&reg->refcount, 2, memory_order_acq_rel) == 2) {
     if (reg->future_obj) { /* safety net; normally cleared at dispatch */
       OBJ_RELEASE(reg->future_obj);
+    }
+    if (ZEND_FCC_INITIALIZED(reg->fcc)) {
+      zend_fcc_dtor(&reg->fcc);
     }
     php_scylladb_reactor_unref(reg->reactor);
     pefree(reg, 1);
@@ -201,23 +231,36 @@ reactor_cb(CassFuture* future, void* data)
   reg_enqueue((php_scylladb_reg*)data);
 }
 
-/* Detach + consume one spliced ready-list. If `out` is non-null, the pinned
- * FutureRows objects are appended to it (dispatch); otherwise their pins are
- * released (RSHUTDOWN discard). Main thread only. */
-static void
-reactor_consume(php_scylladb_reactor* reactor, php_scylladb_reg* head, zval* out)
+/* Detach + consume one spliced ready-list. Main thread only.
+ *
+ * With `out`: a future that add() got a callback for has that callback invoked
+ * with the future as its only argument; a future registered without one is
+ * appended to `out` instead. Without `out` (RSHUTDOWN discard) no callback runs
+ * and the pins are simply released.
+ *
+ * Stops after `max` regs (0 = no limit), or as soon as a callback throws, and
+ * returns whatever is left. */
+static php_scylladb_reg*
+reactor_consume(php_scylladb_reactor* reactor, php_scylladb_reg* head, zval* out, uint32_t max)
 {
-  while (head) {
+  for (uint32_t taken = 0; head && (max == 0 || taken < max); taken++) {
     php_scylladb_reg* reg = head;
     head                  = head->next_ready;
 
     reg_unregister(reactor, reg);
 
     if (reg->future_obj) {
-      php_scylladb_future_rows* rows = php_scylladb_future_rows_object_fetch(reg->future_obj);
-      rows->reactor_reg = nullptr; /* detach so getResource()/free_obj are safe again */
+      *reg->reg_slot = nullptr; /* detach so getResource()/free_obj are safe again */
 
-      if (out) {
+      if (out && ZEND_FCC_INITIALIZED(reg->fcc)) {
+        zval args[1];
+        zval retval;
+        ZVAL_OBJ(&args[0], reg->future_obj); /* borrowed — the pin drops below */
+
+        zend_call_known_fcc(&reg->fcc, &retval, 1, args, nullptr);
+        zval_ptr_dtor(&retval);
+        OBJ_RELEASE(reg->future_obj);
+      } else if (out) {
         zval zv;
         ZVAL_OBJ(&zv, reg->future_obj); /* transfer the pin ref into the array */
         add_next_index_zval(out, &zv);
@@ -228,6 +271,83 @@ reactor_consume(php_scylladb_reactor* reactor, php_scylladb_reg* head, zval* out
     }
 
     reg_release(reg); /* drop ready-list + registered refs → frees */
+
+    /* A throwing callback stops the drain. The rest is requeued by the caller,
+       so the loop picks it up on the next readable event. */
+    if (EG(exception)) {
+      break;
+    }
+  }
+
+  return head;
+}
+
+/* Put an unconsumed remainder back at the FRONT of the ready-list (those regs
+ * completed before anything that arrived meanwhile) and re-signal the fd, so a
+ * level-triggered watcher wakes again on the next tick. Main thread only. */
+static void
+reactor_requeue(php_scylladb_reactor* reactor, php_scylladb_reg* head)
+{
+  php_scylladb_reg* tail = head;
+  while (tail->next_ready) {
+    tail = tail->next_ready;
+  }
+
+  pthread_mutex_lock(&reactor->mutex);
+  tail->next_ready = reactor->ready_head;
+  reactor->ready_head = head;
+  if (reactor->ready_tail == nullptr) {
+    reactor->ready_tail = tail;
+  }
+  php_scylladb_notifier_signal(reactor->fd);
+  pthread_mutex_unlock(&reactor->mutex);
+}
+
+/* Re-register the futures reactor_consume() already collected into `out`.
+ *
+ * A callback that throws makes poll() return nothing, so anything already in the
+ * array would be dropped: it was unregistered here but never handed to userland.
+ * Registering it again — no driver callback needed, it has already resolved —
+ * puts it back at the FRONT of the ready-list, so the next poll() delivers it
+ * before the rest of the batch. Empties `out`. Main thread only. */
+static void
+reactor_reclaim(php_scylladb_reactor* reactor, zval* out)
+{
+  php_scylladb_reg* head = nullptr;
+  php_scylladb_reg* tail = nullptr;
+  zval*             entry;
+
+  ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(out), entry)
+  {
+    /* The non-throwing form: a callback's exception is pending here and must
+       survive. It cannot fail anyway — the array only holds futures this
+       reactor put there. */
+    php_scylladb_future_slots slots;
+    if (!php_scylladb_future_slots_try(entry, &slots)) {
+      continue;
+    }
+
+    php_scylladb_reg* reg = reg_create(reactor, Z_OBJ_P(entry), &slots, nullptr);
+    /* Never handed to a driver thread, so claim the single push straight away
+       and link it by hand instead of going through reg_enqueue (which appends
+       to the tail). */
+    atomic_store_explicit(&reg->enqueued, true, memory_order_relaxed);
+    reg->next_ready = nullptr;
+    if (tail != nullptr) {
+      tail->next_ready = reg;
+    } else {
+      head = reg;
+    }
+    tail = reg;
+  }
+  ZEND_HASH_FOREACH_END();
+
+  /* reg_create pinned each object, so dropping the array's references here is
+     balanced. */
+  zend_hash_clean(Z_ARRVAL_P(out));
+
+  if (head != nullptr) {
+    reactor_requeue(reactor, head);
   }
 }
 
@@ -251,18 +371,15 @@ reactor_drain(php_scylladb_reactor* reactor)
 {
   while (reactor->registered != nullptr) {
     for (php_scylladb_reg* reg = reactor->registered; reg; reg = reg->next_reg) {
-      if (reg->future_obj) {
-        php_scylladb_future_rows* rows = php_scylladb_future_rows_object_fetch(reg->future_obj);
-        if (rows->future) {
-          cass_future_wait(rows->future);
-        }
+      if (reg->future != nullptr) {
+        cass_future_wait(reg->future);
       }
     }
 
     php_scylladb_notifier_drain(reactor->fd);
     php_scylladb_reg* head = reactor_splice(reactor);
     if (head) {
-      reactor_consume(reactor, head, nullptr);
+      reactor_consume(reactor, head, nullptr, 0);
     } else if (reactor->registered != nullptr) {
       sched_yield(); /* callback in flight; yield and retry */
     }
@@ -287,6 +404,10 @@ php_scylladb_reactor_reset(php_scylladb_reactor* reactor)
   if (!Z_ISUNDEF(reactor->stream)) {
     zval_ptr_dtor(&reactor->stream);
     ZVAL_UNDEF(&reactor->stream);
+  }
+  if (!Z_ISUNDEF(reactor->poll_handle)) {
+    zval_ptr_dtor(&reactor->poll_handle);
+    ZVAL_UNDEF(&reactor->poll_handle);
   }
 }
 
@@ -320,6 +441,21 @@ reactor_instance(void)
   return PHP_SCYLLADB_G(reactor);
 }
 
+#ifdef HAVE_PHP_POLL_API
+bool
+php_scylladb_reactor_poll_slots(php_scylladb_notifier** notifier_out, zval** handle_slot_out)
+{
+  php_scylladb_reactor* reactor = reactor_instance();
+  if (reactor == nullptr) {
+    return false;
+  }
+
+  *notifier_out    = reactor->fd;
+  *handle_slot_out = &reactor->poll_handle;
+  return true;
+}
+#endif
+
 /* ─── PHP-facing Cassandra\Async\Reactor (static methods) ────────────────────── */
 
 ZEND_METHOD(Cassandra_Async_Reactor, resource)
@@ -335,34 +471,19 @@ ZEND_METHOD(Cassandra_Async_Reactor, resource)
 
 ZEND_METHOD(Cassandra_Async_Reactor, add)
 {
-  zval* future_zv = nullptr;
+  zval*                 future_zv = nullptr;
+  zend_fcall_info       fci       = empty_fcall_info;
+  zend_fcall_info_cache fcc       = empty_fcall_info_cache;
 
-  ZEND_PARSE_PARAMETERS_START(1, 1)
+  ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_OBJECT_OF_CLASS(future_zv, php_scylladb_future_ce)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_FUNC_OR_NULL(fci, fcc)
   ZEND_PARSE_PARAMETERS_END();
 
-  if (!instanceof_function(Z_OBJCE_P(future_zv), php_scylladb_future_rows_ce)) {
-    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "The reactor currently supports only FutureRows (from executeAsync)");
-    return;
-  }
-
-  php_scylladb_future_rows* rows = PHP_SCYLLADB_GET_FUTURE_ROWS(future_zv);
-
-  if (rows->reactor_reg != nullptr) {
-    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "This future is already registered with the reactor");
-    return;
-  }
-  if (rows->notifier != nullptr) {
-    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "This future already exposes a per-future resource (getResource); "
-                            "use one async model per future");
-    return;
-  }
-  if (rows->future == nullptr) {
-    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "FutureRows has no underlying future to register");
+  php_scylladb_future_slots slots;
+  if (!php_scylladb_future_slots_get(future_zv, &slots) ||
+      !php_scylladb_future_claim_reactor(Z_OBJ_P(future_zv), *slots.reactor_reg, *slots.notifier)) {
     return;
   }
 
@@ -371,15 +492,31 @@ ZEND_METHOD(Cassandra_Async_Reactor, add)
     return;
   }
 
-  php_scylladb_reg* reg = reg_create(reactor, Z_OBJ_P(future_zv));
-  rows->reactor_reg     = reg;
+  php_scylladb_reg* reg = reg_create(reactor, Z_OBJ_P(future_zv), &slots, &fcc);
 
-  CassError rc = cass_future_set_callback(rows->future, reactor_cb, reg);
-  if (rc != CASS_OK) {
-    /* Callback will never fire (already-set/error): surface it now so poll()
-       returns it and get() reports the driver error. */
+  if (slots.future == nullptr) {
+    /* Resolved on construction (FutureValue): there is nothing to wait for, so
+       hand it straight to the ready-list. */
     reg_enqueue(reg);
-  } else if (cass_future_ready(rows->future)) {
+    return;
+  }
+
+  CassError rc = cass_future_set_callback(slots.future, reactor_cb, reg);
+
+  if (rc != CASS_OK && !cass_future_ready(slots.future)) {
+    /* No completion will ever be delivered for a still-pending future. Enqueueing
+       it would make poll() hand back a future whose get() blocks, so roll the
+       registration back instead. */
+    *reg->reg_slot = nullptr;
+    reg_unregister(reactor, reg);
+    reg_release(reg);
+    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
+                            "Failed to register the async completion callback: %s",
+                            cass_error_desc(rc));
+    return;
+  }
+
+  if (rc != CASS_OK || cass_future_ready(slots.future)) {
     /* Belt-and-suspenders if the driver did not synchronously fire the callback
        for an already-resolved future; the CAS in reg_enqueue dedups a real
        synchronous fire. */
@@ -389,7 +526,18 @@ ZEND_METHOD(Cassandra_Async_Reactor, add)
 
 ZEND_METHOD(Cassandra_Async_Reactor, poll)
 {
-  ZEND_PARSE_PARAMETERS_NONE();
+  zend_long max      = 0;
+  bool      max_null = true;
+
+  ZEND_PARSE_PARAMETERS_START(0, 1)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_LONG_OR_NULL(max, max_null)
+  ZEND_PARSE_PARAMETERS_END();
+
+  if (!max_null && max < 1) {
+    zend_argument_value_error(1, "must be greater than 0, or null for every completion");
+    return;
+  }
 
   php_scylladb_reactor* reactor = reactor_instance();
   if (reactor == nullptr) {
@@ -399,7 +547,18 @@ ZEND_METHOD(Cassandra_Async_Reactor, poll)
   array_init(return_value);
   php_scylladb_notifier_drain(reactor->fd); /* drain BEFORE splicing — no lost wakeup */
   php_scylladb_reg* head = reactor_splice(reactor);
-  reactor_consume(reactor, head, return_value);
+  head = reactor_consume(reactor, head, return_value, max_null ? 0 : (uint32_t)max);
+
+  if (head != nullptr) {
+    reactor_requeue(reactor, head);
+  }
+
+  /* A throwing callback discards return_value, so put back whatever this batch
+     had already collected. Runs after the remainder so the reclaimed futures end
+     up ahead of it, in completion order. */
+  if (EG(exception) && zend_hash_num_elements(Z_ARRVAL_P(return_value)) > 0) {
+    reactor_reclaim(reactor, return_value);
+  }
 }
 
 ZEND_METHOD(Cassandra_Async_Reactor, pending)

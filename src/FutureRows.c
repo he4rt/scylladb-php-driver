@@ -29,7 +29,8 @@ int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, z
   if (!future_rows->result) {
     const CassResult *result = nullptr;
 
-    if (php_scylladb_future_wait_coro(future_rows->future, &future_rows->notifier, timeout) == FAILURE) {
+    if (php_scylladb_future_wait_coro(future_rows->future, &future_rows->notifier,
+                                      future_rows->reactor_reg, timeout) == FAILURE) {
       return FAILURE;
     }
 
@@ -95,10 +96,7 @@ ZEND_METHOD(Cassandra_FutureRows, getResource)
 
   auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
 
-  if (self->reactor_reg != nullptr) {
-    zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "This future is registered with Cassandra\\Async\\Reactor; "
-                            "use one async model per future");
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
     return;
   }
 

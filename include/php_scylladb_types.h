@@ -420,6 +420,7 @@ typedef struct php_scylladb_future_prepared_statement_
     zval prepared_statement;
     php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
     zval notify_stream;              /* async: cached readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_prepared_statement;
 static zend_always_inline php_scylladb_future_prepared_statement *php_scylladb_future_prepared_statement_object_fetch(
@@ -434,6 +435,7 @@ typedef struct php_scylladb_future_value_
     zval value;
     php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
     zval notify_stream;              /* async: cached eagerly-readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_value;
 static zend_always_inline php_scylladb_future_value *php_scylladb_future_value_object_fetch(zend_object *obj)
@@ -446,6 +448,7 @@ typedef struct php_scylladb_future_close_
     CassFuture *future;
     php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
     zval notify_stream;              /* async: cached readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_close;
 static zend_always_inline php_scylladb_future_close *php_scylladb_future_close_object_fetch(zend_object *obj)
@@ -465,6 +468,7 @@ typedef struct php_scylladb_future_session_
     char *session_keyspace;
     php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
     zval notify_stream;              /* async: cached readable php_stream */
+    php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
     zend_object zendObject;
 } php_scylladb_future_session;
 static zend_always_inline php_scylladb_future_session *php_scylladb_future_session_object_fetch(zend_object *obj)

@@ -66,7 +66,8 @@ ZEND_METHOD(Cassandra_FutureSession, get)
     self->session = nullptr;   /* ownership transferred to DefaultSession */
   }
 
-  if (php_scylladb_future_wait_coro(self->future, &self->notifier, timeout) == FAILURE) {
+  if (php_scylladb_future_wait_coro(self->future, &self->notifier, self->reactor_reg, timeout) ==
+      FAILURE) {
     if (self->persist && self->cache_key) {
       /* Remove timed-out pending session so the next request reconnects. */
       if (zend_hash_index_del(&EG(persistent_list), self->cache_key) == SUCCESS) {
@@ -109,6 +110,10 @@ ZEND_METHOD(Cassandra_FutureSession, getResource)
   ZEND_PARSE_PARAMETERS_NONE();
 
   auto self = PHP_SCYLLADB_GET_FUTURE_SESSION(getThis());
+
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+    return;
+  }
 
   /* Resolved already (persistent hit), errored, or degenerate (no future):
      get() won't block, so return an eagerly-readable stream. */
@@ -191,6 +196,7 @@ zend_object *php_scylladb_future_session_new(zend_class_entry *ce)
   self->cache_key         = 0;
   self->persist           = cass_false;
   self->notifier          = nullptr;
+  self->reactor_reg       = nullptr;
 
   ZVAL_UNDEF(&self->default_session);
   ZVAL_UNDEF(&self->notify_stream);
