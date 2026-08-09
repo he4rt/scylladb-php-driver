@@ -24,11 +24,25 @@ namespace Cassandra;
 final class Duration implements Value {
 
     /**
-     * @param long|double|string|\Cassandra\Bigint $months Months attribute of the duration.
+     * A \DateInterval must be the only argument. Otherwise all three are required.
+     *
+     * @param long|double|string|\Cassandra\Bigint|\DateInterval $months Months attribute of the duration, or a date interval.
      * @param long|double|string|\Cassandra\Bigint $days Days attribute of the duration.
      * @param long|double|string|\Cassandra\Bigint $nanos Nanos attribute of the duration.
      */
     public function __construct($months, $days, $nanos) { }
+
+    /**
+     * Creates a duration from a native date interval.
+     *
+     * Years fold into months and hours and smaller parts fold into nanoseconds.
+     * An inverted interval gives a negative duration.
+     *
+     * @param \DateInterval $interval The interval to convert
+     *
+     * @return static
+     */
+    public static function fromDateInterval($interval) { }
 
     /**
      * The type of represented by the value.
