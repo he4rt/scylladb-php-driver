@@ -164,7 +164,10 @@ CQL splits date and time. The driver mirrors that split.
 | `Cassandra\Duration` | `duration` | Months, days, and nanoseconds |
 
 ```php
+$ts = Cassandra\Timestamp::now();                      // current time
+$ts = Cassandra\Timestamp::nowUtc();                   // alias of now()
 $ts = new Cassandra\Timestamp(time());                 // from a Unix timestamp
+$ts = new Cassandra\Timestamp(new DateTime());         // from a date and time object
 $ts = Cassandra\Timestamp::fromDateTime(new DateTime());
 
 $ts->time();                 // seconds
