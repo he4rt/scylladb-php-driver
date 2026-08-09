@@ -184,7 +184,6 @@ function makeSession(): Cassandra\Session
         ->withConnectTimeout(5.0)
         ->withRequestTimeout(12.0)
         ->withConnectionsPerHost(2, 8)
-        // Heartbeat left at its 30 second default: see the defect note in the guide.
         ->withTCPNodelay(true)
         ->withPersistentSessions(true)
         ->build();

@@ -141,8 +141,15 @@ $cluster = Cassandra::cluster()
 $rows = $session->execute($stmt, ['consistency' => Cassandra::CONSISTENCY_LOCAL_ONE]);
 ```
 
-The cluster default is `Cassandra::CONSISTENCY_LOCAL_ONE`. Most applications want
-`LOCAL_QUORUM` instead. The full list is in the [constants reference](/reference/constants).
+The cluster default is `Cassandra::CONSISTENCY_LOCAL_QUORUM`. It reads and writes a majority of the
+replicas in the local datacenter, so a read sees the last write. Drop to `LOCAL_ONE` for a query
+that values latency over freshness, such as a cache fill or an analytics scan.
+
+Do not set plain `QUORUM` to get stronger guarantees. `QUORUM` counts replicas across every
+datacenter, so it adds cross-datacenter latency to every query and fails when a remote datacenter is
+unreachable. `LOCAL_QUORUM` is the level that gives strong consistency at local latency.
+
+The full list is in the [constants reference](/reference/constants).
 
 ## A production configuration
 

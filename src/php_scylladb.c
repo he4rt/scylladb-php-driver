@@ -20,10 +20,12 @@
 
 #include <fcntl.h>
 #include <php_scylladb.h>
+#include <php_scylladb_consistency.h>
 #include <php_scylladb_globals.h>
 #include <php_scylladb_types.h>
 #include <php_ini.h>
 #include <pthread.h>
+#include <syslog.h>
 #include <version.h>
 
 #include <time.h>
@@ -61,7 +63,15 @@
 /* Statically initialised: the driver's log callback runs on the C/C++ driver's
  * event-loop threads, which can fire before MINIT finishes registering the INI
  * entries that write log_location. */
+typedef enum : uint8_t {
+  PHP_SCYLLADB_LOG_STDERR,
+  PHP_SCYLLADB_LOG_FILE,
+  PHP_SCYLLADB_LOG_SYSLOG,
+} php_scylladb_log_target;
+
 static char *log_location = nullptr;
+static php_scylladb_log_target log_target = PHP_SCYLLADB_LOG_STDERR;
+static bool log_syslog_opened = false;
 static pthread_rwlock_t log_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 // cpp-rs-driver uses its own 1.x versioning track (it's a rewrite, not a
@@ -117,6 +127,22 @@ zend_module_entry php_scylladb_module_entry = {
 ZEND_DLEXPORT zend_module_entry *get_module(void) { return &php_scylladb_module_entry; }
 #endif
 
+#define PHP_SCYLLADB_INI_BOOL(name, dflt, field)                                     \
+  STD_PHP_INI_BOOLEAN(PHP_SCYLLADB_NAME "." name, dflt, PHP_INI_SYSTEM, OnUpdateBool, \
+                      field, zend_php_scylladb_globals, php_scylladb_globals)
+
+#define PHP_SCYLLADB_INI_LONG(name, dflt, handler, field)                        \
+  STD_PHP_INI_ENTRY(PHP_SCYLLADB_NAME "." name, dflt, PHP_INI_SYSTEM, handler,   \
+                    field, zend_php_scylladb_globals, php_scylladb_globals)
+
+#define PHP_SCYLLADB_INI_STR(name, dflt, field)                                       \
+  STD_PHP_INI_ENTRY(PHP_SCYLLADB_NAME "." name, dflt, PHP_INI_SYSTEM, OnUpdateString, \
+                    field, zend_php_scylladb_globals, php_scylladb_globals)
+
+/* Every entry here is PHP_INI_SYSTEM by design, not by oversight. The builder
+ * seeds feed the persistent-cluster cache key in Cluster/Builder.c, so a
+ * request-scoped ini_set() would allocate a fresh CassCluster per request and
+ * grow EG(persistent_list) without bound. */
 // clang-format off
 PHP_INI_BEGIN()
   PHP_INI_ENTRY(PHP_SCYLLADB_NAME ".log", PHP_SCYLLADB_DEFAULT_LOG, PHP_INI_SYSTEM, OnUpdateLog)
@@ -125,6 +151,104 @@ PHP_INI_BEGIN()
    * an operator decision, not something a library or a debug handler can do. */
   STD_PHP_INI_BOOLEAN(PHP_SCYLLADB_NAME ".expose_credentials", "0", PHP_INI_SYSTEM, OnUpdateBool,
                       expose_credentials, zend_php_scylladb_globals, php_scylladb_globals)
+
+  /* Persistence policy. allow_persistent is the operator kill switch:
+   * withPersistentSessions(true) cannot re-enable caching once it is off. */
+  PHP_SCYLLADB_INI_BOOL("allow_persistent", "1", allow_persistent)
+  PHP_SCYLLADB_INI_LONG("max_persistent_clusters", PHP_SCYLLADB_DEFAULT_MAX_PERSISTENT_CLUSTERS,
+                        OnUpdatePersistentMax, max_persistent_clusters)
+  PHP_SCYLLADB_INI_LONG("max_persistent_sessions", PHP_SCYLLADB_DEFAULT_MAX_PERSISTENT_SESSIONS,
+                        OnUpdatePersistentMax, max_persistent_sessions)
+  PHP_SCYLLADB_INI_LONG("max_persistent_prepared_statements", PHP_SCYLLADB_DEFAULT_MAX_PERSISTENT_PREPARED,
+                        OnUpdatePersistentMax, max_persistent_prepared_statements)
+
+  /* Cluster\Builder seeds. Each with*() method still overrides its seed. */
+  STD_PHP_INI_ENTRY(PHP_SCYLLADB_NAME ".contact_points", PHP_SCYLLADB_DEFAULT_CONTACT_POINTS,
+                    PHP_INI_SYSTEM, OnUpdateString, contact_points, zend_php_scylladb_globals,
+                    php_scylladb_globals)
+  PHP_SCYLLADB_INI_LONG("port", PHP_SCYLLADB_DEFAULT_PORT, OnUpdatePort, port)
+  PHP_SCYLLADB_INI_LONG("connect_timeout", PHP_SCYLLADB_DEFAULT_CONNECT_TIMEOUT, OnUpdatePositiveLong,
+                        connect_timeout)
+  PHP_SCYLLADB_INI_LONG("request_timeout", PHP_SCYLLADB_DEFAULT_REQUEST_TIMEOUT, OnUpdatePositiveLong,
+                        request_timeout)
+  PHP_SCYLLADB_INI_LONG("default_consistency", PHP_SCYLLADB_DEFAULT_CONSISTENCY_NAME,
+                        OnUpdateDefaultConsistency, default_consistency)
+  PHP_SCYLLADB_INI_LONG("default_page_size", PHP_SCYLLADB_DEFAULT_PAGE_SIZE, OnUpdatePositiveLong,
+                        default_page_size)
+  PHP_SCYLLADB_INI_LONG("protocol_version", PHP_SCYLLADB_DEFAULT_PROTOCOL_VERSION,
+                        OnUpdateProtocolVersion, protocol_version)
+  PHP_SCYLLADB_INI_LONG("io_threads", PHP_SCYLLADB_DEFAULT_IO_THREADS, OnUpdatePositiveLong, io_threads)
+  PHP_SCYLLADB_INI_LONG("core_connections_per_host", PHP_SCYLLADB_DEFAULT_CORE_CONNECTIONS_PER_HOST,
+                        OnUpdatePositiveLong, core_connections_per_host)
+  PHP_SCYLLADB_INI_LONG("max_connections_per_host", PHP_SCYLLADB_DEFAULT_MAX_CONNECTIONS_PER_HOST,
+                        OnUpdatePositiveLong, max_connections_per_host)
+  PHP_SCYLLADB_INI_LONG("reconnect_interval", PHP_SCYLLADB_DEFAULT_RECONNECT_INTERVAL,
+                        OnUpdatePositiveLong, reconnect_interval)
+  PHP_SCYLLADB_INI_LONG("connection_heartbeat_interval", PHP_SCYLLADB_DEFAULT_HEARTBEAT_INTERVAL,
+                        OnUpdateLongGEZero, connection_heartbeat_interval)
+  /* Seconds. 0 disables TCP keepalive, which is what withTCPKeepalive(null) does. */
+  PHP_SCYLLADB_INI_LONG("tcp_keepalive_delay", PHP_SCYLLADB_DEFAULT_TCP_KEEPALIVE_DELAY,
+                        OnUpdateLongGEZero, tcp_keepalive_delay)
+  PHP_SCYLLADB_INI_BOOL("token_aware_routing", "1", token_aware_routing)
+  PHP_SCYLLADB_INI_BOOL("latency_aware_routing", "1", latency_aware_routing)
+  PHP_SCYLLADB_INI_BOOL("tcp_nodelay", "1", tcp_nodelay)
+  PHP_SCYLLADB_INI_BOOL("schema_metadata", "1", schema_metadata)
+  PHP_SCYLLADB_INI_BOOL("hostname_resolution", "0", hostname_resolution)
+  PHP_SCYLLADB_INI_BOOL("randomized_contact_points", "1", randomized_contact_points)
+
+  /* ScyllaDB rack-aware load balancing. Setting local_rack selects the policy;
+   * an empty local_rack leaves the load balancing policy alone. */
+  PHP_SCYLLADB_INI_STR("local_dc", "", local_dc)
+  PHP_SCYLLADB_INI_STR("local_rack", "", local_rack)
+
+  /* Reported to the server, visible in system.clients. */
+  PHP_SCYLLADB_INI_STR("application_name", "", application_name)
+  PHP_SCYLLADB_INI_STR("application_version", "", application_version)
+
+  /* "constant" keeps reconnect_interval as a fixed delay. "exponential" uses it
+   * as the base delay, backing off to reconnect_max_interval with jitter. */
+  PHP_SCYLLADB_INI_STR("reconnect_policy", "constant", reconnect_policy)
+  PHP_SCYLLADB_INI_LONG("reconnect_max_interval", PHP_SCYLLADB_DEFAULT_RECONNECT_MAX_INTERVAL,
+                        OnUpdatePositiveLong, reconnect_max_interval)
+
+  /* 0 delay disables speculative execution, which is the driver default. */
+  PHP_SCYLLADB_INI_LONG("speculative_execution_delay", PHP_SCYLLADB_DEFAULT_SPECULATIVE_DELAY,
+                        OnUpdateLongGEZero, speculative_execution_delay)
+  PHP_SCYLLADB_INI_LONG("speculative_execution_max", PHP_SCYLLADB_DEFAULT_SPECULATIVE_MAX,
+                        OnUpdateLongGEZero, speculative_execution_max)
+
+  /* Event-loop tuning. Change these against a measurement, not a hunch. */
+  PHP_SCYLLADB_INI_LONG("coalesce_delay", PHP_SCYLLADB_DEFAULT_COALESCE_DELAY, OnUpdatePositiveLong,
+                        coalesce_delay)
+  PHP_SCYLLADB_INI_LONG("new_request_ratio", PHP_SCYLLADB_DEFAULT_NEW_REQUEST_RATIO,
+                        OnUpdateNewRequestRatio, new_request_ratio)
+
+  /* Each default below is the C driver's own, so exposing the setting changes
+   * nothing until an operator sets it. */
+  PHP_SCYLLADB_INI_STR("local_address", "", local_address)
+  PHP_SCYLLADB_INI_LONG("connection_idle_timeout", PHP_SCYLLADB_DEFAULT_CONNECTION_IDLE_TIMEOUT,
+                        OnUpdatePositiveLong, connection_idle_timeout)
+  PHP_SCYLLADB_INI_LONG("max_schema_wait_time", PHP_SCYLLADB_DEFAULT_MAX_SCHEMA_WAIT_TIME,
+                        OnUpdatePositiveLong, max_schema_wait_time)
+  PHP_SCYLLADB_INI_LONG("resolve_timeout", PHP_SCYLLADB_DEFAULT_RESOLVE_TIMEOUT, OnUpdatePositiveLong,
+                        resolve_timeout)
+  PHP_SCYLLADB_INI_LONG("monitor_reporting_interval", PHP_SCYLLADB_DEFAULT_MONITOR_REPORTING_INTERVAL,
+                        OnUpdateLongGEZero, monitor_reporting_interval)
+  PHP_SCYLLADB_INI_LONG("queue_size_io", PHP_SCYLLADB_DEFAULT_QUEUE_SIZE_IO, OnUpdatePositiveLong,
+                        queue_size_io)
+  PHP_SCYLLADB_INI_BOOL("prepare_on_all_hosts", "1", prepare_on_all_hosts)
+  PHP_SCYLLADB_INI_BOOL("prepare_on_up_or_add_host", "1", prepare_on_up_or_add_host)
+  PHP_SCYLLADB_INI_BOOL("shuffle_replicas", "1", shuffle_replicas)
+  PHP_SCYLLADB_INI_BOOL("no_compact", "0", no_compact)
+  PHP_SCYLLADB_INI_BOOL("beta_protocol", "0", beta_protocol)
+
+  /* Request tracing. These only matter for statements that turn tracing on. */
+  PHP_SCYLLADB_INI_LONG("tracing_consistency", PHP_SCYLLADB_DEFAULT_TRACING_CONSISTENCY_NAME,
+                        OnUpdateTracingConsistency, tracing_consistency)
+  PHP_SCYLLADB_INI_LONG("tracing_max_wait_time", PHP_SCYLLADB_DEFAULT_TRACING_MAX_WAIT,
+                        OnUpdatePositiveLong, tracing_max_wait_time)
+  PHP_SCYLLADB_INI_LONG("tracing_retry_wait_time", PHP_SCYLLADB_DEFAULT_TRACING_RETRY_WAIT,
+                        OnUpdatePositiveLong, tracing_retry_wait_time)
 PHP_INI_END()
 // clang-format on
 
@@ -214,7 +338,31 @@ static void php_scylladb_log_cleanup(void) {
     free(log_location);
     log_location = nullptr;
   }
+  log_target = PHP_SCYLLADB_LOG_STDERR;
+  if (log_syslog_opened) {
+    closelog();
+    log_syslog_opened = false;
+  }
   pthread_rwlock_unlock(&log_lock);
+}
+
+[[gnu::const]]
+static int php_scylladb_syslog_priority(CassLogLevel severity) {
+  switch (severity) {
+    case CASS_LOG_CRITICAL:
+      return LOG_CRIT;
+    case CASS_LOG_ERROR:
+      return LOG_ERR;
+    case CASS_LOG_WARN:
+      return LOG_WARNING;
+    case CASS_LOG_INFO:
+      return LOG_INFO;
+    case CASS_LOG_DEBUG:
+    case CASS_LOG_TRACE:
+      return LOG_DEBUG;
+    default:
+      return LOG_NOTICE;
+  }
 }
 
 static void php_scylladb_log_initialize(void) {
@@ -225,9 +373,11 @@ static void php_scylladb_log_initialize(void) {
 static void php_scylladb_log(const CassLogMessage *message, void *data) {
   char log[MAXPATHLEN + 1];
   uint log_length = 0;
+  php_scylladb_log_target target;
 
   /* Making a copy here because location could be updated by a PHP thread. */
   pthread_rwlock_rdlock(&log_lock);
+  target = log_target;
   if (log_location) {
     log_length = MIN(strlen(log_location), MAXPATHLEN);
     memcpy(log, log_location, log_length);
@@ -236,7 +386,14 @@ static void php_scylladb_log(const CassLogMessage *message, void *data) {
 
   log[log_length] = '\0';
 
-  if (log_length > 0) {
+  if (target == PHP_SCYLLADB_LOG_SYSLOG) {
+    /* syslog(3) is thread-safe and adds its own timestamp and ident. */
+    syslog(php_scylladb_syslog_priority(message->severity), "%s (%s:%d)", message->message,
+           message->file, message->line);
+    return;
+  }
+
+  if (target == PHP_SCYLLADB_LOG_FILE && log_length > 0) {
     FILE *fd = nullptr;
     fd = fopen(log, "a");
     if (fd) {
@@ -407,21 +564,166 @@ PHP_INI_MH(OnUpdateLog) {
     free(log_location);
     log_location = nullptr;
   }
-  if (new_value) {
-    if (strcmp(ZSTR_VAL(new_value), "syslog") != 0) {
+  log_target = PHP_SCYLLADB_LOG_STDERR;
+
+  if (new_value && ZSTR_LEN(new_value) > 0) {
+    if (zend_string_equals_literal_ci(new_value, "syslog")) {
+      log_target = PHP_SCYLLADB_LOG_SYSLOG;
+      if (!log_syslog_opened) {
+        /* LOG_NDELAY so the socket exists before a libuv thread first logs. */
+        openlog(PHP_SCYLLADB_NAME, LOG_PID | LOG_NDELAY, LOG_USER);
+        log_syslog_opened = true;
+      }
+    } else if (!zend_string_equals_literal_ci(new_value, "stderr")) {
       char realpath[MAXPATHLEN + 1];
       if (VCWD_REALPATH(ZSTR_VAL(new_value), realpath)) {
         log_location = strdup(realpath);
       } else {
         log_location = strdup(ZSTR_VAL(new_value));
       }
-    } else {
-      log_location = strdup(ZSTR_VAL(new_value));
+      if (log_location) {
+        log_target = PHP_SCYLLADB_LOG_FILE;
+      }
     }
   }
   pthread_rwlock_unlock(&log_lock);
 
   return SUCCESS;
+}
+
+/* Reject-and-keep-default rather than clamp. Returning FAILURE makes the Zend
+ * INI machinery restore the entry's default string, so ini_get() and phpinfo()
+ * report the value the driver actually uses. Leaving `out` untouched keeps the
+ * default that GINIT seeded. Startup is not aborted either way. */
+static zend_result php_scylladb_ini_bounded_long(const zend_ini_entry *entry,
+                                                 const zend_string *new_value, zend_long *out,
+                                                 zend_long min, zend_long max) {
+  if (new_value == nullptr) {
+    return SUCCESS;
+  }
+
+  zend_long value = ZEND_STRTOL(ZSTR_VAL(new_value), nullptr, 10);
+
+  if (value < min || value > max) {
+    php_error_docref(nullptr, E_WARNING,
+                     PHP_SCYLLADB_NAME " | %s must be between " ZEND_LONG_FMT " and " ZEND_LONG_FMT
+                                       ", ignoring '%s' and using the default",
+                     ZSTR_VAL(entry->name), min, max, ZSTR_VAL(new_value));
+    return FAILURE;
+  }
+
+  *out = value;
+  return SUCCESS;
+}
+
+PHP_INI_MH(OnUpdatePositiveLong) {
+  return php_scylladb_ini_bounded_long(entry, new_value, (zend_long *)ZEND_INI_GET_ADDR(), 1,
+                                       ZEND_LONG_MAX);
+}
+
+PHP_INI_MH(OnUpdatePort) {
+  return php_scylladb_ini_bounded_long(entry, new_value, (zend_long *)ZEND_INI_GET_ADDR(), 1, 65535);
+}
+
+PHP_INI_MH(OnUpdateProtocolVersion) {
+  return php_scylladb_ini_bounded_long(entry, new_value, (zend_long *)ZEND_INI_GET_ADDR(), 1, 5);
+}
+
+PHP_INI_MH(OnUpdateTracingConsistency) {
+  if (!new_value) {
+    return SUCCESS;
+  }
+
+  int32_t consistency = php_scylladb_consistency_from_name(ZSTR_VAL(new_value));
+
+  if (consistency < 0) {
+    php_error_docref(nullptr, E_WARNING,
+                     PHP_SCYLLADB_NAME " | Unknown tracing consistency '%s', using '%s'",
+                     ZSTR_VAL(new_value), PHP_SCYLLADB_DEFAULT_TRACING_CONSISTENCY_NAME);
+    return FAILURE;
+  }
+
+  *(zend_long *)ZEND_INI_GET_ADDR() = consistency;
+  return SUCCESS;
+}
+
+PHP_INI_MH(OnUpdateNewRequestRatio) {
+  /* cass_cluster_set_new_request_ratio documents a range of 1 to 100. */
+  return php_scylladb_ini_bounded_long(entry, new_value, (zend_long *)ZEND_INI_GET_ADDR(), 1, 100);
+}
+
+PHP_INI_MH(OnUpdatePersistentMax) {
+  /* -1 means unlimited, 0 disables caching for that resource kind. */
+  return php_scylladb_ini_bounded_long(entry, new_value, (zend_long *)ZEND_INI_GET_ADDR(), -1,
+                                       ZEND_LONG_MAX);
+}
+
+PHP_INI_MH(OnUpdateDefaultConsistency) {
+  if (!new_value) {
+    return SUCCESS;
+  }
+
+  int32_t consistency = php_scylladb_consistency_from_name(ZSTR_VAL(new_value));
+
+  if (consistency < 0) {
+    /* FAILURE restores the default string on the entry, so ini_get() agrees
+     * with the value GINIT left in the globals. */
+    php_error_docref(nullptr, E_WARNING,
+                     PHP_SCYLLADB_NAME " | Unknown consistency '%s', using '%s'",
+                     ZSTR_VAL(new_value), PHP_SCYLLADB_DEFAULT_CONSISTENCY_NAME);
+    return FAILURE;
+  }
+
+  /* ZEND_INI_GET_ADDR, not PHP_SCYLLADB_G: under ZTS the latter resolves the
+   * thread-local pointer through TSRMG, which is the wrong way to reach module
+   * globals from an INI handler. Every other handler here uses the same idiom. */
+  *(zend_long *)ZEND_INI_GET_ADDR() = consistency;
+  return SUCCESS;
+}
+
+bool php_scylladb_persistent_can_cache(php_scylladb_persistent_kind kind) {
+  zend_long limit;
+  unsigned int used;
+  bool *warned;
+  const char *what;
+
+  switch (kind) {
+    case PHP_SCYLLADB_PERSISTENT_CLUSTERS:
+      limit = PHP_SCYLLADB_G(max_persistent_clusters);
+      used = PHP_SCYLLADB_G(persistent_clusters);
+      warned = &PHP_SCYLLADB_G(warned_cluster_cap);
+      what = "clusters";
+      break;
+    case PHP_SCYLLADB_PERSISTENT_SESSIONS:
+      limit = PHP_SCYLLADB_G(max_persistent_sessions);
+      used = PHP_SCYLLADB_G(persistent_sessions);
+      warned = &PHP_SCYLLADB_G(warned_session_cap);
+      what = "sessions";
+      break;
+    case PHP_SCYLLADB_PERSISTENT_PREPARED_STATEMENTS:
+      limit = PHP_SCYLLADB_G(max_persistent_prepared_statements);
+      used = PHP_SCYLLADB_G(persistent_prepared_statements);
+      warned = &PHP_SCYLLADB_G(warned_prepared_statement_cap);
+      what = "prepared_statements";
+      break;
+    default:
+      return true;
+  }
+
+  if (limit < 0 || (zend_long)used < limit) {
+    return true;
+  }
+
+  if (!*warned) {
+    *warned = true;
+    php_error_docref(nullptr, E_WARNING,
+                     PHP_SCYLLADB_NAME " | " PHP_SCYLLADB_NAME
+                                       ".max_persistent_%s reached (" ZEND_LONG_FMT
+                                       "); further %s are rebuilt on every request",
+                     what, limit, what);
+  }
+
+  return false;
 }
 
 static PHP_GINIT_FUNCTION(php_scylladb) {
@@ -432,6 +734,42 @@ static PHP_GINIT_FUNCTION(php_scylladb) {
   php_scylladb_globals->persistent_sessions = 0;
   php_scylladb_globals->persistent_prepared_statements = 0;
   php_scylladb_globals->expose_credentials = false;
+  php_scylladb_globals->warned_cluster_cap = false;
+  php_scylladb_globals->warned_session_cap = false;
+  php_scylladb_globals->warned_prepared_statement_cap = false;
+
+  /* GINIT runs before REGISTER_INI_ENTRIES, so a directive the handler rejects
+   * leaves its default here. These must match the PHP_SCYLLADB_DEFAULT_* strings
+   * in the INI table; the shared _N macros are what guarantees that. */
+  php_scylladb_globals->max_persistent_clusters = PHP_SCYLLADB_DEFAULT_MAX_PERSISTENT_CLUSTERS_N;
+  php_scylladb_globals->max_persistent_sessions = PHP_SCYLLADB_DEFAULT_MAX_PERSISTENT_SESSIONS_N;
+  php_scylladb_globals->max_persistent_prepared_statements =
+      PHP_SCYLLADB_DEFAULT_MAX_PERSISTENT_PREPARED_N;
+  php_scylladb_globals->port = PHP_SCYLLADB_DEFAULT_PORT_N;
+  php_scylladb_globals->connect_timeout = PHP_SCYLLADB_DEFAULT_CONNECT_TIMEOUT_N;
+  php_scylladb_globals->request_timeout = PHP_SCYLLADB_DEFAULT_REQUEST_TIMEOUT_N;
+  php_scylladb_globals->default_consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
+  php_scylladb_globals->default_page_size = PHP_SCYLLADB_DEFAULT_PAGE_SIZE_N;
+  php_scylladb_globals->protocol_version = PHP_SCYLLADB_DEFAULT_PROTOCOL_VERSION_N;
+  php_scylladb_globals->io_threads = PHP_SCYLLADB_DEFAULT_IO_THREADS_N;
+  php_scylladb_globals->core_connections_per_host = PHP_SCYLLADB_DEFAULT_CORE_CONNECTIONS_PER_HOST_N;
+  php_scylladb_globals->max_connections_per_host = PHP_SCYLLADB_DEFAULT_MAX_CONNECTIONS_PER_HOST_N;
+  php_scylladb_globals->reconnect_interval = PHP_SCYLLADB_DEFAULT_RECONNECT_INTERVAL_N;
+  php_scylladb_globals->connection_heartbeat_interval = PHP_SCYLLADB_DEFAULT_HEARTBEAT_INTERVAL_N;
+  php_scylladb_globals->tcp_keepalive_delay = PHP_SCYLLADB_DEFAULT_TCP_KEEPALIVE_DELAY_N;
+  php_scylladb_globals->reconnect_max_interval = PHP_SCYLLADB_DEFAULT_RECONNECT_MAX_INTERVAL_N;
+  php_scylladb_globals->speculative_execution_delay = PHP_SCYLLADB_DEFAULT_SPECULATIVE_DELAY_N;
+  php_scylladb_globals->speculative_execution_max = PHP_SCYLLADB_DEFAULT_SPECULATIVE_MAX_N;
+  php_scylladb_globals->coalesce_delay = PHP_SCYLLADB_DEFAULT_COALESCE_DELAY_N;
+  php_scylladb_globals->new_request_ratio = PHP_SCYLLADB_DEFAULT_NEW_REQUEST_RATIO_N;
+  php_scylladb_globals->connection_idle_timeout = PHP_SCYLLADB_DEFAULT_CONNECTION_IDLE_TIMEOUT_N;
+  php_scylladb_globals->max_schema_wait_time = PHP_SCYLLADB_DEFAULT_MAX_SCHEMA_WAIT_TIME_N;
+  php_scylladb_globals->resolve_timeout = PHP_SCYLLADB_DEFAULT_RESOLVE_TIMEOUT_N;
+  php_scylladb_globals->monitor_reporting_interval = PHP_SCYLLADB_DEFAULT_MONITOR_REPORTING_INTERVAL_N;
+  php_scylladb_globals->queue_size_io = PHP_SCYLLADB_DEFAULT_QUEUE_SIZE_IO_N;
+  php_scylladb_globals->tracing_consistency = PHP_SCYLLADB_DEFAULT_TRACING_CONSISTENCY;
+  php_scylladb_globals->tracing_max_wait_time = PHP_SCYLLADB_DEFAULT_TRACING_MAX_WAIT_N;
+  php_scylladb_globals->tracing_retry_wait_time = PHP_SCYLLADB_DEFAULT_TRACING_RETRY_WAIT_N;
   ZVAL_UNDEF(&php_scylladb_globals->type_varchar);
   ZVAL_UNDEF(&php_scylladb_globals->type_text);
   ZVAL_UNDEF(&php_scylladb_globals->type_blob);
@@ -506,6 +844,10 @@ PHP_RINIT_FUNCTION(php_scylladb) {
 #define XX_SCALAR(name, value) ZVAL_UNDEF(&PHP_SCYLLADB_G(type_## name));
   PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
+
+  PHP_SCYLLADB_G(warned_cluster_cap) = false;
+  PHP_SCYLLADB_G(warned_session_cap) = false;
+  PHP_SCYLLADB_G(warned_prepared_statement_cap) = false;
 
   return SUCCESS;
 }

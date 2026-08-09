@@ -115,3 +115,71 @@ if (! function_exists('persistentScyllaDbBuilder')) {
     }
 }
 
+
+if (! function_exists('phpWithIni')) {
+    /**
+     * Runs a snippet in a fresh PHP process with php.ini overrides.
+     *
+     * Every driver directive is PHP_INI_SYSTEM, so a child process is the only
+     * way to observe a non-default value. Returns null when the child cannot
+     * load the same extension binary as the parent — set SCYLLADB_EXTENSION_PATH
+     * to the built module when it is not in extension_dir.
+     *
+     * `payload` holds only what the snippet echoed. The snippet runs inside an
+     * output buffer whose contents go to a temp file, because the C driver
+     * writes a banner straight to file descriptor 1 and would otherwise
+     * interleave with it. `payload` is null when the snippet died early.
+     *
+     * @param array<string, scalar> $ini
+     * @return array{stdout: string, payload: ?string, stderr: string, exit: int}|null
+     */
+    function phpWithIni(string $snippet, array $ini = []): ?array
+    {
+        /* display_errors=stderr keeps warnings off stdout so a test can assert
+         * on them without the snippet output in the way. */
+        $args = [
+            '-n',
+            '-d', 'extension=' . (env('SCYLLADB_EXTENSION_PATH') ?: 'cassandra'),
+            '-d', 'display_errors=stderr',
+        ];
+
+        foreach ($ini as $key => $value) {
+            $args[] = '-d';
+            $args[] = $key . '=' . $value;
+        }
+
+        $payloadFile = tempnam(sys_get_temp_dir(), 'scylladb-ini-');
+        if ($payloadFile === false) {
+            return null;
+        }
+
+        $args[] = '-r';
+        $args[] = 'ob_start(); ' . $snippet
+            . ' ; file_put_contents(' . var_export($payloadFile, true) . ', ob_get_clean());';
+
+        $cmd = implode(' ', array_map('escapeshellarg', [PHP_BINARY, ...$args]));
+
+        $pipes = [];
+        $proc  = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        if (! is_resource($proc)) {
+            unlink($payloadFile);
+            return null;
+        }
+
+        $stdout = stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $exit = proc_close($proc);
+
+        $payload = file_get_contents($payloadFile);
+        unlink($payloadFile);
+
+        return [
+            'stdout'  => $stdout,
+            'payload' => $payload === false || $payload === '' ? null : $payload,
+            'stderr'  => $stderr,
+            'exit'    => $exit,
+        ];
+    }
+}

@@ -101,6 +101,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         self->page_size = Z_LVAL_P(page_size);
     }
 
+
     if ((paging_state_token = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("paging_state_token"))) != nullptr)
     {
         if (Z_TYPE_P(paging_state_token) != IS_STRING)

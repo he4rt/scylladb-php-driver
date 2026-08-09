@@ -17,13 +17,14 @@ $cluster = Cassandra::cluster()
 | `withPort` | `int $port` | `9042` | The CQL native port on every node |
 | `withCredentials` | `string $username, string $password` | none | Password authentication. The password is a `SensitiveParameter` |
 | `withSSL` | `Cassandra\SSLOptions $options` | none | TLS settings from `Cassandra::ssl()` |
-| `withDefaultConsistency` | `int $consistency` | `CONSISTENCY_LOCAL_ONE` | Consistency for statements that set none |
+| `withDefaultConsistency` | `int $consistency` | `CONSISTENCY_LOCAL_QUORUM` | Consistency for statements that set none |
 | `withDefaultPageSize` | `int $pageSize` | `5000` | Rows per page for statements that set none |
 | `withDefaultTimeout` | `float $timeout` | none | Seconds. Timeout for statements that set none |
 | `withConnectTimeout` | `float $timeout` | `5.0` | Seconds. Bounds one connection handshake |
 | `withRequestTimeout` | `float $timeout` | `12.0` | Seconds. The hard ceiling on one request |
 | `withRoundRobinLoadBalancingPolicy` | — | active | Cycle through every node in the cluster |
 | `withDatacenterAwareRoundRobinLoadBalancingPolicy` | `string $localDatacenter, int $hostPerRemoteDatacenter, bool $useRemoteDatacenterForLocalConsistencies` | — | Prefer the local datacenter. All three arguments are required |
+| `withRackAwareLoadBalancingPolicy` | `string $localDatacenter = '', string $localRack = ''` | — | ScyllaDB only. Prefer the local rack, then the local datacenter. Empty strings let the driver infer both from the first contact point |
 | `withTokenAwareRouting` | `bool $enabled = true` | `true` | Send a request straight to a replica that owns the data |
 | `withLatencyAwareRouting` | `bool $enabled = true` | `true` | Push consistently slow nodes down the candidate list |
 | `withWhiteListHosts` | `string ...$hosts` | none | Use only these nodes |
@@ -33,9 +34,16 @@ $cluster = Cassandra::cluster()
 | `withConnectionsPerHost` | `int $core, int $max = 2` | `1`, `2` | Pool size per node. Each value must be 1 to 128 |
 | `withIOThreads` | `int $count` | `1` | Event loop threads in the C driver. 1 to 128 |
 | `withReconnectInterval` | `float $interval` | `2.0` | Seconds between attempts to reach a node that is down |
-| `withConnectionHeartbeatInterval` | `float $interval` | `30.0` | Seconds between keepalive requests on an idle connection. [Defect in 1.4.x](/guide/connection-tuning#heartbeats-and-reconnection) |
+| `withConnectionHeartbeatInterval` | `float $interval` | `30.0` | Seconds between keepalive requests on an idle connection |
+| `withExponentialReconnect` | `float $baseInterval, float $maxInterval` | — | Back off from base to max, in seconds, with jitter. Replaces the constant delay |
+| `withApplicationName` | `string $name` | — | Reported as `APPLICATION_NAME` in `system.clients.client_options` |
+| `withApplicationVersion` | `string $version` | — | Reported as `APPLICATION_VERSION` in the same map |
+| `withConstantSpeculativeExecutionPolicy` | `float $delay, int $maxSpeculativeExecutions = 2` | off | Re-send a slow request to another replica after `$delay` seconds. Idempotent statements only |
+| `withNoSpeculativeExecutionPolicy` | — | default | Turn speculative execution off |
+| `withCoalesceDelay` | `int $microseconds` | `200` | How long the driver batches writes into one system call |
+| `withNewRequestRatio` | `int $ratio` | `50` | Split IO thread time between new and outstanding requests, 1 to 100 |
 | `withTCPNodelay` | `bool $enabled = true` | `true` | Disable Nagle's algorithm |
-| `withTCPKeepalive` | `?float $delay` | disabled | Seconds. Pass `null` to disable. [Defect in 1.4.x](/guide/connection-tuning#tcp-options) |
+| `withTCPKeepalive` | `?float $delay` | disabled | Seconds. Pass `null` to disable |
 | `withProtocolVersion` | `int $version` | `4` | CQL protocol version |
 | `withPersistentSessions` | `bool $enabled = true` | `true` | Cache the session in the PHP worker process |
 | `withSchemaMetadata` | `bool $enabled = true` | `true` | Fetch and track the schema. Required for token awareness |
@@ -88,7 +96,7 @@ See [load balancing and routing](/guide/load-balancing).
 ->withConnectTimeout(5.0)
 ->withRequestTimeout(12.0)
 ->withReconnectInterval(2.0)
-->withConnectionHeartbeatInterval(0.03)   // 30 seconds, see the defect note in the guide
+->withConnectionHeartbeatInterval(30.0)   // 30 seconds
 ->withTCPNodelay(true)
 ->withTCPKeepalive(null)
 ```

@@ -131,7 +131,7 @@ The default is 5000. See [results and paging](/guide/results#choosing-a-page-siz
 | `CONSISTENCY_QUORUM` | A quorum across datacenters | A cross-region round trip |
 | `CONSISTENCY_ALL` | Every replica | Highest, and fragile |
 
-Set the cluster default to `LOCAL_QUORUM` and lower it per query where staleness is acceptable:
+`LOCAL_QUORUM` is the cluster default. Lower it per query where staleness is acceptable:
 
 ```php
 $rows = $session->execute($popularItems, [
@@ -148,7 +148,7 @@ Defaults suit PHP-FPM. Change them only against a measurement. See
 | --- | --- | --- |
 | `withConnectionsPerHost(core, max)` | 1, 2 | Latency rises while node CPU stays low |
 | `withIOThreads(n)` | 1 | One process drives many concurrent futures |
-| `withConnectionHeartbeatInterval(s)` | 30 | Never raise. Lower it behind an idle-flow-killing firewall. [Defect in 1.4.x](/guide/connection-tuning#heartbeats-and-reconnection) |
+| `withConnectionHeartbeatInterval(s)` | 30 | Never raise. Lower it behind an idle-flow-killing firewall. |
 
 Remember the multiplier: connections per host times nodes times PHP worker processes is the total
 socket count from one machine.

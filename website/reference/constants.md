@@ -29,7 +29,9 @@ printf("driver %s on cpp-driver %s\n", Cassandra::VERSION, Cassandra::CPP_DRIVER
 | `Cassandra::CONSISTENCY_SERIAL` | For a lightweight transaction, across datacenters |
 | `Cassandra::CONSISTENCY_LOCAL_SERIAL` | For a lightweight transaction, local datacenter |
 
-The cluster default is `CONSISTENCY_LOCAL_ONE`. Most applications set `CONSISTENCY_LOCAL_QUORUM`.
+The cluster default is `CONSISTENCY_LOCAL_QUORUM`. Change it per statement when a query values
+latency over freshness. Set `cassandra.default_consistency` in `php.ini` to change it for a whole
+deployment.
 
 ```php
 $cluster = Cassandra::cluster()

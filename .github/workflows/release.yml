@@ -122,9 +122,206 @@ jobs:
           retention-days: 5
           overwrite: true
 
+  # Compile each PHP prefix once and put it in the cache. Without this stage the
+  # build matrix below would compile the same PHP twice per (php, phpts, arch),
+  # once for each driver, because both jobs start on an empty cache together.
+  php-manylinux:
+    name: PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    needs: [tag]
+    container:
+      image: quay.io/pypa/manylinux_2_28_${{ matrix.arch }}:2026.08.08-1
+    strategy:
+      fail-fast: true
+      matrix:
+        php:
+          - "8.3"
+          - "8.4"
+          - "8.5"
+        arch:
+          - "x86_64"
+          - "aarch64"
+        phpts:
+          - "nts"
+          - "ts"
+        include:
+          - arch: "x86_64"
+            runner: "ubuntu-26.04"
+          - arch: "aarch64"
+            runner: "ubuntu-26.04-arm"
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+
+      - uses: ./.github/actions/build-php-source
+        with:
+          php: ${{ matrix.php }}
+          phpts: ${{ matrix.phpts }}
+
+  # Same reasoning for the C++ driver: six jobs share each (driver, arch) cache
+  # entry and would otherwise all build it from source at the same time.
+  driver-manylinux:
+    name: ${{ matrix.driver }} driver / ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    needs: [tag]
+    container:
+      image: quay.io/pypa/manylinux_2_28_${{ matrix.arch }}:2026.08.08-1
+    env:
+      CCACHE_DIR: /tmp/ccache
+    strategy:
+      fail-fast: true
+      matrix:
+        arch:
+          - "x86_64"
+          - "aarch64"
+        driver:
+          - "scylladb"
+          - "cassandra"
+        include:
+          - arch: "x86_64"
+            runner: "ubuntu-26.04"
+          - arch: "aarch64"
+            runner: "ubuntu-26.04-arm"
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+
+      - uses: ./.github/actions/install-cpp-driver
+        with:
+          driver: ${{ matrix.driver }}
+
+  # Portable build for every other glibc distribution. The Ubuntu job above
+  # links against the runner's glibc, so its artifacts only load on that
+  # release or newer. manylinux_2_28 is AlmaLinux 8 with gcc-toolset-14: the
+  # module needs glibc 2.28, which covers RHEL/Rocky/Alma 8+, Debian 10+,
+  # Ubuntu 18.04+, openSUSE Leap 15.2+ and Amazon Linux 2023.
+  build-manylinux:
+    name: manylinux_2_28_${{ matrix.arch }} / PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
+    runs-on: ${{ matrix.runner }}
+    needs: [tag, php-manylinux, driver-manylinux]
+    container:
+      image: quay.io/pypa/manylinux_2_28_${{ matrix.arch }}:2026.08.08-1
+    env:
+      # HOME is /github/home in a container job, so ccache's default location
+      # moves with it. Pin it to keep the cache path and the tool in agreement.
+      CCACHE_DIR: /tmp/ccache
+    strategy:
+      fail-fast: true
+      matrix:
+        php:
+          - "8.3"
+          - "8.4"
+          - "8.5"
+        arch:
+          - "x86_64"
+          - "aarch64"
+        phpts:
+          - "nts"
+          - "ts"
+        driver:
+          - "scylladb"
+          - "cassandra"
+        include:
+          - arch: "x86_64"
+            runner: "ubuntu-26.04"
+          - arch: "aarch64"
+            runner: "ubuntu-26.04-arm"
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      # The image runs as root and ships no sudo. EPEL is already enabled and
+      # provides ninja-build, ccache and libuv-devel.
+      - name: Install system dependencies
+        run: |
+          dnf install -y --setopt=install_weak_deps=False \
+            ninja-build ccache pkgconf-pkg-config libuv-devel gmp-devel \
+            binutils
+
+      - name: Cache ccache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: /tmp/ccache
+          key: release-manylinux-${{ matrix.arch }}-${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}
+          restore-keys: |
+            release-manylinux-${{ matrix.arch }}-${{ matrix.php }}-${{ matrix.phpts }}-
+            release-manylinux-${{ matrix.arch }}-${{ matrix.php }}-
+
+      # setup-php has no AlmaLinux support, so PHP is compiled from source.
+      - uses: ./.github/actions/build-php-source
+        id: php
+        with:
+          php: ${{ matrix.php }}
+          phpts: ${{ matrix.phpts }}
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: ${{ matrix.driver }}
+
+      - uses: ./.github/actions/build-extension
+        with:
+          driver: ${{ matrix.driver }}
+          cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
+          build_type: Release
+          enable_lto: ON
+
+      # Guard the promise the artifact name makes. Without it a toolchain or
+      # base-image bump raises the floor silently and the module stops loading
+      # on the distributions this job exists to serve.
+      - name: Verify manylinux_2_28 ABI floor
+        run: |
+          MODULE="$(php-config --extension-dir)/cassandra.so"
+
+          # gcc-toolset-14 links against the RHEL 8 system libstdc++ and embeds
+          # only the newer library parts statically, so a dynamic libstdc++
+          # dependency is correct here. What matters is the version it asks for:
+          # RHEL 8 provides GLIBCXX up to 3.4.25 and CXXABI up to 1.3.11.
+          check_max() {
+            local tag="$1" ceiling="$2" found
+            found="$(objdump -T "$MODULE" \
+              | grep -o "${tag}_[0-9][0-9.]*" | sed "s/${tag}_//" \
+              | sort -V | tail -1 || true)"
+            echo "highest referenced ${tag}: ${found:-none}"
+            if [[ -n "$found" ]] \
+               && [[ "$(printf '%s\n%s\n' "$found" "$ceiling" | sort -V | tail -1)" != "$ceiling" ]]; then
+              echo "::error::module needs ${tag}_${found}, above the ${ceiling} floor"
+              return 1
+            fi
+          }
+
+          check_max GLIBC   2.28
+          check_max GLIBCXX 3.4.25
+          check_max CXXABI  1.3.11
+
+          ldd "$MODULE"
+
+      - name: Package artifact
+        run: |
+          EXT_DIR="$(php-config --extension-dir)"
+          ARTIFACT="manylinux_2_28_${{ matrix.arch }}-php${{ matrix.php }}-${{ matrix.phpts }}-${{ matrix.driver }}"
+          cp "${EXT_DIR}/cassandra.so" .
+          tar czf "${ARTIFACT}.tar.gz" cassandra.so cassandra.ini
+          echo "ARTIFACT=${ARTIFACT}" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: ${{ env.ARTIFACT }}.tar.gz
+          if-no-files-found: error
+          retention-days: 5
+          overwrite: true
+
   release:
     runs-on: ubuntu-26.04
-    needs: [build, tag]
+    needs: [build, build-manylinux, tag]
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:

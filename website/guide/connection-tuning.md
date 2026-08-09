@@ -81,20 +81,11 @@ covers almost every such case.
 ->withReconnectInterval(2.0)              // seconds, default 2
 ```
 
-::: danger Known defect in 1.4.x: the heartbeat interval is 1000 times too long
-`withConnectionHeartbeatInterval()` converts the value to milliseconds, but the underlying C driver
-expects seconds. `withConnectionHeartbeatInterval(30.0)` therefore asks for 30000 seconds, which is
-about 8 hours, and heartbeats effectively stop.
-
-The default of 30 seconds is correct, because it never passes through the conversion. **Call the
-method only if you need a value other than the default**, and divide by 1000 until the fix ships:
-
-```php
-->withConnectionHeartbeatInterval(0.02)   // asks for 20 seconds today
-```
-
-`withTCPKeepalive()` has the same defect. See
-[TCP options](#tcp-options).
+::: tip Fixed since 1.4.x
+Up to 1.4.x, `withConnectionHeartbeatInterval()` and `withTCPKeepalive()` passed a value 1000 times
+too large to the C driver, so `withConnectionHeartbeatInterval(30.0)` asked for 30000 seconds and
+heartbeats effectively stopped. Both now take seconds, as documented. If you divided by 1000 to work
+around the old behaviour, remove that workaround.
 :::
 
 The heartbeat sends a lightweight request on an idle connection. It has two jobs: it detects a
@@ -121,16 +112,8 @@ TCP keepalive is the kernel-level probe. It is off by default because the driver
 the same failure at the protocol level. Turn it on when a network device drops idle flows below the
 protocol layer.
 
-::: danger Known defect in 1.4.x: the keepalive delay is 1000 times too long
-`withTCPKeepalive()` converts the value to milliseconds, but the underlying C driver expects
-seconds. `withTCPKeepalive(60.0)` asks for 60000 seconds. Divide by 1000 until the fix ships:
-
-```php
-->withTCPKeepalive(0.06)   // asks for 60 seconds today
-```
-
-Passing `null` still disables keepalive correctly, because that path skips the conversion.
-:::
+`withTCPKeepalive()` takes seconds, and `null` disables it. See the note under
+[heartbeats and reconnection](#heartbeats-and-reconnection) if you are upgrading from 1.4.x.
 
 ## Protocol version
 
@@ -179,7 +162,7 @@ $cluster = Cassandra::cluster()
     ->withIOThreads(1)
 
     // Survive an idle-flow-killing firewall.
-    ->withConnectionHeartbeatInterval(0.02)   // 20 seconds, see the defect note above
+    ->withConnectionHeartbeatInterval(20.0)   // 20 seconds
     ->withReconnectInterval(2.0)
     ->withTCPNodelay(true)
 

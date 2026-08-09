@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LIBUV_VERSION="v1.50.0"
+LIBUV_VERSION="v1.52.1"
 LIBUV_REPO="https://github.com/libuv/libuv.git"
 INSTALL_PREFIX="/usr/local"
 BUILD_DIR=""

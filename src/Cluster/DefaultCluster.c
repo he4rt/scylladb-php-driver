@@ -79,6 +79,13 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
             session->session = psession->session;   /* borrowed; psession owns */
             future = psession->future;
         }
+
+        /* Cache miss with the pool full: fall back to a private session so the
+           object destructor frees it, instead of growing persistent_list. */
+        if (future == nullptr && !php_scylladb_persistent_can_cache(PHP_SCYLLADB_PERSISTENT_SESSIONS))
+        {
+            session->persist = cass_false;
+        }
     }
 
     if (future == nullptr)
@@ -135,6 +142,13 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
         }
         return;
     }
+
+    /* Success on the non-persistent path: nothing owns this future. The
+       persistent path hands it to the psession entry instead. */
+    if (!session->persist)
+    {
+        cass_future_free(future);
+    }
 }
 
 ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
@@ -173,6 +187,11 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
             future->future = psession->future;
             return;
         }
+
+        if (!php_scylladb_persistent_can_cache(PHP_SCYLLADB_PERSISTENT_SESSIONS))
+        {
+            future->persist = cass_false;
+        }
     }
 
     future->session = cass_session_new();
@@ -186,7 +205,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         future->future = cass_session_connect(future->session, self->cluster);
     }
 
-    if (self->persist)
+    if (future->persist)
     {
         zval resource;
         php_scylladb_psession *psession = (php_scylladb_psession *)pecalloc(1, sizeof(php_scylladb_psession), 1);

@@ -3,8 +3,108 @@
 extension=cassandra.so
 
 [cassandra]
+; Every setting below is PHP_INI_SYSTEM. ini_set() cannot change them.
+
+; --- Logging ---------------------------------------------------------------
+
 ; Log level: CRITICAL | ERROR | WARN | INFO | DEBUG | TRACE
 cassandra.log_level = ERROR
 
-; Log file path (empty = stderr)
+; Log target: a file path, "syslog", or "stderr". An empty value means stderr.
 cassandra.log = /var/log/php-cassandra.log
+
+; Include the password in Cluster\Builder debug output. Keep this off in
+; production. Turning it on is an operator decision.
+cassandra.expose_credentials = 0
+
+; --- Persistent resources --------------------------------------------------
+
+; Master switch for persistent clusters, sessions and prepared statements.
+; With 0, withPersistentSessions(true) cannot turn caching back on.
+cassandra.allow_persistent = 1
+
+; Caps on the per-worker persistent caches. -1 is unlimited, 0 disables the
+; cache for that resource. Past a cap the resource is still created, but it is
+; rebuilt on every request and a warning goes to the PHP error log.
+; The defaults are runaway guards, about ten times what a normal application
+; uses. Measured cost per entry, per worker: cluster ~12 KB, session ~2.2 MB
+; plus 2 sockets per node, prepared statement ~7.4 KB.
+cassandra.max_persistent_clusters = 16
+cassandra.max_persistent_sessions = 16
+cassandra.max_persistent_prepared_statements = 1000
+
+; --- Cluster\Builder defaults ----------------------------------------------
+
+; These are the values a new Cassandra\Cluster\Builder starts with. The
+; matching with*() method still overrides each one.
+
+; Comma-separated list of hosts.
+cassandra.contact_points = 127.0.0.1
+cassandra.port = 9042
+
+; Milliseconds.
+cassandra.connect_timeout = 5000
+cassandra.request_timeout = 12000
+cassandra.reconnect_interval = 2000
+
+; ANY | ONE | TWO | THREE | QUORUM | ALL | LOCAL_QUORUM | EACH_QUORUM
+; | SERIAL | LOCAL_SERIAL | LOCAL_ONE
+; Prefer LOCAL_QUORUM over QUORUM. QUORUM counts replicas in every datacenter,
+; which adds cross-datacenter latency and fails when a remote one is down.
+cassandra.default_consistency = LOCAL_QUORUM
+cassandra.default_page_size = 5000
+
+; Native protocol version, 1 to 5.
+cassandra.protocol_version = 4
+
+; Connection pool.
+cassandra.io_threads = 1
+cassandra.core_connections_per_host = 1
+cassandra.max_connections_per_host = 2
+
+; Seconds. 0 disables TCP keepalive.
+cassandra.tcp_keepalive_delay = 0
+cassandra.connection_heartbeat_interval = 30
+
+cassandra.token_aware_routing = 1
+cassandra.latency_aware_routing = 1
+cassandra.tcp_nodelay = 1
+cassandra.schema_metadata = 1
+cassandra.hostname_resolution = 0
+cassandra.randomized_contact_points = 1
+
+; --- ScyllaDB rack-aware routing -------------------------------------------
+
+; A non-empty local_rack turns on rack-aware load balancing: the local rack is
+; tried first, then the local datacenter, then remote ones. Keeps traffic
+; inside one cloud availability zone. Needs the ScyllaDB C/C++ driver.
+;cassandra.local_dc = eu-west-1
+;cassandra.local_rack = eu-west-1a
+
+; --- Application identity --------------------------------------------------
+
+; Both appear in the server's system.clients.client_options.
+;cassandra.application_name = my-service
+;cassandra.application_version = 1.0.0
+
+; --- Reconnection ----------------------------------------------------------
+
+; constant   = wait reconnect_interval between every attempt
+; exponential = start at reconnect_interval, back off to the max, with jitter.
+; Prefer exponential for a large worker pool.
+cassandra.reconnect_policy = constant
+cassandra.reconnect_max_interval = 60000
+
+; --- Speculative execution -------------------------------------------------
+
+; Re-sends a request to another replica when the first is slow. Cuts tail
+; latency. Only safe for idempotent statements: never enable it for counter
+; updates, lightweight transactions, or list appends. 0 disables.
+cassandra.speculative_execution_delay = 0
+cassandra.speculative_execution_max = 2
+
+; --- Event loop tuning -----------------------------------------------------
+
+; Change these against a benchmark of your own workload, not a hunch.
+cassandra.coalesce_delay = 200
+cassandra.new_request_ratio = 50
