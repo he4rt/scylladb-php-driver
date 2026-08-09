@@ -19,7 +19,7 @@ The project is **migrating from C++ to pure C23**. New code must be C23; existin
 ```
 src/MyModule/
 ├── MyClass.stub.php          # PHP interface/class definition — source of truth
-├── MyClass_arginfo.h         # AUTO-GENERATED from stub (never edit manually)
+├── MyClass_arginfo.h         # GENERATED at build time — gitignored, never edit, never commit
 ├── MyClass.c                 # C implementation of ZEND_METHOD()s
 ├── MyClassHandlers.h         # Handler declarations
 ├── MyClassHandlers.c         # Object handlers (new/free/gc/properties/compare)
@@ -39,11 +39,18 @@ src/MyModule/
    }
    ```
 
-2. **Generate arginfo** — run from the PHP source tree:
+2. **Generate arginfo** — the build does this for you. `cmake/GenStubs.cmake` runs
+   `tools/gen_stub/gen_arginfo.sh` on every stub, so a plain `cmake --build` regenerates
+   `MyClass_arginfo.h` whenever the stub changes. Commit the stub only — `_arginfo.h` is
+   gitignored (`.gitignore`: `src/**/*_arginfo.h`).
+
+   To run it by hand, call the wrapper, not `gen_stub.php` directly:
    ```bash
-   php php/8.x-debug-nts/src/build/gen_stub.php src/MyModule/MyClass.stub.php
+   tools/gen_stub/gen_arginfo.sh src/MyModule/MyClass.stub.php php path/to/build/gen_stub.php
    ```
-   This produces `MyClass_arginfo.h`. Commit both stub and generated file.
+   The wrapper strips `declare(strict_types=1);` before parsing, because upstream `gen_stub.php`
+   fails on it with `Unexpected node Stmt_Declare`. It also casts the emitted
+   `zend_add_*_attribute()` arguments so the output compiles as C++.
 
 3. **Include arginfo in implementation**:
    ```c
@@ -194,11 +201,15 @@ cmake --build out/DebugPHP8.4NTS     # compile
 
 ### Regenerating Arginfo After Stub Changes
 
+Rebuild. `cmake/GenStubs.cmake` regenerates every `*_arginfo.h` whose stub changed:
+
 ```bash
-php php/8.4-debug-nts/src/build/gen_stub.php src/MyModule/MyClass.stub.php
+cmake --build out/DebugPHP8.4NTS
 ```
 
-Always commit both `*.stub.php` and the generated `*_arginfo.h`.
+Commit the `*.stub.php` only. The generated `*_arginfo.h` is gitignored. Do not call
+`gen_stub.php` directly — it fails on `declare(strict_types=1);`. Use
+`tools/gen_stub/gen_arginfo.sh` if you need to run it outside a build.
 
 ### Running Tests
 

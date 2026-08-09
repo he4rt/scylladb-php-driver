@@ -400,6 +400,26 @@ ZEND_METHOD(Cassandra_Rows, first)
     }
 }
 
+ZEND_METHOD(Cassandra_Rows, wasApplied)
+{
+    ZEND_PARSE_PARAMETERS_NONE();
+
+    auto self = PHP_SCYLLADB_GET_ROWS(getThis());
+
+    /* A non-conditional statement has no "[applied]" column. Match the Java
+       and Python drivers and report true, so a caller can ask this of any
+       result. */
+    zval *row = zend_hash_index_find(Z_ARRVAL(self->rows), 0);
+    if (row == nullptr || Z_TYPE_P(row) != IS_ARRAY)
+    {
+        RETURN_TRUE;
+    }
+
+    zval *applied = zend_hash_str_find(Z_ARRVAL_P(row), "[applied]", sizeof("[applied]") - 1);
+
+    RETURN_BOOL(applied == nullptr || zend_is_true(applied));
+}
+
 HashTable *php_scylladb_rows_properties(zend_object *object)
 {
     HashTable *props = zend_std_get_properties(object);
