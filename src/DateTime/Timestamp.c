@@ -84,20 +84,69 @@ PHP_SCYLLADB_API zend_result php_scylladb_timestamp_initialize(php_scylladb_time
   return SUCCESS;
 }
 
+static zend_result php_scylladb_timestamp_from_datetime(zend_object *datetime, cass_int64_t *out) {
+  zval formatted = {};
+  zval format;
+  ZVAL_STR(&format, zend_string_init_existing_interned(ZEND_STRL("Uv"), false));
+
+  zval *ret = zend_call_method_with_1_params(datetime, datetime->ce, nullptr, "format", &formatted,
+                                             &format);
+  zval_ptr_dtor(&format);
+
+  if (ret == nullptr || Z_TYPE(formatted) != IS_STRING) {
+    zval_ptr_dtor(&formatted);
+    return FAILURE;
+  }
+
+  *out = strtoll(Z_STRVAL(formatted), nullptr, 10);
+  zval_ptr_dtor(&formatted);
+  return SUCCESS;
+}
+
+static bool php_scylladb_timestamp_create_now(zval *dst) {
+  php_scylladb_timestamp *self = php_scylladb_timestamp_instantiate(dst);
+
+  if (self == nullptr) {
+    zend_throw_exception(php_scylladb_runtime_exception_ce, "Failed to create Cassandra\\Timestamp",
+                         0);
+    return false;
+  }
+
+  php_scylladb_timestamp_initialize(self, -1, -1);
+  return true;
+}
+
 ZEND_METHOD(Cassandra_Timestamp, __construct) {
+  zend_object *datetime = nullptr;
   zend_long seconds = -1;
   zend_long microseconds = -1;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(0, 2)
     Z_PARAM_OPTIONAL
-    Z_PARAM_LONG(seconds)
+    Z_PARAM_OBJ_OF_CLASS_OR_LONG(datetime, php_date_get_interface_ce(), seconds)
     Z_PARAM_LONG(microseconds)
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
   php_scylladb_timestamp *self =
       PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(getThis()));
+
+  if (datetime != nullptr) {
+    if (ZEND_NUM_ARGS() > 1) {
+      zend_throw_exception(php_scylladb_invalid_argument_exception_ce,
+                           "microseconds cannot be given together with a DateTimeInterface", 0);
+      RETURN_THROWS();
+    }
+
+    if (php_scylladb_timestamp_from_datetime(datetime, &self->timestamp) != SUCCESS) {
+      zend_throw_exception(php_scylladb_runtime_exception_ce,
+                           "Failed to get Timestamp from DateTime", 0);
+      RETURN_THROWS();
+    }
+
+    return;
+  }
 
   if (php_scylladb_timestamp_initialize(self, seconds, microseconds) != SUCCESS) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
@@ -190,17 +239,9 @@ ZEND_METHOD(Cassandra_Timestamp, fromDateTime) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  zval getTimeStampResult = {};
-  zval format;
-  zend_string *val = zend_string_init_existing_interned(ZEND_STRL("Uv"), false);
-  ZVAL_STR(&format, val);
+  cass_int64_t timestamp = 0;
 
-  zval *ret = zend_call_method_with_1_params(Z_OBJ_P(datetime), Z_OBJCE_P(datetime), nullptr,
-                                             "format", &getTimeStampResult, &format);
-
-  if (ret == nullptr) {
-    zval_ptr_dtor(&getTimeStampResult);
-    zval_ptr_dtor(&format);
+  if (php_scylladb_timestamp_from_datetime(Z_OBJ_P(datetime), &timestamp) != SUCCESS) {
     zend_throw_exception(php_scylladb_runtime_exception_ce, "Failed to get Timestamp from DateTime",
                          0);
     RETURN_THROWS();
@@ -209,16 +250,28 @@ ZEND_METHOD(Cassandra_Timestamp, fromDateTime) {
   php_scylladb_timestamp *self = php_scylladb_timestamp_instantiate(return_value);
 
   if (self == nullptr) {
-    zval_ptr_dtor(&getTimeStampResult);
-    zval_ptr_dtor(&format);
     zend_throw_exception(php_scylladb_runtime_exception_ce, "Failed to create Cassandra\\Timestamp",
                          0);
     RETURN_THROWS();
   }
 
-  self->timestamp = strtoll(Z_STRVAL(getTimeStampResult), nullptr, 10);
-  zval_ptr_dtor(&getTimeStampResult);
-  zval_ptr_dtor(&format);
+  self->timestamp = timestamp;
+}
+
+ZEND_METHOD(Cassandra_Timestamp, now) {
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  if (!php_scylladb_timestamp_create_now(return_value)) {
+    RETURN_THROWS();
+  }
+}
+
+ZEND_METHOD(Cassandra_Timestamp, nowUtc) {
+  ZEND_PARSE_PARAMETERS_NONE();
+
+  if (!php_scylladb_timestamp_create_now(return_value)) {
+    RETURN_THROWS();
+  }
 }
 
 ZEND_METHOD(Cassandra_Timestamp, __toString) {
