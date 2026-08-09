@@ -28,10 +28,12 @@ if (NOT PHP_SCYLLADB_BACKEND MATCHES "^(cassandra|scylla-cpp|scylla-rust)$")
 endif ()
 
 # ── pkg-config lookup ────────────────────────────────────────────────────────
-# Note: cpp-rs-driver and the ScyllaDB cpp-driver both ship a pkg-config module
-# named `scylla-cpp-driver`. The user disambiguates by pointing PKG_CONFIG_PATH
-# (or CMAKE_PREFIX_PATH) at the install prefix of the desired backend before
-# configuring.
+# Each backend ships its own pkg-config module name:
+#   cassandra   → cassandra.pc / cassandra_static.pc
+#   scylla-cpp  → scylla-cpp-driver.pc / scylla-cpp-driver_static.pc
+#   scylla-rust → scylladb.pc / scylladb_static.pc
+# cpp-rs-driver also installs a `cassandra.pc` compatibility module, so point
+# PKG_CONFIG_PATH (or CMAKE_PREFIX_PATH) at one prefix only.
 if (PHP_SCYLLADB_BACKEND STREQUAL "cassandra")
     set(_cpp_driver_label "DataStax cassandra")
     set(_install_hint "cassandra")
@@ -46,9 +48,9 @@ elseif (PHP_SCYLLADB_BACKEND STREQUAL "scylla-rust")
     set(_install_hint "scylla-rust")
     set(_cpp_driver_define PHP_SCYLLADB_BACKEND_SCYLLA_RUST)
     if (PHP_SCYLLADB_STATIC)
-        set(_cpp_driver_pc "scylla-cpp-driver_static")
+        set(_cpp_driver_pc "scylladb_static")
     else ()
-        set(_cpp_driver_pc "scylla-cpp-driver")
+        set(_cpp_driver_pc "scylladb")
     endif ()
 else ()
     set(_cpp_driver_label "ScyllaDB cpp-driver")

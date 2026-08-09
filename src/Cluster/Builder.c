@@ -255,10 +255,16 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
                                                               self->allow_remote_dcs_for_local_cl));
         break;
     case LOAD_BALANCING_RACK_AWARE:
+#ifdef PHP_SCYLLADB_BACKEND_CASSANDRA
+        php_error_docref(nullptr, E_WARNING,
+                         "The underlying C/C++ driver does not implement rack-aware load balancing; "
+                         "the default policy will be used.");
+#else
         /* ScyllaDB only. Empty strings make the driver infer the local
          * datacenter and rack from the first contact point it reaches. */
         cass_cluster_set_load_balance_rack_aware(cluster->cluster, SAFE_ZEND_STRING(self->local_dc),
                                                  SAFE_ZEND_STRING(self->local_rack));
+#endif
         break;
     }
 
