@@ -147,4 +147,86 @@ describe('Cassandra\Duration', function () {
         $props    = get_object_vars($duration);
         expect($props)->toEqual(['months' => 1, 'days' => 2, 'nanos' => 3]);
     });
+
+    describe('DateInterval support', function () {
+        it('converts each part of a DateInterval', function ($spec, $months, $days, $nanos) {
+            $duration = new Duration(new \DateInterval($spec));
+
+            expect($duration->months())->toBe($months)
+                ->and($duration->days())->toBe($days)
+                ->and($duration->nanos())->toBe($nanos);
+        })->with([
+            ['P1M15D', '1', '15', '0'],
+            ['P1Y2M3D', '14', '3', '0'],
+            ['PT4H5M6S', '0', '0', '14706000000000'],
+            ['P0D', '0', '0', '0'],
+        ]);
+
+        it('converts sub-second precision down to nanoseconds', function () {
+            $interval    = new \DateInterval('PT0S');
+            $interval->f = 0.123456;
+
+            expect((new Duration($interval))->nanos())->toBe('123456000');
+        });
+
+        it('accepts an interval built by diff', function () {
+            $interval = (new \DateTime('2020-01-01'))->diff(new \DateTime('2021-03-04 05:06:07'));
+            $duration = new Duration($interval);
+
+            expect($duration->months())->toBe('14')
+                ->and($duration->days())->toBe('3')
+                ->and($duration->nanos())->toBe('18367000000000');
+        });
+
+        it('makes every part negative for an inverted interval', function () {
+            $interval = (new \DateTime('2021-03-04'))->diff(new \DateTime('2020-01-01'));
+            $duration = new Duration($interval);
+
+            expect($duration->months())->toBe('-14')
+                ->and($duration->days())->toBe('-3')
+                ->and((string) $duration)->toBe('-14mo3d0ns');
+        });
+
+        it('accepts an interval built from a date string', function () {
+            expect((new Duration(\DateInterval::createFromDateString('90 minutes')))->nanos())
+                ->toBe('5400000000000');
+        });
+
+        it('accepts a CarbonInterval', function () {
+            expect((string) new Duration(\Carbon\CarbonInterval::days(3)))->toBe('0mo3d0ns');
+        });
+
+        it('matches the three argument constructor', function () {
+            expect(new Duration(new \DateInterval('P1M15D')))->toEqual(new Duration(1, 15, 0));
+        });
+
+        it('builds the same value through fromDateInterval', function () {
+            $interval = new \DateInterval('P1Y2M3DT4H5M6S');
+
+            expect(Duration::fromDateInterval($interval))->toEqual(new Duration($interval));
+        });
+
+        it('rejects extra arguments after a DateInterval', function () {
+            new Duration(new \DateInterval('P1M'), 1, 2);
+        })->throws(InvalidArgumentException::class, 'A DateInterval must be the only argument');
+
+        it('rejects an uninitialized DateInterval', function () {
+            new Duration((new \ReflectionClass(\DateInterval::class))->newInstanceWithoutConstructor());
+        })->throws(InvalidArgumentException::class, 'The DateInterval is not initialized');
+
+        it('rejects an interval that does not fit', function ($spec) {
+            new Duration(\DateInterval::createFromDateString($spec));
+        })->with([
+            ['200000000 years'],
+            ['3000000000 days'],
+            ['3000000000000 seconds'],
+        ])->throws(InvalidArgumentException::class, 'The DateInterval is too large for a duration');
+
+        it('still requires three arguments without a DateInterval', function ($args) {
+            new Duration(...$args);
+        })->with([
+            [[1]],
+            [[1, 2]],
+        ])->throws(\ArgumentCountError::class);
+    });
 });

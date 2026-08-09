@@ -138,12 +138,14 @@ final class Time implements Value
 ```php
 final class Duration implements Value
 {
+    // A DateInterval must be the only argument. Otherwise all three are required.
     public function __construct(
-        int|float|string|Bigint $months,
+        int|float|string|Bigint|\DateInterval $months,
         int|float|string|Bigint $days,
         int|float|string|Bigint $nanos,
     ) {}
 
+    public static function fromDateInterval(\DateInterval $interval): static;
     public function months(): string;
     public function days(): string;
     public function nanos(): string;
