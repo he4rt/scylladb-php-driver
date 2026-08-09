@@ -26,5 +26,6 @@ namespace Cassandra {
         public function nextPageAsync(): Future {}
         public function pagingStateToken(): ?string {}
         public function first(): mixed {}
+        public function wasApplied(): bool {}
     }
 }

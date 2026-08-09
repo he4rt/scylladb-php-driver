@@ -4,6 +4,10 @@
 
 ### Added
 
+- `Rows::wasApplied(): bool`, which reads the `[applied]` column of a lightweight transaction
+  result. A statement with no condition has no such column, and the method then returns `true`,
+  so you can call it on any result. The `[applied]` column stays readable through `first()` and
+  array access.
 - Experimental support for [scylladb/cpp-rs-driver](https://github.com/scylladb/cpp-rs-driver)
   as a third backend, selectable at build time via the new `PHP_DRIVER_BACKEND` CMake
   cache variable (`cassandra | scylla-cpp | scylla-rust`). Install the Rust-backed

@@ -9,6 +9,7 @@ final class Rows implements \Iterator, \Countable, \ArrayAccess
 {
     public function count(): int;
     public function first(): mixed;
+    public function wasApplied(): bool;
 
     public function isLastPage(): bool;
     public function nextPage(int|float|null $timeout = null): Rows|false;
@@ -34,6 +35,7 @@ final class Rows implements \Iterator, \Countable, \ArrayAccess
 | --- | --- |
 | `count()` | Rows on **this page**, not in the whole result set. Triggers no fetch. |
 | `first()` | The first row of the page, or `null` when the page is empty. |
+| `wasApplied()` | The `[applied]` column of the first row. `true` when the statement had no condition. |
 | `isLastPage()` | `true` when no further page exists. Check it before `nextPage()`. |
 | `nextPage()` | Fetches and returns a new `Rows`. Blocks. `$timeout` is in seconds. |
 | `nextPageAsync()` | Starts the fetch and returns a future at once. |

@@ -192,6 +192,7 @@ properties in camel case (`$options->pageSize`). Pass a plain array in new code.
 ## Lightweight transactions
 
 A conditional write returns a result set with an `[applied]` column instead of an empty result.
+Read that column with `wasApplied()`.
 
 ```php
 $statement = $session->prepare(
@@ -203,12 +204,22 @@ $rows = $session->execute($statement, [
     'serial_consistency' => Cassandra::CONSISTENCY_LOCAL_SERIAL,
 ]);
 
-$row = $rows->first();
-
-if ($row['[applied]'] === false) {
-    // A row with this key already exists. The other columns hold the current values.
+if (! $rows->wasApplied()) {
+    // The write lost. $rows->first() holds the current values of the row.
+    $current = $rows->first();
 }
 ```
+
+`wasApplied()` reads the `[applied]` column of the first row. A statement with no condition has no
+such column, and the method then returns `true`. You can call it on any result.
+
+::: warning `wasApplied()` is not `exists()`
+`false` means the condition failed, not that the row is present. After `IF NOT EXISTS` a `false`
+tells you the row **is** there. After `IF EXISTS` the same `false` tells you the row **is not**
+there. The meaning comes from your condition.
+:::
+
+The `[applied]` column stays readable through `first()` and array access, so old code keeps working.
 
 Lightweight transactions use Paxos and cost several round trips. Use them where correctness needs
 them, not as a general concurrency tool.
