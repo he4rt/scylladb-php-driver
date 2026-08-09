@@ -186,6 +186,7 @@ cluster is already saturated.
 | --- | --- | --- |
 | `cassandra.coalesce_delay` | `200` | Microseconds |
 | `cassandra.new_request_ratio` | `50` | 1 to 100 |
+| `cassandra.queue_size_io` | `8192` | Queued requests per IO thread |
 
 `coalesce_delay` is how long the driver waits to batch writes into one system call.
 `new_request_ratio` splits IO thread time between accepting new requests and finishing outstanding
@@ -195,6 +196,59 @@ ones.
 The defaults come from the C driver and suit most deployments. PHP-FPM handles one request per
 process, so there is little to batch. Do not change either without a benchmark of your own workload.
 :::
+
+### Connection lifetime
+
+| Setting | Default | Unit |
+| --- | --- | --- |
+| `cassandra.connection_idle_timeout` | `60` | Seconds an unused connection stays open |
+| `cassandra.max_schema_wait_time` | `10000` | Milliseconds to wait for schema agreement |
+| `cassandra.resolve_timeout` | `2000` | Milliseconds for a hostname lookup |
+| `cassandra.monitor_reporting_interval` | `300` | Seconds, `0` disables |
+| `cassandra.local_address` | empty | Source address for outgoing connections |
+
+Set `cassandra.local_address` on a host with several interfaces, to pick the one that reaches the
+cluster. An empty value lets the kernel choose.
+
+### Prepared statements
+
+| Setting | Default | Unit |
+| --- | --- | --- |
+| `cassandra.prepare_on_all_hosts` | `1` | Boolean |
+| `cassandra.prepare_on_up_or_add_host` | `1` | Boolean |
+
+The driver prepares a statement on every node, not only on the coordinator, and prepares again when
+a node comes up or joins. Leave both on. With them off, a query that lands on a node which never saw
+the prepare pays an extra round trip.
+
+### Protocol and routing
+
+| Setting | Default | Unit |
+| --- | --- | --- |
+| `cassandra.shuffle_replicas` | `1` | Boolean |
+| `cassandra.no_compact` | `0` | Boolean |
+| `cassandra.beta_protocol` | `0` | Boolean |
+
+`shuffle_replicas` spreads reads of one partition over its replicas instead of always choosing the
+first. Turn it off only to make a benchmark repeatable.
+
+`no_compact` asks the server to show `COMPACT STORAGE` tables in their non-compact form. It matters
+only for a cluster that still has such tables.
+
+::: warning beta_protocol is for testing
+A beta native protocol can change between server releases. Never set this in production.
+:::
+
+### Request tracing
+
+| Setting | Default | Unit |
+| --- | --- | --- |
+| `cassandra.tracing_consistency` | `ONE` | Consistency name |
+| `cassandra.tracing_max_wait_time` | `15` | Milliseconds |
+| `cassandra.tracing_retry_wait_time` | `3` | Milliseconds |
+
+These apply only to statements that turn tracing on. The server writes the trace after it answers
+the query, so the driver polls for it. A wait that is too short returns an incomplete trace.
 
 ### Routing and metadata
 

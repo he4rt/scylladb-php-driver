@@ -42,6 +42,7 @@ $cluster = Cassandra::cluster()
 | `withNoSpeculativeExecutionPolicy` | — | default | Turn speculative execution off |
 | `withCoalesceDelay` | `int $microseconds` | `200` | How long the driver batches writes into one system call |
 | `withNewRequestRatio` | `int $ratio` | `50` | Split IO thread time between new and outstanding requests, 1 to 100 |
+| `withExecutionProfile` | `string\|\UnitEnum $name, ExecutionProfile $profile` | — | Register a named profile. Select it with the third argument of `execute()`. See [execution profiles](/guide/execution-profiles) |
 | `withTCPNodelay` | `bool $enabled = true` | `true` | Disable Nagle's algorithm |
 | `withTCPKeepalive` | `?float $delay` | disabled | Seconds. Pass `null` to disable |
 | `withProtocolVersion` | `int $version` | `4` | CQL protocol version |

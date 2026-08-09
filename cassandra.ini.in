@@ -108,3 +108,49 @@ cassandra.speculative_execution_max = 2
 ; Change these against a benchmark of your own workload, not a hunch.
 cassandra.coalesce_delay = 200
 cassandra.new_request_ratio = 50
+cassandra.queue_size_io = 8192
+
+; --- Connection lifetime ---------------------------------------------------
+
+; Seconds an unused connection stays open before the driver closes it.
+cassandra.connection_idle_timeout = 60
+
+; Milliseconds.
+cassandra.max_schema_wait_time = 10000
+cassandra.resolve_timeout = 2000
+
+; Seconds between the driver's monitor reporting events. 0 disables.
+cassandra.monitor_reporting_interval = 300
+
+; Source address the driver binds outgoing connections to. Empty lets the
+; kernel choose. Set it on a host with several interfaces.
+;cassandra.local_address =
+
+; --- Prepared statements ---------------------------------------------------
+
+; Prepare on every node rather than only the coordinator, and re-prepare when
+; a node comes up or joins. Leave both on unless you know why not.
+cassandra.prepare_on_all_hosts = 1
+cassandra.prepare_on_up_or_add_host = 1
+
+; --- Protocol and routing --------------------------------------------------
+
+; Shuffle the replica list for token-aware routing, which spreads load over
+; the replicas of one partition instead of always using the first.
+cassandra.shuffle_replicas = 1
+
+; NO_COMPACT asks the server to present COMPACT STORAGE tables in their
+; non-compact form. Only for a cluster that still has such tables.
+cassandra.no_compact = 0
+
+; Allow the beta native protocol version. For testing only: a beta protocol
+; can change between server releases.
+cassandra.beta_protocol = 0
+
+; --- Request tracing -------------------------------------------------------
+
+; These only apply to statements that turn tracing on. The driver polls the
+; server for the trace, so a wait too short returns an incomplete trace.
+cassandra.tracing_consistency = ONE
+cassandra.tracing_max_wait_time = 15
+cassandra.tracing_retry_wait_time = 3
