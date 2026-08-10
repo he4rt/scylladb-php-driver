@@ -186,7 +186,16 @@ php_scylladb_duration_init(INTERNAL_FUNCTION_PARAMETERS)
     Z_PARAM_ZVAL(nanos)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_DURATION(getThis());
+  /* Reached both as Duration::__construct (ZEND_THIS is the Duration being
+     built) and as Type\Scalar::create (ZEND_THIS is the Scalar type object).
+     Fetching a duration out of the Scalar is a type-confused write. */
+  if (ZEND_THIS && Z_TYPE_P(ZEND_THIS) == IS_OBJECT &&
+      instanceof_function(Z_OBJCE_P(ZEND_THIS), php_scylladb_duration_ce)) {
+    self = PHP_SCYLLADB_GET_DURATION(ZEND_THIS);
+  } else {
+    object_init_ex(return_value, php_scylladb_duration_ce);
+    self = PHP_SCYLLADB_GET_DURATION(return_value);
+  }
 
   if (Z_TYPE_P(months) == IS_OBJECT &&
       instanceof_function(Z_OBJCE_P(months), php_date_get_interval_ce())) {
