@@ -8,8 +8,7 @@ namespace Cassandra {
     interface Table {
         public function name(): string;
 
-        /** @return mixed */
-        public function option(string $name): mixed;
+        public function option(string $name): Value|string|int|float|bool|null;
 
         /** @return array<string, mixed> */
         public function options(): array;
@@ -53,11 +52,9 @@ namespace Cassandra {
         /** @return array<string, mixed>|false */
         public function compressionParameters(): array|false;
 
-        /** @return bool|false */
-        public function populateIOCacheOnFlush(): bool|false;
+        public function populateIOCacheOnFlush(): bool;
 
-        /** @return bool|false */
-        public function replicateOnWrite(): bool|false;
+        public function replicateOnWrite(): bool;
 
         /** @return int|false */
         public function maxIndexInterval(): int|false;

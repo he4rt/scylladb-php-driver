@@ -12,8 +12,7 @@ namespace Cassandra {
 
         public function target(): string;
 
-        /** @return mixed */
-        public function option(string $name): mixed;
+        public function option(string $name): Value|string|int|float|bool|null;
 
         /** @return array<string, string> */
         public function options(): array;

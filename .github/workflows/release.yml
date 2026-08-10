@@ -122,9 +122,68 @@ jobs:
           retention-days: 5
           overwrite: true
 
+  ide-stubs:
+    name: IDE stubs
+    runs-on: ubuntu-26.04
+    needs: [tag]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: "8.4"
+          ini-file: production
+          coverage: none
+          tools: none
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      # The generator resolves `@cvalue` constants out of a loaded extension,
+      # so the stubs can only be produced against a real build.
+      - uses: ./.github/actions/build-extension
+        with:
+          driver: scylladb
+          cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
+          build_type: Release
+          enable_lto: OFF
+
+      - name: Generate IDE stubs
+        run: php -d extension=cassandra tools/gen_ide_stubs.php build/ide-stubs
+
+      - name: Package IDE stubs
+        run: |
+          ARTIFACT="ide-stubs-v${{ needs.tag.outputs.version }}"
+          tar czf "${ARTIFACT}.tar.gz" -C build ide-stubs
+          echo "ARTIFACT=${ARTIFACT}" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: ${{ env.ARTIFACT }}.tar.gz
+          if-no-files-found: error
+          retention-days: 5
+          overwrite: true
+
   release:
     runs-on: ubuntu-26.04
-    needs: [build, tag]
+    needs: [build, ide-stubs, tag]
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:

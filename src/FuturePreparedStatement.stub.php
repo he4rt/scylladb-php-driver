@@ -10,7 +10,7 @@ namespace Cassandra {
      * @not-serializable
  * @scylladb-struct php_scylladb_future_prepared_statement
  */    final class FuturePreparedStatement implements Future {
-        public function get(int|float|null $timeout = null): mixed {}
+        public function get(int|float|null $timeout = null): ?PreparedStatement {}
 
         /** @return resource */
         public function getResource(): mixed {}

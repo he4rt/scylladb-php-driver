@@ -13,19 +13,19 @@ namespace Cassandra {
         public function __construct() {}
         public function count(): int {}
         public function rewind(): void {}
-        public function current(): mixed {}
-        public function key(): mixed {}
+        public function current(): ?array {}
+        public function key(): ?int {}
         public function next(): void {}
         public function valid(): bool {}
         public function offsetExists(mixed $offset): bool {}
-        public function offsetGet(mixed $offset): mixed {}
+        public function offsetGet(mixed $offset): ?array {}
         public function offsetSet(mixed $offset, mixed $value): void {}
         public function offsetUnset(mixed $offset): void {}
         public function isLastPage(): bool {}
         public function nextPage(int|float|null $timeout = null): Rows|false {}
         public function nextPageAsync(): Future {}
         public function pagingStateToken(): ?string {}
-        public function first(): mixed {}
+        public function first(): ?array {}
         public function wasApplied(): bool {}
     }
 }

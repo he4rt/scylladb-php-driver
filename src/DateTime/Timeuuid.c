@@ -32,7 +32,10 @@ zend_result php_scylladb_timeuuid_init(zval *returnValue, zend_string *str, zend
     return FAILURE;
   }
 
-  if (Z_TYPE_P(returnValue) == IS_UNDEF) {
+  /* __construct passes an existing Timeuuid; Type\Scalar::create passes the
+     VM's return_value, which is IS_NULL rather than IS_UNDEF. Testing only for
+     IS_UNDEF let the null through to Z_OBJ_P below. */
+  if (Z_TYPE_P(returnValue) != IS_OBJECT) {
     zval val;
     object_init_ex(&val, php_scylladb_timeuuid_ce);
     ZVAL_OBJ(returnValue, Z_OBJ(val));
