@@ -210,7 +210,7 @@ final class Builder {
      *
      * NOTE: Apache Cassandra 3.x supports protocol version 3 and 4 only
      *
-     * @param int $version The protocol version
+     * @param \Cassandra\ProtocolVersion|int $version The protocol version
      *
      * @return \Cassandra\Cluster\Builder self
      */

@@ -96,7 +96,7 @@ namespace Cassandra\Cluster {
         {
         }
 
-        public function withProtocolVersion(int $version): static
+        public function withProtocolVersion(\Cassandra\ProtocolVersion|int $version): static
         {
         }
 

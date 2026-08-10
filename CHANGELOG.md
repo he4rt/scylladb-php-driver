@@ -45,6 +45,10 @@
   carries no setting by default and `isIdempotent()` then returns `null`. A per-call
   `idempotent` option overrides the statement. For a batch the driver reads the flag off the
   batch, so a flag on a statement added to the batch has no effect.
+- `Cassandra\ProtocolVersion`, an int-backed enum with the cases `V1` to `V5`. The backing value
+  is the protocol version byte, so it matches `CASS_PROTOCOL_VERSION_V1` to
+  `CASS_PROTOCOL_VERSION_V5`. `Cluster\Builder::withProtocolVersion()` accepts a case of this
+  enum, and still accepts a plain integer for a version the enum does not name.
 - `Rows::wasApplied(): bool`, which reads the `[applied]` column of a lightweight transaction
   result. A statement with no condition has no such column, and the method then returns `true`,
   so you can call it on any result. The `[applied]` column stays readable through `first()` and
@@ -132,6 +136,8 @@
 
 ### Changed
 
+- Casting a `Cluster\Builder` to an array now gives a `Cassandra\ProtocolVersion` case for the
+  `protocolVersion` key, was an integer. A value that no case names stays an integer.
 - The `scylla-cpp` backend now builds the vendored driver in `third-party/cpp-driver` and links
   it into `cassandra.so`. Upstream no longer maintains the ScyllaDB cpp-driver, so it ships with
   the extension and gets fixed here. A checkout builds with no C/C++ driver installed. To link a

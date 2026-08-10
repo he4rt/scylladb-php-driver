@@ -19,6 +19,7 @@
 #include <cassandra.h>
 
 #include <php_scylladb.h>
+#include <Zend/zend_enum.h>
 #include <php_scylladb_cache_key.h>
 #include <SSLOptions/SSLOptions.h>
 #include <php_scylladb_globals.h>
@@ -689,14 +690,21 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withPersistentSessions)
 }
 ZEND_METHOD(Cassandra_Cluster_Builder, withProtocolVersion)
 {
-    zend_long version;
+    zend_object *versionCase = nullptr;
+    zend_long version = 0;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_LONG(version)
+    Z_PARAM_OBJ_OF_CLASS_OR_LONG(versionCase, php_scylladb_protocol_version_ce, version)
     ZEND_PARSE_PARAMETERS_END();
 
-    if (version < 1)
+    if (versionCase != nullptr)
     {
+        version = Z_LVAL_P(zend_enum_fetch_case_value(versionCase));
+    }
+    else if (version < 1)
+    {
+        /* An int still gets through for versions the enum does not name, such
+         * as the DSE ones — so it keeps its own range check. */
         zval val;
         ZVAL_LONG(&val, version);
         throw_invalid_argument(&val, "version", "a positive number");
@@ -704,7 +712,7 @@ ZEND_METHOD(Cassandra_Cluster_Builder, withProtocolVersion)
     }
 
     auto self = PHP_SCYLLADB_GET_CLUSTER_BUILDER(getThis());
-    self->protocol_version = version;
+    self->protocol_version = (uint32_t)version;
 
     RETURN_ZVAL(getThis(), 1, 0);
 }
