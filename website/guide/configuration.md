@@ -197,6 +197,15 @@ The defaults come from the C driver and suit most deployments. PHP-FPM handles o
 process, so there is little to batch. Do not change either without a benchmark of your own workload.
 :::
 
+::: warning Eight directives do nothing on the scylla-rust backend
+`cpp-rs-driver` does not declare the setter behind `cassandra.new_request_ratio`,
+`cassandra.queue_size_io`, `cassandra.monitor_reporting_interval`,
+`cassandra.prepare_on_up_or_add_host`, `cassandra.no_compact`, `cassandra.tracing_consistency`,
+`cassandra.tracing_max_wait_time` or `cassandra.tracing_retry_wait_time`. Each keeps its driver
+default on that backend. Every other directive, including execution profiles and rack-aware
+routing, works on all three backends.
+:::
+
 ### Connection lifetime
 
 | Setting | Default | Unit |

@@ -332,21 +332,28 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     }
 
     ASSERT_SUCCESS(cass_cluster_set_coalesce_delay(cluster->cluster, self->coalesce_delay));
-    ASSERT_SUCCESS(cass_cluster_set_new_request_ratio(cluster->cluster, self->new_request_ratio));
 
     cass_cluster_set_connection_idle_timeout(cluster->cluster, self->connection_idle_timeout);
     cass_cluster_set_max_schema_wait_time(cluster->cluster, self->max_schema_wait_time);
     cass_cluster_set_resolve_timeout(cluster->cluster, self->resolve_timeout);
-    cass_cluster_set_monitor_reporting_interval(cluster->cluster, self->monitor_reporting_interval);
-    ASSERT_SUCCESS(cass_cluster_set_queue_size_io(cluster->cluster, self->queue_size_io));
     cass_cluster_set_prepare_on_all_hosts(cluster->cluster, self->prepare_on_all_hosts);
-    cass_cluster_set_prepare_on_up_or_add_host(cluster->cluster, self->prepare_on_up_or_add_host);
     cass_cluster_set_token_aware_routing_shuffle_replicas(cluster->cluster, self->shuffle_replicas);
-    cass_cluster_set_no_compact(cluster->cluster, self->no_compact);
     cass_cluster_set_use_beta_protocol_version(cluster->cluster, self->beta_protocol);
+
+    /* cpp-rs-driver declares none of these eight. They are event-loop, tracing
+     * and protocol-compatibility knobs that the Rust rewrite either manages
+     * itself or has not implemented, so the directive has no effect there.
+     * Every one keeps its C driver default on that backend. */
+#ifndef PHP_SCYLLADB_BACKEND_SCYLLA_RUST
+    ASSERT_SUCCESS(cass_cluster_set_new_request_ratio(cluster->cluster, self->new_request_ratio));
+    ASSERT_SUCCESS(cass_cluster_set_queue_size_io(cluster->cluster, self->queue_size_io));
+    cass_cluster_set_monitor_reporting_interval(cluster->cluster, self->monitor_reporting_interval);
+    cass_cluster_set_prepare_on_up_or_add_host(cluster->cluster, self->prepare_on_up_or_add_host);
+    cass_cluster_set_no_compact(cluster->cluster, self->no_compact);
     cass_cluster_set_tracing_consistency(cluster->cluster, (CassConsistency)self->tracing_consistency);
     cass_cluster_set_tracing_max_wait_time(cluster->cluster, self->tracing_max_wait_time);
     cass_cluster_set_tracing_retry_wait_time(cluster->cluster, self->tracing_retry_wait_time);
+#endif
 
     if (self->local_address != nullptr)
     {
