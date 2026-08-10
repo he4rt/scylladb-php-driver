@@ -103,8 +103,12 @@ cassandra.log = /var/log/php-cassandra.log
 | Setting | Default | Values |
 | --- | --- | --- |
 | `cassandra.log_level` | `ERROR` | `CRITICAL`, `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE` |
-| `cassandra.log` | `cassandra.log` | An absolute path, or an empty value for stderr |
+| `cassandra.log` | `cassandra.log` | An absolute path, `syslog`, `stderr`, or an empty value for stderr |
 | `cassandra.expose_credentials` | `Off` | `On` shows the real password in the builder properties |
+
+With `syslog` the driver writes through `syslog(3)` under the `cassandra` ident, with `LOG_USER` and
+the process id. The severity maps to `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_INFO` and `LOG_DEBUG`.
+See [php.ini configuration](/guide/configuration) for every other setting.
 
 ::: warning Every setting is PHP_INI_SYSTEM
 They can be changed in `php.ini` or with `php -d` only. `ini_set()` at runtime has no effect. For

@@ -50,6 +50,40 @@ done
 
 [[ -n "$PHP_VERSION" ]] || die "PHP version is required (-v)"
 
+RE2C_MIN_VERSION="1.0.3"
+RE2C_SOURCE_VERSION="3.1"
+
+# EPEL 8 stops at re2c 0.14.3, and PHP refuses to generate its lexers with it.
+# No newer package exists for that distribution, so build the tool.
+install_re2c_from_source() {
+    # `|| true` because the whole point is that re2c may be absent, and
+    # pipefail turns the resulting 127 into a script-ending failure.
+    local have
+    have="$(re2c --version 2>/dev/null | awk '{print $2}' || true)"
+
+    if [[ -n "$have" ]] \
+       && [[ "$(printf '%s\n%s\n' "$have" "$RE2C_MIN_VERSION" | sort -V | head -1)" == "$RE2C_MIN_VERSION" ]]; then
+        echo "==> re2c $have is new enough"
+        return 0
+    fi
+
+    echo "==> Building re2c $RE2C_SOURCE_VERSION from source (found: ${have:-none})"
+    local src="/tmp/re2c-${RE2C_SOURCE_VERSION}"
+    rm -rf "$src" "${src}.tar.xz"
+    curl -fL -o "${src}.tar.xz" \
+        "https://github.com/skvadrik/re2c/releases/download/${RE2C_SOURCE_VERSION}/re2c-${RE2C_SOURCE_VERSION}.tar.xz"
+    mkdir -p "$src"
+    tar -C "$src" --strip-components=1 -xJf "${src}.tar.xz"
+    (
+        cd "$src"
+        ./configure --prefix=/usr/local
+        make -j"$(nproc)"
+        make install
+    )
+    rm -rf "$src" "${src}.tar.xz"
+    hash -r
+}
+
 install_system_deps() {
     case "$(uname -s)" in
         Darwin)
@@ -76,6 +110,18 @@ install_system_deps() {
                         libreadline-dev libffi-dev libonig-dev libsodium-dev libgmp-dev \
                         libubsan1 libzip-dev
                     ;;
+                almalinux|rhel|centos|rocky)
+                    # manylinux_2_28 targets this family. oniguruma-devel,
+                    # libsodium-devel and jq come from EPEL, which the manylinux
+                    # image enables already.
+                    echo "==> Installing build deps (RHEL family)"
+                    dnf install -y --setopt=install_weak_deps=False \
+                        bison jq make gcc gcc-c++ pkgconf-pkg-config xz \
+                        openssl-devel sqlite-devel zlib-devel libcurl-devel \
+                        readline-devel libffi-devel oniguruma-devel libxml2-devel \
+                        libsodium-devel gmp-devel libicu-devel libzip-devel
+                    install_re2c_from_source
+                    ;;
                 *)
                     echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
                     ;;
@@ -84,11 +130,33 @@ install_system_deps() {
     esac
 }
 
+# php.net serves the release index without authentication and without a rate
+# limit. The GitHub tags API is the fallback: it allows 60 anonymous calls per
+# hour per IP, which a release matrix exhausts.
 fetch_latest_php_version() {
+    local version
+    version="$(curl -sf "https://www.php.net/releases/index.php?json&version=${PHP_VERSION}&max=1" \
+        | jq -r 'keys[]? // empty' \
+        | grep -E "^${PHP_VERSION}\.[0-9]+$" \
+        | sort -V | tail -n 1 || true)"
+
+    if [[ -n "$version" ]]; then
+        echo "$version"
+        return 0
+    fi
+
+    echo "WARN: php.net release index unavailable, falling back to the GitHub API" >&2
+
     local page
+    local -a auth=()
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        auth=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+    fi
+
     for page in 1 2 3; do
-        curl -sf "https://api.github.com/repos/php/php-src/tags?page=${page}&per_page=100" \
-            | jq -r '.[].name'
+        curl -sf "${auth[@]}" \
+            "https://api.github.com/repos/php/php-src/tags?page=${page}&per_page=100" \
+            | jq -r '.[].name' || true
     done \
         | grep -E "^php-${PHP_VERSION}\.[0-9]+$" \
         | sed 's/^php-//' \

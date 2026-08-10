@@ -105,6 +105,55 @@ PIE places the compiled `cassandra.so` in your PHP extension directory and enabl
 
 ---
 
+### Prebuilt binaries
+
+Each release attaches a `.tar.gz` for every supported combination. The archive
+holds `cassandra.so` and `cassandra.ini`.
+
+Two families are published:
+
+| Family | Built on | Runs on |
+|--------|----------|---------|
+| `manylinux_2_28_<arch>` | AlmaLinux 8, glibc 2.28, OpenSSL 1.1.1 | RHEL / Rocky / AlmaLinux 8, Ubuntu 18.04 and 20.04, Debian 10 and 11 |
+| `ubuntu-<release>` | a current Ubuntu runner | recent Ubuntu releases |
+
+Every release checks that the `manylinux_2_28` archives ask for no symbol above
+glibc 2.28, GLIBCXX 3.4.25 or CXXABI 1.3.11 — the versions RHEL 8 provides.
+
+The module also needs `libssl.so.1.1` and `libcrypto.so.1.1`. Those are the
+system OpenSSL on RHEL 8, Ubuntu 20.04 and Debian 11. On a distribution that
+moved to OpenSSL 3 (RHEL 9+, Ubuntu 22.04+, Debian 12+), install the OpenSSL
+1.1 compatibility package or build from source instead.
+
+Every archive also needs `libuv.so.1` and `libgmp.so.10`. The C/C++ driver
+itself is linked into the module, so you do not install it separately.
+
+The file name is `<family>-php<version>-<nts|ts>-<driver>.tar.gz`. Match all
+four parts to your host:
+
+```bash
+php -i | grep -E 'PHP Version|Thread Safety|extension_dir'
+```
+
+Install the extension:
+
+```bash
+tar xzf manylinux_2_28_x86_64-php8.4-nts-scylladb.tar.gz
+sudo cp cassandra.so "$(php-config --extension-dir)/"
+```
+
+Then enable it. Copy `cassandra.ini` into the scan directory that `php --ini`
+reports, or add `extension=cassandra` to your `php.ini`. Confirm the result:
+
+```bash
+php -m | grep cassandra
+```
+
+`ts` archives are for a ZTS PHP build. `nts` archives are for the default
+non-thread-safe build. A mismatch stops the extension from loading.
+
+---
+
 ### Manual build from source
 
 ### Prerequisites

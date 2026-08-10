@@ -40,6 +40,9 @@ extern zend_object_handlers php_scylladb_default_session_handlers;
 static inline void php_scylladb_free_bytes(cass_byte_t **p) {
   if (*p) free(*p);
 }
+static inline void php_scylladb_zs_release(zend_string **p) {
+  if (*p) zend_string_release(*p);
+}
 static inline void php_scylladb_cass_collection_free(CassCollection **p) {
   if (*p) cass_collection_free(*p);
 }
@@ -480,12 +483,27 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   CassFuture* future = nullptr;
   CassStatement* single = nullptr;
   CassBatch* batch = nullptr;
+  PHP_SCYLLADB_CLEANUP(php_scylladb_zs_release) zend_string* execution_profile = nullptr;
 
-  ZEND_PARSE_PARAMETERS_START(1, 2)
+  zval* execution_profile_zv = nullptr;
+
+  ZEND_PARSE_PARAMETERS_START(1, 3)
     Z_PARAM_ZVAL(statement)
     Z_PARAM_OPTIONAL
     Z_PARAM_ZVAL_OR_NULL(options)
+    Z_PARAM_ZVAL_OR_NULL(execution_profile_zv)
   ZEND_PARSE_PARAMETERS_END();
+
+  /* Third argument wins over anything an ExecutionOptions object carries. */
+  if (execution_profile_zv != nullptr && Z_TYPE_P(execution_profile_zv) != IS_NULL) {
+    execution_profile = php_scylladb_name_from_string_or_enum(execution_profile_zv);
+    if (execution_profile == nullptr || ZSTR_LEN(execution_profile) == 0) {
+      if (execution_profile) zend_string_release(execution_profile);
+      throw_invalid_argument(execution_profile_zv, "executionProfile",
+                             "a non-empty string or an enum case naming a profile registered on the cluster");
+      return;
+    }
+  }
 
   self = PHP_SCYLLADB_GET_SESSION(getThis());
 
@@ -550,12 +568,22 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
 
       if (!single) return;
 
+      if (execution_profile) {
+        cass_statement_set_execution_profile_n(single, ZSTR_VAL(execution_profile),
+                                              ZSTR_LEN(execution_profile));
+      }
+
       future = cass_session_execute(self->session, single);
       break;
     case PHP_SCYLLADB_BATCH_STATEMENT:
       batch = create_batch(stmt, consistency, retry_policy, timestamp);
 
       if (!batch) return;
+
+      if (execution_profile) {
+        cass_batch_set_execution_profile_n(batch, ZSTR_VAL(execution_profile),
+                                           ZSTR_LEN(execution_profile));
+      }
 
       future = cass_session_execute_batch(self->session, batch);
       break;
@@ -630,12 +658,27 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   php_scylladb_future_rows* future_rows = nullptr;
   CassStatement* single = nullptr;
   CassBatch* batch = nullptr;
+  PHP_SCYLLADB_CLEANUP(php_scylladb_zs_release) zend_string* execution_profile = nullptr;
 
-  ZEND_PARSE_PARAMETERS_START(1, 2)
+  zval* execution_profile_zv = nullptr;
+
+  ZEND_PARSE_PARAMETERS_START(1, 3)
     Z_PARAM_ZVAL(statement)
     Z_PARAM_OPTIONAL
     Z_PARAM_ZVAL_OR_NULL(options)
+    Z_PARAM_ZVAL_OR_NULL(execution_profile_zv)
   ZEND_PARSE_PARAMETERS_END();
+
+  /* Third argument wins over anything an ExecutionOptions object carries. */
+  if (execution_profile_zv != nullptr && Z_TYPE_P(execution_profile_zv) != IS_NULL) {
+    execution_profile = php_scylladb_name_from_string_or_enum(execution_profile_zv);
+    if (execution_profile == nullptr || ZSTR_LEN(execution_profile) == 0) {
+      if (execution_profile) zend_string_release(execution_profile);
+      throw_invalid_argument(execution_profile_zv, "executionProfile",
+                             "a non-empty string or an enum case naming a profile registered on the cluster");
+      return;
+    }
+  }
 
   self = PHP_SCYLLADB_GET_SESSION(getThis());
 
@@ -700,6 +743,11 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
 
       if (!single) return;
 
+      if (execution_profile) {
+        cass_statement_set_execution_profile_n(single, ZSTR_VAL(execution_profile),
+                                              ZSTR_LEN(execution_profile));
+      }
+
       future_rows->statement = zend_register_resource(single, php_le_cass_statement());
       future_rows->future = cass_session_execute(self->session, single);
       ZVAL_COPY(&future_rows->session, getThis());
@@ -708,6 +756,11 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
       batch = create_batch(stmt, consistency, retry_policy, timestamp);
 
       if (!batch) return;
+
+      if (execution_profile) {
+        cass_batch_set_execution_profile_n(batch, ZSTR_VAL(execution_profile),
+                                           ZSTR_LEN(execution_profile));
+      }
 
       future_rows->future = cass_session_execute_batch(self->session, batch);
       cass_batch_free(batch);
@@ -791,6 +844,13 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
     }
   }
 
+  /* Cache miss. An unbounded prepared-statement cache is the failure mode
+     cassandra.max_persistent_prepared_statements exists for: queries built by
+     string concatenation produce a distinct cache_key each time. Past the cap
+     the statement is still prepared, just not kept. */
+  bool cache_prepared =
+      self->persist && php_scylladb_persistent_can_cache(PHP_SCYLLADB_PERSISTENT_PREPARED_STATEMENTS);
+
   future =
       cass_session_prepare_n(self->session, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
 
@@ -814,7 +874,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   prepared_statement = PHP_SCYLLADB_GET_STATEMENT(return_value);
   prepared_statement->data.prepared.prepared = cass_future_get_prepared(future);
 
-  if (self->persist) {
+  if (cache_prepared) {
     zval resource;
     pprepared_statement =
         (php_scylladb_pprepared_statement*)pecalloc(1, sizeof(php_scylladb_pprepared_statement), 1);

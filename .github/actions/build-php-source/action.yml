@@ -1,0 +1,72 @@
+name: Build PHP from source
+description: >
+  Compile and cache a PHP install prefix. Used where shivammathur/setup-php
+  cannot go — the manylinux_2_28 container is AlmaLinux 8, not Debian.
+
+inputs:
+  php:
+    required: true
+    description: 'PHP minor version, for example 8.4'
+  phpts:
+    required: false
+    default: 'nts'
+    description: 'Thread model: nts | ts'
+  prefix:
+    required: false
+    default: '/opt/php'
+    description: 'Install prefix root'
+
+outputs:
+  php_config:
+    value: ${{ steps.values.outputs.php_config }}
+    description: 'Absolute path to php-config'
+  prefix:
+    value: ${{ steps.values.outputs.prefix }}
+    description: 'Install prefix of this PHP build'
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve cache key
+      id: meta
+      shell: bash
+      run: |
+        . /etc/os-release
+        echo "platform=${ID}${VERSION_ID%%.*}" >> "$GITHUB_OUTPUT"
+        # The extension ABI is fixed by the PHP *minor* version, so the exact
+        # patch release does not change the artifact. A monthly rotation picks
+        # up new patch releases without an API call at cache-key time.
+        echo "month=$(date +%Y-%m)" >> "$GITHUB_OUTPUT"
+        echo "path=${{ inputs.prefix }}/${{ inputs.php }}-release-${{ inputs.phpts == 'ts' && 'zts' || 'nts' }}" >> "$GITHUB_OUTPUT"
+
+    - name: Restore PHP cache
+      id: cache
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: ${{ steps.meta.outputs.path }}
+        key: php-src-${{ inputs.php }}-${{ inputs.phpts }}-${{ runner.arch }}-${{ steps.meta.outputs.platform }}-${{ steps.meta.outputs.month }}
+
+    - name: Build PHP
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        ARGS=(-v "${{ inputs.php }}" -o "${{ inputs.prefix }}")
+        [[ "${{ inputs.phpts }}" == "ts" ]] && ARGS+=(-z)
+        ./scripts/compile-php.sh "${ARGS[@]}"
+
+    - name: Save PHP cache
+      if: steps.cache.outputs.cache-hit != 'true' && success()
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: ${{ steps.meta.outputs.path }}
+        key: php-src-${{ inputs.php }}-${{ inputs.phpts }}-${{ runner.arch }}-${{ steps.meta.outputs.platform }}-${{ steps.meta.outputs.month }}
+
+    - name: Expose outputs
+      id: values
+      shell: bash
+      run: |
+        PREFIX="${{ steps.meta.outputs.path }}"
+        test -x "$PREFIX/bin/php-config" || { echo "php-config missing in $PREFIX" >&2; exit 1; }
+        echo "$PREFIX/bin" >> "$GITHUB_PATH"
+        echo "prefix=$PREFIX"                        >> "$GITHUB_OUTPUT"
+        echo "php_config=$PREFIX/bin/php-config"     >> "$GITHUB_OUTPUT"

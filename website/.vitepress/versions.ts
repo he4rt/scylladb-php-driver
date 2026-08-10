@@ -22,6 +22,7 @@ export function sidebar(base = '') {
           { text: 'Introduction', link: `${base}/guide/introduction` },
           { text: 'Installation', link: `${base}/guide/installation` },
           { text: 'Quick start', link: `${base}/guide/quickstart` },
+          { text: 'php.ini configuration', link: `${base}/guide/configuration` },
         ],
       },
       {
@@ -34,6 +35,7 @@ export function sidebar(base = '') {
           { text: 'Load balancing and routing', link: `${base}/guide/load-balancing` },
           { text: 'Connection pool and timeouts', link: `${base}/guide/connection-tuning` },
           { text: 'Retry policies', link: `${base}/guide/retry-policies` },
+          { text: 'Execution profiles', link: `${base}/guide/execution-profiles` },
         ],
       },
       {

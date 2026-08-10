@@ -52,8 +52,8 @@ An interface. `connect()` returns the `Cassandra\DefaultSession` implementation.
 ```php
 interface Session
 {
-    public function execute(string|Statement $statement, array|ExecutionOptions|null $options = null): Rows;
-    public function executeAsync(string|Statement $statement, array|ExecutionOptions|null $options = null): FutureRows;
+    public function execute(string|Statement $statement, array|ExecutionOptions|null $options = null, string|\UnitEnum|null $executionProfile = null): Rows;
+    public function executeAsync(string|Statement $statement, array|ExecutionOptions|null $options = null, string|\UnitEnum|null $executionProfile = null): FutureRows;
     public function prepare(string $cql, array|ExecutionOptions|null $options = null): PreparedStatement;
     public function prepareAsync(string $cql, array|ExecutionOptions|null $options = null): FuturePreparedStatement;
     public function close(int|float|null $timeout = null): void;
@@ -66,7 +66,7 @@ interface Session
 ### `execute()`
 
 ```php
-$rows = $session->execute($statement, $options);
+$rows = $session->execute($statement, $options, $executionProfile);
 ```
 
 Runs one statement and returns one page of results. `$statement` is a CQL string, a
@@ -85,12 +85,21 @@ Runs one statement and returns one page of results. `$statement` is a CQL string
 | `retry_policy` | `Cassandra\RetryPolicy` | The cluster policy |
 | `timestamp` | `int` or numeric string | Server side |
 
+`$executionProfile` selects a profile registered with
+[`withExecutionProfile()`](/reference/cluster-builder). It takes a string or an enum case, and `null`
+uses the cluster settings. See [execution profiles](/guide/execution-profiles).
+
+```php
+$rows = $session->execute($statement, null, 'analytics');
+$rows = $session->execute($statement, null, Profile::Analytics);
+```
+
 See [queries and statements](/guide/queries).
 
 ### `executeAsync()`
 
 ```php
-$future = $session->executeAsync($statement, $options);
+$future = $session->executeAsync($statement, $options, $executionProfile);
 $rows   = $future->get();
 ```
 

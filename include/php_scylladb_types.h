@@ -316,8 +316,17 @@ typedef enum /* : uint8_t */
 {
     LOAD_BALANCING_DEFAULT = 0,
     LOAD_BALANCING_ROUND_ROBIN,
-    LOAD_BALANCING_DC_AWARE_ROUND_ROBIN
+    LOAD_BALANCING_DC_AWARE_ROUND_ROBIN,
+    /* ScyllaDB only. Tries the local rack first, then the local datacenter,
+     * then remote ones. Absent from the upstream DataStax driver. */
+    LOAD_BALANCING_RACK_AWARE
 } php_scylladb_load_balancing;
+
+typedef enum /* : uint8_t */
+{
+    RECONNECT_POLICY_CONSTANT = 0,
+    RECONNECT_POLICY_EXPONENTIAL
+} php_scylladb_reconnect_policy;
 
 typedef struct php_scylladb_rows_
 {
@@ -367,6 +376,23 @@ static zend_always_inline php_scylladb_timestamp_gen *php_scylladb_timestamp_gen
     return (php_scylladb_timestamp_gen *)((char *)obj - ((size_t)(&(((php_scylladb_timestamp_gen *)0)->zendObject))));
 }
 
+typedef struct php_scylladb_execution_profile_
+{
+    CassExecProfile *profile;
+    /* Running FNV fingerprint of every setter call. The persistent-cluster cache
+     * key needs the profile's configuration, and CassExecProfile is opaque, so
+     * each setter mixes its arguments in here instead. */
+    zend_ulong config_hash;
+    /* Kept alive because the profile only borrows the CassRetryPolicy. */
+    php_scylladb_retry_policy *retry_policy;
+    zend_object zendObject;
+} php_scylladb_execution_profile;
+static zend_always_inline php_scylladb_execution_profile *php_scylladb_execution_profile_object_fetch(zend_object *obj)
+{
+    return (php_scylladb_execution_profile *)((char *)obj - offsetof(php_scylladb_execution_profile, zendObject));
+}
+#define PHP_SCYLLADB_GET_EXECUTION_PROFILE(obj) php_scylladb_execution_profile_object_fetch(Z_OBJ_P(obj))
+
 typedef struct php_scylladb_cluster_builder_
 {
     zend_string *contact_points;
@@ -377,6 +403,10 @@ typedef struct php_scylladb_cluster_builder_
     zend_string *whitelist_hosts;
     zend_string *blacklist_dcs;
     zend_string *whitelist_dcs;
+    zend_string *local_rack;
+    zend_string *application_name;
+    zend_string *application_version;
+    zend_string *local_address;
 
     uint32_t used_hosts_per_remote_dc;
     uint32_t connect_timeout;
@@ -398,12 +428,33 @@ typedef struct php_scylladb_cluster_builder_
     cass_bool_t use_token_aware_routing;
     uint32_t connection_heartbeat_interval;
     uint32_t request_timeout;
+    uint32_t reconnect_max_interval;
+    uint32_t speculative_execution_delay;
+    int32_t speculative_execution_max;
+    int32_t coalesce_delay;
+    int32_t new_request_ratio;
+    uint32_t connection_idle_timeout;
+    uint32_t max_schema_wait_time;
+    uint32_t resolve_timeout;
+    uint32_t monitor_reporting_interval;
+    uint32_t queue_size_io;
+    uint32_t tracing_consistency;
+    uint32_t tracing_max_wait_time;
+    uint32_t tracing_retry_wait_time;
+    cass_bool_t prepare_on_all_hosts;
+    cass_bool_t prepare_on_up_or_add_host;
+    cass_bool_t shuffle_replicas;
+    cass_bool_t no_compact;
+    cass_bool_t beta_protocol;
     uint16_t port;
+    php_scylladb_reconnect_policy reconnect_policy;
     php_scylladb_load_balancing load_balancing_policy;
     cass_bool_t persist;
     php_scylladb_retry_policy *retry_policy;
     php_scylladb_timestamp_gen *timestamp_gen;
     php_scylladb_ssl *ssl_options;
+    /* name => Cassandra\ExecutionProfile. Applied to the CassCluster in build(). */
+    HashTable *execution_profiles;
     zval default_timeout;
 
     zend_object zendObject;
@@ -766,6 +817,7 @@ extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_simple_statement_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_prepared_statement_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_batch_statement_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_execution_options_ce;
+extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_execution_profile_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_rows_ce;
 
 

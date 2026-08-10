@@ -2,12 +2,99 @@
 
 ## Unreleased
 
+### Changed (breaking)
+
+- The per-worker persistent caches are now bounded by default: 16 clusters, 16 sessions and
+  1000 prepared statements, was unlimited for all three. Past a cap the resource is still
+  created, it is just not cached, and the driver writes one `E_WARNING` per request. The caps
+  are runaway guards set to about ten times normal use, sized from the measured cost per entry
+  per worker: a cluster is about 12 KB, a session about 2.2 MB plus 2 sockets per node, and a
+  prepared statement about 7.4 KB. Set any of them to `-1` for the old unbounded behaviour.
+
+- The default consistency is now `LOCAL_QUORUM`, was `LOCAL_ONE`. A statement that sets no
+  consistency now reads and writes a majority of the replicas in its local datacenter, so a
+  read sees the last write. The old default could serve a read from a replica that had not
+  seen it yet.
+
+  **What can break.** A query at `LOCAL_QUORUM` fails when too few replicas in the local
+  datacenter are up. With replication factor 3 the cluster tolerates one node down instead of
+  two. Latency also rises, because the coordinator waits for a majority instead of one replica.
+
+  **How to keep the old behaviour.** Set one line in `php.ini`:
+
+  ```ini
+  cassandra.default_consistency = LOCAL_ONE
+  ```
+
+  Or set it per cluster with `withDefaultConsistency(Cassandra::CONSISTENCY_LOCAL_ONE)`, or per
+  statement with the `consistency` execution option. Prefer keeping `LOCAL_QUORUM` and dropping
+  to `LOCAL_ONE` only on the queries that value latency over freshness.
+
+  Do not switch to plain `QUORUM` to get a stronger guarantee. `QUORUM` counts replicas across
+  every datacenter, so it adds cross-datacenter latency to every query and fails when a remote
+  datacenter is unreachable.
+
 ### Added
 
 - `Rows::wasApplied(): bool`, which reads the `[applied]` column of a lightweight transaction
   result. A statement with no condition has no such column, and the method then returns `true`,
   so you can call it on any result. The `[applied]` column stays readable through `first()` and
   array access.
+- Bounds on the per-worker persistent caches: `cassandra.max_persistent_clusters`,
+  `cassandra.max_persistent_sessions` and `cassandra.max_persistent_prepared_statements`
+  (`-1` unlimited, `0` disabled). Past a cap the resource is still created but not cached,
+  and the driver writes one `E_WARNING` per request. Before this, an application that built
+  CQL by string concatenation grew `EG(persistent_list)` until the worker restarted.
+- `cassandra.allow_persistent` (default `1`), an operator kill switch for all three caches.
+  With it off, `Cluster\Builder::withPersistentSessions(true)` cannot re-enable caching.
+- `php.ini` seeds for every `Cluster\Builder` default: `cassandra.contact_points`, `.port`,
+  `.connect_timeout`, `.request_timeout`, `.default_consistency`, `.default_page_size`,
+  `.protocol_version`, `.io_threads`, `.core_connections_per_host`, `.max_connections_per_host`,
+  `.reconnect_interval`, `.connection_heartbeat_interval`, `.tcp_keepalive_delay`,
+  `.tcp_nodelay`, `.token_aware_routing`, `.latency_aware_routing`, `.schema_metadata`,
+  `.hostname_resolution` and `.randomized_contact_points`. Each `with*()` method still
+  overrides its seed. All are `PHP_INI_SYSTEM`, because the values form the persistent-cluster
+  cache key and a request-scoped `ini_set()` would grow the cache without bound.
+- `Cassandra\ExecutionProfile`, a named bundle of execution settings. Register any number of
+  them with `Cluster\Builder::withExecutionProfile($name, $profile)` and select one per
+  call with the third argument of `execute()` and `executeAsync()`. Both the name and the
+  selector accept a string or an enum case: a string-backed enum contributes its value, any
+  other enum its case name. Anything a profile does not set
+  falls back to the cluster setting. The profile covers all sixteen driver settings:
+  consistency, serial consistency, request timeout, retry policy, round-robin and
+  datacenter-aware load balancing, token-aware routing and replica shuffling, latency-aware
+  routing and its five tuning values, constant and disabled speculative execution, and
+  host and datacenter allow and deny lists.
+- New `Cluster\Builder` methods for every setting below, so an application can set them in code
+  and not only in `php.ini`: `withRackAwareLoadBalancingPolicy()`, `withApplicationName()`,
+  `withApplicationVersion()`, `withExponentialReconnect()`,
+  `withConstantSpeculativeExecutionPolicy()`, `withNoSpeculativeExecutionPolicy()`,
+  `withCoalesceDelay()` and `withNewRequestRatio()`.
+- ScyllaDB rack-aware load balancing through `cassandra.local_rack` and `cassandra.local_dc`.
+  A non-empty local rack tries live nodes in that rack first, then the local datacenter, then
+  remote ones, which keeps traffic inside one cloud availability zone. This policy exists only
+  in the ScyllaDB C/C++ driver.
+- `cassandra.application_name` and `cassandra.application_version`. The server records both in
+  `system.clients.client_options`, so an operator can see which application and version opens
+  each connection.
+- `cassandra.reconnect_policy` (`constant` or `exponential`) with `cassandra.reconnect_max_interval`.
+  Exponential backoff adds jitter, so a whole worker pool no longer retries a recovering node in
+  lockstep. The default stays `constant`, so existing behaviour is unchanged.
+- `cassandra.speculative_execution_delay` and `cassandra.speculative_execution_max`, off by
+  default. Only enable these for idempotent statements.
+- `cassandra.coalesce_delay` and `cassandra.new_request_ratio` for IO event loop tuning.
+- Fourteen more cluster directives, each defaulting to the C driver's own value so nothing
+  changes until an operator sets one: `cassandra.local_address`,
+  `cassandra.connection_idle_timeout`, `cassandra.max_schema_wait_time`,
+  `cassandra.resolve_timeout`, `cassandra.monitor_reporting_interval`,
+  `cassandra.queue_size_io`, `cassandra.prepare_on_all_hosts`,
+  `cassandra.prepare_on_up_or_add_host`, `cassandra.shuffle_replicas`,
+  `cassandra.no_compact`, `cassandra.beta_protocol`, `cassandra.tracing_consistency`,
+  `cassandra.tracing_max_wait_time` and `cassandra.tracing_retry_wait_time`.
+- A bad directive value is ignored in favour of the documented default, with one `E_WARNING` at
+  startup naming the value that was dropped. `ini_get()` and `phpinfo()` report that default, so
+  what they show is always what the driver uses.
+- New guide page: [php.ini configuration](website/guide/configuration.md).
 - Experimental support for [scylladb/cpp-rs-driver](https://github.com/scylladb/cpp-rs-driver)
   as a third backend, selectable at build time via the new `PHP_DRIVER_BACKEND` CMake
   cache variable (`cassandra | scylla-cpp | scylla-rust`). Install the Rust-backed
@@ -15,6 +102,39 @@
   `cmake -DPHP_DRIVER_BACKEND=scylla-rust` (or use a `*ScyllaRust` preset).
 - New CMake presets `*PHP*<ver><ts>ScyllaRust` covering the third backend across PHP
   versions and build types.
+
+### Dependencies
+
+- The Cassandra backend now builds from `github.com/apache/cassandra-cpp-driver`, was
+  `github.com/datastax/cpp-driver`. Both point at the same commits, but Apache is where the
+  driver now lives, and the local build script already used it.
+- All three drivers now track their default branch: `trunk` for
+  `apache/cassandra-cpp-driver`, `master` for `scylladb/cpp-driver` and
+  `scylladb/cpp-rs-driver`. `cpp-rs-driver` was pinned to `v1.0.0`; its `master` is currently
+  the same commit as `v1.1.1`, which is the release series that adds ScyllaDB tablet support.
+  Tablet keyspace information comes from `system_schema.scylla_keyspaces`, tablets on
+  materialized views are fixed, and the driver backs off from advanced shard awareness on a
+  shard mismatch instead of retrying pointlessly behind NAT.
+- Tags on the two C++ drivers are stale, which is why the default branch is the right target:
+  `scylladb/cpp-driver` last tagged `2.16.2b` in March 2022, and `apache/cassandra-cpp-driver`
+  last tagged `2.17.1` in October 2023. Both branches are still active.
+- `libuv` moves from `v1.50.0` to `v1.52.1` in `scripts/compile-libuv.sh`. libuv tags real
+  releases, so it stays pinned rather than tracking a branch.
+
+### Fixed
+
+- `cassandra.log = syslog` now writes through `syslog(3)`. It used to create a file named
+  `syslog` in the process working directory. `cassandra.log = stderr` is also accepted now.
+- `DefaultCluster::connect()` leaked the connect `CassFuture` when the session was not
+  persistent. Only the error paths freed it. Confirmed with `leaks`: one 192-byte root
+  leak per call, now zero.
+- `Cluster\Builder::withConnectionHeartbeatInterval()` and `withTCPKeepalive()` passed a
+  value 1000 times too large to the C driver. Both `cass_cluster_set_connection_heartbeat_interval()`
+  and `cass_cluster_set_tcp_keepalive()` take seconds, but the builder stored milliseconds.
+  `withConnectionHeartbeatInterval(30.0)` asked for a 30000-second heartbeat, which disabled
+  heartbeats instead of sending one every 30 seconds. Both now match the documented seconds
+  contract. The compiled default of 30 seconds was always correct, because it never went
+  through the setter.
 
 ### Deprecated
 
@@ -24,6 +144,13 @@
 ### Known limitations (scylla-rust backend)
 
 - `Cassandra\Cluster\Builder::withMaxConnectionsPerHost()` is a no-op (removed upstream).
+- Nine of the new `php.ini` directives have no effect, because `cpp-rs-driver` marks the
+  matching setter `UNIMPLEMENTED` in its `api.rs` manifest: `cassandra.new_request_ratio`,
+  `cassandra.queue_size_io`, `cassandra.monitor_reporting_interval`,
+  `cassandra.prepare_on_all_hosts`, `cassandra.prepare_on_up_or_add_host`,
+  `cassandra.no_compact`, `cassandra.tracing_consistency`, `cassandra.tracing_max_wait_time`
+  and `cassandra.tracing_retry_wait_time`. Each keeps its driver default there. Every other
+  directive, including execution profiles and rack-aware routing, works on all three backends.
 - Schema introspection of column clustering order, keyspace metadata via name, and
   table/materialized-view options will return empty values or throw — the upstream
   declarations of `cass_*_meta_field_by_name` and `cass_iterator_fields_from_*` are

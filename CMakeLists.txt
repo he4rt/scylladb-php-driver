@@ -197,6 +197,7 @@ add_subdirectory(src/Database)
 add_subdirectory(src/Numbers)
 add_subdirectory(src/Exception)
 add_subdirectory(src/RetryPolicy)
+add_subdirectory(src/ExecutionProfile)
 add_subdirectory(src/SSLOptions)
 add_subdirectory(src/TimestampGenerator)
 add_subdirectory(src/Type)
@@ -222,6 +223,7 @@ target_link_libraries(ext_scylladb PRIVATE
         "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::datetime>"
         "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::database>"
         "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::numbers>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::execution_profile>"
         "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::ssl_options>"
         "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::exceptions>"
         "$<LINK_LIBRARY:WHOLE_ARCHIVE,ext_scylladb::cluster::builder>"

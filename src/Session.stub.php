@@ -6,8 +6,8 @@ declare(strict_types=1);
 
 namespace Cassandra {
     interface Session {
-        public function execute(string|Statement $statement, array|ExecutionOptions|null $options = null): Rows;
-        public function executeAsync(string|Statement $statement, array|ExecutionOptions|null $options = null): FutureRows;
+        public function execute(string|Statement $statement, array|ExecutionOptions|null $options = null, string|\UnitEnum|null $executionProfile = null): Rows;
+        public function executeAsync(string|Statement $statement, array|ExecutionOptions|null $options = null, string|\UnitEnum|null $executionProfile = null): FutureRows;
         public function prepare(string $cql, array|ExecutionOptions|null $options = null): PreparedStatement;
         public function prepareAsync(string $cql, array|ExecutionOptions|null $options = null): FuturePreparedStatement;
         public function close(int|float|null $timeout = null): void;

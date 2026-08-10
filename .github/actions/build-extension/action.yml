@@ -80,4 +80,6 @@ runs:
 
     - name: Install extension
       shell: bash
-      run: sudo cmake --install cmake-build --component extension
+      run: |
+        SUDO=""; [[ "$(id -u)" -ne 0 ]] && SUDO="sudo"
+        $SUDO cmake --install cmake-build --component extension

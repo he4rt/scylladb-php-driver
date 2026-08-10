@@ -51,7 +51,7 @@ libtool
 ltmain.sh
 missing
 /autom4te.cache/
-ex*.php
+/ex*.php
 debug.ini
 cassandra.log
 /**/PHP-Parser*

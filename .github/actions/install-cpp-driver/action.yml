@@ -27,7 +27,7 @@ runs:
       run: |
         case "${{ inputs.driver }}" in
           cassandra)
-            echo "repo=https://github.com/datastax/cpp-driver.git"  >> "$GITHUB_OUTPUT"
+            echo "repo=https://github.com/apache/cassandra-cpp-driver.git" >> "$GITHUB_OUTPUT"
             echo "ref="                                             >> "$GITHUB_OUTPUT"
             echo "prefix=/opt/cassandra-cpp"                        >> "$GITHUB_OUTPUT"
             echo "backend=cassandra"                                >> "$GITHUB_OUTPUT"
@@ -35,7 +35,7 @@ runs:
             ;;
           scylla-rust)
             echo "repo=https://github.com/scylladb/cpp-rs-driver.git" >> "$GITHUB_OUTPUT"
-            echo "ref=v1.0.0"                                         >> "$GITHUB_OUTPUT"
+            echo "ref="                                              >> "$GITHUB_OUTPUT"
             echo "prefix=/opt/scylla-rust"                            >> "$GITHUB_OUTPUT"
             echo "backend=scylla-rust"                                >> "$GITHUB_OUTPUT"
             echo "kind=rust"                                          >> "$GITHUB_OUTPUT"
@@ -52,26 +52,49 @@ runs:
         # to pick up upstream changes without any network call at cache-key time.
         echo "month=$(date +%Y-%m)" >> "$GITHUB_OUTPUT"
 
+        # runner.os is "Linux" for both the Ubuntu runner and the manylinux
+        # container, so it cannot keep their caches apart. A glibc-2.28 build
+        # restored into an Ubuntu job (or the reverse) links against the wrong
+        # runtime, so the distro release goes into the key.
+        . /etc/os-release
+        echo "platform=${ID}${VERSION_ID%%.*}" >> "$GITHUB_OUTPUT"
+
     - name: Restore driver cache
       id: cache
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
+        key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ steps.meta.outputs.platform }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
         restore-keys: |
-          cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-system-libuv-shared-deps
+          cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ steps.meta.outputs.platform }}-system-libuv-shared-deps
 
     - name: Install build dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        sudo apt-get update -q
-        if [[ "${{ steps.meta.outputs.kind }}" == "rust" ]]; then
-          sudo apt-get install -y --no-install-recommends \
-            pkg-config build-essential libssl-dev cmake ca-certificates curl
+        # The manylinux container runs as root and has no sudo.
+        SUDO=""; [[ "$(id -u)" -ne 0 ]] && SUDO="sudo"
+
+        if command -v apt-get >/dev/null 2>&1; then
+          $SUDO apt-get update -q
+          if [[ "${{ steps.meta.outputs.kind }}" == "rust" ]]; then
+            $SUDO apt-get install -y --no-install-recommends \
+              pkg-config build-essential libssl-dev cmake ca-certificates curl
+          else
+            $SUDO apt-get install -y --no-install-recommends \
+              ninja-build pkg-config libuv1-dev libssl-dev zlib1g-dev libssh2-1-dev
+          fi
         else
-          sudo apt-get install -y --no-install-recommends \
-            ninja-build pkg-config libuv1-dev libssl-dev zlib1g-dev libssh2-1-dev
+          # AlmaLinux 8 (manylinux_2_28). EPEL is already enabled in the image
+          # and supplies ninja-build, libuv-devel and ccache.
+          if [[ "${{ steps.meta.outputs.kind }}" == "rust" ]]; then
+            $SUDO dnf install -y --setopt=install_weak_deps=False \
+              pkgconf-pkg-config gcc gcc-c++ make openssl-devel ca-certificates curl
+          else
+            $SUDO dnf install -y --setopt=install_weak_deps=False \
+              ninja-build ccache pkgconf-pkg-config libuv-devel openssl-devel \
+              zlib-devel libssh2-devel
+          fi
         fi
 
     - name: Install Rust toolchain
@@ -84,7 +107,7 @@ runs:
       run: |
         REF="${{ steps.meta.outputs.ref }}"
         if [[ -z "$REF" ]]; then
-          # Use repo default branch (varies: trunk for datastax, master for scylladb)
+          # Use repo default branch (varies: trunk for apache, master for scylladb)
           git clone --depth 1 "${{ steps.meta.outputs.repo }}" /tmp/cpp-driver-src
         else
           git clone --depth 1 --branch "$REF" \
@@ -97,7 +120,18 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true' && steps.meta.outputs.kind == 'cpp'
       shell: bash
       run: |
+        SUDO=""; [[ "$(id -u)" -ne 0 ]] && SUDO="sudo"
+        # Two accommodations for upstream code we do not own:
+        #  * Its cmake_minimum_required is older than CMake 4 accepts, and the
+        #    manylinux image ships CMake 4.
+        #  * It compiles with -Werror, so a compiler upgrade breaks it on
+        #    warnings we cannot fix. GCC 14 reports a false positive
+        #    -Wfree-nonheap-object in its FixedAllocator. The per-config flags
+        #    land after the project's own -Werror, so they win.
         cmake -G Ninja -B /tmp/cpp-driver-src/build -S /tmp/cpp-driver-src \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+          -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG -Wno-error" \
+          -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG -Wno-error" \
           -DCMAKE_INSTALL_PREFIX="${{ steps.meta.outputs.prefix }}" \
           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
@@ -113,21 +147,23 @@ runs:
           -DCASS_BUILD_TESTS=OFF \
           -DCASS_BUILD_EXAMPLES=OFF
         cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc)"
-        sudo cmake --install /tmp/cpp-driver-src/build
+        ${SUDO:-} cmake --install /tmp/cpp-driver-src/build
         rm -rf /tmp/cpp-driver-src
 
     - name: Build and install (rust driver)
       if: steps.cache.outputs.cache-hit != 'true' && steps.meta.outputs.kind == 'rust'
       shell: bash
       run: |
+        SUDO=""; [[ "$(id -u)" -ne 0 ]] && SUDO="sudo"
         # cpp-rs-driver's CMakeLists delegates to cargo.
         cmake -B /tmp/cpp-driver-src/build -S /tmp/cpp-driver-src \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
           -DCMAKE_INSTALL_PREFIX="${{ steps.meta.outputs.prefix }}" \
           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCASS_BUILD_STATIC=ON \
           -DCASS_BUILD_SHARED=ON
         cmake --build /tmp/cpp-driver-src/build --parallel "$(nproc)"
-        sudo cmake --install /tmp/cpp-driver-src/build
+        ${SUDO:-} cmake --install /tmp/cpp-driver-src/build
         rm -rf /tmp/cpp-driver-src
 
     # Save only when we built (cache miss) AND the build succeeded.
@@ -136,7 +172,7 @@ runs:
       uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ${{ steps.meta.outputs.prefix }}
-        key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ runner.os }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
+        key: cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ steps.meta.outputs.platform }}-${{ steps.meta.outputs.month }}-system-libuv-shared-deps
 
     - name: Expose outputs
       id: values

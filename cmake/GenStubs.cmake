@@ -118,6 +118,16 @@ if (NOT EXISTS "${PHP_SCYLLADB_GEN_DESCRIPTOR_SCRIPT}")
     message(FATAL_ERROR "descriptor generator not found: ${PHP_SCYLLADB_GEN_DESCRIPTOR_SCRIPT}")
 endif ()
 
+# Aggregate target that materialises every generated header and source without
+# compiling anything. clang-tidy needs the generated files to exist before it
+# can parse a translation unit, and it must not depend on a list of module
+# targets that a new module can be left out of.
+#
+#   cmake --build <dir> --target generated-sources
+if (NOT TARGET generated-sources)
+    add_custom_target(generated-sources)
+endif ()
+
 function(php_scylladb_generate_arginfo target_name)
     set(_generated_headers)
     foreach (_stub IN LISTS ARGN)
@@ -150,6 +160,9 @@ function(php_scylladb_generate_arginfo target_name)
     endforeach ()
 
     target_sources(${target_name} PRIVATE ${_generated_headers})
+
+    add_custom_target(${target_name}-arginfo DEPENDS ${_generated_headers})
+    add_dependencies(generated-sources ${target_name}-arginfo)
 endfunction()
 
 # Opt-in: generate <basename>_descriptor.c for each stub passed here.
@@ -193,4 +206,7 @@ function(php_scylladb_generate_descriptor target_name)
     endforeach ()
 
     target_sources(${target_name} PRIVATE ${_generated_descriptors})
+
+    add_custom_target(${target_name}-descriptors DEPENDS ${_generated_descriptors})
+    add_dependencies(generated-sources ${target_name}-descriptors)
 endfunction()

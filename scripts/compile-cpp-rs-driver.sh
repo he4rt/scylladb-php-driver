@@ -8,7 +8,7 @@ INSTALL_PREFIX="/usr/local"
 BUILD_DIR=""
 KEEP_SRC=0
 BUILD_TYPE="RelWithDebInfo"
-GIT_REF="v1.0.0"
+GIT_REF="master"
 GIT_REPO="https://github.com/scylladb/cpp-rs-driver.git"
 
 print_usage() {
