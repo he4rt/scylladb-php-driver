@@ -336,15 +336,17 @@ ZEND_METHOD(Cassandra_Cluster_Builder, build)
     cass_cluster_set_connection_idle_timeout(cluster->cluster, self->connection_idle_timeout);
     cass_cluster_set_max_schema_wait_time(cluster->cluster, self->max_schema_wait_time);
     cass_cluster_set_resolve_timeout(cluster->cluster, self->resolve_timeout);
-    cass_cluster_set_prepare_on_all_hosts(cluster->cluster, self->prepare_on_all_hosts);
     cass_cluster_set_token_aware_routing_shuffle_replicas(cluster->cluster, self->shuffle_replicas);
     cass_cluster_set_use_beta_protocol_version(cluster->cluster, self->beta_protocol);
 
-    /* cpp-rs-driver declares none of these eight. They are event-loop, tracing
-     * and protocol-compatibility knobs that the Rust rewrite either manages
-     * itself or has not implemented, so the directive has no effect there.
-     * Every one keeps its C driver default on that backend. */
+    /* cpp-rs-driver lists all nine of these as UNIMPLEMENTED in its api.rs
+     * manifest. Eight are not even declared, so calling them fails to compile.
+     * prepare_on_all_hosts is declared but has no symbol in the library, which
+     * fails later and louder: the extension loads and then dies with
+     * "undefined symbol" on the first build(). Both need the same guard.
+     * Every directive keeps its C driver default on that backend. */
 #ifndef PHP_SCYLLADB_BACKEND_SCYLLA_RUST
+    cass_cluster_set_prepare_on_all_hosts(cluster->cluster, self->prepare_on_all_hosts);
     ASSERT_SUCCESS(cass_cluster_set_new_request_ratio(cluster->cluster, self->new_request_ratio));
     ASSERT_SUCCESS(cass_cluster_set_queue_size_io(cluster->cluster, self->queue_size_io));
     cass_cluster_set_monitor_reporting_interval(cluster->cluster, self->monitor_reporting_interval);
