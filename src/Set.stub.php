@@ -15,15 +15,15 @@ namespace Cassandra {
 
         public function type(): Type {}
         public function values(): array {}
-        public function add(mixed $value): bool {}
-        public function has(mixed $value): bool {}
-        public function remove(mixed $value): bool {}
+        public function add(Value|string|int|float|bool|null $value): bool {}
+        public function has(Value|string|int|float|bool|null $value): bool {}
+        public function remove(Value|string|int|float|bool|null $value): bool {}
 
         /* Countable */
         public function count(): int {}
 
         /* Iterator */
-        public function current(): mixed {}
+        public function current(): Value|string|int|float|bool|null {}
         public function key(): int {}
         public function next(): void {}
         public function valid(): bool {}

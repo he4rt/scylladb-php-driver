@@ -15,14 +15,14 @@ namespace Cassandra {
 
         public function type(): Type {}
         public function values(): array {}
-        public function set(int $index, mixed $value): void {}
-        public function get(int $index): mixed {}
+        public function set(int $index, Value|string|int|float|bool|null $value): void {}
+        public function get(int $index): Value|string|int|float|bool|null {}
 
         /* Countable */
         public function count(): int {}
 
         /* Iterator */
-        public function current(): mixed {}
+        public function current(): Value|string|int|float|bool|null {}
         public function key(): int {}
         public function next(): void {}
         public function valid(): bool {}

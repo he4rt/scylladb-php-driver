@@ -36,6 +36,6 @@ namespace Cassandra {
         final public static function set(Type $type): \Cassandra\Type\Set {}
         final public static function map(Type $keyType, Type $valueType): \Cassandra\Type\Map {}
         final public static function tuple(Type ...$types): \Cassandra\Type\Tuple {}
-        final public static function userType(mixed ...$types): \Cassandra\Type\UserType {}
+        final public static function userType(string|Type ...$types): \Cassandra\Type\UserType {}
     }
 }

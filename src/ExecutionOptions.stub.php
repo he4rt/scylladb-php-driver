@@ -12,6 +12,6 @@ namespace Cassandra {
  */    final class ExecutionOptions {
         /** @deprecated */
         public function __construct(array $options) {}
-        public function __get(string $name): mixed {}
+        public function __get(string $name): int|float|string|array|RetryPolicy|null {}
     }
 }
