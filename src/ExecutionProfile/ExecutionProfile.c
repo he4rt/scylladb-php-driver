@@ -329,9 +329,14 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withLatencyAwareRoutingSettings)
     PHP_SCYLLADB_PROFILE_MIX_INT(self, update_rate_ms);
     PHP_SCYLLADB_PROFILE_MIX_INT(self, min_measured);
 
-    ASSERT_SUCCESS(cass_execution_profile_set_latency_aware_routing_settings(
+    /* Deliberately not ASSERT_SUCCESS. cpp-rs-driver declares this returning
+     * CassError but its Rust implementation returns nothing, so the caller
+     * reads whatever happens to be in the return register and a check would
+     * throw at random. The setter only stores fields and cannot fail for a
+     * profile we just allocated, on either driver. */
+    (void)cass_execution_profile_set_latency_aware_routing_settings(
         self->profile, exclusion_threshold, scale_ms, retry_period_ms, update_rate_ms,
-        (cass_uint64_t)min_measured));
+        (cass_uint64_t)min_measured);
 
     RETURN_ZVAL(getThis(), 1, 0);
 }
