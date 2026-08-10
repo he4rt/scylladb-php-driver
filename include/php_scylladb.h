@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cassandra.h>
+/* Must follow cassandra.h: shims the schema-metadata declarations that
+ * cpp-rs-driver master removed. No effect on the other two backends. */
+#include <php_scylladb_rs_compat.h>
 #include <gmp.h>
 #include <sys/stat.h>
 #include <sys/types.h>
