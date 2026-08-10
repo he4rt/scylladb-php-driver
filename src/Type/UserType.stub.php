@@ -18,6 +18,6 @@ namespace Cassandra\Type {
         public function keyspace(): ?string {}
         public function __toString(): string {}
         public function types(): array {}
-        public function create(mixed ...$value): \Cassandra\UserTypeValue {}
+        public function create(\Cassandra\Value|string|int|float|bool|null ...$value): \Cassandra\UserTypeValue {}
     }
 }

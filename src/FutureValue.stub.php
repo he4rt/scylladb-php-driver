@@ -10,7 +10,7 @@ namespace Cassandra {
      * @not-serializable
  * @scylladb-struct php_scylladb_future_value
  */    final class FutureValue implements Future {
-        public function get(int|float|null $timeout = null): mixed {}
+        public function get(int|float|null $timeout = null): Value|string|int|float|bool|null {}
 
         /** @return resource */
         public function getResource(): mixed {}

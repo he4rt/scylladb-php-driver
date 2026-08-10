@@ -38,13 +38,13 @@ namespace Cassandra {
         public function materializedViews(): array {}
 
         /** @return \Cassandra\Function_|false */
-        public function function(string $name, mixed ...$types): \Cassandra\Function_|false {}
+        public function function(string $name, string|\Cassandra\Type ...$types): \Cassandra\Function_|false {}
 
         /** @return array<string, \Cassandra\Function_> */
         public function functions(): array {}
 
         /** @return Aggregate|false */
-        public function aggregate(string $name, mixed ...$types): Aggregate|false {}
+        public function aggregate(string $name, string|\Cassandra\Type ...$types): Aggregate|false {}
 
         /** @return array<string, Aggregate> */
         public function aggregates(): array {}

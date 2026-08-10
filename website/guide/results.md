@@ -188,5 +188,5 @@ if ($row === null) {
 ## Writes and schema changes
 
 An `INSERT`, `UPDATE`, `DELETE`, or `CREATE TABLE` also returns a `Rows` object. It is empty, except
-for a lightweight transaction, which returns the `[applied]` column. See
-[lightweight transactions](/guide/queries#lightweight-transactions).
+for a lightweight transaction, which returns the `[applied]` column. Read that column with
+`$rows->wasApplied()`. See [lightweight transactions](/guide/queries#lightweight-transactions).

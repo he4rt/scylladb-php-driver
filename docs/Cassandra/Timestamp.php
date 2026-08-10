@@ -24,13 +24,36 @@ namespace Cassandra;
 final class Timestamp implements Value {
 
     /**
-     * Creates a new timestamp from either unix timestamp and microseconds or
-     * from the current time by default.
+     * Creates a new timestamp from a unix timestamp and microseconds, from a
+     * DateTimeInterface, or from the current time by default.
      *
-     * @param int $seconds The number of seconds
-     * @param int $microseconds The number of microseconds
+     * @param int|\DateTimeInterface $seconds The number of seconds, or a date and time object
+     * @param int $microseconds The number of microseconds. Not allowed with a DateTimeInterface
      */
     public function __construct($seconds, $microseconds) { }
+
+    /**
+     * Creates a timestamp for the current time.
+     *
+     * @return static
+     */
+    public static function now() { }
+
+    /**
+     * Alias of now(). A timestamp holds a UTC epoch value, so it carries no zone.
+     *
+     * @return static
+     */
+    public static function nowUtc() { }
+
+    /**
+     * Creates a timestamp from a PHP date and time object.
+     *
+     * @param \DateTimeInterface $datetime The date and time to convert
+     *
+     * @return static
+     */
+    public static function fromDateTime($datetime) { }
 
     /**
      * The type of this timestamp.

@@ -15,6 +15,6 @@ namespace Cassandra\Type {
         public function name(): string {}
         public function __toString(): string {}
         public function types(): array {}
-        public function create(mixed ...$values): \Cassandra\Tuple {}
+        public function create(\Cassandra\Value|string|int|float|bool|null ...$values): \Cassandra\Tuple {}
     }
 }

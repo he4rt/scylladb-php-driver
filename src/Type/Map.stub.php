@@ -16,6 +16,6 @@ namespace Cassandra\Type {
         public function keyType(): \Cassandra\Type {}
         public function valueType(): \Cassandra\Type {}
         public function __toString(): string {}
-        public function create(mixed ...$value): \Cassandra\Map {}
+        public function create(\Cassandra\Value|string|int|float|bool|null ...$value): \Cassandra\Map {}
     }
 }

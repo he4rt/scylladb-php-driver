@@ -16,24 +16,24 @@ namespace Cassandra {
         public function type(): Type {}
         public function keys(): array {}
         public function values(): array {}
-        public function set(mixed $key, mixed $value): bool {}
-        public function get(mixed $key): mixed {}
-        public function remove(mixed $key): bool {}
-        public function has(mixed $key): bool {}
+        public function set(Value|string|int|float|bool|null $key, Value|string|int|float|bool|null $value): bool {}
+        public function get(Value|string|int|float|bool|null $key): Value|string|int|float|bool|null {}
+        public function remove(Value|string|int|float|bool|null $key): bool {}
+        public function has(Value|string|int|float|bool|null $key): bool {}
 
         /* Countable */
         public function count(): int {}
 
         /* Iterator */
-        public function current(): mixed {}
-        public function key(): mixed {}
+        public function current(): Value|string|int|float|bool|null {}
+        public function key(): Value|string|int|float|bool|null {}
         public function next(): void {}
         public function valid(): bool {}
         public function rewind(): void {}
 
         /* ArrayAccess */
         public function offsetSet(mixed $offset, mixed $value): void {}
-        public function offsetGet(mixed $offset): mixed {}
+        public function offsetGet(mixed $offset): Value|string|int|float|bool|null {}
         public function offsetUnset(mixed $offset): void {}
         public function offsetExists(mixed $offset): bool {}
     }

@@ -99,8 +99,11 @@ final class Timeuuid implements Value, UuidInterface
 final class Timestamp implements Value
 {
     // Omit both arguments to get the current time.
-    public function __construct(int $seconds = <now>, int $microseconds = <now>) {}
+    // A DateTimeInterface cannot be combined with $microseconds.
+    public function __construct(int|\DateTimeInterface $seconds = <now>, int $microseconds = <now>) {}
 
+    public static function now(): static;
+    public static function nowUtc(): static;                      // alias of now()
     public static function fromDateTime(\DateTimeInterface $datetime): static;
     public function toDateTime(): \DateTime;
     public function time(): int;                                  // seconds
@@ -138,12 +141,14 @@ final class Time implements Value
 ```php
 final class Duration implements Value
 {
+    // A DateInterval must be the only argument. Otherwise all three are required.
     public function __construct(
-        int|float|string|Bigint $months,
+        int|float|string|Bigint|\DateInterval $months,
         int|float|string|Bigint $days,
         int|float|string|Bigint $nanos,
     ) {}
 
+    public static function fromDateInterval(\DateInterval $interval): static;
     public function months(): string;
     public function days(): string;
     public function nanos(): string;

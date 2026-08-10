@@ -36,6 +36,10 @@
 
 ### Added
 
+- `Rows::wasApplied(): bool`, which reads the `[applied]` column of a lightweight transaction
+  result. A statement with no condition has no such column, and the method then returns `true`,
+  so you can call it on any result. The `[applied]` column stays readable through `first()` and
+  array access.
 - Bounds on the per-worker persistent caches: `cassandra.max_persistent_clusters`,
   `cassandra.max_persistent_sessions` and `cassandra.max_persistent_prepared_statements`
   (`-1` unlimited, `0` disabled). Past a cap the resource is still created but not cached,

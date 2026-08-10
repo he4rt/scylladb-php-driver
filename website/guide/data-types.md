@@ -164,7 +164,10 @@ CQL splits date and time. The driver mirrors that split.
 | `Cassandra\Duration` | `duration` | Months, days, and nanoseconds |
 
 ```php
+$ts = Cassandra\Timestamp::now();                      // current time
+$ts = Cassandra\Timestamp::nowUtc();                   // alias of now()
 $ts = new Cassandra\Timestamp(time());                 // from a Unix timestamp
+$ts = new Cassandra\Timestamp(new DateTime());         // from a date and time object
 $ts = Cassandra\Timestamp::fromDateTime(new DateTime());
 
 $ts->time();                 // seconds
@@ -202,6 +205,17 @@ $d->nanos();    // string
 
 The string form is `Mmo Dd Nns` without spaces. A negative duration leads with a minus sign, so
 `(-3, -2, -1)` prints as `-3mo2d1ns`.
+
+A native `DateInterval` works as the only argument:
+
+```php
+$d = new Cassandra\Duration(new DateInterval('P1M15D'));
+$d = Cassandra\Duration::fromDateInterval((new DateTime('2020-01-01'))->diff(new DateTime()));
+```
+
+Years fold into months, hours and smaller parts fold into nanoseconds, and an inverted interval
+gives a negative duration. The sub-second part of a `DateInterval` holds microseconds, so the
+last three digits of `nanos()` are always zero.
 
 ## UUIDs
 

@@ -7,6 +7,7 @@
 #include "Type/TypeFactory.h"
 
 #include <spl/spl_exceptions.h>
+#include <ext/date/php_date.h>
 #include "Duration_arginfo.h"
 
 extern php_scylladb_value_handlers php_scylladb_duration_handlers;
@@ -105,20 +106,115 @@ char *php_scylladb_duration_to_string(php_scylladb_duration *duration)
   return rep;
 }
 
+static php_scylladb_duration *duration_instantiate(zval *object)
+{
+  zval val;
+
+  if (object_init_ex(&val, php_scylladb_duration_ce) != SUCCESS) {
+    return nullptr;
+  }
+
+  ZVAL_OBJ(object, Z_OBJ(val));
+  return php_scylladb_duration_object_fetch(Z_OBJ_P(object));
+}
+
+static cass_int64_t rel_time_field(timelib_sll value)
+{
+  return value == TIMELIB_UNSET ? 0 : (cass_int64_t)value;
+}
+
+static bool duration_from_date_interval(zval *interval, php_scylladb_duration *self)
+{
+  php_interval_obj *obj = Z_PHPINTERVAL_P(interval);
+
+  if (!obj->initialized || obj->diff == nullptr) {
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "%s",
+      "The DateInterval is not initialized");
+    return false;
+  }
+
+  timelib_rel_time *rel = obj->diff;
+
+  cass_int64_t months = 0;
+  cass_int64_t days = rel_time_field(rel->d);
+  cass_int64_t seconds = 0;
+  cass_int64_t nanos = 0;
+  cass_int64_t part = 0;
+
+  bool overflow = __builtin_mul_overflow(rel_time_field(rel->y), (cass_int64_t)12, &months);
+  overflow |= __builtin_add_overflow(months, rel_time_field(rel->m), &months);
+
+  overflow |= __builtin_mul_overflow(rel_time_field(rel->h), (cass_int64_t)3600, &seconds);
+  overflow |= __builtin_mul_overflow(rel_time_field(rel->i), (cass_int64_t)60, &part);
+  overflow |= __builtin_add_overflow(seconds, part, &seconds);
+  overflow |= __builtin_add_overflow(seconds, rel_time_field(rel->s), &seconds);
+
+  overflow |= __builtin_mul_overflow(seconds, (cass_int64_t)1000000000, &nanos);
+  overflow |= __builtin_mul_overflow(rel_time_field(rel->us), (cass_int64_t)1000, &part);
+  overflow |= __builtin_add_overflow(nanos, part, &nanos);
+
+  if (overflow || months > INT32_MAX || months < INT32_MIN || days > INT32_MAX ||
+      days < INT32_MIN || nanos == INT64_MIN) {
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "%s",
+      "The DateInterval is too large for a duration");
+    return false;
+  }
+
+  if (rel->invert) {
+    months = -months;
+    days = -days;
+    nanos = -nanos;
+  }
+
+  self->months = (cass_int32_t)months;
+  self->days = (cass_int32_t)days;
+  self->nanos = nanos;
+  return true;
+}
+
 void
 php_scylladb_duration_init(INTERNAL_FUNCTION_PARAMETERS)
 {
-  zval *months, *days, *nanos;
+  zval *months, *days = nullptr, *nanos = nullptr;
   cass_int64_t param;
   php_scylladb_duration *self = nullptr;
 
-  ZEND_PARSE_PARAMETERS_START(3, 3)
+  ZEND_PARSE_PARAMETERS_START(1, 3)
     Z_PARAM_ZVAL(months)
+    Z_PARAM_OPTIONAL
     Z_PARAM_ZVAL(days)
     Z_PARAM_ZVAL(nanos)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_DURATION(getThis());
+  /* Reached both as Duration::__construct (ZEND_THIS is the Duration being
+     built) and as Type\Scalar::create (ZEND_THIS is the Scalar type object).
+     Fetching a duration out of the Scalar is a type-confused write. */
+  if (ZEND_THIS && Z_TYPE_P(ZEND_THIS) == IS_OBJECT &&
+      instanceof_function(Z_OBJCE_P(ZEND_THIS), php_scylladb_duration_ce)) {
+    self = PHP_SCYLLADB_GET_DURATION(ZEND_THIS);
+  } else {
+    object_init_ex(return_value, php_scylladb_duration_ce);
+    self = PHP_SCYLLADB_GET_DURATION(return_value);
+  }
+
+  if (Z_TYPE_P(months) == IS_OBJECT &&
+      instanceof_function(Z_OBJCE_P(months), php_date_get_interval_ce())) {
+    if (ZEND_NUM_ARGS() != 1) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "%s",
+        "A DateInterval must be the only argument");
+      return;
+    }
+
+    duration_from_date_interval(months, self);
+    return;
+  }
+
+  if (ZEND_NUM_ARGS() != 3) {
+    zend_argument_count_error(
+      PHP_SCYLLADB_NAMESPACE "\\Duration::__construct() expects exactly 3 arguments, %d given",
+      ZEND_NUM_ARGS());
+    return;
+  }
 
   if (!get_param(months, "months", INT32_MIN, INT32_MAX, &param  )) {
     return;
@@ -146,6 +242,28 @@ php_scylladb_duration_init(INTERNAL_FUNCTION_PARAMETERS)
 ZEND_METHOD(Cassandra_Duration, __construct)
 {
   php_scylladb_duration_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
+ZEND_METHOD(Cassandra_Duration, fromDateInterval)
+{
+  zval *interval;
+
+  ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_OBJECT_OF_CLASS(interval, php_date_get_interval_ce())
+  ZEND_PARSE_PARAMETERS_END();
+
+  php_scylladb_duration *self = duration_instantiate(return_value);
+
+  if (self == nullptr) {
+    zend_throw_exception(php_scylladb_runtime_exception_ce,
+      "Failed to create " PHP_SCYLLADB_NAMESPACE "\\Duration", 0);
+    RETURN_THROWS();
+  }
+
+  if (!duration_from_date_interval(interval, self)) {
+    zval_ptr_dtor(return_value);
+    RETURN_THROWS();
+  }
 }
 
 ZEND_METHOD(Cassandra_Duration, __toString)

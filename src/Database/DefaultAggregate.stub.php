@@ -23,8 +23,7 @@ namespace Cassandra {
         /** @return \Cassandra\Function_|null */
         public function stateFunction(): ?\Cassandra\Function_ {}
 
-        /** @return mixed */
-        public function initialCondition(): mixed {}
+        public function initialCondition(): Value|string|int|float|bool|null {}
 
         /** @return \Cassandra\Type|null */
         public function returnType(): ?\Cassandra\Type {}
