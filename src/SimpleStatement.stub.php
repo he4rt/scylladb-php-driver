@@ -11,5 +11,7 @@ namespace Cassandra {
  * @scylladb-struct php_scylladb_statement
  */    final class SimpleStatement implements Statement {
         public function __construct(string $cql) {}
+        public function setIdempotent(bool $idempotent = true): static {}
+        public function isIdempotent(): ?bool {}
     }
 }

@@ -35,6 +35,8 @@ ZEND_METHOD(Cassandra_SimpleStatement, __construct)
   self->data.simple.cql = estrndup(ZSTR_VAL(cql), ZSTR_LEN(cql));
 }
 
+PHP_SCYLLADB_DEFINE_IDEMPOTENCE_METHODS(Cassandra_SimpleStatement)
+
 HashTable *
 php_scylladb_simple_statement_properties(zend_object *object)
 {

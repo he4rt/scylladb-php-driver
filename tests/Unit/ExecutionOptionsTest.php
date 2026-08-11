@@ -39,4 +39,15 @@ it('returns null values when retrieving undefined settings by name', function ()
     expect($options->pageSize)->toBeNull();
     expect($options->timeout)->toBeNull();
     expect($options->arguments)->toBeNull();
+    expect($options->idempotent)->toBeNull();
+});
+
+it('carries idempotence as a setting', function () {
+    expect((new ExecutionOptions(['idempotent' => true]))->idempotent)->toBeTrue();
+    expect((new ExecutionOptions(['idempotent' => false]))->idempotent)->toBeFalse();
+});
+
+it('rejects a non-boolean idempotent setting', function () {
+    expect(fn () => new ExecutionOptions(['idempotent' => 'yes']))
+        ->toThrow(Cassandra\Exception\InvalidArgumentException::class);
 });

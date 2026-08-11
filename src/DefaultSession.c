@@ -367,7 +367,8 @@ static CassStatement* create_statement(php_scylladb_statement* statement, HashTa
 }
 
 static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency consistency,
-                               CassRetryPolicy* retry_policy, cass_int64_t timestamp) {
+                               CassRetryPolicy* retry_policy, cass_int64_t timestamp,
+                               php_scylladb_tristate idempotent) {
   CassBatch* cass_batch = cass_batch_new(batch->data.batch.type);
   if (cass_batch == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
@@ -389,6 +390,7 @@ static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency co
     if (Z_TYPE(batch_statement_entry->statement) == IS_STRING) {
       simple_statement.type = PHP_SCYLLADB_SIMPLE_STATEMENT;
       simple_statement.data.simple.cql = Z_STRVAL(batch_statement_entry->statement);
+      simple_statement.idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
       statement = &simple_statement;
     } else {
       statement = PHP_SCYLLADB_GET_STATEMENT(&batch_statement_entry->statement);
@@ -423,6 +425,14 @@ static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency co
     ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return nullptr;);
   }
 
+  /* Idempotence applies to the batch as a whole. The driver reads it off the
+   * batch, so a flag on a statement added to the batch has no effect. */
+  if (idempotent != PHP_SCYLLADB_TRISTATE_UNSET) {
+    rc = cass_batch_set_is_idempotent(
+        cass_batch, idempotent == PHP_SCYLLADB_TRISTATE_TRUE ? cass_true : cass_false);
+    ASSERT_SUCCESS_BLOCK(rc, cass_batch_free(cass_batch); return nullptr;);
+  }
+
   return cass_batch;
 }
 
@@ -430,7 +440,7 @@ static CassStatement* create_single(php_scylladb_statement* statement, HashTable
                                     CassConsistency consistency, long serial_consistency,
                                     int page_size, const char* paging_state_token,
                                     size_t paging_state_token_size, CassRetryPolicy* retry_policy,
-                                    cass_int64_t timestamp) {
+                                    cass_int64_t timestamp, php_scylladb_tristate idempotent) {
   CassError rc = CASS_OK;
   CassStatement* stmt = create_statement(statement, arguments);
   if (!stmt) return nullptr;
@@ -453,6 +463,10 @@ static CassStatement* create_single(php_scylladb_statement* statement, HashTable
   // rejecting it as out-of-range. See create_batch() for the same reason.
   if (rc == CASS_OK && timestamp != INT64_MIN)
     rc = cass_statement_set_timestamp(stmt, timestamp);
+
+  if (rc == CASS_OK && idempotent != PHP_SCYLLADB_TRISTATE_UNSET)
+    rc = cass_statement_set_is_idempotent(
+        stmt, idempotent == PHP_SCYLLADB_TRISTATE_TRUE ? cass_true : cass_false);
 
   if (rc != CASS_OK) {
     cass_statement_free(stmt);
@@ -478,6 +492,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   long serial_consistency = -1;
   CassRetryPolicy* retry_policy = nullptr;
   cass_int64_t timestamp = INT64_MIN;
+  php_scylladb_tristate idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
   php_scylladb_execution_options* opts = nullptr;
   php_scylladb_execution_options local_opts;
   CassFuture* future = nullptr;
@@ -510,6 +525,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   if (Z_TYPE_P(statement) == IS_STRING) {
     simple_statement.type = PHP_SCYLLADB_SIMPLE_STATEMENT;
     simple_statement.data.simple.cql = Z_STRVAL_P(statement);
+    simple_statement.idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
     stmt = &simple_statement;
   } else if (Z_TYPE_P(statement) == IS_OBJECT &&
              instanceof_function(Z_OBJCE_P(statement), php_scylladb_statement_ce)) {
@@ -517,6 +533,8 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   } else {
     INVALID_ARGUMENT(statement, "a string or an instance of " PHP_SCYLLADB_NAMESPACE "\\Statement");
   }
+
+  idempotent = stmt->idempotent;
 
   consistency = (CassConsistency)self->default_consistency;
   page_size = self->default_page_size;
@@ -558,13 +576,17 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
       retry_policy = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, Z_OBJ_P(&opts->retry_policy))->policy;
 
     timestamp = opts->timestamp;
+
+    /* A per-call option overrides whatever the statement carries. */
+    if (opts->idempotent != PHP_SCYLLADB_TRISTATE_UNSET) idempotent = opts->idempotent;
   }
 
   switch (stmt->type) {
     case PHP_SCYLLADB_SIMPLE_STATEMENT:
     case PHP_SCYLLADB_PREPARED_STATEMENT:
       single = create_single(stmt, arguments, consistency, serial_consistency, page_size,
-                             paging_state_token, paging_state_token_size, retry_policy, timestamp);
+                             paging_state_token, paging_state_token_size, retry_policy, timestamp,
+                             idempotent);
 
       if (!single) return;
 
@@ -576,7 +598,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
       future = cass_session_execute(self->session, single);
       break;
     case PHP_SCYLLADB_BATCH_STATEMENT:
-      batch = create_batch(stmt, consistency, retry_policy, timestamp);
+      batch = create_batch(stmt, consistency, retry_policy, timestamp, idempotent);
 
       if (!batch) return;
 
@@ -653,6 +675,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   long serial_consistency = -1;
   CassRetryPolicy* retry_policy = nullptr;
   cass_int64_t timestamp = INT64_MIN;
+  php_scylladb_tristate idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
   php_scylladb_execution_options* opts = nullptr;
   php_scylladb_execution_options local_opts;
   php_scylladb_future_rows* future_rows = nullptr;
@@ -685,6 +708,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   if (Z_TYPE_P(statement) == IS_STRING) {
     simple_statement.type = PHP_SCYLLADB_SIMPLE_STATEMENT;
     simple_statement.data.simple.cql = Z_STRVAL_P(statement);
+    simple_statement.idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
     stmt = &simple_statement;
   } else if (Z_TYPE_P(statement) == IS_OBJECT &&
              instanceof_function(Z_OBJCE_P(statement), php_scylladb_statement_ce)) {
@@ -692,6 +716,8 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   } else {
     INVALID_ARGUMENT(statement, "a string or an instance of " PHP_SCYLLADB_NAMESPACE "\\Statement");
   }
+
+  idempotent = stmt->idempotent;
 
   consistency = (CassConsistency)self->default_consistency;
   page_size = self->default_page_size;
@@ -730,6 +756,9 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
       retry_policy = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, Z_OBJ_P(&opts->retry_policy))->policy;
 
     timestamp = opts->timestamp;
+
+    /* A per-call option overrides whatever the statement carries. */
+    if (opts->idempotent != PHP_SCYLLADB_TRISTATE_UNSET) idempotent = opts->idempotent;
   }
 
   object_init_ex(return_value, php_scylladb_future_rows_ce);
@@ -739,7 +768,8 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
     case PHP_SCYLLADB_SIMPLE_STATEMENT:
     case PHP_SCYLLADB_PREPARED_STATEMENT:
       single = create_single(stmt, arguments, consistency, serial_consistency, page_size,
-                             paging_state_token, paging_state_token_size, retry_policy, timestamp);
+                             paging_state_token, paging_state_token_size, retry_policy, timestamp,
+                             idempotent);
 
       if (!single) return;
 
@@ -753,7 +783,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
       ZVAL_COPY(&future_rows->session, getThis());
       break;
     case PHP_SCYLLADB_BATCH_STATEMENT:
-      batch = create_batch(stmt, consistency, retry_policy, timestamp);
+      batch = create_batch(stmt, consistency, retry_policy, timestamp, idempotent);
 
       if (!batch) return;
 

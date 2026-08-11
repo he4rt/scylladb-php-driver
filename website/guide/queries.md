@@ -172,6 +172,7 @@ The second argument to `execute()` accepts a plain array. Each key is optional.
 | `timeout` | `int` or `float` | Seconds to wait. Must be greater than zero, or `null`. |
 | `retry_policy` | `Cassandra\RetryPolicy` | Overrides the cluster policy for this statement. |
 | `timestamp` | `int` or numeric string | An explicit write timestamp, in microseconds. |
+| `idempotent` | `bool` | Marks the statement safe to run more than once. See [Idempotence](#idempotence). |
 
 ```php
 $rows = $session->execute($statement, [
@@ -188,6 +189,55 @@ An invalid value raises `Cassandra\Exception\InvalidArgumentException` and names
 `new Cassandra\ExecutionOptions([...])` still works and still reads its values through magic
 properties in camel case (`$options->pageSize`). Pass a plain array in new code.
 :::
+
+## Idempotence
+
+A statement is idempotent when running it twice gives the same result as running it once. The
+driver retries a statement after a timeout, and runs it speculatively, only when you mark the
+statement idempotent. Statements carry no setting by default, so both features stay off until
+you opt in.
+
+Mark the statement itself when the CQL is always safe to repeat:
+
+```php
+$statement = $session->prepare('UPDATE users SET email = ? WHERE id = ?');
+$statement->setIdempotent();
+
+$rows = $session->execute($statement, ['arguments' => ['ada@example.com', $id]]);
+```
+
+Every execution of that statement inherits the setting. Read it back with `isIdempotent()`, which
+returns `null` when the statement carries no explicit setting.
+
+Set the `idempotent` option to decide one call at a time. The option wins over the statement:
+
+```php
+$rows = $session->execute($statement, [
+    'arguments'  => ['ada@example.com', $id],
+    'idempotent' => false,
+]);
+```
+
+Batches take the same two paths. The driver reads the flag off the batch, so a flag on a statement
+you add to a batch has no effect.
+
+```php
+$batch = new Cassandra\BatchStatement();
+$batch->add('UPDATE users SET email = ? WHERE id = ?', ['ada@example.com', $id]);
+$batch->setIdempotent();
+
+$session->execute($batch);
+```
+
+::: warning Mark only what is safe to repeat
+A counter update, an append to a list, and a write that uses `now()` or `uuid()` all produce a
+different result each time they run. Do not mark them idempotent. A lightweight transaction is
+also not idempotent, because the condition can hold on the first attempt and fail on the retry.
+:::
+
+`withSpeculativeExecutionPolicy()` on the cluster builder and on an execution profile has no
+effect until statements carry this flag. See
+[Execution profiles](/guide/execution-profiles) for how to configure the policy.
 
 ## Lightweight transactions
 

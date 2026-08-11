@@ -263,9 +263,18 @@ typedef enum
     PHP_SCYLLADB_BATCH_STATEMENT
 } php_scylladb_statement_type;
 
+/* UNSET is 0 so the zeroing object allocator already means "not set". */
+typedef enum : int8_t
+{
+    PHP_SCYLLADB_TRISTATE_UNSET = 0,
+    PHP_SCYLLADB_TRISTATE_FALSE = 1,
+    PHP_SCYLLADB_TRISTATE_TRUE = 2
+} php_scylladb_tristate;
+
 typedef struct php_scylladb_statement_
 {
     php_scylladb_statement_type type;
+    php_scylladb_tristate idempotent;
     union {
         struct
         {
@@ -288,6 +297,31 @@ static zend_always_inline php_scylladb_statement *php_scylladb_statement_object_
     return (php_scylladb_statement *)((char *)obj - ((size_t)(&(((php_scylladb_statement *)0)->zendObject))));
 }
 
+/* SimpleStatement, PreparedStatement and BatchStatement share php_scylladb_statement
+ * but need their own ZEND_METHOD symbols, so the bodies come from one macro. */
+#define PHP_SCYLLADB_DEFINE_IDEMPOTENCE_METHODS(class_name)                                     \
+    ZEND_METHOD(class_name, setIdempotent)                                                      \
+    {                                                                                           \
+        bool idempotent = true;                                                                 \
+        ZEND_PARSE_PARAMETERS_START(0, 1)                                                       \
+            Z_PARAM_OPTIONAL                                                                    \
+            Z_PARAM_BOOL(idempotent)                                                            \
+        ZEND_PARSE_PARAMETERS_END();                                                            \
+        PHP_SCYLLADB_GET_STATEMENT(ZEND_THIS)->idempotent =                                     \
+            idempotent ? PHP_SCYLLADB_TRISTATE_TRUE : PHP_SCYLLADB_TRISTATE_FALSE;              \
+        RETURN_ZVAL(ZEND_THIS, 1, 0);                                                           \
+    }                                                                                           \
+                                                                                                \
+    ZEND_METHOD(class_name, isIdempotent)                                                       \
+    {                                                                                           \
+        ZEND_PARSE_PARAMETERS_NONE();                                                           \
+        const php_scylladb_tristate value = PHP_SCYLLADB_GET_STATEMENT(ZEND_THIS)->idempotent;  \
+        if (value == PHP_SCYLLADB_TRISTATE_UNSET) {                                             \
+            RETURN_NULL();                                                                      \
+        }                                                                                       \
+        RETURN_BOOL(value == PHP_SCYLLADB_TRISTATE_TRUE);                                       \
+    }
+
 typedef struct
 {
     zval statement;
@@ -305,6 +339,7 @@ typedef struct php_scylladb_execution_options_
     zval arguments;
     zval retry_policy;
     cass_int64_t timestamp;
+    php_scylladb_tristate idempotent;
     zend_object zendObject;
 } php_scylladb_execution_options;
 static zend_always_inline php_scylladb_execution_options *php_scylladb_execution_options_object_fetch(zend_object *obj)

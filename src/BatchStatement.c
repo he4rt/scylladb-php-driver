@@ -99,6 +99,8 @@ ZEND_METHOD(Cassandra_BatchStatement, add)
     RETURN_ZVAL(getThis(), 1, 0);
 }
 
+PHP_SCYLLADB_DEFINE_IDEMPOTENCE_METHODS(Cassandra_BatchStatement)
+
 HashTable *php_scylladb_batch_statement_properties(zend_object *object)
 {
     HashTable *props = zend_std_get_properties(object);
