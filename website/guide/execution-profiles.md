@@ -91,9 +91,12 @@ profile with the same enum you registered it with and this never matters.
 Every method returns the same profile, so calls chain.
 
 ::: warning Speculative execution needs idempotent statements
-A speculative attempt runs the statement more than once. Never put
-`withConstantSpeculativeExecutionPolicy()` on a profile you use for a counter update, a lightweight
-transaction, or an append to a list.
+A speculative attempt runs the statement more than once, so the driver only does it for statements
+you mark idempotent. The policy has no effect until you call `setIdempotent()` on the statement or
+pass the `idempotent` execution option. See [Idempotence](/guide/queries#idempotence).
+
+Never put `withConstantSpeculativeExecutionPolicy()` on a profile you use for a counter update, a
+lightweight transaction, or an append to a list.
 :::
 
 ## A profile is copied when the cluster is built

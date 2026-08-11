@@ -175,9 +175,12 @@ The driver sends the same request to another replica when the first one does not
 delay. It cuts tail latency caused by one slow replica.
 
 ::: warning Only for idempotent statements
-A speculative attempt runs the statement more than once. Never turn this on for a counter update, a
-lightweight transaction, or an append to a list. It also multiplies load, so keep it off while the
-cluster is already saturated.
+The driver only runs a statement speculatively when you mark it idempotent, so this setting does
+nothing until you call `setIdempotent()` on the statement or pass the `idempotent` execution
+option. See [Idempotence](/guide/queries#idempotence).
+
+Never mark a counter update, a lightweight transaction, or an append to a list as idempotent.
+Speculative execution also multiplies load, so keep it off while the cluster is already saturated.
 :::
 
 ### Event loop tuning

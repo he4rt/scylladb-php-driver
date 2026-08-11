@@ -114,6 +114,10 @@ $session->execute($batch, [
 
 The `arguments` key does not apply. Values belong to each `add()` call.
 
+`setIdempotent()` works on a batch too. The driver reads the flag off the batch, so a flag on a
+statement you add to the batch has no effect. A batch that holds a counter update or a
+lightweight transaction is never idempotent. See [Idempotence](/guide/queries#idempotence).
+
 ## Size limits
 
 The server rejects an oversized batch and warns about a large one. Both thresholds are server

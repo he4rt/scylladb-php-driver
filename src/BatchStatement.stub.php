@@ -12,5 +12,7 @@ namespace Cassandra {
  */    final class BatchStatement implements Statement {
         public function __construct(int $type = \Cassandra::BATCH_LOGGED) {}
         public function add(string|Statement $statement, ?array $arguments = null): static {}
+        public function setIdempotent(bool $idempotent = true): static {}
+        public function isIdempotent(): ?bool {}
     }
 }

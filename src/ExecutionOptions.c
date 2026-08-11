@@ -31,6 +31,7 @@ static void init_execution_options(php_scylladb_execution_options *self)
     self->paging_state_token = nullptr;
     self->paging_state_token_size = 0;
     self->timestamp = INT64_MIN;
+    self->idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
     ZVAL_UNDEF(&self->arguments);
     ZVAL_UNDEF(&self->timeout);
     ZVAL_UNDEF(&self->retry_policy);
@@ -46,6 +47,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
     zval *arguments = nullptr;
     zval *retry_policy = nullptr;
     zval *timestamp = nullptr;
+    zval *idempotent = nullptr;
 
     if ((consistency = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("consistency"))) != nullptr)
     {
@@ -202,6 +204,19 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
             return FAILURE;
         }
     }
+
+    if ((idempotent = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("idempotent"))) != nullptr)
+    {
+        if (Z_TYPE_P(idempotent) != IS_TRUE && Z_TYPE_P(idempotent) != IS_FALSE)
+        {
+            throw_invalid_argument(idempotent, "idempotent", "a boolean");
+            return FAILURE;
+        }
+
+        self->idempotent = Z_TYPE_P(idempotent) == IS_TRUE ? PHP_SCYLLADB_TRISTATE_TRUE
+                                                           : PHP_SCYLLADB_TRISTATE_FALSE;
+    }
+
     return SUCCESS;
 }
 
@@ -302,6 +317,14 @@ ZEND_METHOD(Cassandra_ExecutionOptions, __get)
         spprintf(&string, 0, "%lld", (long long int)self->timestamp);
         RETVAL_STRING(string);
         efree(string);
+    }
+    else if (zend_string_equals_literal(name, "idempotent"))
+    {
+        if (self->idempotent == PHP_SCYLLADB_TRISTATE_UNSET)
+        {
+            RETURN_NULL();
+        }
+        RETURN_BOOL(self->idempotent == PHP_SCYLLADB_TRISTATE_TRUE);
     }
 }
 

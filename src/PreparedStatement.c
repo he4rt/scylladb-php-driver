@@ -25,6 +25,8 @@ ZEND_METHOD(Cassandra_PreparedStatement, __construct)
 {
 }
 
+PHP_SCYLLADB_DEFINE_IDEMPOTENCE_METHODS(Cassandra_PreparedStatement)
+
 HashTable *
 php_scylladb_prepared_statement_properties(zend_object *object)
 {

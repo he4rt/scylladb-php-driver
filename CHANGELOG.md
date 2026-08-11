@@ -36,6 +36,15 @@
 
 ### Added
 
+- `Statement::setIdempotent(bool $idempotent = true): static` and
+  `Statement::isIdempotent(): ?bool`, on `SimpleStatement`, `PreparedStatement` and
+  `BatchStatement`, plus a matching `idempotent` execution option. The driver only retries a
+  statement after a timeout, and only runs it speculatively, when the statement is idempotent.
+  Until now the extension had no way to set that flag, so the speculative execution policy on
+  the cluster builder and on an execution profile never applied to any statement. A statement
+  carries no setting by default and `isIdempotent()` then returns `null`. A per-call
+  `idempotent` option overrides the statement. For a batch the driver reads the flag off the
+  batch, so a flag on a statement added to the batch has no effect.
 - `Rows::wasApplied(): bool`, which reads the `[applied]` column of a lightweight transaction
   result. A statement with no condition has no such column, and the method then returns `true`,
   so you can call it on any result. The `[applied]` column stays readable through `first()` and
