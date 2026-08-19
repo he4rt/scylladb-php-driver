@@ -51,6 +51,10 @@ int php_scylladb_future_rows_get_result(php_scylladb_future_rows *future_rows, z
   return SUCCESS;
 }
 
+ZEND_METHOD(Cassandra_FutureRows, __construct)
+{
+}
+
 ZEND_METHOD(Cassandra_FutureRows, get)
 {
   zval *timeout = nullptr;

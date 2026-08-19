@@ -24,6 +24,10 @@
 
 extern zend_object_handlers php_scylladb_future_session_handlers;
 
+ZEND_METHOD(Cassandra_FutureSession, __construct)
+{
+}
+
 ZEND_METHOD(Cassandra_FutureSession, get)
 {
   zval *timeout = nullptr;

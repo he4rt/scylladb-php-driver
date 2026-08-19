@@ -132,6 +132,11 @@
 
 ### Fixed
 
+- The `Cassandra\Future*` classes no longer accept direct construction. `new Cassandra\FutureRows()`
+  built an object with no underlying `CassFuture`, and `get()` then crashed the process on a GCC
+  build. The constructor is private now, so the call fails with an `Error`. Get a future from
+  `Session::executeAsync()`, `prepareAsync()`, `closeAsync()` or `Cluster::connectAsync()` instead.
+  ([#155](https://github.com/he4rt/scylladb-php-driver/issues/155))
 - `cassandra.log = syslog` now writes through `syslog(3)`. It used to create a file named
   `syslog` in the process working directory. `cassandra.log = stderr` is also accepted now.
 - `DefaultCluster::connect()` leaked the connect `CassFuture` when the session was not
