@@ -7,6 +7,13 @@ include_guard(GLOBAL)
 
 find_package(PkgConfig REQUIRED)
 
+# The root project declares LANGUAGES C. Enable CXX here, in the top-level
+# directory scope, so the C++ link rules exist where cassandra.so is linked.
+# Enabling it only inside the driver's own project() leaves
+# CMAKE_CXX_CREATE_SHARED_LIBRARY empty at this level, and CMake then emits an
+# empty link command: the build reports success and produces no module.
+enable_language(CXX)
+
 set(_cass_root "${PROJECT_SOURCE_DIR}/third-party/cpp-driver")
 
 if (NOT EXISTS "${_cass_root}/CMakeLists.txt")
@@ -83,6 +90,19 @@ if (NOT TARGET CppDriver::Driver)
     target_compile_definitions(CppDriver::Driver INTERFACE
             PHP_SCYLLADB_BACKEND_SCYLLA_CPP
             CASS_STATIC)
+endif ()
+
+# cassandra.so is a C target, so CMake links it with the C driver and never adds
+# the C++ runtime. The driver's objects are C++ and reference libstdc++, and the
+# result is a module with unresolved std:: symbols and no libstdc++ in
+# DT_NEEDED — the gh-117 failure mode, see scripts/check-module-symbols.sh.
+# Linking against a system driver did not hit this, because pkg-config read the
+# C++ runtime out of Libs.private in scylla-cpp-driver_static.pc.
+#
+# Setting the linker language picks the right runtime per toolchain (libstdc++
+# for GCC, libc++ for Clang) instead of hard-coding -lstdc++.
+if (TARGET ext_scylladb)
+    set_target_properties(ext_scylladb PROPERTIES LINKER_LANGUAGE CXX)
 endif ()
 
 message(STATUS "PHP driver backend: scylla-cpp (vendored third-party/cpp-driver)")
