@@ -257,6 +257,81 @@ jobs:
           SCYLLADB_HOSTS: "127.0.0.1"
           SCYLLADB_PHP_BACKEND: ${{ steps.driver.outputs.backend }}
 
+  # The scylla-cpp jobs above build the vendored third-party/cpp-driver, which
+  # is what ships. This job is the only one that still links a driver installed
+  # on the system, so -DPHP_SCYLLADB_USE_SYSTEM_DRIVER=ON keeps working for
+  # distribution packagers.
+  test-system-driver:
+    name: "System driver: PHP 8.4-nts / scylladb"
+    runs-on: ubuntu-26.04
+
+    services:
+      scylladb:
+        image: scylladb/scylla:2026.1
+        options: >-
+          --health-cmd "cqlsh -e 'SELECT cluster_name FROM system.local' 2>/dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 60s
+        ports:
+          - 9042:9042
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: "8.4"
+          ini-file: development
+          coverage: none
+          tools: composer, php-config, phpize
+          extensions: pcntl, mbstring, curl, intl
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: ${{ runner.os }}-system-driver-8.4-nts-scylladb
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - uses: ./.github/actions/build-extension
+        with:
+          driver: scylladb
+          cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
+          use_system_driver: 'ON'
+
+      - name: Install Composer dependencies
+        run: |
+          php -d extension=cassandra "$(command -v composer)" \
+            install --no-ansi --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests
+        run: |
+          php -d extension=cassandra ./vendor/bin/pest --colors=always
+        env:
+          SCYLLADB_HOSTS: "127.0.0.1"
+          SCYLLADB_PHP_BACKEND: ${{ steps.driver.outputs.backend }}
+
   test-asan:
     name: "ASan: PHP ${{ matrix.php }}-nts / scylladb (memory-safety guard)"
     runs-on: ubuntu-26.04

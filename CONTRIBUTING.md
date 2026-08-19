@@ -34,13 +34,13 @@ Security issues should **not** be filed as public issues — see
 
 ## Development setup
 
-Native dependencies (libuv, the C/C++ driver, a matching PHP build) are required.
-The fastest path is the bundled setup skill/scripts:
+The default `scylla-cpp` backend builds the vendored driver in
+`third-party/cpp-driver`, so you do not install a C/C++ driver to build it. You
+still need libuv, OpenSSL and a matching PHP build:
 
 ```bash
 # Install native dependencies (prefix is configurable — see scripts/)
 ./scripts/compile-libuv.sh        --prefix ~/.local
-./scripts/compile-cpp-driver.sh   --driver scylladb --prefix ~/.local
 ./scripts/compile-php.sh -v 8.4 -o ./php
 
 # Configure + build the extension (presets are generated — see below)
@@ -57,6 +57,22 @@ php generate-presets.php   # rewrites CMakePresets.json
 
 Preset names follow `<BuildType>PHP<version><NTS|ZTS>[Cassandra|ScyllaRust]`,
 e.g. `DebugPHP8.4NTS`, `ReleasePHP8.3ZTSCassandra`.
+
+### The vendored C++ driver
+
+`third-party/cpp-driver` holds the ScyllaDB cpp-driver source. Upstream no
+longer maintains it, so the driver ships with the extension and is fixed here.
+`third-party/cpp-driver/UPSTREAM` records the imported commit, and
+`git log -- third-party/cpp-driver` lists every local change.
+
+To link a driver installed on the system instead:
+
+```bash
+./scripts/compile-cpp-driver.sh --driver scylladb --prefix ~/.local
+cmake --preset DebugPHP8.4NTS -DPHP_SCYLLADB_USE_SYSTEM_DRIVER=ON
+```
+
+The `cassandra` and `scylla-rust` backends always come from the system.
 
 ---
 
