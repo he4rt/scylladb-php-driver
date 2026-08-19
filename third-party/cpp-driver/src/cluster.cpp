@@ -26,8 +26,6 @@
 #include "speculative_execution.hpp"
 #include "utils.hpp"
 
-#include <iostream>
-
 using namespace datastax;
 using namespace datastax::internal::core;
 
@@ -256,10 +254,6 @@ Cluster::Cluster(const ControlConnection::Ptr& connection, ClusterListener* list
     , local_rack_(local_rack)
     , supported_options_(supported_options)
     , is_recording_events_(settings.disable_events_on_startup) {
-  static const auto optimized_msg = "===== Using optimized driver!!! =====\n";
-  std::cout << optimized_msg;
-  LOG_INFO(optimized_msg);
-
   inc_ref();
   connection_->set_listener(this);
 
