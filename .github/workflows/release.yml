@@ -34,6 +34,27 @@ jobs:
           contains(github.ref, '-beta')
         run: echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
 
+      # The tag names the release, CMakeLists.txt names the version the code
+      # reports through phpversion('cassandra'). Stop the release when the two
+      # disagree, or the artifacts go out with the wrong version in them.
+      - name: Check the tag against CMakeLists.txt
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          BASE="${TAG%%-*}"
+          PROJECT="$(sed -n 's/^[[:space:]]*VERSION[[:space:]]\{1,\}\([0-9][0-9.]*\)[[:space:]]*$/\1/p' CMakeLists.txt | head -1)"
+
+          if [ -z "$PROJECT" ]; then
+            echo "::error::Could not read the project version from CMakeLists.txt"
+            exit 1
+          fi
+
+          if [ "$BASE" != "$PROJECT" ]; then
+            echo "::error::Tag v${TAG} does not match project(VERSION ${PROJECT}) in CMakeLists.txt. Bump CMakeLists.txt and retag."
+            exit 1
+          fi
+
+          echo "Releasing ${TAG} from project version ${PROJECT}"
+
   build:
     name: ${{ matrix.os }} / PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
     runs-on: ubuntu-26.04
@@ -104,6 +125,7 @@ jobs:
           driver: ${{ matrix.driver }}
           cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
           build_type: Release
+          driver_version: ${{ needs.tag.outputs.version }}
           enable_lto: ON
 
       - name: Package artifact
@@ -271,6 +293,7 @@ jobs:
           driver: ${{ matrix.driver }}
           cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
           build_type: Release
+          driver_version: ${{ needs.tag.outputs.version }}
           enable_lto: ON
 
       # Guard the promise the artifact name makes. Without it a toolchain or
@@ -359,6 +382,7 @@ jobs:
           driver: scylladb
           cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
           build_type: Release
+          driver_version: ${{ needs.tag.outputs.version }}
           enable_lto: OFF
 
       - name: Generate IDE stubs
@@ -420,3 +444,58 @@ jobs:
           branch: v1.x
           commit_options: "--no-verify --signoff"
           file_pattern: CHANGELOG.md
+
+  # A released tag must equal project(VERSION), so the branch it came from has
+  # to move on to the next version straight away. Otherwise its next snapshot
+  # build reports the version that just shipped, and the tag guard above blocks
+  # the next release. Pre-releases keep the same base version, so they skip this.
+  bump:
+    name: Open the next dev version
+    runs-on: ubuntu-26.04
+    needs: [release, tag]
+    if: needs.tag.outputs.prerelease == 'false'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      # Releases come off a release branch (v1.x today, v2.x later) or off
+      # trunk. Bump the branch that carries the tagged commit.
+      - name: Find the released branch
+        id: branch
+        run: |
+          BRANCH="$(git branch --remotes --contains "${{ github.sha }}" --format '%(refname:lstrip=3)' \
+                    | grep -E '^(trunk|v[0-9]+\.x)$' | head -1)"
+
+          if [ -z "$BRANCH" ]; then
+            echo "::warning::Tag v${{ needs.tag.outputs.version }} is on no release branch, skipping the bump"
+          fi
+
+          echo "name=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Raise the patch version
+        if: steps.branch.outputs.name != ''
+        run: |
+          git checkout "${{ steps.branch.outputs.name }}"
+
+          CURRENT="$(sed -n 's/^[[:space:]]*VERSION[[:space:]]\{1,\}\([0-9][0-9.]*\)[[:space:]]*$/\1/p' CMakeLists.txt | head -1)"
+          RELEASED="${{ needs.tag.outputs.version }}"
+
+          if [ "$CURRENT" != "${RELEASED%%-*}" ]; then
+            echo "${{ steps.branch.outputs.name }} is already on ${CURRENT}, released ${RELEASED} — nothing to bump"
+            exit 0
+          fi
+
+          NEXT="$(echo "$CURRENT" | awk -F. '{ printf "%d.%d.%d", $1, $2, $3 + 1 }')"
+          sed -i "0,/^\([[:space:]]*VERSION[[:space:]]\{1,\}\)${CURRENT}[[:space:]]*$/s//\1${NEXT}/" CMakeLists.txt
+
+          echo "Bumped ${{ steps.branch.outputs.name }} from ${CURRENT} to ${NEXT}"
+          git diff -- CMakeLists.txt
+
+      - uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
+        if: steps.branch.outputs.name != ''
+        with:
+          commit_message: "chore: open the next development version after v${{ needs.tag.outputs.version }}"
+          branch: ${{ steps.branch.outputs.name }}
+          commit_options: "--no-verify --signoff"
+          file_pattern: CMakeLists.txt

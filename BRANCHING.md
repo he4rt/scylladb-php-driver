@@ -92,6 +92,14 @@ next major ships) builds the extension across the supported matrix
 (PHP 8.3–8.5, NTS/ZTS, ScyllaDB + Cassandra), attaches the artifacts to a GitHub
 Release, and regenerates the changelog.
 
+- The version the extension reports through `phpversion('cassandra')` comes from
+  `project(VERSION ...)` in [`CMakeLists.txt`](CMakeLists.txt). Every build that
+  is not a release adds a `-dev` suffix to it.
+- **Set `project(VERSION ...)` to the version you release, then tag.** The
+  release workflow stops when the tag and `project(VERSION ...)` disagree. After
+  a release it raises the patch version on the released branch, so the branch
+  goes back to a `-dev` version by itself. Raise the minor or major version by
+  hand before you tag one.
 - Version tags use the `v` prefix: `v1.3.0`, `v2.0.0-rc1`, etc.
 - Pre-release tags containing `-rc`, `-pre`, `-alpha`, or `-beta` are published
   as GitHub pre-releases automatically.
