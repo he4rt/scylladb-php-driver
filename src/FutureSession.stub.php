@@ -10,6 +10,8 @@ namespace Cassandra {
      * @not-serializable
  * @scylladb-struct php_scylladb_future_session
  */    final class FutureSession implements Future {
+        private function __construct() {}
+
         public function get(int|float|null $timeout = null): ?Session {}
 
         /** @return resource */

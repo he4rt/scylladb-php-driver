@@ -132,6 +132,16 @@
 
 ### Fixed
 
+- `phpversion('cassandra')` and `Cassandra::VERSION` report the released version now. Every
+  build reported `1.4.0-dev`, because the version came from a `project(VERSION ...)` line that
+  no release ever raised, and the `-dev` suffix was unconditional. The release workflow passes
+  the tag into the build, refuses to build when the tag and `project(VERSION ...)` disagree,
+  and raises the patch version on the released branch afterwards.
+- The `Cassandra\Future*` classes no longer accept direct construction. `new Cassandra\FutureRows()`
+  built an object with no underlying `CassFuture`, and `get()` then crashed the process on a GCC
+  build. The constructor is private now, so the call fails with an `Error`. Get a future from
+  `Session::executeAsync()`, `prepareAsync()`, `closeAsync()` or `Cluster::connectAsync()` instead.
+  ([#155](https://github.com/he4rt/scylladb-php-driver/issues/155))
 - `cassandra.log = syslog` now writes through `syslog(3)`. It used to create a file named
   `syslog` in the process working directory. `cassandra.log = stderr` is also accepted now.
 - `DefaultCluster::connect()` leaked the connect `CassFuture` when the session was not

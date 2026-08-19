@@ -10,6 +10,8 @@ namespace Cassandra {
      * @not-serializable
  * @scylladb-struct php_scylladb_future_close
  */    final class FutureClose implements Future {
+        private function __construct() {}
+
         public function get(int|float|null $timeout = null): null {}
 
         /** @return resource */

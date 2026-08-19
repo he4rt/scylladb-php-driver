@@ -26,6 +26,8 @@ namespace Cassandra;
  */
 final class FuturePreparedStatement implements Future {
 
+    private function __construct() { }
+
     /**
      * Waits for a given future resource to resolve and throws errors if any.
      *

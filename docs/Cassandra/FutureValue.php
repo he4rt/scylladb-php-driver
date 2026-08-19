@@ -23,6 +23,8 @@ namespace Cassandra;
  */
 final class FutureValue implements Future {
 
+    private function __construct() { }
+
     /**
      * Waits for a given future resource to resolve and throws errors if any.
      *

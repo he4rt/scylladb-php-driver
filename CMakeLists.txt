@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 project(php-ext-scylladb
-        VERSION     1.4.0
+        VERSION     1.5.0
         DESCRIPTION "ScyllaDB/Cassandra PHP extension"
         HOMEPAGE_URL "https://github.com/he4rt/scylladb-php-driver"
         LANGUAGES   C
@@ -24,7 +24,17 @@ set(CMAKE_MODULE_PATH
 include(cmake/CPM.cmake)
 include(cmake/TargetOptimizations.cmake)
 
-set(PHP_SCYLLADB_DRIVER_VERSION "${PROJECT_VERSION}-dev")
+# Release builds pass the git tag in; every other build is a snapshot of the
+# next release, so it carries the -dev suffix. .github/workflows/release.yml
+# refuses to build when the tag and PROJECT_VERSION disagree.
+set(PHP_SCYLLADB_DRIVER_VERSION "" CACHE STRING
+        "Extension version reported by phpversion('cassandra'). Empty = ${PROJECT_VERSION}-dev")
+
+if (NOT PHP_SCYLLADB_DRIVER_VERSION)
+    set(PHP_SCYLLADB_DRIVER_VERSION "${PROJECT_VERSION}-dev")
+endif ()
+
+message(STATUS "Extension version: ${PHP_SCYLLADB_DRIVER_VERSION}")
 
 # ── macOS / Homebrew prefix detection ────────────────────────────────────────
 # Homebrew on Apple Silicon installs to /opt/homebrew; on Intel to /usr/local.
