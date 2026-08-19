@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: scylla-cpp-driver
+Description: A C/C++ client driver for Scylla, Apache Cassandra and DataStax Products
+Version: @version@
+Requires: libuv
+Requires: openssl
+Libs: -L${libdir} -lscylla-cpp-driver_static -lstdc++
+Cflags: -I${includedir}
+URL: https://github.com/scylladb/cpp-driver/

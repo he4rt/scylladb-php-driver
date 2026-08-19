@@ -1,0 +1,12 @@
+repo:    https://github.com/scylladb/cpp-driver
+commit:  9614653dd4062e36b2d0334194fdab5016e5442e
+date:    2026-06-08
+subject: ci: pin GitHub Actions to commit SHAs
+version: 2.16.2
+
+Imported directories: CMakeLists.txt cmake/ src/ include/ packaging/ licenses/
+driver_config.hpp.in cmake_uninstall.cmake.in README.md CHANGELOG.md
+Left behind: docs/ examples/ tests/ tools/ topics/ CI files.
+
+This tree is edited in place. Run `git log -- third-party/cpp-driver` to see
+every local change made after the import.

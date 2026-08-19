@@ -78,3 +78,8 @@ cmake-build-*/
 # build-cruft glob above (e.g. `ex*.php` catches Live/ExecuteBench.php on a
 # case-insensitive filesystem).
 !/benchmarks/**
+
+# The vendored cpp-driver is third-party source, not build output. Broad
+# patterns above (config.*, *.ac) would otherwise swallow real driver files
+# such as src/config.cpp.
+!third-party/cpp-driver/**
