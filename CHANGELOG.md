@@ -130,8 +130,25 @@
 - `libuv` moves from `v1.50.0` to `v1.52.1` in `scripts/compile-libuv.sh`. libuv tags real
   releases, so it stays pinned rather than tracking a branch.
 
+### Changed
+
+- The `scylla-cpp` backend now builds the vendored driver in `third-party/cpp-driver` and links
+  it into `cassandra.so`. Upstream no longer maintains the ScyllaDB cpp-driver, so it ships with
+  the extension and gets fixed here. A checkout builds with no C/C++ driver installed. To link a
+  driver installed on the system, pass `-DPHP_SCYLLADB_USE_SYSTEM_DRIVER=ON`. The `cassandra` and
+  `scylla-rust` backends are unchanged and still come from the system.
+
 ### Fixed
 
+- A dropped session could abort the process with `pure virtual method called`. `cass_session_free()`
+  returned from its internal close and started the destructor while a driver event-loop thread still
+  dispatched a host-down event, so the call landed on a listener whose derived part was gone. It hit
+  the extension whenever PHP released a non-persistent session soon after a failed query, and it
+  failed CI runs at random points. Backported from `apache/cassandra-cpp-driver` (CASSCPP-3).
+- Nine more fixes taken from `apache/cassandra-cpp-driver`, which kept getting them after the
+  ScyllaDB fork stopped tracking it. The notable ones: a trusted certificate BIO with more than one
+  CA now loads every certificate instead of only the first, a race in `monotonic_timestamp()` is
+  gone, and `cass_cluster_set_load_balance_dc_aware_n()` accepts a NULL or empty local data center.
 - `phpversion('cassandra')` and `Cassandra::VERSION` report the released version now. Every
   build reported `1.4.0-dev`, because the version came from a `project(VERSION ...)` line that
   no release ever raised, and the `-dev` suffix was unconditional. The release workflow passes

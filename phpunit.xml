@@ -16,5 +16,11 @@
             <directory>src</directory>
         </include>
     </source>
+    <!-- Prints beforeAll()/afterAll() exceptions, which PHPUnit counts as
+         errors (shell exit code 2) but Pest's printer never shows. -->
+    <extensions>
+        <bootstrap class="Cassandra\Tests\Support\HookErrorReporter"/>
+    </extensions>
+
     <php></php>
 </phpunit>

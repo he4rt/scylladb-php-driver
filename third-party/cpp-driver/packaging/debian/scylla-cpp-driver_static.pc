@@ -1,0 +1,13 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib/@DEB_HOST_MULTIARCH@
+includedir=${prefix}/include
+
+Name: scylla-cpp-driver_static
+Description: A C/C++ client driver for Scylla, Apache Cassandra and DataStax Products
+Version: @DEB_VERSION_UPSTREAM@
+Requires: libuv
+Requires: openssl
+Libs: -L${libdir} -lscylla-cpp-driver_static -lstdc++
+Cflags:
+URL: https://github.com/scylladb/cpp-driver/

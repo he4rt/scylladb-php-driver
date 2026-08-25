@@ -7,8 +7,13 @@ inputs:
     default: 'scylladb'
     description: 'Which driver: scylladb | cassandra | scylla-rust'
   cpp_driver_pkg_config_path:
-    required: true
-    description: 'PKG_CONFIG_PATH entry for the C++ driver'
+    required: false
+    default: ''
+    description: 'PKG_CONFIG_PATH entry for the C++ driver. Only needed when the driver comes from the system'
+  use_system_driver:
+    required: false
+    default: 'OFF'
+    description: 'ON links the system driver via pkg-config; OFF builds the vendored third-party/cpp-driver (scylla-cpp backend only)'
   build_type:
     required: false
     default: 'RelWithDebInfo'
@@ -55,6 +60,7 @@ runs:
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DPHP_SCYLLADB_STATIC="${{ inputs.static_driver }}" \
           -DPHP_SCYLLADB_BACKEND="${BACKEND}" \
+          -DPHP_SCYLLADB_USE_SYSTEM_DRIVER="${{ inputs.use_system_driver }}" \
           -DENABLE_SANITIZERS="${{ inputs.sanitize_address }}" \
           -DSANITIZE_ADDRESS="${{ inputs.sanitize_address }}" \
           -DSANITIZE_UNDEFINED=OFF \

@@ -147,6 +147,13 @@ set_property(CACHE PHP_SCYLLADB_ENABLE_POLL_API PROPERTY STRINGS AUTO ON OFF)
 # for backwards compatibility and is consumed there.
 option(USE_LIBCASSANDRA   "(deprecated) Alias: ON → PHP_SCYLLADB_BACKEND=cassandra" OFF)
 
+# The scylla-cpp backend builds the vendored driver in third-party/cpp-driver by
+# default, so a checkout builds with no driver installed and local fixes to the
+# driver ship with the extension. ON restores the pkg-config lookup against an
+# installed driver. The cassandra and scylla-rust backends are always external.
+option(PHP_SCYLLADB_USE_SYSTEM_DRIVER
+        "Link the system C/C++ driver found through pkg-config instead of third-party/cpp-driver" OFF)
+
 # ── Dependencies ──────────────────────────────────────────────────────────────
 find_package(PHPConfig REQUIRED)
 find_package(PHP      REQUIRED)
@@ -196,7 +203,15 @@ if (ENABLE_SANITIZERS)
 endif ()
 
 find_package(LibGMP   REQUIRED)
-find_package(CPPDriver REQUIRED)
+
+include(DriverBackend)
+
+# Both paths define CppDriver::Driver; nothing downstream knows which one ran.
+if (PHP_SCYLLADB_BACKEND STREQUAL "scylla-cpp" AND NOT PHP_SCYLLADB_USE_SYSTEM_DRIVER)
+    include(VendoredCppDriver)
+else ()
+    find_package(CPPDriver REQUIRED)
+endif ()
 
 # ── Sub-libraries ─────────────────────────────────────────────────────────────
 add_subdirectory(src/Registry)

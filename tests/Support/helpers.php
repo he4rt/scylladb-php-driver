@@ -50,9 +50,26 @@ if (! function_exists('scyllaDbConnection')) {
 }
 
 if (! function_exists('migrateKeyspace')) {
+    /**
+     * Runs the setup CQL of a test suite.
+     *
+     * Every suite creates its keyspace with a plain CREATE KEYSPACE, so a run
+     * that dies before its afterAll() leaves the keyspace behind and the next
+     * run fails with "Cannot add existing keyspace". That exception is thrown
+     * from beforeAll(), which PHPUnit counts as an error: the shell exit code
+     * becomes 2 while the summary still reports every test as passed. See
+     * tests/Support/HookErrorReporter.php.
+     *
+     * Dropping the keyspace first makes each suite start from a known state,
+     * whatever the run before it did.
+     */
     function migrateKeyspace(string $cql): void
     {
         $session = scyllaDbConnection();
+
+        if (preg_match('/CREATE\s+KEYSPACE\s+(?:IF\s+NOT\s+EXISTS\s+)?"?(\w+)"?/i', $cql, $m) === 1) {
+            $session->execute("DROP KEYSPACE IF EXISTS {$m[1]}");
+        }
 
         foreach (explode(';', $cql) as $statement) {
             $statement = trim($statement);
