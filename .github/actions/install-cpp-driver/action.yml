@@ -68,8 +68,7 @@ runs:
         restore-keys: |
           cpp-driver-${{ inputs.driver }}-${{ steps.meta.outputs.ref }}-${{ runner.arch }}-${{ steps.meta.outputs.platform }}-system-libuv-shared-deps
 
-    - name: Install build dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Install driver dependencies
       shell: bash
       run: |
         # The manylinux container runs as root and has no sudo.

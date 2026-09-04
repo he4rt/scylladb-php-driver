@@ -88,3 +88,4 @@ cmake-build-*/
 # (configure_file with CMAKE_CURRENT_SOURCE_DIR), so they are build output.
 third-party/cpp-driver/src/driver_config.hpp
 third-party/cpp-driver/src/third_party/sparsehash/src/sparsehash/internal/sparseconfig.h
+tools/gen_stub/gen_stub-*.php

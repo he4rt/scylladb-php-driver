@@ -37,7 +37,7 @@ endif ()
 math(EXPR _php_major "${PHP_VERSION_NUM} / 10000")
 math(EXPR _php_minor "(${PHP_VERSION_NUM} / 100) % 100")
 
-set(_gen_stub_staged "${PROJECT_BINARY_DIR}/_deps/gen_stub-${_php_major}.${_php_minor}.php")
+set(_gen_stub_staged "${PROJECT_SOURCE_DIR}/tools/gen_stub/gen_stub-${_php_major}.${_php_minor}.php")
 
 if (NOT EXISTS "${_gen_stub_staged}")
     set(_gen_stub_origin "")
