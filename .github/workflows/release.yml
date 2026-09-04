@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-26.04
     needs: [tag]
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         php:
           - "8.3"
@@ -154,7 +154,7 @@ jobs:
     container:
       image: quay.io/pypa/manylinux_2_28_${{ matrix.arch }}:2026.08.08-1
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         php:
           - "8.3"
@@ -193,7 +193,7 @@ jobs:
     env:
       CCACHE_DIR: /tmp/ccache
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         arch:
           - "x86_64"
@@ -232,7 +232,7 @@ jobs:
       # moves with it. Pin it to keep the cache path and the tool in agreement.
       CCACHE_DIR: /tmp/ccache
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         php:
           - "8.3"
@@ -369,6 +369,13 @@ jobs:
         uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
         with:
           cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: release-ide-stubs-${{ runner.os }}-8.4
+          max-size: 500M
+          append-timestamp: false
 
       - uses: ./.github/actions/install-cpp-driver
         id: driver

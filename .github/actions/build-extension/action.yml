@@ -53,11 +53,15 @@ runs:
 
         export PKG_CONFIG_PATH="${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
 
+        LAUNCHER=()
+        if command -v ccache >/dev/null 2>&1; then
+          LAUNCHER=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
+        fi
+
         cmake -G Ninja -B cmake-build \
+          "${LAUNCHER[@]}" \
           -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
           -DCMAKE_BUILD_TYPE="${{ inputs.build_type }}" \
-          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DPHP_SCYLLADB_STATIC="${{ inputs.static_driver }}" \
           -DPHP_SCYLLADB_BACKEND="${BACKEND}" \
           -DPHP_SCYLLADB_USE_SYSTEM_DRIVER="${{ inputs.use_system_driver }}" \
