@@ -146,6 +146,15 @@
 
 ### Fixed
 
+- `Session::closeAsync()` still aborted the process with `pure virtual method called`, on the one
+  path the driver-side backport below does not cover. `FutureClose` held the driver future but no
+  reference to the session, so `$cluster->connect()->closeAsync()` freed the session as soon as the
+  statement ended. `cass_session_free()` then asked an already-closing session to close again and
+  got an immediate error instead of a wait, so it deleted the object while the cluster still held
+  it as a listener. The next host-down event called into the dead object. `FutureClose` now keeps
+  the session alive until the future is released. The async suite aborted 5 to 9 runs out of 12
+  before this and 0 out of 15 after.
+
 - A dropped session could abort the process with `pure virtual method called`. `cass_session_free()`
   returned from its internal close and started the destructor while a driver event-loop thread still
   dispatched a host-down event, so the call landed on a listener whose derived part was gone. It hit

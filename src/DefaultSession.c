@@ -987,6 +987,7 @@ ZEND_METHOD(Cassandra_DefaultSession, closeAsync) {
   future = PHP_SCYLLADB_GET_FUTURE_CLOSE(return_value);
 
   future->future = cass_session_close(self->session);
+  ZVAL_COPY(&future->session, getThis());
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, metrics) {

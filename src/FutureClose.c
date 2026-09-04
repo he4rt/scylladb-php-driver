@@ -84,12 +84,24 @@ int php_scylladb_future_close_compare(zval *obj1, zval *obj2)
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
 
+HashTable *php_scylladb_future_close_gc(zend_object *object, zval **table, int *n)
+{
+  auto self = php_scylladb_future_close_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zend_get_gc_buffer_add_zval(buffer, &self->session);
+  zend_get_gc_buffer_use(buffer, table, n);
+  return nullptr;
+}
+
 void php_scylladb_future_close_free(zend_object *object)
 {
   auto self = php_scylladb_future_close_object_fetch(object);
 
   if (self->future)
     cass_future_free(self->future);
+
+  zval_ptr_dtor(&self->session);
+  ZVAL_UNDEF(&self->session);
 
   if (!Z_ISUNDEF(self->notify_stream)) {
     zval_ptr_dtor(&self->notify_stream);
@@ -109,6 +121,7 @@ zend_object *php_scylladb_future_close_new(zend_class_entry *ce)
   self->future      = nullptr;
   self->notifier    = nullptr;
   self->reactor_reg = nullptr;
+  ZVAL_UNDEF(&self->session);
   ZVAL_UNDEF(&self->notify_stream);
   return &self->zendObject;
 }

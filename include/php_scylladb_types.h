@@ -532,6 +532,7 @@ static zend_always_inline php_scylladb_future_value *php_scylladb_future_value_o
 typedef struct php_scylladb_future_close_
 {
     CassFuture *future;
+    zval session;
     php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
     zval notify_stream;              /* async: cached readable php_stream */
     php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
