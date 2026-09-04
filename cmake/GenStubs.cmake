@@ -34,12 +34,16 @@ if (NOT DEFINED PHP_SCYLLADB_GEN_STUB_SCRIPT OR PHP_SCYLLADB_GEN_STUB_SCRIPT STR
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 
+    file(GLOB _php_api_build_dirs "${_php_prefix}/lib/php/*/build")
+
     find_file(PHP_SCYLLADB_GEN_STUB_SCRIPT
             NAMES gen_stub.php
             PATHS
               "${_php_prefix}/lib/php/build"
               "${_php_prefix}/share/php/build"
               "${_php_prefix}/src/build"
+              "${PHP_EXTENSION_DIR}/build"
+              ${_php_api_build_dirs}
             NO_DEFAULT_PATH
             DOC  "Path to the PHP build/gen_stub.php script"
     )
