@@ -431,27 +431,6 @@ jobs:
           files: /tmp/artifacts/*.tar.gz
           fail_on_unmatched_files: true
 
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          fetch-depth: 1
-          ref: v1.x
-
-      - name: Generate changelog
-        uses: heinrichreimer/action-github-changelog-generator@e60b5a2bd9fcd88dadf6345ff8327863fb8b490f # v2.4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          author: true
-          releaseUrl: ${{ steps.release.outputs.url }}
-          issues: true
-          pullRequests: true
-
-      - uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
-        with:
-          commit_message: "chore: update CHANGELOG.md for ${{ needs.tag.outputs.version }}"
-          branch: v1.x
-          commit_options: "--no-verify --signoff"
-          file_pattern: CHANGELOG.md
-
   # A released tag must equal project(VERSION), so the branch it came from has
   # to move on to the next version straight away. Otherwise its next snapshot
   # build reports the version that just shipped, and the tag guard above blocks
