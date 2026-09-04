@@ -53,7 +53,7 @@ describe('php.ini configuration', function () {
         expect($props['contactPoints'])->toBe('10.0.0.1,10.0.0.2')
             ->and($props['defaultConsistency'])->toBe(\Cassandra::CONSISTENCY_LOCAL_QUORUM)
             ->and($props['defaultPageSize'])->toBe(250)
-            ->and($props['protocolVersion'])->toBe(3)
+            ->and($props['protocolVersion'])->toBe(\Cassandra\ProtocolVersion::V3)
             ->and($props['ioThreads'])->toBe(4)
             ->and($props['coreConnectionPerHost'])->toBe(2)
             ->and($props['maxConnectionsPerHost'])->toBe(8)
@@ -77,7 +77,7 @@ describe('php.ini configuration', function () {
         expect($props['contactPoints'])->toBe('127.0.0.1')
             ->and($props['defaultConsistency'])->toBe(\Cassandra::CONSISTENCY_LOCAL_QUORUM)
             ->and($props['defaultPageSize'])->toBe(5000)
-            ->and($props['protocolVersion'])->toBe(4)
+            ->and($props['protocolVersion'])->toBe(\Cassandra\ProtocolVersion::V4)
             ->and($props['usePersistentSessions'])->toBeTrue();
     });
 

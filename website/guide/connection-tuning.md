@@ -118,8 +118,12 @@ protocol layer.
 ## Protocol version
 
 ```php
-->withProtocolVersion(4)   // default 4
+->withProtocolVersion(Cassandra\ProtocolVersion::V4)   // default V4
 ```
+
+`Cassandra\ProtocolVersion` names the five native protocol versions, `V1` to `V5`. The method also
+takes a plain integer, for a version the enum does not name. Reading `protocolVersion` back off the
+builder gives an enum case when one matches the value, and an integer when none does.
 
 Version 4 works with every supported server. Lower it only for an old cluster that rejects the
 handshake. The driver does not negotiate downward on its own.

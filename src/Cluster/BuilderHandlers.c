@@ -1,4 +1,5 @@
 #include <php.h>
+#include <Zend/zend_enum.h>
 
 #include <php_scylladb.h>
 #include <php_scylladb_globals.h>
@@ -199,7 +200,19 @@ HashTable *php_scylladb_cluster_builder_properties(zend_object *object)
     }
 
     ZVAL_BOOL(&usePersistentSessions, self->persist);
-    ZVAL_LONG(&protocolVersion, self->protocol_version);
+
+    zend_object *protocolVersionCase = nullptr;
+    if (zend_enum_get_case_by_value(&protocolVersionCase, php_scylladb_protocol_version_ce,
+                                    (zend_long)self->protocol_version, nullptr, true) == SUCCESS
+        && protocolVersionCase != nullptr)
+    {
+        ZVAL_OBJ_COPY(&protocolVersion, protocolVersionCase);
+    }
+    else
+    {
+        ZVAL_LONG(&protocolVersion, self->protocol_version);
+    }
+
     ZVAL_LONG(&ioThreads, self->io_threads);
     ZVAL_LONG(&coreConnectionPerHost, self->core_connections_per_host);
     ZVAL_LONG(&maxConnectionsPerHost, self->max_connections_per_host);

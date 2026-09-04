@@ -63,7 +63,7 @@ file_put_contents($outPath, $out);
  * Returns array of class records. Each record:
  *   [
  *     'fqn'        => "Cassandra\\Foo\\Bar",   // backslashes single, will be doubled at emit
- *     'kind'       => 'class' | 'interface',
+ *     'kind'       => 'class' | 'interface' | 'enum',
  *     'is_final'   => bool,
  *     'is_abstract'=> bool,
  *     'parents'    => array of ['fqn' => '...', 'kind' => 'extends'|'implements'],
@@ -115,8 +115,12 @@ function parse_stub(string $src): array
             continue;
         }
 
-        if ($id === T_CLASS || $id === T_INTERFACE) {
-            $kind = ($id === T_INTERFACE) ? 'interface' : 'class';
+        if ($id === T_CLASS || $id === T_INTERFACE || $id === T_ENUM) {
+            $kind = match ($id) {
+                T_INTERFACE => 'interface',
+                T_ENUM      => 'enum',
+                default     => 'class',
+            };
 
             // Walk back to find modifiers (final / abstract) and the doc comment.
             $isFinal = false;
@@ -342,9 +346,8 @@ EOF;
  * PHP_SCYLLADB_VERSION, …) is visible to the arginfo register fn. */
 #include "php_scylladb.h"
 #include <Zend/zend_attributes.h>
-#include "$arginfoHeader"
+$extraIncBlock#include "$arginfoHeader"
 #include <Registry/Registry.h>
-$extraIncBlock
 
 EOF
     . implode("\n", $bodies);
@@ -379,6 +382,13 @@ function emit_class_descriptor(array $cls): array
     $ceVar       = "php_scylladb_{$snake}_ce";
     $handlersVar = "php_scylladb_{$snake}_handlers";
     $registerFn  = "php_scylladb_register_{$snake}";
+
+    // Enums own no instances the extension allocates: cases are created by
+    // zend_register_internal_enum() and are immutable. No create_object, no
+    // handlers table, no offset — only the post_register hook stays.
+    if ($cls['kind'] === 'enum') {
+        return emit_enum_descriptor($cls, $snake, $ceVar, $registerFn, $fqnLit, $registerClassFn, $registryDeps, $registerArgs, $extraIncludes);
+    }
 
     // Value-typed classes use a richer handlers struct that wraps the
     // standard zend_object_handlers with an extra `hash_value` callback.
@@ -478,33 +488,7 @@ function emit_class_descriptor(array $cls): array
     $createObjWire = "  if (&php_scylladb_{$snake}_new) ce->create_object = php_scylladb_{$snake}_new;\n";
     $postReg = "  if (&php_scylladb_{$snake}_post_register) php_scylladb_{$snake}_post_register(ce);\n";
 
-    // Descriptor macro selection: single parent shortcut vs deps array.
-    if (count($registryDeps) === 0) {
-        $macro = sprintf(
-            "PHP_SCYLLADB_REGISTER_CLASS(\n    %s,\n    \"%s\",\n    &%s,\n    nullptr,\n    %s\n)\n",
-            $snake, $fqnLit, $ceVar, $registerFn
-        );
-    } elseif (count($registryDeps) === 1) {
-        $parentLit = str_replace('\\', '\\\\', $registryDeps[0]);
-        $macro = sprintf(
-            "PHP_SCYLLADB_REGISTER_CLASS(\n    %s,\n    \"%s\",\n    &%s,\n    \"%s\",\n    %s\n)\n",
-            $snake, $fqnLit, $ceVar, $parentLit, $registerFn
-        );
-    } else {
-        $depsArrName = "scylladb_{$snake}_registry_deps";
-        $depsArr = "static const char *const $depsArrName" . "[] = {\n";
-        foreach ($registryDeps as $d) {
-            $dLit = str_replace('\\', '\\\\', $d);
-            $depsArr .= "    \"$dLit\",\n";
-        }
-        $depsArr .= "    nullptr,\n};\n";
-
-        $macro = $depsArr;
-        $macro .= sprintf(
-            "PHP_SCYLLADB_REGISTER_CLASS_DEPS(\n    %s,\n    \"%s\",\n    &%s,\n    %s,\n    %s\n)\n",
-            $snake, $fqnLit, $ceVar, $depsArrName, $registerFn
-        );
-    }
+    $macro = emit_registry_macro($snake, $fqnLit, $ceVar, $registerFn, $registryDeps);
 
     $body = <<<EOF
 
@@ -520,6 +504,92 @@ $registerCall
 $createObjWire
 $handlerWiring
 $postReg
+  return ce;
+}
+
+$macro
+EOF;
+
+    return [$body, $extraIncludes];
+}
+
+/**
+ * Descriptor macro selection: no parent, single parent shortcut, or deps array.
+ */
+function emit_registry_macro(string $snake, string $fqnLit, string $ceVar, string $registerFn, array $registryDeps): string
+{
+    if (count($registryDeps) === 0) {
+        return sprintf(
+            "PHP_SCYLLADB_REGISTER_CLASS(\n    %s,\n    \"%s\",\n    &%s,\n    nullptr,\n    %s\n)\n",
+            $snake, $fqnLit, $ceVar, $registerFn
+        );
+    }
+
+    if (count($registryDeps) === 1) {
+        $parentLit = str_replace('\\', '\\\\', $registryDeps[0]);
+        return sprintf(
+            "PHP_SCYLLADB_REGISTER_CLASS(\n    %s,\n    \"%s\",\n    &%s,\n    \"%s\",\n    %s\n)\n",
+            $snake, $fqnLit, $ceVar, $parentLit, $registerFn
+        );
+    }
+
+    $depsArrName = "scylladb_{$snake}_registry_deps";
+    $macro = "static const char *const $depsArrName" . "[] = {\n";
+    foreach ($registryDeps as $d) {
+        $dLit = str_replace('\\', '\\\\', $d);
+        $macro .= "    \"$dLit\",\n";
+    }
+    $macro .= "    nullptr,\n};\n";
+
+    return $macro . sprintf(
+        "PHP_SCYLLADB_REGISTER_CLASS_DEPS(\n    %s,\n    \"%s\",\n    &%s,\n    %s,\n    %s\n)\n",
+        $snake, $fqnLit, $ceVar, $depsArrName, $registerFn
+    );
+}
+
+/**
+ * An internal enum registers through the same register_class_*() entry point
+ * that gen_stub emits for classes, but it has no object layout of its own:
+ * cases are immutable objects the engine builds. So the descriptor drops
+ * create_object, the handlers table and every handler hook.
+ */
+function emit_enum_descriptor(
+    array $cls,
+    string $snake,
+    string $ceVar,
+    string $registerFn,
+    string $fqnLit,
+    string $registerClassFn,
+    array $registryDeps,
+    array $registerArgs,
+    array $extraIncludes
+): array {
+    $fqn = $cls['fqn'];
+
+    // zend_register_internal_enum() / zend_enum_add_case_cstr() live here, and
+    // the arginfo header calls both without including anything itself.
+    $extraIncludes[] = 'Zend/zend_enum.h';
+
+    $callArgs = implode(', ', $registerArgs);
+    $registerCall = $callArgs === ''
+        ? "  zend_class_entry *ce = $registerClassFn();\n"
+        : "  zend_class_entry *ce = $registerClassFn($callArgs);\n";
+
+    $macro = emit_registry_macro($snake, $fqnLit, $ceVar, $registerFn, $registryDeps);
+
+    $body = <<<EOF
+
+/* ─── $fqn (enum) ─── */
+
+zend_class_entry      *$ceVar       = nullptr;
+
+extern __attribute__((weak)) void php_scylladb_{$snake}_post_register(zend_class_entry *);
+
+static zend_class_entry *$registerFn([[maybe_unused]] zend_class_entry *const *deps)
+{
+$registerCall
+  if (&php_scylladb_{$snake}_post_register) php_scylladb_{$snake}_post_register(ce);
+
   return ce;
 }
 

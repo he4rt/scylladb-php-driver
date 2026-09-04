@@ -21,6 +21,7 @@ target_sources(src PRIVATE
         UuidGen.c
         DefaultSession.c
         PreparedStatement.c
+        ProtocolVersion.c
         Set.c
         SimpleStatement.c
         Tuple.c
@@ -89,6 +90,7 @@ php_scylladb_generate_arginfo(src
         Blob.stub.php
         Map.stub.php
         Cassandra.stub.php
+        ProtocolVersion.stub.php
         PreparedStatement.stub.php
         Collection.stub.php
         Session.stub.php
@@ -127,6 +129,7 @@ php_scylladb_generate_descriptor(src
         Tuple.stub.php
         UserTypeValue.stub.php
         Cassandra.stub.php
+        ProtocolVersion.stub.php
         Future.stub.php
         FuturePreparedStatement.stub.php
         FutureRows.stub.php
