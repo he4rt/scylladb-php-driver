@@ -92,6 +92,8 @@ option(ENABLE_SANITIZERS "Enable AddressSanitizer + UndefinedBehaviorSanitizer" 
 option(ENABLE_AVX        "Enable -mavx on x86_64" OFF)
 option(ENABLE_AVX2       "Enable -mavx2 on x86_64" OFF)
 option(ENABLE_LTO        "Enable link-time optimisation" OFF)
+option(PHP_SCYLLADB_WERROR          "Turn compiler warnings into errors" OFF)
+option(PHP_SCYLLADB_HARDENING       "Build with stack protection and _FORTIFY_SOURCE" ON)
 
 # ARM64 (Apple Silicon / AArch64) has no x86 micro-architecture levels;
 # use "native" so the compiler optimises for the host without invalid flags.
@@ -142,6 +144,22 @@ set(PHP_SCYLLADB_SWOOLE_SRC "" CACHE PATH
 set(PHP_SCYLLADB_ENABLE_POLL_API "OFF" CACHE STRING
         "Io\\Poll integration: OFF (default), AUTO (on when PHP >= 8.6 provides php_poll.h), ON (require)")
 set_property(CACHE PHP_SCYLLADB_ENABLE_POLL_API PROPERTY STRINGS AUTO ON OFF)
+
+option(PHP_SCYLLADB_ENABLE_LEGACY_SCHEMA_META
+        "Build Cassandra\\Function_, Aggregate and Index. The Rust based C/C++ driver leaves cass_function_meta_*, cass_aggregate_meta_* and cass_index_meta_* unimplemented, so Keyspace::function(), functions(), aggregate(), aggregates() and Table::index(), indexes() throw while this is OFF."
+        OFF)
+
+option(PHP_SCYLLADB_ENABLE_CUSTOM_TYPE
+        "Build Cassandra\\Custom and Cassandra\\Type\\Custom. The Rust based C/C++ driver does not plan to implement the cass_*_bind_custom family."
+        OFF)
+
+if (PHP_SCYLLADB_ENABLE_LEGACY_SCHEMA_META)
+    add_compile_definitions(PHP_SCYLLADB_HAVE_LEGACY_SCHEMA_META)
+endif ()
+
+if (PHP_SCYLLADB_ENABLE_CUSTOM_TYPE)
+    add_compile_definitions(PHP_SCYLLADB_HAVE_CUSTOM_TYPE)
+endif ()
 
 # Backend selection — see cmake/FindCPPDriver.cmake. USE_LIBCASSANDRA is kept
 # for backwards compatibility and is consumed there.

@@ -16,6 +16,7 @@
 #pragma once
 
 #include <cassandra.h>
+#include <php.h>
 
-[[gnu::nonnull(2)]] void php_scylladb_format_address(CassInet inet, char** out);
-[[gnu::nonnull(1, 2)]] int php_scylladb_parse_ip_address(char* in, CassInet* inet);
+[[nodiscard]] zend_string* php_scylladb_format_address(CassInet inet);
+[[gnu::nonnull(1, 2)]] [[nodiscard]] bool php_scylladb_parse_ip_address(const zend_string* in, CassInet* inet);

@@ -28,14 +28,13 @@ extern php_scylladb_value_handlers php_scylladb_uuid_handlers;
 void
 php_scylladb_uuid_init(INTERNAL_FUNCTION_PARAMETERS)
 {
-  char *value = nullptr;
-  size_t value_len = 0;
+  zend_string *value = nullptr;
   php_scylladb_uuid *self;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(0, 1)
     Z_PARAM_OPTIONAL
-    Z_PARAM_STRING(value, value_len)
+    Z_PARAM_STR(value)
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
@@ -46,12 +45,12 @@ php_scylladb_uuid_init(INTERNAL_FUNCTION_PARAMETERS)
     self = PHP_SCYLLADB_GET_UUID(return_value);
   }
 
-  if (ZEND_NUM_ARGS() == 0) {
+  if (value == nullptr) {
     php_scylladb_uuid_generate_random(&self->uuid );
   } else {
-    if (cass_uuid_from_string(value, &self->uuid) != CASS_OK) {
+    if (cass_uuid_from_string_n(ZSTR_VAL(value), ZSTR_LEN(value), &self->uuid) != CASS_OK) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
-                              "Invalid UUID: '%s'", value);
+                              "Invalid UUID: '%.*s'", (int)ZSTR_LEN(value), ZSTR_VAL(value));
       return;
     }
   }
@@ -74,10 +73,10 @@ ZEND_METHOD(Cassandra_Uuid, __construct)
   if (uuid == nullptr) {
     php_scylladb_uuid_generate_random(&self->uuid);
   } else {
-    if (cass_uuid_from_string(ZSTR_VAL(uuid), &self->uuid) != CASS_OK) {
+    if (cass_uuid_from_string_n(ZSTR_VAL(uuid), ZSTR_LEN(uuid), &self->uuid) != CASS_OK) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Invalid UUID: '%s'", ZSTR_VAL(uuid));
-      return;
+                              "Invalid UUID: '%.*s'", (int)ZSTR_LEN(uuid), ZSTR_VAL(uuid));
+      RETURN_THROWS();
     }
   }
 }
@@ -142,11 +141,7 @@ php_scylladb_uuid_properties(zend_object *object)
   zval version;
 
   auto self = php_scylladb_uuid_object_fetch(object);
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(3);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 3);
 
   cass_uuid_string(self->uuid, string);
 
@@ -165,7 +160,7 @@ php_scylladb_uuid_properties(zend_object *object)
 int
 php_scylladb_uuid_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   php_scylladb_uuid *uuid1 = nullptr;
   php_scylladb_uuid *uuid2 = nullptr;
 
@@ -187,8 +182,8 @@ unsigned
 php_scylladb_uuid_hash_value(zval *obj)
 {
   auto self = PHP_SCYLLADB_GET_UUID(obj);
-  return php_scylladb_combine_hash(php_scylladb_bigint_hash(self->uuid.time_and_version),
-                                    php_scylladb_bigint_hash(self->uuid.clock_seq_and_node));
+  return php_scylladb_combine_hash(php_scylladb_bigint_hash((cass_int64_t)self->uuid.time_and_version),
+                                    php_scylladb_bigint_hash((cass_int64_t)self->uuid.clock_seq_and_node));
 }
 
 void

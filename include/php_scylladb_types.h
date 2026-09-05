@@ -117,7 +117,7 @@ typedef struct php_scylladb_numeric_
 } php_scylladb_numeric;
 static zend_always_inline php_scylladb_numeric *php_scylladb_numeric_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_numeric *)((char *)obj - ((size_t)(&(((php_scylladb_numeric *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_numeric, obj);
 }
 
 
@@ -129,7 +129,7 @@ typedef struct php_scylladb_blob_
 } php_scylladb_blob;
 static zend_always_inline php_scylladb_blob *php_scylladb_blob_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_blob *)((char *)obj - ((size_t)(&(((php_scylladb_blob *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_blob, obj);
 }
 
 typedef struct php_scylladb_uuid_
@@ -139,7 +139,7 @@ typedef struct php_scylladb_uuid_
 } php_scylladb_uuid;
 static zend_always_inline php_scylladb_uuid *php_scylladb_uuid_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_uuid *)((char *)obj - ((size_t)(&(((php_scylladb_uuid *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, obj);
 }
 
 typedef struct php_scylladb_inet_
@@ -149,7 +149,7 @@ typedef struct php_scylladb_inet_
 } php_scylladb_inet;
 static zend_always_inline php_scylladb_inet *php_scylladb_inet_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_inet *)((char *)obj - ((size_t)(&(((php_scylladb_inet *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_inet, obj);
 }
 
 typedef struct php_scylladb_duration_
@@ -161,7 +161,7 @@ typedef struct php_scylladb_duration_
 } php_scylladb_duration;
 static zend_always_inline php_scylladb_duration *php_scylladb_duration_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_duration *)((char *)obj - ((size_t)(&(((php_scylladb_duration *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_duration, obj);
 }
 
 typedef struct php_scylladb_collection_
@@ -174,7 +174,7 @@ typedef struct php_scylladb_collection_
 } php_scylladb_collection;
 static zend_always_inline php_scylladb_collection *php_scylladb_collection_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_collection *)((char *)obj - ((size_t)(&(((php_scylladb_collection *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_collection, obj);
 }
 
 typedef struct php_scylladb_map_entry_ php_scylladb_map_entry;
@@ -191,7 +191,7 @@ typedef struct php_scylladb_map_
 } php_scylladb_map;
 static zend_always_inline php_scylladb_map *php_scylladb_map_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_map *)((char *)obj - ((size_t)(&(((php_scylladb_map *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_map, obj);
 }
 
 typedef struct php_scylladb_set_entry_ php_scylladb_set_entry;
@@ -209,7 +209,7 @@ typedef struct php_scylladb_set_
 } php_scylladb_set;
 static zend_always_inline php_scylladb_set *php_scylladb_set_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_set *)((char *)obj - ((size_t)(&(((php_scylladb_set *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_set, obj);
 }
 
 typedef struct php_scylladb_tuple_
@@ -223,7 +223,7 @@ typedef struct php_scylladb_tuple_
 } php_scylladb_tuple;
 static zend_always_inline php_scylladb_tuple *php_scylladb_tuple_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_tuple *)((char *)obj - ((size_t)(&(((php_scylladb_tuple *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_tuple, obj);
 }
 
 typedef struct php_scylladb_user_type_value_
@@ -237,7 +237,7 @@ typedef struct php_scylladb_user_type_value_
 } php_scylladb_user_type_value;
 static zend_always_inline php_scylladb_user_type_value *php_scylladb_user_type_value_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_user_type_value *)((char *)obj - ((size_t)(&(((php_scylladb_user_type_value *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_user_type_value, obj);
 }
 
 typedef struct php_scylladb_cluster_
@@ -256,7 +256,7 @@ static zend_always_inline php_scylladb_cluster *php_scylladb_cluster_object_fetc
     return (php_scylladb_cluster *)((char *)obj - offsetof(php_scylladb_cluster, zendObject));
 }
 
-typedef enum
+typedef enum : uint8_t
 {
     PHP_SCYLLADB_SIMPLE_STATEMENT,
     PHP_SCYLLADB_PREPARED_STATEMENT,
@@ -278,7 +278,7 @@ typedef struct php_scylladb_statement_
     union {
         struct
         {
-            char *cql;
+            zend_string *cql;
         } simple;
         struct
         {
@@ -294,7 +294,7 @@ typedef struct php_scylladb_statement_
 } php_scylladb_statement;
 static zend_always_inline php_scylladb_statement *php_scylladb_statement_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_statement *)((char *)obj - ((size_t)(&(((php_scylladb_statement *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_statement, obj);
 }
 
 /* SimpleStatement, PreparedStatement and BatchStatement share php_scylladb_statement
@@ -333,8 +333,7 @@ typedef struct php_scylladb_execution_options_
     long consistency;
     long serial_consistency;
     int page_size;
-    char *paging_state_token;
-    size_t paging_state_token_size;
+    zend_string *paging_state_token;
     zval timeout;
     zval arguments;
     zval retry_policy;
@@ -344,10 +343,10 @@ typedef struct php_scylladb_execution_options_
 } php_scylladb_execution_options;
 static zend_always_inline php_scylladb_execution_options *php_scylladb_execution_options_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_execution_options *)((char *)obj - ((size_t)(&(((php_scylladb_execution_options *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_execution_options, obj);
 }
 
-typedef enum /* : uint8_t */
+typedef enum : uint8_t
 {
     LOAD_BALANCING_DEFAULT = 0,
     LOAD_BALANCING_ROUND_ROBIN,
@@ -357,7 +356,7 @@ typedef enum /* : uint8_t */
     LOAD_BALANCING_RACK_AWARE
 } php_scylladb_load_balancing;
 
-typedef enum /* : uint8_t */
+typedef enum : uint8_t
 {
     RECONNECT_POLICY_CONSTANT = 0,
     RECONNECT_POLICY_EXPONENTIAL
@@ -380,7 +379,7 @@ typedef struct php_scylladb_rows_
 } php_scylladb_rows;
 static zend_always_inline php_scylladb_rows *php_scylladb_rows_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_rows *)((char *)obj - ((size_t)(&(((php_scylladb_rows *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_rows, obj);
 }
 
 typedef struct php_scylladb_future_rows_
@@ -397,7 +396,7 @@ typedef struct php_scylladb_future_rows_
 } php_scylladb_future_rows;
 static zend_always_inline php_scylladb_future_rows *php_scylladb_future_rows_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_future_rows *)((char *)obj - ((size_t)(&(((php_scylladb_future_rows *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_future_rows, obj);
 }
 
 
@@ -408,7 +407,7 @@ typedef struct php_scylladb_timestamp_gen_
 } php_scylladb_timestamp_gen;
 static zend_always_inline php_scylladb_timestamp_gen *php_scylladb_timestamp_gen_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_timestamp_gen *)((char *)obj - ((size_t)(&(((php_scylladb_timestamp_gen *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp_gen, obj);
 }
 
 typedef struct php_scylladb_execution_profile_
@@ -512,8 +511,7 @@ typedef struct php_scylladb_future_prepared_statement_
 static zend_always_inline php_scylladb_future_prepared_statement *php_scylladb_future_prepared_statement_object_fetch(
     zend_object *obj)
 {
-    return (php_scylladb_future_prepared_statement *)((char *)obj -
-                                                    ((size_t)(&(((php_scylladb_future_prepared_statement *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_future_prepared_statement, obj);
 }
 
 typedef struct php_scylladb_future_value_
@@ -526,7 +524,7 @@ typedef struct php_scylladb_future_value_
 } php_scylladb_future_value;
 static zend_always_inline php_scylladb_future_value *php_scylladb_future_value_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_future_value *)((char *)obj - ((size_t)(&(((php_scylladb_future_value *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_future_value, obj);
 }
 
 typedef struct php_scylladb_future_close_
@@ -540,7 +538,7 @@ typedef struct php_scylladb_future_close_
 } php_scylladb_future_close;
 static zend_always_inline php_scylladb_future_close *php_scylladb_future_close_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_future_close *)((char *)obj - ((size_t)(&(((php_scylladb_future_close *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_future_close, obj);
 }
 
 typedef struct php_scylladb_future_session_
@@ -550,9 +548,12 @@ typedef struct php_scylladb_future_session_
     zval default_session;
     cass_bool_t persist;
     zend_ulong cache_key;
-    char *exception_message;
+    long default_consistency;
+    int default_page_size;
+    zval default_timeout;
+    zend_string *exception_message;
     CassError exception_code;
-    char *session_keyspace;
+    zend_string *session_keyspace;
     php_scylladb_notifier *notifier; /* async: owns write fd; lazy */
     zval notify_stream;              /* async: cached readable php_stream */
     php_scylladb_reg *reactor_reg;   /* async: shared-reactor registration; null unless added */
@@ -560,7 +561,7 @@ typedef struct php_scylladb_future_session_
 } php_scylladb_future_session;
 static zend_always_inline php_scylladb_future_session *php_scylladb_future_session_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_future_session *)((char *)obj - ((size_t)(&(((php_scylladb_future_session *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_future_session, obj);
 }
 
 typedef struct
@@ -582,7 +583,7 @@ typedef struct php_scylladb_session_
     CassSession *session;        /* owned if !persist; borrowed (psession owns) otherwise */
     long default_consistency;
     int default_page_size;
-    char *keyspace;
+    zend_string *keyspace;
     zend_ulong cache_key;
     zval default_timeout;
     cass_bool_t persist;
@@ -600,7 +601,7 @@ typedef struct php_scylladb_schema_
 } php_scylladb_schema;
 static zend_always_inline php_scylladb_schema *php_scylladb_schema_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_schema *)((char *)obj - ((size_t)(&(((php_scylladb_schema *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_schema, obj);
 }
 
 typedef struct php_scylladb_keyspace_
@@ -611,7 +612,7 @@ typedef struct php_scylladb_keyspace_
 } php_scylladb_keyspace;
 static zend_always_inline php_scylladb_keyspace *php_scylladb_keyspace_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_keyspace *)((char *)obj - ((size_t)(&(((php_scylladb_keyspace *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_keyspace, obj);
 }
 
 typedef struct php_scylladb_table_
@@ -628,7 +629,7 @@ typedef struct php_scylladb_table_
 } php_scylladb_table;
 static zend_always_inline php_scylladb_table *php_scylladb_table_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_table *)((char *)obj - ((size_t)(&(((php_scylladb_table *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_table, obj);
 }
 
 typedef struct php_scylladb_materialized_view_
@@ -646,7 +647,7 @@ typedef struct php_scylladb_materialized_view_
 } php_scylladb_materialized_view;
 static zend_always_inline php_scylladb_materialized_view *php_scylladb_materialized_view_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_materialized_view *)((char *)obj - ((size_t)(&(((php_scylladb_materialized_view *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_materialized_view, obj);
 }
 
 typedef struct php_scylladb_column_
@@ -661,7 +662,7 @@ typedef struct php_scylladb_column_
 } php_scylladb_column;
 static zend_always_inline php_scylladb_column *php_scylladb_column_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_column *)((char *)obj - ((size_t)(&(((php_scylladb_column *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_column, obj);
 }
 
 typedef struct php_scylladb_index_
@@ -676,7 +677,7 @@ typedef struct php_scylladb_index_
 } php_scylladb_index;
 static zend_always_inline php_scylladb_index *php_scylladb_index_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_index *)((char *)obj - ((size_t)(&(((php_scylladb_index *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_index, obj);
 }
 
 typedef struct php_scylladb_function_
@@ -693,7 +694,7 @@ typedef struct php_scylladb_function_
 } php_scylladb_function;
 static zend_always_inline php_scylladb_function *php_scylladb_function_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_function *)((char *)obj - ((size_t)(&(((php_scylladb_function *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_function, obj);
 }
 
 typedef struct php_scylladb_aggregate_
@@ -712,7 +713,7 @@ typedef struct php_scylladb_aggregate_
 } php_scylladb_aggregate;
 static zend_always_inline php_scylladb_aggregate *php_scylladb_aggregate_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_aggregate *)((char *)obj - ((size_t)(&(((php_scylladb_aggregate *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_aggregate, obj);
 }
 
 typedef struct php_scylladb_type_
@@ -735,12 +736,12 @@ typedef struct php_scylladb_type_
         } map;
         struct
         {
-            char *class_name;
+            zend_string *class_name;
         } custom;
         struct
         {
-            char *keyspace;
-            char *type_name;
+            zend_string *keyspace;
+            zend_string *type_name;
             HashTable types;
         } udt;
         struct
@@ -752,7 +753,7 @@ typedef struct php_scylladb_type_
 } php_scylladb_type;
 static zend_always_inline php_scylladb_type *php_scylladb_type_object_fetch(zend_object *obj)
 {
-    return (php_scylladb_type *)((char *)obj - ((size_t)(&(((php_scylladb_type *)0)->zendObject))));
+    return PHP_SCYLLADB_OBJ_FETCH(php_scylladb_type, obj);
 }
 
 typedef unsigned (*php_scylladb_value_hash_t)(zval *obj);
@@ -814,7 +815,6 @@ extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_default_cluster_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_cluster_builder_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_protocol_version_ce;
-extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_ssl_options_builder_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_future_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_future_prepared_statement_ce;
 extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_future_rows_ce;

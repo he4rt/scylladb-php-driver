@@ -36,7 +36,7 @@ ZEND_METHOD(Cassandra_FutureValue, get)
     Z_PARAM_ZVAL(timeout)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_FUTURE_VALUE(getThis());
+  self = PHP_SCYLLADB_GET_FUTURE_VALUE(ZEND_THIS);
 
   if (!Z_ISUNDEF(self->value)) {
     RETURN_ZVAL(&self->value, 1, 0);
@@ -48,9 +48,9 @@ ZEND_METHOD(Cassandra_FutureValue, getResource)
   ZEND_PARSE_PARAMETERS_NONE();
 
   /* FutureValue is always already resolved — hand back a readable stream. */
-  auto self = PHP_SCYLLADB_GET_FUTURE_VALUE(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_VALUE(ZEND_THIS);
 
-  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(ZEND_THIS), self->reactor_reg)) {
     return;
   }
 
@@ -73,12 +73,23 @@ HashTable *php_scylladb_future_value_properties(zend_object *object)
 
 int php_scylladb_future_value_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
+HashTable *php_scylladb_future_value_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_future_value_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->value);
+    zend_get_gc_buffer_add_zval(buffer, &self->notify_stream);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
+}
+
 
 void php_scylladb_future_value_free(zend_object *object)
 {

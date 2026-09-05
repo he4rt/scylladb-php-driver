@@ -34,15 +34,19 @@ namespace Cassandra {
         public function materializedViews(): array;
 
         /** @return \Cassandra\Function_|false */
+        #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined function metadata.', since: '1.6.0')]
         public function function(string $name, string|\Cassandra\Type ...$types): \Cassandra\Function_|false;
 
         /** @return array<string, \Cassandra\Function_> */
+        #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined function metadata.', since: '1.6.0')]
         public function functions(): array;
 
         /** @return Aggregate|false */
+        #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined aggregate metadata.', since: '1.6.0')]
         public function aggregate(string $name, string|\Cassandra\Type ...$types): Aggregate|false;
 
         /** @return array<string, Aggregate> */
+        #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined aggregate metadata.', since: '1.6.0')]
         public function aggregates(): array;
     }
 }

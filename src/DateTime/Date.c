@@ -26,6 +26,8 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include "Numbers/NumberParser.h"
+
 #include "DateTimeInternal.h"
 
 #include <ext/date/php_date.h>
@@ -48,24 +50,19 @@ PHP_SCYLLADB_API php_scylladb_date *php_scylladb_date_instantiate(zval *object) 
 
 PHP_SCYLLADB_API zend_result php_scylladb_date_initialize(php_scylladb_date *self,
                                                           zend_string *secondsStr,
-                                                          zend_long seconds) {
-  cass_int64_t secs = -1;
-
-  if (secondsStr != nullptr) {
-    errno = 0;
-    char *end = nullptr;
-    secs = strtol(ZSTR_VAL(secondsStr), &end, 10);
-
-    if ((secs == 0 || secs == LONG_MIN || secs == LONG_MAX) &&
-        (end == ZSTR_VAL(secondsStr) || *end != '\0' || errno != 0)) {
-      return FAILURE;
-    }
-
-  } else if (seconds != -1) {
-    secs = seconds;
+                                                          zend_long seconds, bool provided) {
+  if (!provided) {
+    self->date = cass_date_from_epoch(time(nullptr));
+    return SUCCESS;
   }
 
-  self->date = cass_date_from_epoch(secs == -1 ? time(nullptr) : secs);
+  cass_int64_t secs = (cass_int64_t)seconds;
+
+  if (secondsStr != nullptr && !php_scylladb_parse_bigint(secondsStr, &secs)) {
+    return FAILURE;
+  }
+
+  self->date = cass_date_from_epoch(secs);
 
   return SUCCESS;
 }
@@ -81,10 +78,8 @@ ZEND_METHOD(Cassandra_Date, __construct) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  if (php_scylladb_date_initialize(PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(getThis())),
-                                   secondsStr, seconds) == FAILURE) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                            "Invalid seconds value: '%s'", ZSTR_VAL(secondsStr));
+  if (php_scylladb_date_initialize(PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(ZEND_THIS)),
+                                   secondsStr, seconds, ZEND_NUM_ARGS() != 0) == FAILURE) {
     RETURN_THROWS();
   }
 }
@@ -94,7 +89,7 @@ ZEND_METHOD(Cassandra_Date, type) {
 }
 
 ZEND_METHOD(Cassandra_Date, seconds) {
-  php_scylladb_date *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(getThis()));
+  php_scylladb_date *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(ZEND_THIS));
   RETURN_LONG(cass_date_time_to_epoch(self->date, 0));
 }
 
@@ -130,7 +125,7 @@ ZEND_METHOD(Cassandra_Date, toDateTime) {
     time_obj = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_time, Z_OBJ_P(ztime));
   }
 
-  php_scylladb_date *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(getThis()));
+  php_scylladb_date *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(ZEND_THIS));
 
   date_to_datetime_ctx_t ctx = { .self = self, .time_obj = time_obj };
   zval datetime;
@@ -146,7 +141,7 @@ ZEND_METHOD(Cassandra_Date, toDateTime) {
 }
 
 ZEND_METHOD(Cassandra_Date, fromDateTime) {
-  zval *datetime;
+  zval *datetime = nullptr;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -174,13 +169,10 @@ ZEND_METHOD(Cassandra_Date, fromDateTime) {
 ZEND_METHOD(Cassandra_Date, __toString) {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  php_scylladb_date *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(getThis()));
+  php_scylladb_date *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_date, Z_OBJ_P(ZEND_THIS));
 
-  char *ret = nullptr;
-  spprintf(&ret, 0, PHP_SCYLLADB_NAMESPACE "\\Date(seconds=%ld)",
-           (long)cass_date_time_to_epoch(self->date, 0));
-  RETVAL_STRING(ret);
-  efree(ret);
+  RETVAL_STR(zend_strpprintf(0, PHP_SCYLLADB_NAMESPACE "\\Date(seconds=%" PRId64 ")",
+                             (int64_t)cass_date_time_to_epoch(self->date, 0)));
 }
 
 
@@ -191,11 +183,7 @@ HashTable *php_scylladb_date_gc(zend_object *object, zval **table, int *n) {
 }
 
 HashTable *php_scylladb_date_properties(zend_object *object) {
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(2);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 2);
 
   zval type = php_scylladb_type_scalar(CASS_VALUE_TYPE_DATE);
   zend_hash_str_update(props, ZEND_STRL("type"), &type);
@@ -209,7 +197,7 @@ HashTable *php_scylladb_date_properties(zend_object *object) {
 }
 
 int php_scylladb_date_compare(zval *obj1, zval *obj2) {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 

@@ -31,16 +31,17 @@ describe('Cassandra\Timeuuid (migrated)', function () {
 
     it('cannot be created from a type 4 UUID string', function () {
         new Timeuuid('65f9e722-036a-4029-b03b-a9046b23b4c9');
-    })->throws(InvalidArgumentException::class, 'UUID must be of type 1, type 4 given')
-      ->skip('Extension throws Cassandra\\Exception\\InvalidArgumentException; un-skip after verifying class+message');
+    })->throws(InvalidArgumentException::class, 'UUID must be of type 1, type 4 given');
 
     it('cannot be created from an invalid string', function () {
         new Timeuuid('invalid');
-    })->throws(InvalidArgumentException::class, 'Invalid UUID')
-      ->skip('Extension throws Cassandra\\Exception\\InvalidArgumentException; un-skip after verifying class+message');
+    })->throws(InvalidArgumentException::class, "Invalid UUID: 'invalid'");
 
     it('rejects an invalid argument type in the constructor', function () {
         new Timeuuid(new DateTime());
-    })->throws(InvalidArgumentException::class, 'Invalid argument')
-      ->skip('Extension throws Cassandra\\Exception\\InvalidArgumentException; un-skip after verifying class+message');
+    })->throws(\TypeError::class);
+
+    it('rejects a UUID that would parse only up to an embedded NUL byte', function () {
+        new Timeuuid("5f344f20-52a3-11e7-915b-5f4f349b532d\0junk");
+    })->throws(InvalidArgumentException::class);
 });

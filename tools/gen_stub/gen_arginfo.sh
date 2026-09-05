@@ -83,3 +83,15 @@ sed \
     -e 's/^static zend_class_entry \*register_class_/[[maybe_unused]] static zend_class_entry *register_class_/' \
     "$arginfo" > "$tmp_out"
 mv "$tmp_out" "$arginfo"
+
+guarded=$(mktemp -t "${stub_base}_guarded.XXXXXX").h
+{
+    printf '%s\n' '#pragma GCC diagnostic push'
+    printf '%s\n' '#pragma GCC diagnostic ignored "-Wcast-qual"'
+    printf '%s\n' '#if defined(__clang__)'
+    printf '%s\n' '#pragma clang diagnostic ignored "-Wextra-semi-stmt"'
+    printf '%s\n' '#endif'
+    cat "$arginfo"
+    printf '%s\n' '#pragma GCC diagnostic pop'
+} > "$guarded"
+mv "$guarded" "$arginfo"

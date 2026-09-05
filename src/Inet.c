@@ -28,12 +28,11 @@ void
 php_scylladb_inet_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   php_scylladb_inet *self;
-  char *string;
-  size_t string_len;
+  zend_string *string = nullptr;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(string, string_len)
+    Z_PARAM_STR(string)
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
@@ -60,11 +59,7 @@ ZEND_METHOD(Cassandra_Inet, __construct)
 ZEND_METHOD(Cassandra_Inet, __toString)
 {
   auto inet = PHP_SCYLLADB_GET_INET(ZEND_THIS);
-  char *string;
-  php_scylladb_format_address(inet->inet, &string);
-
-  RETVAL_STRING(string);
-  efree(string);
+  RETVAL_STR(php_scylladb_format_address(inet->inet));
 }
 /* }}} */
 
@@ -80,11 +75,7 @@ ZEND_METHOD(Cassandra_Inet, type)
 ZEND_METHOD(Cassandra_Inet, address)
 {
   auto inet = PHP_SCYLLADB_GET_INET(ZEND_THIS);
-  char *string;
-  php_scylladb_format_address(inet->inet, &string);
-
-  RETVAL_STRING(string);
-  efree(string);
+  RETVAL_STR(php_scylladb_format_address(inet->inet));
 }
 /* }}} */
 
@@ -100,24 +91,16 @@ php_scylladb_inet_gc(zend_object *object, zval** table, int *n)
 HashTable *
 php_scylladb_inet_properties(zend_object *object)
 {
-  char *string;
   zval type;
   zval address;
 
   auto self = php_scylladb_inet_object_fetch(object);
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(2);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 2);
 
   type = php_scylladb_type_scalar(CASS_VALUE_TYPE_INET );
   (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
-  php_scylladb_format_address(self->inet, &string);
-
-  ZVAL_STRING(&address, string);
-  efree(string);
+  ZVAL_STR(&address, php_scylladb_format_address(self->inet));
   (void)zend_hash_str_update(props, ZEND_STRL("address"), &address);
 
   return props;
@@ -126,7 +109,7 @@ php_scylladb_inet_properties(zend_object *object)
 int
 php_scylladb_inet_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   php_scylladb_inet *inet1 = nullptr;
   php_scylladb_inet *inet2 = nullptr;
 
@@ -146,7 +129,7 @@ unsigned
 php_scylladb_inet_hash_value(zval *obj )
 {
   auto self = PHP_SCYLLADB_GET_INET(obj);
-  return zend_inline_hash_func((const char *) self->inet.address,
+  return (unsigned)zend_inline_hash_func((const char *) self->inet.address,
                                self->inet.address_length);
 }
 

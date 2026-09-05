@@ -96,13 +96,11 @@ describe('Cassandra\Time (migrated)', function () {
 
     it('rejects negative nanoseconds', function () {
         new Time(-1);
-    })->throws(\InvalidArgumentException::class, 'nanoseconds must be nanoseconds since midnight, -1 given')
-      ->skip('Extension throws Cassandra\Exception\InvalidArgumentException; needs message-shape verification before un-skipping');
+    })->throws(\InvalidArgumentException::class, 'nanoseconds must be nanoseconds since midnight, -1 given');
 
     it('rejects nanoseconds at or above 24 hours', function () {
         new Time('86400000000000');
-    })->throws(\InvalidArgumentException::class, "nanoseconds must be nanoseconds since midnight, '86400000000000' given")
-      ->skip('Extension throws Cassandra\Exception\InvalidArgumentException; needs message-shape verification before un-skipping');
+    })->throws(\InvalidArgumentException::class, "nanoseconds must be nanoseconds since midnight, '86400000000000' given");
 
     it('converts DateTime to nanoseconds since midnight', function () {
         $datetime = new \DateTime('1970-01-01T00:00:00+0000');
@@ -118,5 +116,28 @@ describe('Cassandra\Time (migrated)', function () {
     it('exposes the CQL Type::time()', function () {
         $time = new Time(0);
         expect($time->type())->toEqual(Type::time());
+    });
+
+    it('treats -1 as a value, not as a request for the current time', function () {
+        expect(fn () => new Time(-1))->toThrow(\InvalidArgumentException::class);
+    });
+
+    it('range-checks a string argument the same way as an int', function ($value) {
+        new Time($value);
+    })->with(['-1', '86400000000000', '9223372036854775807'])
+      ->throws(\InvalidArgumentException::class);
+
+    it('accepts the last nanosecond of the day from both argument types', function () {
+        expect((string) new Time(86399999999999))->toBe('86399999999999')
+            ->and((string) new Time('86399999999999'))->toBe('86399999999999');
+    });
+
+    it('rejects a string with trailing characters', function () {
+        new Time('1abc');
+    })->throws(\InvalidArgumentException::class);
+
+    it('reports the specific reason instead of a generic wrapper', function () {
+        expect(fn () => Type::time()->create('86400000000000'))
+            ->toThrow(\InvalidArgumentException::class, "nanoseconds must be nanoseconds since midnight, '86400000000000' given");
     });
 });

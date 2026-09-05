@@ -70,6 +70,7 @@ php_scylladb_notifier_create(void)
 {
   int read_fd  = -1;
   int write_fd = -1;
+  php_scylladb_notifier* notifier = nullptr;
 
 #if defined(__linux__)
   /* Linux fast path: a single eventfd is one syscall (flags included), one fd,
@@ -104,7 +105,7 @@ php_scylladb_notifier_create(void)
 
   /* Persistent (malloc) allocation: the final unref may run on the driver IO
      thread, where the Zend allocator is unsafe. */
-  php_scylladb_notifier* notifier = pemalloc(sizeof(*notifier), 1);
+  notifier = pemalloc(sizeof(*notifier), 1);
   atomic_init(&notifier->refcount, 1);
   notifier->read_fd  = read_fd;
   notifier->write_fd = write_fd;
@@ -128,6 +129,14 @@ php_scylladb_notifier_addref(php_scylladb_notifier* notifier)
     return;
   }
   atomic_fetch_add_explicit(&notifier->refcount, 1, memory_order_relaxed);
+}
+
+static void
+php_scylladb_notifier_unref_extra(php_scylladb_notifier* notifier)
+{
+  ZEND_ASSERT(notifier != nullptr);
+  ZEND_ASSERT(atomic_load_explicit(&notifier->refcount, memory_order_relaxed) > 1);
+  (void)atomic_fetch_sub_explicit(&notifier->refcount, 1, memory_order_acq_rel);
 }
 
 void
@@ -208,7 +217,7 @@ php_scylladb_notifier_fd(const php_scylladb_notifier* notifier)
  * it into stream_slot / return_value (cached — returns the same resource on
  * repeat calls). The stream gets its own dup of the read fd. Returns SUCCESS or
  * FAILURE (exception thrown). */
-int
+zend_result
 php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
                               zval*                  stream_slot,
                               zval*                  return_value)
@@ -256,7 +265,7 @@ php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
      loops watch the raw kernel fd (PHP_STREAM_AS_FD_FOR_SELECT). */
   stream->flags |= PHP_STREAM_FLAG_NO_BUFFER;
 
-  php_stream_to_zval(stream, stream_slot);
+  php_stream_to_zval(stream, stream_slot)
   ZVAL_COPY(return_value, stream_slot);
   return SUCCESS;
 }
@@ -265,7 +274,7 @@ php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
  * the caller), register the driver completion callback, and self-notify if the
  * future already resolved. No-op if the notifier already exists. Returns
  * SUCCESS or FAILURE (exception thrown). */
-int
+zend_result
 php_scylladb_future_ensure_notifier(CassFuture* future, php_scylladb_notifier** notifier_slot)
 {
   if (*notifier_slot != nullptr) {
@@ -294,17 +303,17 @@ php_scylladb_future_ensure_notifier(CassFuture* future, php_scylladb_notifier** 
   if (rc != CASS_OK) {
     /* No callback will ever fire (error, or CASS_ERROR_LIB_CALLBACK_ALREADY_SET).
        set_callback failing means no IO thread ever took the ref, so drop it here. */
-    php_scylladb_notifier_unref(notifier);
+    php_scylladb_notifier_unref_extra(notifier);
 
     /* Without a callback the "readable => get() will not block" contract can only
        hold for a future that is already resolved. Poking a still-pending future
        would wake the loop early and make get() block, so fail loudly instead. */
     if (!cass_future_ready(future)) {
-      php_scylladb_notifier_unref(notifier); /* creation ref → frees */
       zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                               "Failed to register the async completion callback: %s. "
                               "The future cannot be watched",
                               cass_error_desc(rc));
+      php_scylladb_notifier_unref(notifier);
       return FAILURE;
     }
   }
@@ -320,7 +329,7 @@ php_scylladb_future_ensure_notifier(CassFuture* future, php_scylladb_notifier** 
   return SUCCESS;
 }
 
-int
+zend_result
 php_scylladb_future_get_resource(CassFuture*             future,
                                  php_scylladb_notifier** notifier_slot,
                                  zval*                   stream_slot,
@@ -338,7 +347,7 @@ php_scylladb_future_get_resource(CassFuture*             future,
   return php_scylladb_notifier_publish(*notifier_slot, stream_slot, return_value);
 }
 
-int
+zend_result
 php_scylladb_future_ensure_ready_notifier(php_scylladb_notifier** notifier_slot)
 {
   if (*notifier_slot != nullptr) {
@@ -359,7 +368,7 @@ php_scylladb_future_ensure_ready_notifier(php_scylladb_notifier** notifier_slot)
   return SUCCESS;
 }
 
-int
+zend_result
 php_scylladb_future_get_ready_resource(php_scylladb_notifier** notifier_slot,
                                        zval*                   stream_slot,
                                        zval*                   return_value)
@@ -431,7 +440,7 @@ php_scylladb_timeout_seconds(zval* timeout)
 }
 #endif
 
-int
+zend_result
 php_scylladb_future_wait_coro(CassFuture*             future,
                               php_scylladb_notifier** notifier_slot,
                               const php_scylladb_reg* reactor_reg,

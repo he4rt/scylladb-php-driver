@@ -61,17 +61,16 @@ ZEND_METHOD(Cassandra_Rows, __construct)
                             "Instantiation of a " PHP_SCYLLADB_NAMESPACE "\\Rows objects directly is not supported, "
                             "call " PHP_SCYLLADB_NAMESPACE "\\Session::execute() or " PHP_SCYLLADB_NAMESPACE
                             "\\FutureRows::get() instead.");
-    return;
+    RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Rows, count)
 {
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     RETURN_LONG(zend_hash_num_elements(Z_ARRVAL_P(&self->rows)));
 }
@@ -80,22 +79,18 @@ ZEND_METHOD(Cassandra_Rows, rewind)
 {
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     zend_hash_internal_pointer_reset_ex(Z_ARRVAL(self->rows), &self->pos);
 }
 
 ZEND_METHOD(Cassandra_Rows, current)
 {
-    if (zend_parse_parameters_none() == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    auto self = PHP_SCYLLADB_GET_ROWS(getThis());
+    auto self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     zval *entry = zend_hash_get_current_data_ex(Z_ARRVAL(self->rows), &self->pos);
 
@@ -111,26 +106,22 @@ ZEND_METHOD(Cassandra_Rows, key)
     zend_string* str_index;
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     if (zend_hash_get_current_key_ex(Z_ARRVAL(self->rows), &str_index, &num_index, &self->pos) ==
         HASH_KEY_IS_LONG)
-        RETURN_LONG(num_index);
+        RETURN_LONG((zend_long)num_index);
 }
 
 ZEND_METHOD(Cassandra_Rows, next)
 {
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     zend_hash_move_forward_ex(Z_ARRVAL(self->rows), &self->pos);
 }
@@ -139,17 +130,16 @@ ZEND_METHOD(Cassandra_Rows, valid)
 {
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     RETURN_BOOL(zend_hash_has_more_elements_ex(Z_ARRVAL(self->rows), &self->pos) == SUCCESS);
 }
 
 ZEND_METHOD(Cassandra_Rows, offsetExists)
 {
-    zval *offset;
+    zval *offset = nullptr;
     php_scylladb_rows *self = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -161,14 +151,14 @@ ZEND_METHOD(Cassandra_Rows, offsetExists)
         INVALID_ARGUMENT(offset, "a positive integer");
     }
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     RETURN_BOOL(zend_hash_index_exists(Z_ARRVAL(self->rows), (zend_ulong)Z_LVAL_P(offset)));
 }
 
 ZEND_METHOD(Cassandra_Rows, offsetGet)
 {
-    zval *offset;
+    zval *offset = nullptr;
     zval *value;
     php_scylladb_rows *self = nullptr;
 
@@ -181,7 +171,7 @@ ZEND_METHOD(Cassandra_Rows, offsetGet)
         INVALID_ARGUMENT(offset, "a positive integer");
     }
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
     if ((value = zend_hash_index_find(Z_ARRVAL(self->rows), (zend_ulong)(Z_LVAL_P(offset)))) != nullptr)
     {
         RETURN_ZVAL(value, 1, 0);
@@ -190,32 +180,29 @@ ZEND_METHOD(Cassandra_Rows, offsetGet)
 
 ZEND_METHOD(Cassandra_Rows, offsetSet)
 {
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
     zend_throw_exception_ex(php_scylladb_domain_exception_ce, 0 ,
                             "Cannot overwrite a row at a given offset, rows are immutable.");
-    return;
+    RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Rows, offsetUnset)
 {
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
     zend_throw_exception_ex(php_scylladb_domain_exception_ce, 0 ,
                             "Cannot delete a row at a given offset, rows are immutable.");
-    return;
+    RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Rows, isLastPage)
 {
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     if (self->result == nullptr && Z_ISUNDEF(self->next_rows) && Z_ISUNDEF(self->future_next_page))
     {
@@ -228,7 +215,7 @@ ZEND_METHOD(Cassandra_Rows, isLastPage)
 ZEND_METHOD(Cassandra_Rows, nextPage)
 {
     zval *timeout = nullptr;
-    auto self = PHP_SCYLLADB_GET_ROWS(getThis());
+    auto self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     ZEND_PARSE_PARAMETERS_START(0, 1)
         Z_PARAM_OPTIONAL
@@ -246,7 +233,7 @@ ZEND_METHOD(Cassandra_Rows, nextPage)
                                      php_scylladb_future_rows_ce ))
             {
                 zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0 , "Unexpected future instance.");
-                return;
+                RETURN_THROWS();
             }
 
             future_rows = PHP_SCYLLADB_GET_FUTURE_ROWS(&self->future_next_page);
@@ -296,7 +283,7 @@ ZEND_METHOD(Cassandra_Rows, nextPage)
                 cass_future_free(future);
                 zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0 ,
                                         "Future doesn't contain a result.");
-                return;
+                RETURN_THROWS();
             }
 
             self->next_result = result;
@@ -316,10 +303,9 @@ ZEND_METHOD(Cassandra_Rows, nextPageAsync)
     php_scylladb_rows *self = nullptr;
     php_scylladb_future_rows *future_rows = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-        return;
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     if (!Z_ISUNDEF(self->future_next_page))
     {
@@ -365,12 +351,9 @@ ZEND_METHOD(Cassandra_Rows, pagingStateToken)
     size_t paging_state_size;
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     if (self->result == nullptr)
         return;
@@ -386,12 +369,9 @@ ZEND_METHOD(Cassandra_Rows, first)
     zval *entry;
     php_scylladb_rows *self = nullptr;
 
-    if (zend_parse_parameters_none() == FAILURE)
-    {
-        return;
-    }
+    ZEND_PARSE_PARAMETERS_NONE();
 
-    self = PHP_SCYLLADB_GET_ROWS(getThis());
+    self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     zend_hash_internal_pointer_reset_ex(Z_ARRVAL(self->rows), &pos);
     if ((entry = zend_hash_get_current_data_ex(Z_ARRVAL(self->rows), &pos)) != nullptr)
@@ -404,7 +384,7 @@ ZEND_METHOD(Cassandra_Rows, wasApplied)
 {
     ZEND_PARSE_PARAMETERS_NONE();
 
-    auto self = PHP_SCYLLADB_GET_ROWS(getThis());
+    auto self = PHP_SCYLLADB_GET_ROWS(ZEND_THIS);
 
     /* A non-conditional statement has no "[applied]" column. Match the Java
        and Python drivers and report true, so a caller can ask this of any
@@ -429,23 +409,36 @@ HashTable *php_scylladb_rows_properties(zend_object *object)
 
 int php_scylladb_rows_compare(zval *obj1, zval *obj2)
 {
-    ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+    PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
         return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
     return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
+HashTable *php_scylladb_rows_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_rows_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->session);
+    zend_get_gc_buffer_add_zval(buffer, &self->rows);
+    zend_get_gc_buffer_add_zval(buffer, &self->next_rows);
+    zend_get_gc_buffer_add_zval(buffer, &self->future_next_page);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
+}
+
 
 void php_scylladb_rows_free(zend_object *object)
 {
     auto self = php_scylladb_rows_object_fetch(object);
 
     if (self->result) {
-        cass_result_free((CassResult *)self->result);
+        cass_result_free(self->result);
         self->result = nullptr;
     }
     if (self->next_result) {
-        cass_result_free((CassResult *)self->next_result);
+        cass_result_free(self->next_result);
         self->next_result = nullptr;
     }
     if (self->statement) {
@@ -478,7 +471,5 @@ zend_object *php_scylladb_rows_new(zend_class_entry *ce)
     ZVAL_UNDEF(&self->future_next_page);
     self->pos = 0;
 
-  php_scylladb_rows_handlers.offset = offsetof(php_scylladb_rows, zendObject);
-  php_scylladb_rows_handlers.free_obj = php_scylladb_rows_free;
   return &self->zendObject;
 }

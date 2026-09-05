@@ -40,12 +40,14 @@ ZEND_METHOD(Cassandra_FutureSession, get)
     Z_PARAM_ZVAL(timeout)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_FUTURE_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_FUTURE_SESSION(ZEND_THIS);
 
   if (self->exception_message) {
     zend_throw_exception_ex(exception_class(self->exception_code),
-                            self->exception_code, "%s", self->exception_message);
-    return;
+                            self->exception_code, "%.*s",
+                            (int)ZSTR_LEN(self->exception_message),
+                            ZSTR_VAL(self->exception_message));
+    RETURN_THROWS();
   }
 
   if (!Z_ISUNDEF(self->default_session)) {
@@ -55,7 +57,7 @@ ZEND_METHOD(Cassandra_FutureSession, get)
   if (self->session == nullptr || self->future == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "FutureSession has no associated session (cached entry expired)");
-    return;
+    RETURN_THROWS();
   }
 
   object_init_ex(return_value, php_scylladb_default_session_ce);
@@ -66,6 +68,15 @@ ZEND_METHOD(Cassandra_FutureSession, get)
      until now and the DefaultSession takes over. */
   session->session = self->session;
   session->persist = self->persist;
+  session->default_consistency = self->default_consistency;
+  session->default_page_size = self->default_page_size;
+  session->cache_key = self->cache_key;
+  session->keyspace = self->session_keyspace ? zend_string_copy(self->session_keyspace) : nullptr;
+
+  if (!Z_ISUNDEF(self->default_timeout)) {
+    ZVAL_COPY(&session->default_timeout, &self->default_timeout);
+  }
+
   if (!self->persist) {
     self->session = nullptr;   /* ownership transferred to DefaultSession */
   }
@@ -89,7 +100,7 @@ ZEND_METHOD(Cassandra_FutureSession, get)
     cass_future_error_message(self->future, &message, &message_len);
 
     if (self->persist) {
-      self->exception_message = estrndup(message, message_len);
+      self->exception_message = zend_string_init(message, message_len, 0);
       self->exception_code    = rc;
 
       if (zend_hash_index_del(&EG(persistent_list), self->cache_key) == SUCCESS) {
@@ -97,7 +108,9 @@ ZEND_METHOD(Cassandra_FutureSession, get)
       }
 
       zend_throw_exception_ex(exception_class(self->exception_code),
-                              self->exception_code, "%s", self->exception_message);
+                              self->exception_code, "%.*s",
+                            (int)ZSTR_LEN(self->exception_message),
+                            ZSTR_VAL(self->exception_message));
       return;
     }
 
@@ -113,9 +126,9 @@ ZEND_METHOD(Cassandra_FutureSession, getResource)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_SESSION(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_SESSION(ZEND_THIS);
 
-  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(ZEND_THIS), self->reactor_reg)) {
     return;
   }
 
@@ -133,7 +146,7 @@ ZEND_METHOD(Cassandra_FutureSession, isReady)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_SESSION(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_SESSION(ZEND_THIS);
   RETURN_BOOL(!Z_ISUNDEF(self->default_session) || self->exception_message ||
               self->future == nullptr || php_scylladb_future_is_ready(self->future));
 }
@@ -147,12 +160,24 @@ HashTable *php_scylladb_future_session_properties(zend_object *object)
 
 int php_scylladb_future_session_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
+HashTable *php_scylladb_future_session_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_future_session_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->default_session);
+    zend_get_gc_buffer_add_zval(buffer, &self->default_timeout);
+    zend_get_gc_buffer_add_zval(buffer, &self->notify_stream);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
+}
+
 
 void php_scylladb_future_session_free(zend_object *object)
 {
@@ -169,15 +194,16 @@ void php_scylladb_future_session_free(zend_object *object)
   }
 
   if (self->exception_message) {
-    efree(self->exception_message);
+    zend_string_release(self->exception_message);
   }
 
   if (self->session_keyspace) {
-    efree(self->session_keyspace);
+    zend_string_release(self->session_keyspace);
     self->session_keyspace = nullptr;
   }
 
   zval_ptr_dtor(&self->default_session);
+  zval_ptr_dtor(&self->default_timeout);
 
   if (!Z_ISUNDEF(self->notify_stream)) {
     zval_ptr_dtor(&self->notify_stream);
@@ -199,10 +225,13 @@ zend_object *php_scylladb_future_session_new(zend_class_entry *ce)
   self->exception_message = nullptr;
   self->cache_key         = 0;
   self->persist           = cass_false;
+  self->default_consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
+  self->default_page_size = PHP_SCYLLADB_DEFAULT_PAGE_SIZE_N;
   self->notifier          = nullptr;
   self->reactor_reg       = nullptr;
 
   ZVAL_UNDEF(&self->default_session);
   ZVAL_UNDEF(&self->notify_stream);
+  ZVAL_UNDEF(&self->default_timeout);
   return &self->zendObject;
 }

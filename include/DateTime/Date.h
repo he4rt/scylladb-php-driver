@@ -28,12 +28,14 @@ extern PHP_SCYLLADB_API zend_class_entry *php_scylladb_time_ce;
 /* secondsStr is optional (use the long alternative); only `object` is required. */
 [[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API zend_result php_scylladb_date_initialize(php_scylladb_date *object,
                                                                         zend_string *secondsStr,
-                                                                        zend_long seconds);
+                                                                        zend_long seconds,
+                                                                        bool provided);
 
 [[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API php_scylladb_time *php_scylladb_time_instantiate(zval *object);
 [[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API zend_result php_scylladb_time_initialize(php_scylladb_time *object,
                                                                         zend_string *nanosecondsStr,
-                                                                        zend_long nanoseconds);
+                                                                        zend_long nanoseconds,
+                                                                        bool provided);
 
 [[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API php_scylladb_timestamp *php_scylladb_timestamp_instantiate(zval *object);
 [[nodiscard, gnu::nonnull(1)]] PHP_SCYLLADB_API zend_result php_scylladb_timestamp_initialize(php_scylladb_timestamp *object,

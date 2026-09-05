@@ -30,9 +30,9 @@ ZEND_METHOD(Cassandra_SimpleStatement, __construct)
     Z_PARAM_STR(cql)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_STATEMENT(getThis());
+  self = PHP_SCYLLADB_GET_STATEMENT(ZEND_THIS);
 
-  self->data.simple.cql = estrndup(ZSTR_VAL(cql), ZSTR_LEN(cql));
+  self->data.simple.cql = zend_string_copy(cql);
 }
 
 PHP_SCYLLADB_DEFINE_IDEMPOTENCE_METHODS(Cassandra_SimpleStatement)
@@ -48,7 +48,7 @@ php_scylladb_simple_statement_properties(zend_object *object)
 int
 php_scylladb_simple_statement_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -61,7 +61,7 @@ php_scylladb_simple_statement_free(zend_object *object)
   auto self = php_scylladb_statement_object_fetch(object);
 
   if (self->data.simple.cql) {
-    efree(self->data.simple.cql);
+    zend_string_release(self->data.simple.cql);
     self->data.simple.cql = nullptr;
   }
 

@@ -29,7 +29,6 @@ static void init_execution_options(php_scylladb_execution_options *self)
     self->serial_consistency = -1;
     self->page_size = -1;
     self->paging_state_token = nullptr;
-    self->paging_state_token_size = 0;
     self->timestamp = INT64_MIN;
     self->idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
     ZVAL_UNDEF(&self->arguments);
@@ -59,7 +58,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
 
         zend_long val = Z_LVAL_P(consistency);
 
-        if (php_scylladb_validate_consistency(val) == -1)
+        if (php_scylladb_validate_consistency((uint32_t)val) == -1)
         {
             throw_invalid_argument(consistency, "consistency", "one of " PHP_SCYLLADB_NAMESPACE "::CONSISTENCY_*");
 
@@ -81,7 +80,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
 
         zend_long val = Z_LVAL_P(serial_consistency);
 
-        if (php_scylladb_validate_serial_consistency(val) == -1)
+        if (php_scylladb_validate_serial_consistency((uint32_t)val) == -1)
         {
             throw_invalid_argument(serial_consistency, "serial_consistency",
                                    "either " PHP_SCYLLADB_NAMESPACE
@@ -100,7 +99,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
             throw_invalid_argument(page_size, "page_size", "greater than zero");
             return FAILURE;
         }
-        self->page_size = Z_LVAL_P(page_size);
+        self->page_size = (int)Z_LVAL_P(page_size);
     }
 
 
@@ -113,14 +112,12 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         }
         if (copy)
         {
-            self->paging_state_token = estrndup(Z_STRVAL_P(paging_state_token),
-                                                Z_STRLEN_P(paging_state_token));
+            self->paging_state_token = zend_string_copy(Z_STR_P(paging_state_token));
         }
         else
         {
-            self->paging_state_token = Z_STRVAL_P(paging_state_token);
+            self->paging_state_token = Z_STR_P(paging_state_token);
         }
-        self->paging_state_token_size = Z_STRLEN_P(paging_state_token);
     }
 
     if ((timeout = zend_hash_str_find(Z_ARRVAL_P(options), ZEND_STRL("timeout"))) != nullptr)
@@ -192,8 +189,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
         }
         else if (Z_TYPE_P(timestamp) == IS_STRING)
         {
-            if (!php_scylladb_parse_bigint(Z_STRVAL_P(timestamp),
-                                         Z_STRLEN_P(timestamp), &self->timestamp))
+            if (!php_scylladb_parse_bigint(Z_STR_P(timestamp), &self->timestamp))
             {
                 return FAILURE;
             }
@@ -220,7 +216,7 @@ static zend_result build_from_array(php_scylladb_execution_options *self, zval *
     return SUCCESS;
 }
 
-int php_scylladb_execution_options_build_local_from_array(php_scylladb_execution_options *self, zval *options)
+zend_result php_scylladb_execution_options_build_local_from_array(php_scylladb_execution_options *self, zval *options)
 {
     init_execution_options(self);
     return build_from_array(self, options, 0);
@@ -235,21 +231,21 @@ ZEND_METHOD(Cassandra_ExecutionOptions, __construct)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_SCYLLADB_GET_EXECUTION_OPTIONS(getThis());
+    self = PHP_SCYLLADB_GET_EXECUTION_OPTIONS(ZEND_THIS);
 
     build_from_array(self, options, 1);
 }
 
 ZEND_METHOD(Cassandra_ExecutionOptions, __get)
 {
-    zend_string *name;
+    zend_string *name = nullptr;
     php_scylladb_execution_options *self = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STR(name)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_SCYLLADB_GET_EXECUTION_OPTIONS(getThis());
+    self = PHP_SCYLLADB_GET_EXECUTION_OPTIONS(ZEND_THIS);
 
     if (zend_string_equals_literal(name, "consistency"))
     {
@@ -281,7 +277,7 @@ ZEND_METHOD(Cassandra_ExecutionOptions, __get)
         {
             RETURN_NULL();
         }
-        RETVAL_STRINGL(self->paging_state_token, self->paging_state_token_size);
+        RETVAL_STR_COPY(self->paging_state_token);
     }
     else if (zend_string_equals_literal(name, "timeout"))
     {
@@ -309,14 +305,11 @@ ZEND_METHOD(Cassandra_ExecutionOptions, __get)
     }
     else if (zend_string_equals_literal(name, "timestamp"))
     {
-        char *string;
         if (self->timestamp == INT64_MIN)
         {
             RETURN_NULL();
         }
-        spprintf(&string, 0, "%lld", (long long int)self->timestamp);
-        RETVAL_STRING(string);
-        efree(string);
+        RETVAL_STR(zend_strpprintf(0, "%" PRId64, (int64_t)self->timestamp));
     }
     else if (zend_string_equals_literal(name, "idempotent"))
     {
@@ -337,12 +330,24 @@ HashTable *php_scylladb_execution_options_properties(zend_object *object)
 
 int php_scylladb_execution_options_compare(zval *obj1, zval *obj2)
 {
-    ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+    PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
         return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
     return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
+HashTable *php_scylladb_execution_options_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_execution_options_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->timeout);
+    zend_get_gc_buffer_add_zval(buffer, &self->arguments);
+    zend_get_gc_buffer_add_zval(buffer, &self->retry_policy);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
+}
+
 
 void php_scylladb_execution_options_free(zend_object *object)
 {
@@ -350,7 +355,7 @@ void php_scylladb_execution_options_free(zend_object *object)
 
     if (self->paging_state_token)
     {
-        efree(self->paging_state_token);
+        zend_string_release(self->paging_state_token);
     }
     zval_ptr_dtor(&self->arguments);
     zval_ptr_dtor(&self->timeout);

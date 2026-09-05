@@ -21,5 +21,5 @@
 /* `timeout` may be nullptr (= wait forever). `future` is nullptr when the driver
  * failed to allocate it, and both functions report that as a PHP exception, so
  * the parameter must not be marked nonnull. */
-int php_scylladb_future_wait_timed(CassFuture* future, zval* timeout);
-int php_scylladb_future_is_error(CassFuture* future);
+[[nodiscard]] zend_result php_scylladb_future_wait_timed(CassFuture* future, zval* timeout);
+[[nodiscard]] zend_result php_scylladb_future_is_error(CassFuture* future);

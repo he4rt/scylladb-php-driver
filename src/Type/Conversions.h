@@ -19,13 +19,13 @@
 #include <php.h>
 #include <php_scylladb_types.h>
 
-int php_scylladb_validate_object(zval* object, zval* ztype);
-int php_scylladb_value_type(char* type, CassValueType* value_type);
+[[nodiscard]] bool php_scylladb_validate_object(zval* object, zval* ztype);
+[[nodiscard]] bool php_scylladb_value_type(const zend_string* type, CassValueType* value_type);
 
-int php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** collection_ptr);
-int php_scylladb_collection_from_collection(php_scylladb_collection* coll, CassCollection** collection_ptr);
-int php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** collection_ptr);
+[[nodiscard]] bool php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** collection_ptr);
+[[nodiscard]] bool php_scylladb_collection_from_collection(php_scylladb_collection* coll, CassCollection** collection_ptr);
+[[nodiscard]] bool php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** collection_ptr);
 
-int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output);
+[[nodiscard]] bool php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output);
 
-int php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* user_type_value, CassUserType** output);
+[[nodiscard]] bool php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* user_type_value, CassUserType** output);

@@ -78,24 +78,24 @@ static int hex_value(int c) {
   return -1;
 }
 
-static char* php_scylladb_from_hex(const char* hex, size_t hex_length) {
+static zend_string* php_scylladb_from_hex(const char* hex, size_t hex_length) {
   size_t i, c = 0;
   size_t size = hex_length / 2;
-  char* result;
+  zend_string* result;
   if ((hex_length & 1) == 1) { /* Invalid if not divisible by 2 */
     return nullptr;
   }
-  result = (char*)emalloc(size + 1);
+  result = zend_string_alloc(size, 0);
   for (i = 0; i < size; ++i) {
     int half0 = hex_value(hex[i * 2]);
     int half1 = hex_value(hex[i * 2 + 1]);
     if (half0 < 0 || half1 < 0) {
-      efree(result);
+      zend_string_efree(result);
       return nullptr;
     }
-    result[c++] = (char)(((uint8_t)half0 << 4) | (uint8_t)half1);
+    ZSTR_VAL(result)[c++] = (char)(((uint8_t)half0 << 4) | (uint8_t)half1);
   }
-  result[size] = '\0';
+  ZSTR_VAL(result)[size] = '\0';
   return result;
 }
 
@@ -145,16 +145,18 @@ static zval php_scylladb_user_type_from_data_type(const CassDataType* data_type)
   type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   cass_data_type_type_name(data_type, &type_name, &type_name_len);
-  type->data.udt.type_name = estrndup(type_name, type_name_len);
+  type->data.udt.type_name = zend_string_init(type_name, type_name_len, 0);
   cass_data_type_keyspace(data_type, &keyspace, &keyspace_len);
-  type->data.udt.keyspace = estrndup(keyspace, keyspace_len);
+  type->data.udt.keyspace = zend_string_init(keyspace, keyspace_len, 0);
 
   for (i = 0; i < count; ++i) {
     const char* name;
     size_t name_length;
     zval sub_type = php_scylladb_type_from_data_type(cass_data_type_sub_data_type(data_type, i));
     cass_data_type_sub_type_name(data_type, i, &name, &name_length);
-    php_scylladb_type_user_type_add(type, name, name_length, &sub_type);
+    zend_string* sub_name = zend_string_init(name, name_length, 0);
+    (void)php_scylladb_type_user_type_add(type, sub_name, &sub_type);
+    zend_string_release(sub_name);
   }
 
   return ztype;
@@ -169,7 +171,7 @@ static zval php_scylladb_user_type_from_node(struct node_s* node) {
   type = PHP_SCYLLADB_GET_TYPE(&ztype);
 
   if (current) {
-    type->data.udt.keyspace = estrndup(current->name, current->name_length);
+    type->data.udt.keyspace = zend_string_init(current->name, current->name_length, 0);
     current = current->next_sibling;
   }
 
@@ -180,15 +182,15 @@ static zval php_scylladb_user_type_from_node(struct node_s* node) {
 
   for (; current; current = current->next_sibling) {
     zval sub_type;
-    char* name = php_scylladb_from_hex(current->name, current->name_length);
+    zend_string* name = php_scylladb_from_hex(current->name, current->name_length);
     current = current->next_sibling;
     if (!current) {
-      efree(name);
+      zend_string_release(name);
       break;
     }
     sub_type = php_scylladb_create_type(current);
-    php_scylladb_type_user_type_add(type, name, strlen(name), &sub_type);
-    efree(name);
+    (void)php_scylladb_type_user_type_add(type, name, &sub_type);
+    zend_string_release(name);
   }
 
   return ztype;
@@ -246,6 +248,8 @@ zval php_scylladb_type_from_data_type(const CassDataType* data_type) {
       ztype = php_scylladb_user_type_from_data_type(data_type);
       break;
 
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
       break;
   }
@@ -253,7 +257,7 @@ zval php_scylladb_type_from_data_type(const CassDataType* data_type) {
   return ztype;
 }
 
-int php_scylladb_type_validate(zval* object, const char* object_name) {
+bool php_scylladb_type_validate(zval* object, const char* object_name) {
   if (!instanceof_function(Z_OBJCE_P(object), php_scylladb_type_scalar_ce) &&
       !instanceof_function(Z_OBJCE_P(object), php_scylladb_type_collection_ce) &&
       !instanceof_function(Z_OBJCE_P(object), php_scylladb_type_map_ce) &&
@@ -317,6 +321,11 @@ static inline int tuple_compare(php_scylladb_type* type1, php_scylladb_type* typ
   return 0;
 }
 
+static inline int udt_name_compare(zend_string* name1, zend_string* name2) {
+  if (name1 == nullptr || name2 == nullptr) return 0;
+  return php5to7_string_compare(name1, name2);
+}
+
 static inline int user_type_compare(php_scylladb_type* type1, php_scylladb_type* type2) {
   HashPosition pos1;
   HashPosition pos2;
@@ -324,6 +333,13 @@ static inline int user_type_compare(php_scylladb_type* type1, php_scylladb_type*
   zend_string* key2;
   zval* current1;
   zval* current2;
+  int name_result;
+
+  name_result = udt_name_compare(type1->data.udt.keyspace, type2->data.udt.keyspace);
+  if (name_result != 0) return name_result;
+
+  name_result = udt_name_compare(type1->data.udt.type_name, type2->data.udt.type_name);
+  if (name_result != 0) return name_result;
 
   if (zend_hash_num_elements(&type1->data.udt.types) !=
       zend_hash_num_elements(&type2->data.udt.types)) {
@@ -384,6 +400,30 @@ int php_scylladb_type_compare(php_scylladb_type* type1, php_scylladb_type* type2
       case CASS_VALUE_TYPE_UDT:
         return user_type_compare(type1, type2);
 
+      case CASS_VALUE_TYPE_ASCII:
+      case CASS_VALUE_TYPE_BIGINT:
+      case CASS_VALUE_TYPE_CUSTOM:
+      case CASS_VALUE_TYPE_BLOB:
+      case CASS_VALUE_TYPE_BOOLEAN:
+      case CASS_VALUE_TYPE_COUNTER:
+      case CASS_VALUE_TYPE_DECIMAL:
+      case CASS_VALUE_TYPE_DOUBLE:
+      case CASS_VALUE_TYPE_FLOAT:
+      case CASS_VALUE_TYPE_INT:
+      case CASS_VALUE_TYPE_TEXT:
+      case CASS_VALUE_TYPE_TIMESTAMP:
+      case CASS_VALUE_TYPE_UUID:
+      case CASS_VALUE_TYPE_VARCHAR:
+      case CASS_VALUE_TYPE_VARINT:
+      case CASS_VALUE_TYPE_DATE:
+      case CASS_VALUE_TYPE_INET:
+      case CASS_VALUE_TYPE_TIMEUUID:
+      case CASS_VALUE_TYPE_SMALL_INT:
+      case CASS_VALUE_TYPE_TIME:
+      case CASS_VALUE_TYPE_TINY_INT:
+      case CASS_VALUE_TYPE_DURATION:
+      case CASS_VALUE_TYPE_LAST_ENTRY:
+      case CASS_VALUE_TYPE_UNKNOWN:
       default:
         break;
     }
@@ -433,10 +473,10 @@ static inline void user_type_string(php_scylladb_type* type, smart_str* string) 
 
   if (type->data.udt.type_name) {
     if (type->data.udt.keyspace) {
-      smart_str_appendl(string, type->data.udt.keyspace, strlen(type->data.udt.keyspace));
+      smart_str_append(string, type->data.udt.keyspace);
       smart_str_appendl(string, ".", 1);
     }
-    smart_str_appendl(string, type->data.udt.type_name, strlen(type->data.udt.type_name));
+    smart_str_append(string, type->data.udt.type_name);
   } else {
     smart_str_appendl(string, "userType<", 9);
     ZEND_HASH_FOREACH_STR_KEY_VAL(&type->data.udt.types, name, current) {
@@ -481,6 +521,9 @@ void php_scylladb_type_string(php_scylladb_type* type, smart_str* string) {
       user_type_string(type, string);
       break;
 
+    case CASS_VALUE_TYPE_CUSTOM:
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
       smart_str_appendl(string, "invalid", 7);
       break;
@@ -504,13 +547,21 @@ const char* php_scylladb_scalar_type_name(CassValueType type) {
     return #name;
     PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR)
 #undef XX_SCALAR
+    case CASS_VALUE_TYPE_CUSTOM:
+    case CASS_VALUE_TYPE_LIST:
+    case CASS_VALUE_TYPE_MAP:
+    case CASS_VALUE_TYPE_SET:
+    case CASS_VALUE_TYPE_TUPLE:
+    case CASS_VALUE_TYPE_UDT:
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
       return "invalid";
   }
 }
 
 static void php_scylladb_varchar_init(INTERNAL_FUNCTION_PARAMETERS) {
-  zend_string* string;
+  zend_string* string = nullptr;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -526,7 +577,7 @@ static void php_scylladb_ascii_init(INTERNAL_FUNCTION_PARAMETERS) {
 }
 
 static void php_scylladb_boolean_init(INTERNAL_FUNCTION_PARAMETERS) {
-  zend_bool value;
+  bool value = false;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -542,7 +593,7 @@ static void php_scylladb_counter_init(INTERNAL_FUNCTION_PARAMETERS) {
 }
 
 static void php_scylladb_double_init(INTERNAL_FUNCTION_PARAMETERS) {
-  double value;
+  double value = 0.0;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -554,7 +605,7 @@ static void php_scylladb_double_init(INTERNAL_FUNCTION_PARAMETERS) {
 }
 
 static void php_scylladb_int_init(INTERNAL_FUNCTION_PARAMETERS) {
-  zend_long value;
+  zend_long value = 0;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -591,7 +642,7 @@ static void php_scylladb_text_init(INTERNAL_FUNCTION_PARAMETERS) {
   XX(inet, CASS_VALUE_TYPE_INET)
 
 void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
-  auto self = PHP_SCYLLADB_GET_TYPE(getThis());
+  auto self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
 #define XX_SCALAR(name, value)          \
   if (self->type == value) {            \
@@ -620,13 +671,15 @@ void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     if (timestamp == nullptr) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Failed to create Cassandra\\Timestamp");
-      return;
+      RETURN_THROWS();
     }
 
     if (php_scylladb_timestamp_initialize(timestamp, seconds, microseconds) != SUCCESS) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Failed to create Timestamp: seconds(%ld) microseconds(%ld)", seconds,
-                              microseconds);
+                              "Failed to create Timestamp: seconds(" ZEND_LONG_FMT
+                              ") microseconds(" ZEND_LONG_FMT ")",
+                              seconds, microseconds);
+      RETURN_THROWS();
     }
 
     return;
@@ -648,12 +701,12 @@ void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     if (time == nullptr) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Failed to create Cassandra\\Time");
-      return;
+      RETURN_THROWS();
     }
 
-    if (php_scylladb_time_initialize(time, nanosecondsStr, nanoseconds) == FAILURE) {
-      zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                              "Cannot create Cassandra\\Time from invalid value");
+    if (php_scylladb_time_initialize(time, nanosecondsStr, nanoseconds, ZEND_NUM_ARGS() != 0) ==
+        FAILURE) {
+      RETURN_THROWS();
     }
 
     return;
@@ -675,12 +728,11 @@ void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     if (date == nullptr) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Cannot allocate Cassandra\\Date");
-      return;
+      RETURN_THROWS();
     }
 
-    if (php_scylladb_date_initialize(date, secondsStr, seconds) == FAILURE) {
-      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Cannot create Cassandra\\Date from invalid value");
+    if (php_scylladb_date_initialize(date, secondsStr, seconds, ZEND_NUM_ARGS() != 0) == FAILURE) {
+      RETURN_THROWS();
     }
     return;
   }
@@ -696,9 +748,8 @@ void php_scylladb_scalar_init(INTERNAL_FUNCTION_PARAMETERS) {
     ZEND_PARSE_PARAMETERS_END();
     // clang-format on
 
-    if (php_scylladb_timeuuid_init(return_value, str, timestamp) != SUCCESS) {
-      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Cannot create Timeuuid from invalid value");
+    if (php_scylladb_timeuuid_init(return_value, str, timestamp, ZEND_NUM_ARGS() != 0) != SUCCESS) {
+      RETURN_THROWS();
     }
   }
 }
@@ -851,21 +902,33 @@ zval php_scylladb_type_user_type() {
 }
 
 zval php_scylladb_type_custom(const char* name, size_t name_length) {
+#ifdef PHP_SCYLLADB_HAVE_CUSTOM_TYPE
   zval ztype;
   php_scylladb_type* custom;
 
   object_init_ex(&ztype, php_scylladb_type_custom_ce);
   custom = PHP_SCYLLADB_GET_TYPE(&ztype);
-  custom->data.custom.class_name = estrndup(name, name_length);
+  custom->data.custom.class_name = zend_string_init(name, name_length, 0);
 
   return ztype;
+#else
+  zend_throw_exception_ex(php_scylladb_domain_exception_ce, 0,
+                          "Column type '%.*s' is a custom type. Build the extension with "
+                          "-DPHP_SCYLLADB_ENABLE_CUSTOM_TYPE=ON to read it.",
+                          (int)name_length, name ? name : "");
+
+  zval undef = {};
+  return undef;
+#endif
 }
 
 #define EXPECTING_TOKEN(expected)                                                              \
-  zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,                         \
-                          "Unexpected %s at position %d in string \"%s\", expected " expected, \
-                          describe_token(token), ((int)(str - validator) - 1), validator);     \
-  return FAILURE;
+  do {                                                                                         \
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,                      \
+                            "Unexpected %s at position %d in string \"%s\", expected " expected, \
+                            describe_token(token), ((int)(str - validator) - 1), validator);    \
+    return FAILURE;                                                                            \
+  } while (0)
 
 enum describe_token_type : uint8_t {
   TOKEN_ILLEGAL = 0,
@@ -1289,7 +1352,7 @@ static zval php_scylladb_create_type(struct node_s* node) {
   return php_scylladb_type_scalar(type);
 }
 
-int php_scylladb_parse_column_type(const char* validator, size_t validator_len, int* reversed_out,
+zend_result php_scylladb_parse_column_type(const char* validator, size_t validator_len, int* reversed_out,
                                  int* frozen_out, zval* type_out) {
   struct node_s* root;
   struct node_s* node = nullptr;
@@ -1331,8 +1394,8 @@ int php_scylladb_parse_column_type(const char* validator, size_t validator_len, 
     return FAILURE;
   }
 
-  *reversed_out = reversed;
-  *frozen_out = frozen;
+  *reversed_out = (int)reversed;
+  *frozen_out = (int)frozen;
   *type_out = php_scylladb_create_type(node);
 
   php_scylladb_parse_node_free(root);

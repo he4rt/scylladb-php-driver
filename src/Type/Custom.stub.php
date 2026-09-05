@@ -7,8 +7,11 @@ declare(strict_types=1);
 namespace Cassandra\Type {
     /**
      * @strict-properties
- * @scylladb-struct php_scylladb_type
- */    final class Custom extends \Cassandra\Type
+     * @scylladb-struct php_scylladb_type
+     * @deprecated
+     */
+    #[\Deprecated(message: 'The Rust based C/C++ driver does not support custom column types.', since: '1.6.0')]
+    final class Custom extends \Cassandra\Type
     {
         private function __construct() {}
 

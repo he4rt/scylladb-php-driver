@@ -27,7 +27,8 @@
 extern php_scylladb_value_handlers php_scylladb_timeuuid_handlers;
 
 
-zend_result php_scylladb_timeuuid_init(zval *returnValue, zend_string *str, zend_long timestamp) {
+zend_result php_scylladb_timeuuid_init(zval *returnValue, zend_string *str, zend_long timestamp,
+                                       bool provided) {
   if (returnValue == nullptr) {
     return FAILURE;
   }
@@ -43,14 +44,15 @@ zend_result php_scylladb_timeuuid_init(zval *returnValue, zend_string *str, zend
 
   php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(returnValue));
 
-  if (str == nullptr && timestamp == -1) {
+  if (!provided) {
     php_scylladb_uuid_generate_time(&self->uuid);
     return SUCCESS;
   }
 
   if (str != nullptr) {
-    if (cass_uuid_from_string(ZSTR_VAL(str), &self->uuid) != CASS_OK) {
-      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "Invalid UUID: '%s'", ZSTR_VAL(str));
+    if (cass_uuid_from_string_n(ZSTR_VAL(str), ZSTR_LEN(str), &self->uuid) != CASS_OK) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "Invalid UUID: '%.*s'",
+                              (int)ZSTR_LEN(str), ZSTR_VAL(str));
       return FAILURE;
     }
 
@@ -65,7 +67,8 @@ zend_result php_scylladb_timeuuid_init(zval *returnValue, zend_string *str, zend
 
   if (timestamp < 0) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                            "Timestamp must be a positive integer, %ld given", timestamp);
+                            "Timestamp must be a positive integer, " ZEND_LONG_FMT " given",
+                            timestamp);
     return FAILURE;
   }
 
@@ -85,10 +88,8 @@ ZEND_METHOD(Cassandra_Timeuuid, __construct) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  if (php_scylladb_timeuuid_init(getThis(), str, timestamp) != SUCCESS) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                            "Cannot create Timeuuid from invalid value");
-    return;
+  if (php_scylladb_timeuuid_init(ZEND_THIS, str, timestamp, ZEND_NUM_ARGS() != 0) != SUCCESS) {
+    RETURN_THROWS();
   }
 }
 /* }}} */
@@ -96,7 +97,7 @@ ZEND_METHOD(Cassandra_Timeuuid, __construct) {
 /* {{{ Timeuuid::__toString() */
 ZEND_METHOD(Cassandra_Timeuuid, __toString) {
   char string[CASS_UUID_STRING_LENGTH];
-  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(getThis()));
+  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(ZEND_THIS));
 
   cass_uuid_string(self->uuid, string);
 
@@ -114,7 +115,7 @@ ZEND_METHOD(Cassandra_Timeuuid, type) {
 /* {{{ Timeuuid::uuid() */
 ZEND_METHOD(Cassandra_Timeuuid, uuid) {
   char string[CASS_UUID_STRING_LENGTH];
-  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(getThis()));
+  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(ZEND_THIS));
 
   cass_uuid_string(self->uuid, string);
 
@@ -124,7 +125,7 @@ ZEND_METHOD(Cassandra_Timeuuid, uuid) {
 
 /* {{{ Timeuuid::version() */
 ZEND_METHOD(Cassandra_Timeuuid, version) {
-  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(getThis()));
+  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(ZEND_THIS));
 
   RETURN_LONG((long)cass_uuid_version(self->uuid));
 }
@@ -132,7 +133,7 @@ ZEND_METHOD(Cassandra_Timeuuid, version) {
 
 /* {{{ Timeuuid::time() */
 ZEND_METHOD(Cassandra_Timeuuid, time) {
-  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(getThis()));
+  php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(ZEND_THIS));
 
   RETURN_LONG((long)(cass_uuid_timestamp(self->uuid) / 1000));
 }
@@ -147,11 +148,7 @@ HashTable *php_scylladb_timeuuid_gc(zend_object *object, zval** table, int *n) {
 
 HashTable *php_scylladb_timeuuid_properties(zend_object *object) {
   php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, object);
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(3);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 3);
 
   zval type = php_scylladb_type_scalar(CASS_VALUE_TYPE_TIMEUUID);
   (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
@@ -171,7 +168,7 @@ HashTable *php_scylladb_timeuuid_properties(zend_object *object) {
 }
 
 int php_scylladb_timeuuid_compare(zval *obj1, zval *obj2) {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -189,8 +186,8 @@ unsigned php_scylladb_timeuuid_hash_value(zval *obj) {
   php_scylladb_uuid *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_uuid, Z_OBJ_P(obj));
 
   return php_scylladb_combine_hash(
-      (self->uuid.time_and_version ^ (self->uuid.time_and_version >> 32)),
-      (self->uuid.clock_seq_and_node ^ (self->uuid.clock_seq_and_node >> 32)));
+      (unsigned)(self->uuid.time_and_version ^ (self->uuid.time_and_version >> 32)),
+      (unsigned)(self->uuid.clock_seq_and_node ^ (self->uuid.clock_seq_and_node >> 32)));
 }
 
 void php_scylladb_timeuuid_free(zend_object *object) {
@@ -202,8 +199,6 @@ zend_object* php_scylladb_timeuuid_new(zend_class_entry *ce) {
   php_scylladb_uuid *self =
       PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_uuid, ce, &php_scylladb_timeuuid_handlers);
 
-  php_scylladb_timeuuid_handlers.std.offset = offsetof(php_scylladb_uuid, zendObject);
-  php_scylladb_timeuuid_handlers.std.free_obj = php_scylladb_timeuuid_free;
   return &self->zendObject;
 }
 

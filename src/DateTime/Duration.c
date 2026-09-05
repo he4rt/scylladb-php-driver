@@ -15,10 +15,7 @@ extern php_scylladb_value_handlers php_scylladb_duration_handlers;
 
 static void to_string(zval *result, cass_int64_t value)
 {
-  char *string;
-  spprintf(&string, 0, "%" PRId64, value);
-  ZVAL_STRING(result, string);
-  efree(string);
+  ZVAL_STR(result, zend_strpprintf(0, "%" PRId64, value));
 }
 
 static int get_param(zval* value,
@@ -41,7 +38,8 @@ static int get_param(zval* value,
   } else if (Z_TYPE_P(value) == IS_DOUBLE) {
     double double_value = Z_DVAL_P(value);
 
-    if (double_value > max || double_value < min) {
+    if (double_value >= 9223372036854775808.0 || double_value > (double)max ||
+        double_value < (double)min) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
         "%s must be between %" PRId64 " and %" PRId64 ", %g given",
         param_name, min, max, double_value);
@@ -50,7 +48,7 @@ static int get_param(zval* value,
     *destination = (cass_int64_t) double_value;
   } else if (Z_TYPE_P(value) == IS_STRING) {
     cass_int64_t parsed_big_int;
-    if (!php_scylladb_parse_bigint(Z_STRVAL_P(value), Z_STRLEN_P(value), &parsed_big_int )) {
+    if (!php_scylladb_parse_bigint(Z_STR_P(value), &parsed_big_int )) {
       return 0;
     }
 
@@ -82,13 +80,13 @@ static int get_param(zval* value,
   return 1;
 }
 
-char *php_scylladb_duration_to_string(php_scylladb_duration *duration)
+static zend_string *duration_to_string(php_scylladb_duration *duration)
 {
   // String representation of Duration is of the form -?MmoDdNns, for int M, D, N.
   // Negative durations lead with a minus sign. So (-3, -2, -1) results in
   // -3mo2d1ns.
 
-  char* rep;
+  zend_string *rep;
   int is_negative = 0;
   cass_int32_t final_months = duration->months;
   cass_int32_t final_days = duration->days;
@@ -102,7 +100,8 @@ char *php_scylladb_duration_to_string(php_scylladb_duration *duration)
   if (final_nanos < 0)
     final_nanos = -final_nanos;
 
-  spprintf(&rep, 0, "%s%dmo%dd%" PRId64 "ns", is_negative ? "-" : "", final_months, final_days, final_nanos);
+  rep = zend_strpprintf(0, "%s%dmo%dd%" PRId64 "ns", is_negative ? "-" : "", final_months, final_days,
+                        final_nanos);
   return rep;
 }
 
@@ -175,7 +174,7 @@ static bool duration_from_date_interval(zval *interval, php_scylladb_duration *s
 void
 php_scylladb_duration_init(INTERNAL_FUNCTION_PARAMETERS)
 {
-  zval *months, *days = nullptr, *nanos = nullptr;
+  zval *months = nullptr, *days = nullptr, *nanos = nullptr;
   cass_int64_t param;
   php_scylladb_duration *self = nullptr;
 
@@ -246,7 +245,7 @@ ZEND_METHOD(Cassandra_Duration, __construct)
 
 ZEND_METHOD(Cassandra_Duration, fromDateInterval)
 {
-  zval *interval;
+  zval *interval = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_OBJECT_OF_CLASS(interval, php_date_get_interval_ce())
@@ -268,18 +267,14 @@ ZEND_METHOD(Cassandra_Duration, fromDateInterval)
 
 ZEND_METHOD(Cassandra_Duration, __toString)
 {
-  char* rep;
   php_scylladb_duration *self = nullptr;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(ZEND_THIS);
 
   // Build up string representation of this duration.
-  rep = php_scylladb_duration_to_string(self);
-  RETVAL_STRING(rep);
-  efree(rep);
+  RETVAL_STR(duration_to_string(self));
 }
 
 ZEND_METHOD(Cassandra_Duration, type)
@@ -292,10 +287,9 @@ ZEND_METHOD(Cassandra_Duration, months)
 {
   php_scylladb_duration *self = nullptr;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(ZEND_THIS);
   to_string(return_value, self->months);
 }
 
@@ -303,10 +297,9 @@ ZEND_METHOD(Cassandra_Duration, days)
 {
   php_scylladb_duration *self = nullptr;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(ZEND_THIS);
   to_string(return_value, self->days);
 }
 
@@ -314,10 +307,9 @@ ZEND_METHOD(Cassandra_Duration, nanos)
 {
   php_scylladb_duration *self = nullptr;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_DURATION(getThis());
+  self = PHP_SCYLLADB_GET_DURATION(ZEND_THIS);
   to_string(return_value, self->nanos);
 }
 
@@ -332,11 +324,7 @@ HashTable *php_scylladb_duration_gc(zend_object *object, zval **table, int *n)
 HashTable *
 php_scylladb_duration_properties(zend_object *object)
 {
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(3);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 3);
 
   auto self = php_scylladb_duration_object_fetch(object);
   zval wrapped_months, wrapped_days, wrapped_nanos;
@@ -354,7 +342,7 @@ php_scylladb_duration_properties(zend_object *object)
 int
 php_scylladb_duration_compare(zval *obj1, zval *obj2 )
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   php_scylladb_duration *left, *right;
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))

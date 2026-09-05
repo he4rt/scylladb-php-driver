@@ -1,8 +1,8 @@
 <?php
 
 /**
-* @generate-class-entries
-*/
+ * @generate-class-entries
+ */
 
 declare(strict_types=1);
 
@@ -10,8 +10,11 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
- * @scylladb-struct php_scylladb_date
- */    final class Date implements Value {
+     * @scylladb-struct php_scylladb_date
+     * @deprecated
+     */
+    #[\Deprecated(message: 'Use a PHP DateTimeImmutable.', since: '1.6.0')]
+    final class Date implements Value {
         public function __construct(int|string $value = UNKNOWN) {}
 
         public static function fromDateTime(\DateTimeInterface $datetime): static {}

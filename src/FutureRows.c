@@ -60,7 +60,7 @@ ZEND_METHOD(Cassandra_FutureRows, get)
   zval *timeout = nullptr;
   php_scylladb_rows *rows = nullptr;
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(ZEND_THIS);
 
   ZEND_PARSE_PARAMETERS_START(0, 1)
     Z_PARAM_OPTIONAL
@@ -98,9 +98,9 @@ ZEND_METHOD(Cassandra_FutureRows, getResource)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(ZEND_THIS);
 
-  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(ZEND_THIS), self->reactor_reg)) {
     return;
   }
 
@@ -111,7 +111,7 @@ ZEND_METHOD(Cassandra_FutureRows, isReady)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_ROWS(ZEND_THIS);
   RETURN_BOOL(php_scylladb_future_is_ready(self->future));
 }
 
@@ -124,12 +124,24 @@ HashTable *php_scylladb_future_rows_properties(zend_object *object)
 
 int php_scylladb_future_rows_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
+HashTable *php_scylladb_future_rows_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_future_rows_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->session);
+    zend_get_gc_buffer_add_zval(buffer, &self->rows);
+    zend_get_gc_buffer_add_zval(buffer, &self->notify_stream);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
+}
+
 
 void php_scylladb_future_rows_free(zend_object *object)
 {
@@ -142,7 +154,7 @@ void php_scylladb_future_rows_free(zend_object *object)
     self->statement = nullptr;
   }
   if (self->result) {
-    cass_result_free((CassResult *)self->result);
+    cass_result_free(self->result);
     self->result = nullptr;
   }
   if (!Z_ISUNDEF(self->session)) {

@@ -138,4 +138,19 @@ describe('Cassandra\Date (migrated)', function () {
         $date = new Date(0);
         expect($date->type())->toEqual(Type::date());
     });
+
+    it('rejects a string with trailing characters', function ($value) {
+        new Date($value);
+    })->with(['12abc', '5 ', '1.5', '- 3'])
+      ->throws(InvalidArgumentException::class);
+
+    it('treats a negative argument as an epoch second, not as a request for today', function () {
+        expect((new Date(-86400))->seconds())->toBe(-86400)
+            ->and((new Date(-1))->seconds())->toBe(0);
+    });
+
+    it('reports the specific reason instead of a generic wrapper', function () {
+        expect(fn () => Type::date()->create('12abc'))
+            ->toThrow(InvalidArgumentException::class, "Invalid characters were found in value: '12abc'");
+    });
 });

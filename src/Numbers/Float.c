@@ -19,6 +19,7 @@
 #include "Numbers/NumberParser.h"
 #include "Type/TypeFactory.h"
 #include <float.h>
+#include <math.h>
 
 #include "Float_arginfo.h"
 
@@ -27,10 +28,7 @@ extern php_scylladb_value_handlers php_scylladb_float_handlers;
 static zend_result
 to_string(zval *result, php_scylladb_numeric *flt )
 {
-  char *string;
-  spprintf(&string, 0, "%.*F", (int) EG(precision), flt->data.floating.value);
-  ZVAL_STRING(result, string);
-  efree(string);
+  ZVAL_STR(result, zend_strpprintf(0, "%.*F", (int)EG(precision), (double)flt->data.floating.value));
   return SUCCESS;
 }
 
@@ -38,7 +36,7 @@ void
 php_scylladb_float_init(INTERNAL_FUNCTION_PARAMETERS)
 {
   php_scylladb_numeric *self;
-  zval *value;
+  zval *value = nullptr;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -58,7 +56,7 @@ php_scylladb_float_init(INTERNAL_FUNCTION_PARAMETERS)
   } else if (Z_TYPE_P(value) == IS_DOUBLE) {
     self->data.floating.value = (cass_float_t) Z_DVAL_P(value);
   } else if (Z_TYPE_P(value) == IS_STRING) {
-    if (!php_scylladb_parse_float(Z_STRVAL_P(value), Z_STRLEN_P(value),
+    if (!php_scylladb_parse_float(Z_STR_P(value),
                                    &self->data.floating.value )) {
       return;
     }
@@ -131,7 +129,7 @@ ZEND_METHOD(Cassandra_Float, isNaN)
 /* {{{ Float::add() */
 ZEND_METHOD(Cassandra_Float, add)
 {
-  zval *num;
+  zval *num = nullptr;
   php_scylladb_numeric *result = nullptr;
 
   // clang-format off
@@ -158,7 +156,7 @@ ZEND_METHOD(Cassandra_Float, add)
 /* {{{ Float::sub() */
 ZEND_METHOD(Cassandra_Float, sub)
 {
-  zval *num;
+  zval *num = nullptr;
   php_scylladb_numeric *result = nullptr;
 
   // clang-format off
@@ -185,7 +183,7 @@ ZEND_METHOD(Cassandra_Float, sub)
 /* {{{ Float::mul() */
 ZEND_METHOD(Cassandra_Float, mul)
 {
-  zval *num;
+  zval *num = nullptr;
   php_scylladb_numeric *result = nullptr;
 
   // clang-format off
@@ -212,7 +210,7 @@ ZEND_METHOD(Cassandra_Float, mul)
 /* {{{ Float::div() */
 ZEND_METHOD(Cassandra_Float, div)
 {
-  zval *num;
+  zval *num = nullptr;
   php_scylladb_numeric *result = nullptr;
 
   // clang-format off
@@ -229,7 +227,7 @@ ZEND_METHOD(Cassandra_Float, div)
     object_init_ex(return_value, php_scylladb_float_ce);
     result = PHP_SCYLLADB_GET_NUMERIC(return_value);
 
-    if (flt->data.floating.value == 0) {
+    if (fpclassify(flt->data.floating.value) == FP_ZERO) {
       zend_throw_exception_ex(php_scylladb_divide_by_zero_exception_ce, 0 , "Cannot divide by zero");
       return;
     }
@@ -244,7 +242,7 @@ ZEND_METHOD(Cassandra_Float, div)
 /* {{{ Float::mod() */
 ZEND_METHOD(Cassandra_Float, mod)
 {
-  zval *num;
+  zval *num = nullptr;
   php_scylladb_numeric *result = nullptr;
 
   // clang-format off
@@ -261,12 +259,12 @@ ZEND_METHOD(Cassandra_Float, mod)
     object_init_ex(return_value, php_scylladb_float_ce);
     result = PHP_SCYLLADB_GET_NUMERIC(return_value);
 
-    if (flt->data.floating.value == 0) {
+    if (fpclassify(flt->data.floating.value) == FP_ZERO) {
       zend_throw_exception_ex(php_scylladb_divide_by_zero_exception_ce, 0 , "Cannot divide by zero");
       return;
     }
 
-    result->data.floating.value = fmod(self->data.floating.value, flt->data.floating.value);
+    result->data.floating.value = fmodf(self->data.floating.value, flt->data.floating.value);
   } else {
     INVALID_ARGUMENT(num, "an instance of " PHP_SCYLLADB_NAMESPACE "\\Float");
   }
@@ -303,6 +301,7 @@ ZEND_METHOD(Cassandra_Float, sqrt)
   if (self->data.floating.value < 0) {
     zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 ,
                             "Cannot take a square root of a negative number");
+    RETURN_THROWS();
   }
 
   object_init_ex(return_value, php_scylladb_float_ce);
@@ -353,11 +352,7 @@ ZEND_METHOD(Cassandra_Float, max)
 
 HashTable *
 php_scylladb_float_gc(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object,
-#else
-        zendObject *object,
-#endif
         zval** table, int *n
 )
 {
@@ -368,26 +363,14 @@ php_scylladb_float_gc(
 
 HashTable *
 php_scylladb_float_properties(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object
-#else
-        zendObject *object
-#endif
 )
 {
   zval type;
   zval value;
 
-#if PHP_MAJOR_VERSION >= 8
   auto self = php_scylladb_numeric_object_fetch(object);
-#else
-  auto self = PHP_SCYLLADB_GET_NUMERIC(object);
-#endif
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(2);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 2);
 
   type = php_scylladb_type_scalar(CASS_VALUE_TYPE_FLOAT );
   (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
@@ -410,9 +393,7 @@ float_to_bits(cass_float_t value) {
 int
 php_scylladb_float_compare(zval *obj1, zval *obj2 )
 {
-#if PHP_MAJOR_VERSION >= 8
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   cass_int32_t bits1, bits2;
   php_scylladb_numeric *flt1 = nullptr;
   php_scylladb_numeric *flt2 = nullptr;
@@ -437,7 +418,7 @@ unsigned
 php_scylladb_float_hash_value(zval *obj )
 {
   auto self = PHP_SCYLLADB_GET_NUMERIC(obj);
-  return float_to_bits(self->data.floating.value);
+  return (unsigned)float_to_bits(self->data.floating.value);
 }
 
 zend_result php_scylladb_float_cast(
@@ -445,11 +426,7 @@ zend_result php_scylladb_float_cast(
         zval *retval, int type
 )
 {
-#if PHP_MAJOR_VERSION >= 8
   auto self = php_scylladb_numeric_object_fetch(object);
-#else
-  auto self = PHP_SCYLLADB_GET_NUMERIC(object);
-#endif
 
   switch (type) {
   case IS_LONG:
@@ -463,8 +440,6 @@ zend_result php_scylladb_float_cast(
   default:
      return FAILURE;
   }
-
-  return SUCCESS;
 }
 
 void

@@ -38,7 +38,7 @@ static void to_mpf(mpf_t result, php_scylladb_numeric *decimal)
 
     scale = decimal->data.decimal.scale;
     mpf_init_set_si(scale_factor, 10);
-    mpf_pow_ui(scale_factor, scale_factor, scale < 0 ? -scale : scale);
+    mpf_pow_ui(scale_factor, scale_factor, (unsigned long)(scale < 0 ? -scale : scale));
 
     if (scale > 0)
     {
@@ -123,7 +123,7 @@ static void from_double(php_scylladb_numeric *result, double value)
     }
 
     /* There isn't any "long long" setter method  */
-    sprintf(mantissa_str, "%" PRId64, mantissa);
+    snprintf(mantissa_str, sizeof(mantissa_str), "%" PRId64, mantissa);
 
     mpz_set_str(result->data.decimal.value, mantissa_str, 10);
 
@@ -142,14 +142,14 @@ static void from_double(php_scylladb_numeric *result, double value)
          */
         mpz_t pow_5;
         mpz_init(pow_5);
-        mpz_ui_pow_ui(pow_5, 5, -exponent);
+        mpz_ui_pow_ui(pow_5, 5, (unsigned long)(-exponent));
         mpz_mul(result->data.decimal.value, result->data.decimal.value, pow_5);
         mpz_clear(pow_5);
         result->data.decimal.scale = -exponent;
     }
     else
     {
-        mpz_mul_2exp(result->data.decimal.value, result->data.decimal.value, exponent);
+        mpz_mul_2exp(result->data.decimal.value, result->data.decimal.value, (mp_bitcnt_t)exponent);
         result->data.decimal.scale = 0;
     }
 }
@@ -206,12 +206,7 @@ static zend_result to_long(zval *result, php_scylladb_numeric *decimal)
 
 static zend_result to_string(zval *result, php_scylladb_numeric *decimal)
 {
-    char *string;
-    int string_len;
-    php_scylladb_format_decimal(decimal->data.decimal.value, decimal->data.decimal.scale, &string, &string_len);
-
-    ZVAL_STRINGL(result, string, string_len);
-    efree(string);
+    ZVAL_STR(result, php_scylladb_format_decimal(decimal->data.decimal.value, decimal->data.decimal.scale));
 
     return SUCCESS;
 }
@@ -222,12 +217,12 @@ static void align_decimals(php_scylladb_numeric *lhs, php_scylladb_numeric *rhs)
     mpz_init(pow_10);
     if (lhs->data.decimal.scale < rhs->data.decimal.scale)
     {
-        mpz_ui_pow_ui(pow_10, 10, rhs->data.decimal.scale - lhs->data.decimal.scale);
+        mpz_ui_pow_ui(pow_10, 10, (unsigned long)(rhs->data.decimal.scale - lhs->data.decimal.scale));
         mpz_mul(lhs->data.decimal.value, lhs->data.decimal.value, pow_10);
     }
     else if (lhs->data.decimal.scale > rhs->data.decimal.scale)
     {
-        mpz_ui_pow_ui(pow_10, 10, lhs->data.decimal.scale - rhs->data.decimal.scale);
+        mpz_ui_pow_ui(pow_10, 10, (unsigned long)(lhs->data.decimal.scale - rhs->data.decimal.scale));
         mpz_mul(rhs->data.decimal.value, rhs->data.decimal.value, pow_10);
     }
     mpz_clear(pow_10);
@@ -236,7 +231,7 @@ static void align_decimals(php_scylladb_numeric *lhs, php_scylladb_numeric *rhs)
 void php_scylladb_decimal_init(INTERNAL_FUNCTION_PARAMETERS)
 {
     php_scylladb_numeric *self;
-    zval *value;
+    zval *value = nullptr;
 
     // clang-format off
     ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -272,7 +267,7 @@ void php_scylladb_decimal_init(INTERNAL_FUNCTION_PARAMETERS)
     }
     else if (Z_TYPE_P(value) == IS_STRING)
     {
-        if (!php_scylladb_parse_decimal(Z_STRVAL_P(value), Z_STRLEN_P(value), &self->data.decimal.value,
+        if (!php_scylladb_parse_decimal(Z_STR_P(value), &self->data.decimal.value,
                                       &self->data.decimal.scale))
         {
             return;
@@ -319,12 +314,7 @@ ZEND_METHOD(Cassandra_Decimal, value)
 {
     auto self = PHP_SCYLLADB_GET_NUMERIC(ZEND_THIS);
 
-    char *string;
-    int string_len;
-    php_scylladb_format_integer(self->data.decimal.value, &string, &string_len);
-
-    RETVAL_STRINGL(string, string_len);
-    efree(string);
+    RETVAL_STR(php_scylladb_format_integer(self->data.decimal.value));
 }
 /* }}} */
 
@@ -338,7 +328,7 @@ ZEND_METHOD(Cassandra_Decimal, scale)
 /* {{{ Decimal::add() */
 ZEND_METHOD(Cassandra_Decimal, add)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -369,7 +359,7 @@ ZEND_METHOD(Cassandra_Decimal, add)
 /* {{{ Decimal::sub() */
 ZEND_METHOD(Cassandra_Decimal, sub)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -400,7 +390,7 @@ ZEND_METHOD(Cassandra_Decimal, sub)
 /* {{{ Decimal::mul() */
 ZEND_METHOD(Cassandra_Decimal, mul)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -521,11 +511,7 @@ ZEND_METHOD(Cassandra_Decimal, toDouble)
 
 
 HashTable *php_scylladb_decimal_gc(
-#if PHP_MAJOR_VERSION >= 8
     zend_object *object,
-#else
-    zendObject *object,
-#endif
     zval** table, int *n)
 {
     /* Holds no zvals (mpz_t + scale only). Report no roots directly instead of
@@ -538,37 +524,20 @@ HashTable *php_scylladb_decimal_gc(
 }
 
 HashTable *php_scylladb_decimal_properties(
-#if PHP_MAJOR_VERSION >= 8
     zend_object *object
-#else
-    zendObject *object
-#endif
 )
 {
-    char *string;
-    int string_len;
     zval type;
     zval value;
     zval scale;
 
-#if PHP_MAJOR_VERSION >= 8
     auto self = php_scylladb_numeric_object_fetch(object);
-#else
-    auto self = PHP_SCYLLADB_GET_NUMERIC(object);
-#endif
-    if (object->properties) {
-        zend_array_release(object->properties);
-    }
-    object->properties = zend_new_array(3);
-    HashTable *props = object->properties;
+    HashTable *props = php_scylladb_properties_rebuild(object, 3);
 
     type = php_scylladb_type_scalar(CASS_VALUE_TYPE_DECIMAL);
     (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
-    php_scylladb_format_integer(self->data.decimal.value, &string, &string_len);
-
-    ZVAL_STRINGL(&value, string, string_len);
-    efree(string);
+    ZVAL_STR(&value, php_scylladb_format_integer(self->data.decimal.value));
     (void)zend_hash_str_update(props, ZEND_STRL("value"), &value);
 
 
@@ -580,9 +549,7 @@ HashTable *php_scylladb_decimal_properties(
 
 int php_scylladb_decimal_compare(zval *obj1, zval *obj2)
 {
-#if PHP_MAJOR_VERSION >= 8
-    ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
+    PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     php_scylladb_numeric *decimal1 = nullptr;
     php_scylladb_numeric *decimal2 = nullptr;
 
@@ -614,11 +581,7 @@ unsigned php_scylladb_decimal_hash_value(zval *obj)
 
 zend_result php_scylladb_decimal_cast(zend_object *object, zval *retval, int type)
 {
-#if PHP_MAJOR_VERSION >= 8
     auto self = php_scylladb_numeric_object_fetch(object);
-#else
-    auto self = PHP_SCYLLADB_GET_NUMERIC(object);
-#endif
 
     switch (type)
     {

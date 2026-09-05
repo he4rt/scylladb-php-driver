@@ -28,14 +28,12 @@ ZEND_METHOD(Cassandra_Type_Map, __construct)
   zend_throw_exception_ex(php_scylladb_logic_exception_ce, 0 ,
     "Instantiation of a " PHP_SCYLLADB_NAMESPACE "\\Type\\Map type is not supported."
   );
-  return;
+  RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Type_Map, name)
 {
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
   RETVAL_STRING("map");
 }
@@ -44,11 +42,9 @@ ZEND_METHOD(Cassandra_Type_Map, keyType)
 {
   php_scylladb_type *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
   RETURN_ZVAL(&self->data.map.key_type, 1, 0);
 }
 
@@ -56,11 +52,9 @@ ZEND_METHOD(Cassandra_Type_Map, valueType)
 {
   php_scylladb_type *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
   RETURN_ZVAL(&self->data.map.value_type, 1, 0);
 }
 
@@ -69,11 +63,9 @@ ZEND_METHOD(Cassandra_Type_Map, __toString)
   php_scylladb_type *self;
   smart_str string = {nullptr,0};
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   php_scylladb_type_string(self, &string );
   smart_str_0(&string);
@@ -86,7 +78,7 @@ ZEND_METHOD(Cassandra_Type_Map, create)
 {
   php_scylladb_map *map;
   zval* args = nullptr;
-  int argc = 0, i;
+  uint32_t argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
     Z_PARAM_VARIADIC('*', args, argc)
@@ -99,13 +91,13 @@ ZEND_METHOD(Cassandra_Type_Map, create)
                             "from an even number of values, where each odd " \
                             "value is a key and each even value is a value, " \
                             "e.g create(key, value, key, value, key, value)");
-    return;
+    RETURN_THROWS();
   }
 
   object_init_ex(return_value, php_scylladb_map_ce);
   map = PHP_SCYLLADB_GET_MAP(return_value);
 
-  ZVAL_COPY(&map->type, getThis());
+  ZVAL_COPY(&map->type, ZEND_THIS);
 
   if (argc > 0) {
     for (i = 0; i < argc; i += 2) {
@@ -122,11 +114,7 @@ ZEND_METHOD(Cassandra_Type_Map, create)
 
 HashTable *
 php_scylladb_type_map_gc(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object,
-#else
-        zendObject *object,
-#endif
         zval** table, int *n
 )
 {
@@ -140,23 +128,11 @@ php_scylladb_type_map_gc(
 
 HashTable *
 php_scylladb_type_map_properties(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object
-#else
-        zendObject *object
-#endif
 )
 {
-#if PHP_MAJOR_VERSION >= 8
   auto self = php_scylladb_type_object_fetch(object);
-#else
-  auto self = PHP_SCYLLADB_GET_TYPE(object);
-#endif
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(2);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 2);
 
   (void)zend_hash_str_update(props, ZEND_STRL("keyType"), &self->data.map.key_type);
   Z_ADDREF_P(&self->data.map.key_type);
@@ -170,9 +146,7 @@ php_scylladb_type_map_properties(
 int
 php_scylladb_type_map_compare(zval *obj1, zval *obj2 )
 {
-#if PHP_MAJOR_VERSION >= 8
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
   auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
@@ -203,8 +177,6 @@ php_scylladb_type_map_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->data.map.key_type);
   ZVAL_UNDEF(&self->data.map.value_type);
 
-  php_scylladb_type_map_handlers.offset = offsetof(php_scylladb_type, zendObject);
-  php_scylladb_type_map_handlers.free_obj = php_scylladb_type_map_free;
   return &self->zendObject;
 }
 

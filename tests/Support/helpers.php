@@ -133,6 +133,49 @@ if (! function_exists('persistentScyllaDbBuilder')) {
 }
 
 
+if (! function_exists('childExtensionSpec')) {
+    function childExtensionSpec(): string
+    {
+        $path = env('SCYLLADB_EXTENSION_PATH');
+
+        return is_string($path) && $path !== '' ? $path : 'cassandra';
+    }
+}
+
+if (! function_exists('childPhpLoadsExtension')) {
+    function childPhpLoadsExtension(): bool
+    {
+        static $loads = null;
+
+        if ($loads !== null) {
+            return $loads;
+        }
+
+        $cmd = implode(' ', array_map('escapeshellarg', [
+            PHP_BINARY,
+            '-n',
+            '-d', 'extension=' . childExtensionSpec(),
+            '-d', 'display_errors=stderr',
+            '-r', 'file_put_contents("php://stderr", extension_loaded("cassandra") ? "yes" : "no");',
+        ]));
+
+        $pipes = [];
+        $proc  = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+        if (! is_resource($proc)) {
+            return $loads = false;
+        }
+
+        stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($proc);
+
+        return $loads = str_contains((string) $stderr, 'yes');
+    }
+}
+
 if (! function_exists('phpWithIni')) {
     /**
      * Runs a snippet in a fresh PHP process with php.ini overrides.
@@ -152,11 +195,15 @@ if (! function_exists('phpWithIni')) {
      */
     function phpWithIni(string $snippet, array $ini = []): ?array
     {
+        if (! childPhpLoadsExtension()) {
+            return null;
+        }
+
         /* display_errors=stderr keeps warnings off stdout so a test can assert
          * on them without the snippet output in the way. */
         $args = [
             '-n',
-            '-d', 'extension=' . (env('SCYLLADB_EXTENSION_PATH') ?: 'cassandra'),
+            '-d', 'extension=' . childExtensionSpec(),
             '-d', 'display_errors=stderr',
         ];
 

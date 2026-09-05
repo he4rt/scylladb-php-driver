@@ -85,9 +85,11 @@ namespace Cassandra {
         public function clusteringOrder(): array {}
 
         /** @return Index|false */
+        #[\Deprecated(message: 'The Rust based C/C++ driver does not implement secondary index metadata.', since: '1.6.0')]
         public function index(string $name): Index|false {}
 
         /** @return array<string, Index> */
+        #[\Deprecated(message: 'The Rust based C/C++ driver does not implement secondary index metadata.', since: '1.6.0')]
         public function indexes(): array {}
 
         /** @return MaterializedView|false */

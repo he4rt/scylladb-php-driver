@@ -25,46 +25,38 @@ ZEND_METHOD(Cassandra_Type_Custom, __construct) {
   zend_throw_exception_ex(php_scylladb_logic_exception_ce, 0,
                           "Instantiation of a " PHP_SCYLLADB_NAMESPACE
                           "\\Type\\Custom type is not supported.");
-  return;
+  RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Type_Custom, name) {
   php_scylladb_type *custom;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  custom = PHP_SCYLLADB_GET_TYPE(getThis());
+  custom = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
-  RETVAL_STRING(custom->data.custom.class_name);
+  RETVAL_STR_COPY(custom->data.custom.class_name);
 }
 
 ZEND_METHOD(Cassandra_Type_Custom, __toString) {
   php_scylladb_type *custom;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  custom = PHP_SCYLLADB_GET_TYPE(getThis());
+  custom = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
-  RETVAL_STRING(custom->data.custom.class_name);
+  RETVAL_STR_COPY(custom->data.custom.class_name);
 }
 
 ZEND_METHOD(Cassandra_Type_Custom, create) {
   zend_throw_exception_ex(php_scylladb_logic_exception_ce, 0,
                           "Instantiation of a " PHP_SCYLLADB_NAMESPACE
                           "\\Type\\Custom instance is not supported.");
-  return;
+  RETURN_THROWS();
 }
 
 HashTable *php_scylladb_type_custom_gc(
-#if PHP_MAJOR_VERSION >= 8
     zend_object *object,
-#else
-    zendObject *object,
-#endif
     zval **table, int *n) {
   *table = nullptr;
   *n = 0;
@@ -75,20 +67,16 @@ HashTable *php_scylladb_type_custom_properties(zend_object *object) {
   zval name;
 
   auto self = php_scylladb_type_object_fetch(object);
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(1);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 1);
 
-  ZVAL_STRING(&name, self->data.custom.class_name);
+  ZVAL_STR_COPY(&name, self->data.custom.class_name);
 
   (void)zend_hash_str_update(props, ZEND_STRL("name"), &name);
   return props;
 }
 
 int php_scylladb_type_custom_compare(zval *obj1, zval *obj2) {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
   auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
@@ -100,7 +88,7 @@ void php_scylladb_type_custom_free(zend_object *object) {
 
   if (self->data_type) cass_data_type_free(self->data_type);
   if (self->data.custom.class_name) {
-    efree(self->data.custom.class_name);
+    zend_string_release(self->data.custom.class_name);
     self->data.custom.class_name = nullptr;
   }
 
@@ -116,8 +104,6 @@ zend_object *php_scylladb_type_custom_new(zend_class_entry *ce) {
   self->data_type = cass_data_type_new(self->type);
   self->data.custom.class_name = nullptr;
 
-  php_scylladb_type_custom_handlers.offset = offsetof(php_scylladb_type, zendObject);
-  php_scylladb_type_custom_handlers.free_obj = php_scylladb_type_custom_free;
   return &self->zendObject;
 }
 

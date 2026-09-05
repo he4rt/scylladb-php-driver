@@ -25,10 +25,13 @@
 enum { IPV4 = 1, IPV6 = 2, TOKEN_MAX_LEN = 4, IP_MAX_ADDRLEN = 50 };
 
 #define EXPECTING_TOKEN(expected)                                                               \
-  zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,                          \
-                          "Unexpected %s at position %d in address \"%s\", expected " expected, \
-                          ip_address_describe_token(type), ((int)(in_ptr - in) - 1), in);       \
-  return 0;
+  do {                                                                                          \
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,                       \
+                            "Unexpected %s at position %d in address \"%.*s\", expected " expected, \
+                            ip_address_describe_token(type), ((int)(in_ptr - in) - 1),           \
+                            (int)ZSTR_LEN(zstr), in);                                            \
+    return 0;                                                                                   \
+  } while (0)
 
 enum ip_address_token_type : uint8_t { TOKEN_END = 0, TOKEN_COLON, TOKEN_DOT, TOKEN_HEX, TOKEN_DEC, TOKEN_ILLEGAL };
 
@@ -63,8 +66,8 @@ static const char *ip_address_describe_token(enum ip_address_token_type type) {
   }
 }
 
-static enum ip_address_token_type ip_address_tokenize(char *address, char *token, int *token_len,
-                                           char **next_token) {
+static enum ip_address_token_type ip_address_tokenize(const char *address, char *token, int *token_len,
+                                           const char **next_token) {
   enum ip_address_token_type type;
 
   char ch;
@@ -85,7 +88,7 @@ static enum ip_address_token_type ip_address_tokenize(char *address, char *token
       if (!isdigit((unsigned char)ch)) is_hex = 1;
 
       /* Lower case, since IPv6 addresses are case insensitive. */
-      token[len++] = tolower((unsigned char)ch);
+      token[len++] = (char)tolower((unsigned char)ch);
     }
 
     if (is_hex)
@@ -118,11 +121,12 @@ static enum ip_address_token_type ip_address_tokenize(char *address, char *token
   return type;
 }
 
-int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
+bool php_scylladb_parse_ip_address(const zend_string *zstr, CassInet *inet) {
+  const char *in = ZSTR_VAL(zstr);
   char token[TOKEN_MAX_LEN + 1];
   int token_len = -1;
   int prev_token_len = 0;
-  char *in_ptr = in;
+  const char *in_ptr = in;
   enum ip_address_token_type type;
   enum inet_parser_state state = STATE_START;
   int pos = -1;
@@ -132,10 +136,19 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
   cass_uint8_t address[CASS_INET_V6_LENGTH] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int domain = 0;
 
-  if (strlen(in) > (IP_MAX_ADDRLEN - 1)) {
+  const size_t in_len = ZSTR_LEN(zstr);
+
+  if (in_len != strlen(in)) {
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
+                            "The IP address of %zu bytes contains a NUL byte at offset %zu", in_len,
+                            strlen(in));
+    return 0;
+  }
+
+  if (in_len > (IP_MAX_ADDRLEN - 1)) {
     zend_throw_exception_ex(
         php_scylladb_invalid_argument_exception_ce, 0,
-        "The IP address \"%s\" is too long (at most %d characters are expected)", in,
+        "The IP address \"%.*s\" is too long (at most %d characters are expected)", (int)in_len, in,
         IP_MAX_ADDRLEN - 1);
     return 0;
   }
@@ -147,8 +160,8 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
 
     if (type == TOKEN_ILLEGAL) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Illegal character \"%c\" at position %d in address \"%s\"", *token,
-                              ((int)(in_ptr - in) - 1), in);
+                              "Illegal character \"%c\" at position %d in address \"%.*s\"", *token,
+                              ((int)(in_ptr - in) - 1), (int)in_len, in);
       return 0;
     }
 
@@ -186,8 +199,8 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
         /* Only one compressed zero block can exist. */
         if (compress_pos != -1) {
           zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                                  "Duplicate \"::\" block at position %d in address \"%s\"",
-                                  ((int)(in_ptr - in) - 1), in);
+                                  "Duplicate \"::\" block at position %d in address \"%.*s\"",
+                                  ((int)(in_ptr - in) - 1), (int)in_len, in);
           return 0;
         }
 
@@ -215,6 +228,10 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
         case TOKEN_DEC:
           state = STATE_AFTERDEC;
           break;
+        case TOKEN_COLON:
+        case TOKEN_DOT:
+        case TOKEN_END:
+        case TOKEN_ILLEGAL:
         default:
           EXPECTING_TOKEN("an address field");
       }
@@ -259,6 +276,9 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
         continue;
       } else if (type == TOKEN_DOT) {
         /* Rollback bytes that we assumed to be an IPv6 hex field */
+        if (pos < 1) {
+          EXPECTING_TOKEN("an address field");
+        }
         address[pos--] = 0;
         address[pos--] = 0;
         in_ptr -= (prev_token_len + 1);
@@ -279,8 +299,8 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
         if (token_len > 1 && token[0] == '0') {
           zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                                   "Illegal IPv4 character \"%s\" at position %d "
-                                  "in address \"%s\" (no leading zeroes are allowed)",
-                                  token, ((int)(in_ptr - in) - 1), in);
+                                  "in address \"%.*s\" (no leading zeroes are allowed)",
+                                  token, ((int)(in_ptr - in) - 1), (int)in_len, in);
           return 0;
         }
 
@@ -290,8 +310,8 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
         if (ipv4_byte < 0 || ipv4_byte > 255) {
           zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                                   "Illegal IPv4 segment value '%d' at position %d "
-                                  "in address \"%s\" (expected: 0 - 255)",
-                                  ipv4_byte, ((int)(in_ptr - in) - 1), in);
+                                  "in address \"%.*s\" (expected: 0 - 255)",
+                                  ipv4_byte, ((int)(in_ptr - in) - 1), (int)in_len, in);
           return 0;
         }
 
@@ -303,7 +323,7 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
 
         /* Add the IPv4 byte. */
         ipv4_pos++;
-        address[++pos] = ipv4_byte;
+        address[++pos] = (cass_uint8_t)ipv4_byte;
 
         /* After 4 bytes, our IPv4 address is complete. */
         if (ipv4_pos == CASS_INET_V4_LENGTH) {
@@ -360,9 +380,9 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
      */
     if (pos + 1 >= CASS_INET_V6_LENGTH) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Address \"%s\" contains a compressed zeroes block '::', "
+                              "Address \"%.*s\" contains a compressed zeroes block '::', "
                               "but the address already contains %d bytes or more",
-                              address, CASS_INET_V6_LENGTH);
+                              (int)in_len, in, CASS_INET_V6_LENGTH);
       return 0;
     }
 
@@ -389,6 +409,7 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
           zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                               "Index out of bounds: src_pos = %d, dst_pos = %d, array size = %d",
                               src_pos, dst_pos, CASS_INET_V6_LENGTH);
+          return 0;
         }
       }
     }
@@ -402,17 +423,17 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
     /* Check if there are enough bytes. */
     if (pos + 1 < CASS_INET_V6_LENGTH) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Address \"%s\" contains only %d bytes  (%d bytes are expected)", in,
-                              pos + 1, CASS_INET_V6_LENGTH);
+                              "Address \"%.*s\" contains only %d bytes (%d bytes are expected)",
+                              (int)in_len, in, pos + 1, CASS_INET_V6_LENGTH);
       return 0;
     }
 
     /* Check if the number of bytes does not exceed the maximum. */
     if (pos + 1 > CASS_INET_V6_LENGTH) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                              "Address \"%s\" exceeds the maximum IPv6 byte length "
-                              "(%d bytes are expected)\n",
-                              in, CASS_INET_V6_LENGTH);
+                              "Address \"%.*s\" exceeds the maximum IPv6 byte length "
+                              "(%d bytes are expected)",
+                              (int)in_len, in, CASS_INET_V6_LENGTH);
       return 0;
     }
 
@@ -427,15 +448,18 @@ int php_scylladb_parse_ip_address(char *in, CassInet *inet) {
   return 1;
 }
 
-void php_scylladb_format_address(CassInet inet, char **out) {
-  if (inet.address_length > 4)
-    spprintf(out, 0, "%x:%x:%x:%x:%x:%x:%x:%x", (inet.address[0] * 256 + inet.address[1]),
-             (inet.address[2] * 256 + inet.address[3]), (inet.address[4] * 256 + inet.address[5]),
-             (inet.address[6] * 256 + inet.address[7]), (inet.address[8] * 256 + inet.address[9]),
-             (inet.address[10] * 256 + inet.address[11]),
-             (inet.address[12] * 256 + inet.address[13]),
-             (inet.address[14] * 256 + inet.address[15]));
-  else
-    spprintf(out, 0, "%d.%d.%d.%d", inet.address[0], inet.address[1], inet.address[2],
-             inet.address[3]);
+zend_string *php_scylladb_format_address(CassInet inet) {
+  if (inet.address_length > 4) {
+    return zend_strpprintf(0, "%x:%x:%x:%x:%x:%x:%x:%x", (inet.address[0] * 256 + inet.address[1]),
+                           (inet.address[2] * 256 + inet.address[3]),
+                           (inet.address[4] * 256 + inet.address[5]),
+                           (inet.address[6] * 256 + inet.address[7]),
+                           (inet.address[8] * 256 + inet.address[9]),
+                           (inet.address[10] * 256 + inet.address[11]),
+                           (inet.address[12] * 256 + inet.address[13]),
+                           (inet.address[14] * 256 + inet.address[15]));
+  }
+
+  return zend_strpprintf(0, "%d.%d.%d.%d", inet.address[0], inet.address[1], inet.address[2],
+                         inet.address[3]);
 }

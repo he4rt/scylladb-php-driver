@@ -21,7 +21,9 @@
 
 #include "DefaultColumn.h"
 #include "DefaultMaterializedView.h"
+#ifdef PHP_SCYLLADB_HAVE_LEGACY_SCHEMA_META
 #include "DefaultIndex.h"
+#endif
 #include "Table.h"
 
 #include "DefaultTable_arginfo.h"
@@ -114,30 +116,28 @@ ZEND_METHOD(Cassandra_DefaultTable, name)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   RETURN_ZVAL(&self->name, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_DefaultTable, option)
 {
-  char *name;
-  size_t name_len;
+  zend_string *name = nullptr;
   php_scylladb_table *self;
   zval* result;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_STR(name)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   if (Z_ISUNDEF(self->options)) {
     php_scylladb_default_table_build_options(self );
   }
 
-  if ((result = zend_hash_str_find(Z_ARRVAL(self->options), name, name_len)) != nullptr) {
+  if ((result = zend_hash_find(Z_ARRVAL(self->options), name)) != nullptr) {
     RETURN_ZVAL(result, 1, 0);
   }
   RETURN_FALSE;
@@ -147,10 +147,9 @@ ZEND_METHOD(Cassandra_DefaultTable, options)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   if (Z_ISUNDEF(self->options)) {
     php_scylladb_default_table_build_options(self );
   }
@@ -162,10 +161,9 @@ ZEND_METHOD(Cassandra_DefaultTable, comment)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "comment", return_value );
 }
@@ -174,10 +172,9 @@ ZEND_METHOD(Cassandra_DefaultTable, readRepairChance)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "read_repair_chance", return_value );
 }
@@ -186,10 +183,9 @@ ZEND_METHOD(Cassandra_DefaultTable, localReadRepairChance)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "local_read_repair_chance", return_value );
 }
@@ -198,10 +194,9 @@ ZEND_METHOD(Cassandra_DefaultTable, gcGraceSeconds)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "gc_grace_seconds", return_value );
 }
@@ -210,10 +205,9 @@ ZEND_METHOD(Cassandra_DefaultTable, caching)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "caching", return_value );
 }
@@ -222,10 +216,9 @@ ZEND_METHOD(Cassandra_DefaultTable, bloomFilterFPChance)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "bloom_filter_fp_chance", return_value );
 }
@@ -234,10 +227,9 @@ ZEND_METHOD(Cassandra_DefaultTable, memtableFlushPeriodMs)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "memtable_flush_period_in_ms", return_value );
 }
@@ -246,10 +238,9 @@ ZEND_METHOD(Cassandra_DefaultTable, defaultTTL)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "default_time_to_live", return_value );
 }
@@ -258,10 +249,9 @@ ZEND_METHOD(Cassandra_DefaultTable, speculativeRetry)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "speculative_retry", return_value );
 }
@@ -270,10 +260,9 @@ ZEND_METHOD(Cassandra_DefaultTable, indexInterval)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "index_interval", return_value );
 }
@@ -282,10 +271,9 @@ ZEND_METHOD(Cassandra_DefaultTable, compactionStrategyClassName)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "compaction_strategy_class", return_value );
 }
@@ -294,10 +282,9 @@ ZEND_METHOD(Cassandra_DefaultTable, compactionStrategyOptions)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "compaction_strategy_options", return_value );
 }
@@ -306,10 +293,9 @@ ZEND_METHOD(Cassandra_DefaultTable, compressionParameters)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "compression_parameters", return_value );
 }
@@ -318,10 +304,9 @@ ZEND_METHOD(Cassandra_DefaultTable, populateIOCacheOnFlush)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "populate_io_cache_on_flush", return_value );
 }
@@ -330,10 +315,9 @@ ZEND_METHOD(Cassandra_DefaultTable, replicateOnWrite)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "replicate_on_write", return_value );
 }
@@ -342,10 +326,9 @@ ZEND_METHOD(Cassandra_DefaultTable, maxIndexInterval)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "max_index_interval", return_value );
 }
@@ -354,10 +337,9 @@ ZEND_METHOD(Cassandra_DefaultTable, minIndexInterval)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
 
   php_scylladb_table_get_option(self, "min_index_interval", return_value );
 }
@@ -365,17 +347,16 @@ ZEND_METHOD(Cassandra_DefaultTable, minIndexInterval)
 ZEND_METHOD(Cassandra_DefaultTable, column)
 {
   php_scylladb_table *self;
-  char *name;
-  size_t name_len;
+  zend_string *name = nullptr;
   zval column;
   const CassColumnMeta *meta;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_STR(name)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
-  meta = cass_table_meta_column_by_name(self->meta, name);
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
+  meta = cass_table_meta_column_by_name_n(self->meta, ZSTR_VAL(name), ZSTR_LEN(name));
   if (meta == nullptr) {
     RETURN_FALSE;
   }
@@ -394,10 +375,9 @@ ZEND_METHOD(Cassandra_DefaultTable, columns)
   php_scylladb_table *self;
   CassIterator    *iterator;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self     = PHP_SCYLLADB_GET_TABLE(getThis());
+  self     = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   iterator = cass_iterator_columns_from_table_meta(self->meta);
 
   array_init(return_value);
@@ -427,10 +407,9 @@ ZEND_METHOD(Cassandra_DefaultTable, partitionKey)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   if (Z_ISUNDEF(self->partition_key)) {
 
     array_init(&self->partition_key);
@@ -444,10 +423,9 @@ ZEND_METHOD(Cassandra_DefaultTable, primaryKey)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   if (Z_ISUNDEF(self->primary_key)) {
 
     array_init(&self->primary_key);
@@ -462,10 +440,9 @@ ZEND_METHOD(Cassandra_DefaultTable, clusteringKey)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   if (Z_ISUNDEF(self->clustering_key)) {
 
     array_init(&self->clustering_key);
@@ -479,10 +456,9 @@ ZEND_METHOD(Cassandra_DefaultTable, clusteringOrder)
 {
   php_scylladb_table *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   if (Z_ISUNDEF(self->clustering_order)) {
     size_t i, count = cass_table_meta_clustering_key_count(self->meta);
 
@@ -500,6 +476,8 @@ ZEND_METHOD(Cassandra_DefaultTable, clusteringOrder)
         case CASS_CLUSTERING_ORDER_NONE:
           add_next_index_string(&self->clustering_order, "none");
           break;
+        default:
+          break;
       }
     }
   }
@@ -507,20 +485,20 @@ ZEND_METHOD(Cassandra_DefaultTable, clusteringOrder)
   RETURN_ZVAL(&self->clustering_order, 1, 0);
 }
 
+#ifdef PHP_SCYLLADB_HAVE_LEGACY_SCHEMA_META
 ZEND_METHOD(Cassandra_DefaultTable, index)
 {
   php_scylladb_table *self;
-  char *name;
-  size_t name_len;
+  zend_string *name = nullptr;
   zval index;
   const CassIndexMeta *meta;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_STR(name)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
-  meta = cass_table_meta_index_by_name(self->meta, name);
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
+  meta = cass_table_meta_index_by_name_n(self->meta, ZSTR_VAL(name), ZSTR_LEN(name));
   if (meta == nullptr) {
     RETURN_FALSE;
   }
@@ -538,10 +516,9 @@ ZEND_METHOD(Cassandra_DefaultTable, indexes)
   php_scylladb_table *self;
   CassIterator *iterator;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self     = PHP_SCYLLADB_GET_TABLE(getThis());
+  self     = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   iterator = cass_iterator_indexes_from_table_meta(self->meta);
 
   array_init(return_value);
@@ -565,22 +542,31 @@ ZEND_METHOD(Cassandra_DefaultTable, indexes)
 
   cass_iterator_free(iterator);
 }
+#else
+ZEND_METHOD(Cassandra_DefaultTable, index)
+{
+  PHP_SCYLLADB_THROW_NO_LEGACY_SCHEMA_META("Cassandra\\Table::index()");
+}
+
+ZEND_METHOD(Cassandra_DefaultTable, indexes)
+{
+  PHP_SCYLLADB_THROW_NO_LEGACY_SCHEMA_META("Cassandra\\Table::indexes()");
+}
+#endif
 
 ZEND_METHOD(Cassandra_DefaultTable, materializedView)
 {
   php_scylladb_table *self;
-  char *name;
-  size_t name_len;
+  zend_string *name = nullptr;
   zval zview;
   const CassMaterializedViewMeta *meta;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_STR(name)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TABLE(getThis());
-  meta = cass_table_meta_materialized_view_by_name_n(self->meta,
-                                                     name, name_len);
+  self = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
+  meta = cass_table_meta_materialized_view_by_name_n(self->meta, ZSTR_VAL(name), ZSTR_LEN(name));
   if (meta == nullptr) {
     RETURN_FALSE;
   }
@@ -598,10 +584,9 @@ ZEND_METHOD(Cassandra_DefaultTable, materializedViews)
   php_scylladb_table *self;
   CassIterator *iterator;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self     = PHP_SCYLLADB_GET_TABLE(getThis());
+  self     = PHP_SCYLLADB_GET_TABLE(ZEND_THIS);
   iterator = cass_iterator_materialized_views_from_table_meta(self->meta);
 
   array_init(return_value);
@@ -630,8 +615,17 @@ ZEND_METHOD(Cassandra_DefaultTable, materializedViews)
 HashTable *
 php_scylladb_default_table_gc(zend_object *object, zval** table, int *n)
 {
-  *table = nullptr;
-  *n = 0;
+  auto self = php_scylladb_table_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zend_get_gc_buffer_add_zval(buffer, &self->name);
+  zend_get_gc_buffer_add_zval(buffer, &self->options);
+  zend_get_gc_buffer_add_zval(buffer, &self->partition_key);
+  zend_get_gc_buffer_add_zval(buffer, &self->primary_key);
+  zend_get_gc_buffer_add_zval(buffer, &self->clustering_key);
+  zend_get_gc_buffer_add_zval(buffer, &self->clustering_order);
+  zend_get_gc_buffer_add_zval(buffer, &self->schema);
+  zend_get_gc_buffer_use(buffer, table, n);
+
   return nullptr;
 }
 
@@ -646,7 +640,7 @@ php_scylladb_default_table_properties(zend_object *object)
 int
 php_scylladb_default_table_compare(zval *obj1, zval *obj2 )
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -691,7 +685,5 @@ php_scylladb_default_table_new(zend_class_entry *ce )
   self->meta   = nullptr;
   ZVAL_UNDEF(&self->schema);
 
-  php_scylladb_default_table_handlers.offset = offsetof(php_scylladb_table, zendObject);
-  php_scylladb_default_table_handlers.free_obj = php_scylladb_default_table_free;
   return &self->zendObject;
 }

@@ -142,3 +142,43 @@ it('Using Cassandra user defined types from schema metadata', function () use($k
         ->and($workAddress['zip'])
         ->toBe(10024);
 });
+
+it('binds a hand-built user type that names its keyspace and type', function () use ($keyspace, $table) {
+    $session = scyllaDbConnection($keyspace);
+
+    $addressType = \Cassandra\Type::userType(
+        'street', \Cassandra\Type::text(),
+        'city', \Cassandra\Type::text(),
+        'zip', \Cassandra\Type::int(),
+    )->withName('address')->withKeyspace($keyspace);
+
+    $addressesType = \Cassandra\Type::userType(
+        'home', $addressType,
+        'work', $addressType,
+    )->withName('addresses')->withKeyspace($keyspace);
+
+    expect($addressType->name())->toBe('address')
+        ->and($addressType->keyspace())->toBe($keyspace);
+
+    $id = new Uuid('7f8f9c8e-1f2a-4f1b-9c3d-0a1b2c3d4e5f');
+
+    $prepared = $session->prepare("INSERT INTO $table (id, name, addresses) VALUES (?, ?, ?)");
+
+    $session->execute(
+        $prepared,
+        ['arguments' => [
+            $id,
+            'Named UDT',
+            $addressesType->create(
+                'home', $addressType->create('street', '1 Main St', 'city', 'Springfield', 'zip', 11111),
+                'work', $addressType->create('street', '2 Side St', 'city', 'Shelbyville', 'zip', 22222),
+            ),
+        ]],
+    );
+
+    $row = $session->execute("SELECT * FROM $table WHERE id = ?", ['arguments' => [$id]])->first();
+
+    expect($row['name'])->toBe('Named UDT')
+        ->and($row['addresses']->values()['home']->values()['city'])->toBe('Springfield')
+        ->and($row['addresses']->values()['work']->values()['zip'])->toBe(22222);
+});

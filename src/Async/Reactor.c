@@ -513,7 +513,7 @@ ZEND_METHOD(Cassandra_Async_Reactor, add)
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to register the async completion callback: %s",
                             cass_error_desc(rc));
-    return;
+    RETURN_THROWS();
   }
 
   if (rc != CASS_OK || cass_future_ready(slots.future)) {
@@ -536,7 +536,7 @@ ZEND_METHOD(Cassandra_Async_Reactor, poll)
 
   if (!max_null && max < 1) {
     zend_argument_value_error(1, "must be greater than 0, or null for every completion");
-    return;
+    RETURN_THROWS();
   }
 
   php_scylladb_reactor* reactor = reactor_instance();

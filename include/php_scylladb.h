@@ -103,6 +103,11 @@ static inline const char *php_scylladb_safe_zend_string(const zend_string *s) {
  * Fires on every exit path (return / break / goto / fall-through). */
 #define PHP_SCYLLADB_CLEANUP(fn) __attribute__((cleanup(fn)))
 
+#define PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(op1, op2)                                                                \
+    do {                                                                                                               \
+        ZEND_COMPARE_OBJECTS_FALLBACK(op1, op2)                                                                        \
+    } while (0)
+
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -168,6 +173,15 @@ void throw_invalid_argument(const zval *object, const char *object_name, const c
     {                                                                                                                  \
         throw_invalid_argument(object, #object, expected);                                                   \
         return failed_value;                                                                                           \
+    } while (0)
+
+#define PHP_SCYLLADB_THROW_NO_LEGACY_SCHEMA_META(what)                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        zend_throw_exception_ex(php_scylladb_domain_exception_ce, 0,                                                   \
+                                what " needs a build with -DPHP_SCYLLADB_ENABLE_LEGACY_SCHEMA_META=ON. "                \
+                                     "The C/C++ driver leaves the matching metadata API unimplemented.");               \
+        return;                                                                                                        \
     } while (0)
 
 #define ASSERT_SUCCESS_BLOCK(rc, block)                                                                                \

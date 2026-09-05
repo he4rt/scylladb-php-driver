@@ -57,3 +57,20 @@
 
 #define PHP_SCYLLADB_OBJ_ALLOCATE(T, ce, handlers) \
     ((T *)php_scylladb_obj_allocate(sizeof(T), offsetof(T, zendObject), (ce), (handlers)))
+
+[[nodiscard]] static zend_always_inline HashTable *php_scylladb_properties_rebuild(
+    zend_object *object, uint32_t size)
+{
+    HashTable *props = object->properties;
+
+    if (props != nullptr) {
+        if (GC_REFCOUNT(props) == 1) {
+            zend_hash_clean(props);
+            return props;
+        }
+        zend_array_release(props);
+    }
+
+    object->properties = zend_new_array(size);
+    return object->properties;
+}

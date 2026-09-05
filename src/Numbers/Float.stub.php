@@ -10,8 +10,11 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
- * @scylladb-struct php_scylladb_numeric
- */    final class Float implements Value, Numeric {
+     * @scylladb-struct php_scylladb_numeric
+     * @deprecated
+     */
+    #[\Deprecated(message: 'Use a PHP float.', since: '1.6.0')]
+    final class Float implements Value, Numeric {
         public function __construct(int|float|string|Float $value) {}
 
         public function type(): Type {}

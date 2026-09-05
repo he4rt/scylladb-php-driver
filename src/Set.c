@@ -48,7 +48,7 @@ php_scylladb_set_add(php_scylladb_set* set, zval* object)
   HASH_FIND_ZVAL(set->entries, object, entry);
   if (entry == nullptr) {
     set->dirty = 1;
-    entry      = (php_scylladb_set_entry*) emalloc(sizeof(php_scylladb_set_entry));
+    entry      = emalloc(sizeof(php_scylladb_set_entry));
     ZVAL_COPY(&entry->value, object);
     HASH_ADD_ZVAL(set->entries, value, entry);
   }
@@ -119,20 +119,20 @@ php_scylladb_set_populate(php_scylladb_set* set, zval* array)
 }
 
 /* {{{ Set::__construct(type) */
-PHP_METHOD(Cassandra_Set, __construct)
+ZEND_METHOD(Cassandra_Set, __construct)
 {
   php_scylladb_set* self;
-  zval* type;
+  zval* type = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(type)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
 
   if (Z_TYPE_P(type) == IS_STRING) {
     CassValueType value_type;
-    if (!php_scylladb_value_type(Z_STRVAL_P(type), &value_type ))
+    if (!php_scylladb_value_type(Z_STR_P(type), &value_type ))
       return;
     self->type = php_scylladb_type_set_from_value_type(value_type );
   } else if (Z_TYPE_P(type) == IS_OBJECT && instanceof_function(Z_OBJCE_P(type), php_scylladb_type_ce )) {
@@ -148,34 +148,34 @@ PHP_METHOD(Cassandra_Set, __construct)
 /* }}} */
 
 /* {{{ Set::type() */
-PHP_METHOD(Cassandra_Set, type)
+ZEND_METHOD(Cassandra_Set, type)
 {
-  auto self = PHP_SCYLLADB_GET_SET(getThis());
+  auto self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   RETURN_ZVAL(&self->type, 1, 0);
 }
 /* }}} */
 
 /* {{{ Set::values() */
-PHP_METHOD(Cassandra_Set, values)
+ZEND_METHOD(Cassandra_Set, values)
 {
   php_scylladb_set* set = nullptr;
   array_init(return_value);
-  set = PHP_SCYLLADB_GET_SET(getThis());
+  set = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   php_scylladb_set_populate(set, return_value );
 }
 /* }}} */
 
 /* {{{ Set::add(value) */
-PHP_METHOD(Cassandra_Set, add)
+ZEND_METHOD(Cassandra_Set, add)
 {
   php_scylladb_set* self = nullptr;
 
-  zval* object;
+  zval* object = nullptr;
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(object)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
 
   if (php_scylladb_set_add(self, object ))
     RETURN_TRUE;
@@ -185,16 +185,16 @@ PHP_METHOD(Cassandra_Set, add)
 /* }}} */
 
 /* {{{ Set::remove(value) */
-PHP_METHOD(Cassandra_Set, remove)
+ZEND_METHOD(Cassandra_Set, remove)
 {
   php_scylladb_set* self = nullptr;
 
-  zval* object;
+  zval* object = nullptr;
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(object)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
 
   if (php_scylladb_set_del(self, object ))
     RETURN_TRUE;
@@ -204,16 +204,16 @@ PHP_METHOD(Cassandra_Set, remove)
 /* }}} */
 
 /* {{{ Set::has(value) */
-PHP_METHOD(Cassandra_Set, has)
+ZEND_METHOD(Cassandra_Set, has)
 {
   php_scylladb_set* self = nullptr;
 
-  zval* object;
+  zval* object = nullptr;
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_ZVAL(object)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SET(getThis());
+  self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
 
   if (php_scylladb_set_has(self, object ))
     RETURN_TRUE;
@@ -223,34 +223,34 @@ PHP_METHOD(Cassandra_Set, has)
 /* }}} */
 
 /* {{{ Set::count() */
-PHP_METHOD(Cassandra_Set, count)
+ZEND_METHOD(Cassandra_Set, count)
 {
-  auto self = PHP_SCYLLADB_GET_SET(getThis());
+  auto self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   RETURN_LONG((long) HASH_COUNT(self->entries));
 }
 /* }}} */
 
 /* {{{ Set::current() */
-PHP_METHOD(Cassandra_Set, current)
+ZEND_METHOD(Cassandra_Set, current)
 {
-  auto self = PHP_SCYLLADB_GET_SET(getThis());
+  auto self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   if (self->iter_curr != nullptr)
     RETURN_ZVAL(&self->iter_curr->value, 1, 0);
 }
 /* }}} */
 
 /* {{{ Set::key() */
-PHP_METHOD(Cassandra_Set, key)
+ZEND_METHOD(Cassandra_Set, key)
 {
-  auto self = PHP_SCYLLADB_GET_SET(getThis());
+  auto self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   RETURN_LONG(self->iter_index);
 }
 /* }}} */
 
 /* {{{ Set::next() */
-PHP_METHOD(Cassandra_Set, next)
+ZEND_METHOD(Cassandra_Set, next)
 {
-  auto self = PHP_SCYLLADB_GET_SET(getThis());
+  auto self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   self->iter_curr      = self->iter_temp;
   self->iter_temp      = self->iter_temp != nullptr ? (php_scylladb_set_entry*) self->iter_temp->hh.next : nullptr;
   self->iter_index++;
@@ -258,17 +258,17 @@ PHP_METHOD(Cassandra_Set, next)
 /* }}} */
 
 /* {{{ Set::valid() */
-PHP_METHOD(Cassandra_Set, valid)
+ZEND_METHOD(Cassandra_Set, valid)
 {
-  auto self = PHP_SCYLLADB_GET_SET(getThis());
+  auto self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   RETURN_BOOL(self->iter_curr != nullptr);
 }
 /* }}} */
 
 /* {{{ Set::rewind() */
-PHP_METHOD(Cassandra_Set, rewind)
+ZEND_METHOD(Cassandra_Set, rewind)
 {
-  auto self = PHP_SCYLLADB_GET_SET(getThis());
+  auto self = PHP_SCYLLADB_GET_SET(ZEND_THIS);
   self->iter_curr      = self->entries;
   self->iter_temp      = self->entries != nullptr ? (php_scylladb_set_entry*) self->entries->hh.next : nullptr;
   self->iter_index     = 0;
@@ -298,11 +298,7 @@ php_scylladb_set_properties(zend_object* object)
   zval values;
 
   auto self = php_scylladb_set_object_fetch(object);
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(2);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 2);
 
   (void)zend_hash_str_update(props, ZEND_STRL("type"), &self->type);
   Z_ADDREF_P(&self->type);
@@ -319,7 +315,7 @@ php_scylladb_set_properties(zend_object* object)
 int
 php_scylladb_set_compare(zval* obj1, zval* obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   php_scylladb_set_entry *curr, *temp;
   php_scylladb_set* set1;
   php_scylladb_set* set2;
@@ -407,8 +403,6 @@ php_scylladb_set_new(zend_class_entry* ce)
   self->dirty                                       = 1;
   ZVAL_UNDEF(&self->type);
 
-  php_scylladb_set_handlers.std.offset = offsetof(php_scylladb_set, zendObject);
-  php_scylladb_set_handlers.std.free_obj = php_scylladb_set_free;
   return &self->zendObject;
 }
 

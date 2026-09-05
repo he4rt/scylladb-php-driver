@@ -19,8 +19,6 @@
 #   False positives from third-party / Zend macros (re-enable per-module
 #   as code is ported to C23):
 #     - bugprone-narrowing-conversions    (Zend long↔int conversions)
-#     - bugprone-casting-through-void     (uthash HASH_FIND_ZVAL)
-#     - bugprone-signed-char-misuse / cert-str34-c (Cassandra tinyint is signed by spec)
 #     - bugprone-exception-escape         (last C++ files; dissolves with migration)
 #     - performance-no-int-to-ptr         (uthash HASH_DEL)
 #     - cert-err33-c                      (cass_* return codes deliberately ignored on cleanup)
@@ -36,9 +34,8 @@ Checks: >
   -bugprone-branch-clone,
   -bugprone-assignment-in-if-condition,
   -bugprone-narrowing-conversions,
-  -bugprone-casting-through-void,
-  -bugprone-signed-char-misuse,
   -bugprone-exception-escape,
+  -bugprone-signed-bitwise,
   clang-analyzer-*,
   -clang-analyzer-security.ArrayBound,
   -clang-analyzer-core.NullDereference,
@@ -49,7 +46,6 @@ Checks: >
   -cert-err34-c,
   -cert-dcl37-c,
   -cert-dcl51-cpp,
-  -cert-str34-c,
   performance-*,
   -performance-no-int-to-ptr,
   portability-*,
@@ -66,7 +62,12 @@ Checks: >
   misc-redundant-expression,
   misc-misplaced-const,
   misc-static-assert,
-  misc-header-include-cycle
+  misc-header-include-cycle,
+  misc-confusable-identifiers,
+  misc-definitions-in-headers,
+  readability-duplicate-include,
+  readability-const-return-type,
+  readability-suspicious-call-argument
 
 # Treat the curated set as errors — we only enabled checks we expect to pass.
 WarningsAsErrors: '*'

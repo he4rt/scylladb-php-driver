@@ -30,6 +30,14 @@ inputs:
     required: false
     default: 'OFF'
     description: 'Build with AddressSanitizer (ON enables ENABLE_SANITIZERS + SANITIZE_ADDRESS)'
+  sanitize_undefined:
+    required: false
+    default: 'OFF'
+    description: 'Build with UndefinedBehaviorSanitizer (ON enables ENABLE_SANITIZERS + SANITIZE_UNDEFINED)'
+  werror:
+    required: false
+    default: 'OFF'
+    description: 'Turn compiler warnings into errors'
   enable_poll_api:
     required: false
     default: 'OFF'
@@ -53,6 +61,11 @@ runs:
 
         export PKG_CONFIG_PATH="${{ inputs.cpp_driver_pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
 
+        SANITIZERS=OFF
+        if [ "${{ inputs.sanitize_address }}" = "ON" ] || [ "${{ inputs.sanitize_undefined }}" = "ON" ]; then
+          SANITIZERS=ON
+        fi
+
         LAUNCHER=()
         if command -v ccache >/dev/null 2>&1; then
           LAUNCHER=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
@@ -65,9 +78,10 @@ runs:
           -DPHP_SCYLLADB_STATIC="${{ inputs.static_driver }}" \
           -DPHP_SCYLLADB_BACKEND="${BACKEND}" \
           -DPHP_SCYLLADB_USE_SYSTEM_DRIVER="${{ inputs.use_system_driver }}" \
-          -DENABLE_SANITIZERS="${{ inputs.sanitize_address }}" \
+          -DENABLE_SANITIZERS="${SANITIZERS}" \
           -DSANITIZE_ADDRESS="${{ inputs.sanitize_address }}" \
-          -DSANITIZE_UNDEFINED=OFF \
+          -DSANITIZE_UNDEFINED="${{ inputs.sanitize_undefined }}" \
+          -DPHP_SCYLLADB_WERROR="${{ inputs.werror }}" \
           -DPHP_SCYLLADB_ENABLE_POLL_API="${{ inputs.enable_poll_api }}" \
           -DPHP_SCYLLADB_DRIVER_VERSION="${{ inputs.driver_version }}" \
           -DENABLE_LTO="${{ inputs.enable_lto }}"
@@ -89,7 +103,7 @@ runs:
     # Skipped under ASan: that build needs the ASan runtime LD_PRELOADed, which
     # the target does not set up.
     - name: Verify extension loads (isolated, eager binding)
-      if: inputs.sanitize_address != 'ON'
+      if: inputs.sanitize_address != 'ON' && inputs.sanitize_undefined != 'ON'
       shell: bash
       run: cmake --build cmake-build --target verify-extension
 

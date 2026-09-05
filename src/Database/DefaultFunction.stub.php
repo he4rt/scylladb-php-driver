@@ -8,8 +8,11 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @not-serializable
- * @scylladb-struct php_scylladb_function
- */    final class DefaultFunction implements \Cassandra\Function_ {
+     * @scylladb-struct php_scylladb_function
+     * @deprecated
+     */
+    #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined function metadata.', since: '1.6.0')]
+    final class DefaultFunction implements \Cassandra\Function_ {
         public function name(): string {}
 
         public function simpleName(): string {}

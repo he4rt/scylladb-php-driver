@@ -27,7 +27,7 @@
 #include "src/Tuple.h"
 #include "src/UserTypeValue.h"
 
-int php_scylladb_value(const CassValue *value, const CassDataType *data_type, zval *out)
+zend_result php_scylladb_value(const CassValue *value, const CassDataType *data_type, zval *out)
 {
     const char *v_string;
     size_t v_string_len;
@@ -118,7 +118,7 @@ int php_scylladb_value(const CassValue *value, const CassDataType *data_type, zv
         object_init_ex(out, php_scylladb_blob_ce);
         blob = PHP_SCYLLADB_GET_BLOB(out);
         ASSERT_SUCCESS_BLOCK(cass_value_get_bytes(value, &v_bytes, &v_bytes_len), zval_ptr_dtor(out); return FAILURE;);
-        blob->data = (cass_byte_t *)emalloc(v_bytes_len * sizeof(cass_byte_t));
+        blob->data = emalloc(v_bytes_len * sizeof(cass_byte_t));
         blob->size = v_bytes_len;
         memcpy(blob->data, v_bytes, v_bytes_len);
         break;
@@ -126,7 +126,7 @@ int php_scylladb_value(const CassValue *value, const CassDataType *data_type, zv
         object_init_ex(out, php_scylladb_varint_ce);
         numeric = PHP_SCYLLADB_GET_NUMERIC(out);
         ASSERT_SUCCESS_BLOCK(cass_value_get_bytes(value, &v_bytes, &v_bytes_len), zval_ptr_dtor(out); return FAILURE;);
-        import_twos_complement((cass_byte_t *)v_bytes, v_bytes_len, &numeric->data.varint.value);
+        import_twos_complement(v_bytes, v_bytes_len, &numeric->data.varint.value);
         break;
     case CASS_VALUE_TYPE_UUID:
         object_init_ex(out, php_scylladb_uuid_ce);
@@ -160,7 +160,7 @@ int php_scylladb_value(const CassValue *value, const CassDataType *data_type, zv
         ASSERT_SUCCESS_BLOCK(cass_value_get_decimal(value, &v_decimal, &v_decimal_len, &v_decimal_scale),
                              zval_ptr_dtor(out);
                              return FAILURE;);
-        import_twos_complement((cass_byte_t *)v_decimal, v_decimal_len, &numeric->data.decimal.value);
+        import_twos_complement(v_decimal, v_decimal_len, &numeric->data.decimal.value);
         numeric->data.decimal.scale = v_decimal_scale;
         break;
     case CASS_VALUE_TYPE_DURATION:
@@ -338,7 +338,9 @@ int php_scylladb_value(const CassValue *value, const CassDataType *data_type, zv
                     }
 
                     cass_iterator_get_user_type_field_name(iterator, &name, &name_length);
-                    php_scylladb_user_type_value_set(user_type_value, name, name_length, &v);
+                    zend_string* field_name = zend_string_init(name, name_length, 0);
+                    php_scylladb_user_type_value_set(user_type_value, field_name, &v);
+                    zend_string_release(field_name);
                     zval_ptr_dtor(&v);
                 }
 
@@ -348,6 +350,9 @@ int php_scylladb_value(const CassValue *value, const CassDataType *data_type, zv
             cass_iterator_free(iterator);
         }
         break;
+    case CASS_VALUE_TYPE_CUSTOM:
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
         ZVAL_NULL(out);
         break;
@@ -356,7 +361,7 @@ int php_scylladb_value(const CassValue *value, const CassDataType *data_type, zv
     return SUCCESS;
 }
 
-int php_scylladb_get_keyspace_field(const CassKeyspaceMeta *metadata, const char *field_name, zval *out)
+zend_result php_scylladb_get_keyspace_field(const CassKeyspaceMeta *metadata, const char *field_name, zval *out)
 {
     const CassValue *value;
 
@@ -372,7 +377,7 @@ int php_scylladb_get_keyspace_field(const CassKeyspaceMeta *metadata, const char
     return php_scylladb_value(value, cass_value_data_type(value), out);
 }
 
-int php_scylladb_get_table_field(const CassTableMeta *metadata, const char *field_name, zval *out)
+zend_result php_scylladb_get_table_field(const CassTableMeta *metadata, const char *field_name, zval *out)
 {
     const CassValue *value;
 
@@ -388,7 +393,7 @@ int php_scylladb_get_table_field(const CassTableMeta *metadata, const char *fiel
     return php_scylladb_value(value, cass_value_data_type(value), out);
 }
 
-int php_scylladb_get_column_field(const CassColumnMeta *metadata, const char *field_name, zval *out)
+zend_result php_scylladb_get_column_field(const CassColumnMeta *metadata, const char *field_name, zval *out)
 {
     const CassValue *value;
 
@@ -404,7 +409,7 @@ int php_scylladb_get_column_field(const CassColumnMeta *metadata, const char *fi
     return php_scylladb_value(value, cass_value_data_type(value), out);
 }
 
-int php_scylladb_get_result(const CassResult *result, zval *out)
+zend_result php_scylladb_get_result(const CassResult *result, zval *out)
 {
     zval rows;
     zval row;
@@ -414,8 +419,8 @@ int php_scylladb_get_result(const CassResult *result, zval *out)
     const CassDataType *column_type;
     const CassValue *column_value;
     CassIterator *iterator = nullptr;
-    size_t columns = -1;
-    char **column_names;
+    size_t columns = 0;
+    zend_string **column_names;
     unsigned i;
 
 
@@ -424,7 +429,7 @@ int php_scylladb_get_result(const CassResult *result, zval *out)
     iterator = cass_iterator_from_result(result);
     columns = cass_result_column_count(result);
 
-    column_names = (char **)ecalloc(columns, sizeof(char *));
+    column_names = ecalloc(columns, sizeof(zend_string *));
 
     while (cass_iterator_next(iterator))
     {
@@ -439,7 +444,7 @@ int php_scylladb_get_result(const CassResult *result, zval *out)
             if (column_names[i] == nullptr)
             {
                 cass_result_column_name(result, i, &column_name, &column_name_len);
-                column_names[i] = estrndup(column_name, column_name_len);
+                column_names[i] = zend_string_init(column_name, column_name_len, 0);
             }
 
             column_type = cass_result_column_data_type(result, i);
@@ -454,7 +459,7 @@ int php_scylladb_get_result(const CassResult *result, zval *out)
                 {
                     if (column_names[i])
                     {
-                        efree(column_names[i]);
+                        zend_string_release(column_names[i]);
                     }
                 }
 
@@ -464,7 +469,7 @@ int php_scylladb_get_result(const CassResult *result, zval *out)
                 return FAILURE;
             }
 
-            add_assoc_zval_ex(&row, column_names[i], (size_t)(strlen(column_names[i]) + 1 - 1), &value);
+            (void)zend_symtable_update(Z_ARRVAL(row), column_names[i], &value);
         }
 
         add_next_index_zval(&rows, &row);
@@ -474,7 +479,7 @@ int php_scylladb_get_result(const CassResult *result, zval *out)
     {
         if (column_names[i] != nullptr)
         {
-            efree(column_names[i]);
+            zend_string_release(column_names[i]);
         }
     }
 

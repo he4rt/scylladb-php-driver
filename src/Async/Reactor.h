@@ -52,5 +52,5 @@ typedef struct php_scylladb_notifier_ php_scylladb_notifier;
  * Cassandra\Async\PollHandle object — the poll-API twin of the cached stream
  * that resource() returns. Returns false with an exception thrown when the
  * reactor cannot be created. */
-bool php_scylladb_reactor_poll_slots(php_scylladb_notifier** notifier_out, zval** handle_slot_out);
+[[nodiscard]] bool php_scylladb_reactor_poll_slots(php_scylladb_notifier** notifier_out, zval** handle_slot_out);
 #endif

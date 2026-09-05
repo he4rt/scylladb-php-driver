@@ -60,7 +60,7 @@ PHP_SCYLLADB_SCALAR_TYPES_MAP(XX_SCALAR_METHOD)
 ZEND_METHOD(Cassandra_Type, collection)
 {
   zval ztype;
-  zval *value_type;
+  zval *value_type = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_OBJECT_OF_CLASS(value_type, php_scylladb_type_ce)
@@ -80,7 +80,7 @@ ZEND_METHOD(Cassandra_Type, tuple)
   zval ztype;
   php_scylladb_type *type;
   zval* args = nullptr;
-  int argc = 0, i;
+  uint32_t argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
     Z_PARAM_VARIADIC('*', args, argc)
@@ -113,7 +113,7 @@ ZEND_METHOD(Cassandra_Type, userType)
   zval ztype;
   php_scylladb_type *type;
   zval* args = nullptr;
-  int argc = 0, i;
+  uint32_t argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
     Z_PARAM_VARIADIC('*', args, argc)
@@ -125,7 +125,7 @@ ZEND_METHOD(Cassandra_Type, userType)
                             "from an even number of name/type pairs, where each odd " \
                             "argument is a name and each even argument is a type, " \
                             "e.g userType(name, type, name, type, name, type)");
-    return;
+    RETURN_THROWS();
   }
 
   for (i = 0; i < argc; i += 2) {
@@ -134,7 +134,7 @@ ZEND_METHOD(Cassandra_Type, userType)
     if (Z_TYPE_P(name) != IS_STRING) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 ,
                               "Argument %d is not a string", i + 1);
-      return;
+      RETURN_THROWS();
     }
     if (!php_scylladb_type_validate(sub_type, "type" )) {
       return;
@@ -147,9 +147,7 @@ ZEND_METHOD(Cassandra_Type, userType)
   for (i = 0; i < argc; i += 2) {
     zval *name = &args[i];
     zval *sub_type = &args[i + 1];
-    if (php_scylladb_type_user_type_add(type,
-                                         Z_STRVAL_P(name), Z_STRLEN_P(name),
-                                         sub_type )) {
+    if (php_scylladb_type_user_type_add(type, Z_STR_P(name), sub_type )) {
       Z_ADDREF_P(sub_type);
     } else {
       break;
@@ -162,7 +160,7 @@ ZEND_METHOD(Cassandra_Type, userType)
 ZEND_METHOD(Cassandra_Type, set)
 {
   zval ztype;
-  zval *value_type;
+  zval *value_type = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
     Z_PARAM_OBJECT_OF_CLASS(value_type, php_scylladb_type_ce)
@@ -180,8 +178,8 @@ ZEND_METHOD(Cassandra_Type, set)
 ZEND_METHOD(Cassandra_Type, map)
 {
   zval ztype;
-  zval *key_type;
-  zval *value_type;
+  zval *key_type = nullptr;
+  zval *value_type = nullptr;
 
   ZEND_PARSE_PARAMETERS_START(2, 2)
     Z_PARAM_OBJECT_OF_CLASS(key_type, php_scylladb_type_ce)

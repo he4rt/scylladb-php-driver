@@ -61,7 +61,7 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
     case IS_NULL:   CHECK_RESULT(cass_statement_bind_null(statement, index));
     case IS_STRING: CHECK_RESULT(cass_statement_bind_string(statement, index, Z_STRVAL_P(value)));
     case IS_DOUBLE: CHECK_RESULT(cass_statement_bind_double(statement, index, Z_DVAL_P(value)));
-    case IS_LONG:   CHECK_RESULT(cass_statement_bind_int32(statement, index, Z_LVAL_P(value)));
+    case IS_LONG:   CHECK_RESULT(cass_statement_bind_int32(statement, index, (cass_int32_t)Z_LVAL_P(value)));
     case IS_TRUE:   CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_true));
     case IS_FALSE:  CHECK_RESULT(cass_statement_bind_bool(statement, index, cass_false));
     case IS_OBJECT: break;       /* dispatched on class entry below */
@@ -122,7 +122,7 @@ static int bind_argument_by_index(CassStatement* statement, size_t index, zval* 
       size_t size;
       PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
       cass_byte_t* data = export_twos_complement(decimal->data.decimal.value, &size);
-      CHECK_RESULT(cass_statement_bind_decimal(statement, index, data, size, decimal->data.decimal.scale));
+      CHECK_RESULT(cass_statement_bind_decimal(statement, index, data, size, (cass_int32_t)decimal->data.decimal.scale));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_uuid_interface_ce)) {
@@ -188,7 +188,7 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
     case IS_NULL:   CHECK_RESULT(cass_statement_bind_null_by_name(statement, name));
     case IS_STRING: CHECK_RESULT(cass_statement_bind_string_by_name(statement, name, Z_STRVAL_P(value)));
     case IS_DOUBLE: CHECK_RESULT(cass_statement_bind_double_by_name(statement, name, Z_DVAL_P(value)));
-    case IS_LONG:   CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, Z_LVAL_P(value)));
+    case IS_LONG:   CHECK_RESULT(cass_statement_bind_int32_by_name(statement, name, (cass_int32_t)Z_LVAL_P(value)));
     case IS_TRUE:   CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_true));
     case IS_FALSE:  CHECK_RESULT(cass_statement_bind_bool_by_name(statement, name, cass_false));
     case IS_OBJECT: break;
@@ -252,7 +252,7 @@ static int bind_argument_by_name(CassStatement* statement, const char* name, zva
       PHP_SCYLLADB_CLEANUP(php_scylladb_free_bytes)
       cass_byte_t* data = export_twos_complement(decimal->data.decimal.value, &size);
       CHECK_RESULT(cass_statement_bind_decimal_by_name(statement, name, data, size,
-                                                       decimal->data.decimal.scale));
+                                                       (cass_int32_t)decimal->data.decimal.scale));
     }
 
     if (instanceof_function(Z_OBJCE_P(value), php_scylladb_uuid_interface_ce)) {
@@ -342,11 +342,13 @@ static CassStatement* create_statement(php_scylladb_statement* statement, HashTa
 
       if (arguments) count = zend_hash_num_elements(arguments);
 
-      stmt = cass_statement_new(statement->data.simple.cql, count);
+      stmt = cass_statement_new_n(ZSTR_VAL(statement->data.simple.cql),
+                                  ZSTR_LEN(statement->data.simple.cql), count);
       break;
     case PHP_SCYLLADB_PREPARED_STATEMENT:
       stmt = cass_prepared_bind(statement->data.prepared.prepared);
       break;
+    case PHP_SCYLLADB_BATCH_STATEMENT:
     default:
       zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported statement type.");
       return nullptr;
@@ -389,7 +391,7 @@ static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency co
 
     if (Z_TYPE(batch_statement_entry->statement) == IS_STRING) {
       simple_statement.type = PHP_SCYLLADB_SIMPLE_STATEMENT;
-      simple_statement.data.simple.cql = Z_STRVAL(batch_statement_entry->statement);
+      simple_statement.data.simple.cql = Z_STR(batch_statement_entry->statement);
       simple_statement.idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
       statement = &simple_statement;
     } else {
@@ -438,9 +440,9 @@ static CassBatch* create_batch(php_scylladb_statement* batch, CassConsistency co
 
 static CassStatement* create_single(php_scylladb_statement* statement, HashTable* arguments,
                                     CassConsistency consistency, long serial_consistency,
-                                    int page_size, const char* paging_state_token,
-                                    size_t paging_state_token_size, CassRetryPolicy* retry_policy,
-                                    cass_int64_t timestamp, php_scylladb_tristate idempotent) {
+                                    int page_size, const zend_string* paging_state_token,
+                                    CassRetryPolicy* retry_policy, cass_int64_t timestamp,
+                                    php_scylladb_tristate idempotent) {
   CassError rc = CASS_OK;
   CassStatement* stmt = create_statement(statement, arguments);
   if (!stmt) return nullptr;
@@ -454,7 +456,8 @@ static CassStatement* create_single(php_scylladb_statement* statement, HashTable
   if (rc == CASS_OK && page_size >= 0) rc = cass_statement_set_paging_size(stmt, page_size);
 
   if (rc == CASS_OK && paging_state_token) {
-    rc = cass_statement_set_paging_state_token(stmt, paging_state_token, paging_state_token_size);
+    rc = cass_statement_set_paging_state_token(stmt, ZSTR_VAL(paging_state_token),
+                                               ZSTR_LEN(paging_state_token));
   }
 
   if (rc == CASS_OK && retry_policy) rc = cass_statement_set_retry_policy(stmt, retry_policy);
@@ -486,8 +489,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
   HashTable* arguments = nullptr;
   CassConsistency consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
   int page_size = -1;
-  char* paging_state_token = nullptr;
-  size_t paging_state_token_size = 0;
+  zend_string* paging_state_token = nullptr;
   zval* timeout = nullptr;
   long serial_consistency = -1;
   CassRetryPolicy* retry_policy = nullptr;
@@ -520,11 +522,11 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
     }
   }
 
-  self = PHP_SCYLLADB_GET_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
   if (Z_TYPE_P(statement) == IS_STRING) {
     simple_statement.type = PHP_SCYLLADB_SIMPLE_STATEMENT;
-    simple_statement.data.simple.cql = Z_STRVAL_P(statement);
+    simple_statement.data.simple.cql = Z_STR_P(statement);
     simple_statement.idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
     stmt = &simple_statement;
   } else if (Z_TYPE_P(statement) == IS_OBJECT &&
@@ -565,7 +567,6 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
 
     if (opts->paging_state_token) {
       paging_state_token = opts->paging_state_token;
-      paging_state_token_size = opts->paging_state_token_size;
     }
 
     if (!Z_ISUNDEF(opts->timeout)) timeout = &opts->timeout;
@@ -585,7 +586,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
     case PHP_SCYLLADB_SIMPLE_STATEMENT:
     case PHP_SCYLLADB_PREPARED_STATEMENT:
       single = create_single(stmt, arguments, consistency, serial_consistency, page_size,
-                             paging_state_token, paging_state_token_size, retry_policy, timestamp,
+                             paging_state_token, retry_policy, timestamp,
                              idempotent);
 
       if (!single) return;
@@ -648,7 +649,7 @@ ZEND_METHOD(Cassandra_DefaultSession, execute) {
       /* Transfer statement and result ownership to Rows for paging. */
       rows->statement = zend_register_resource(single, php_le_cass_statement());
       rows->result    = result;
-      ZVAL_COPY(&rows->session, getThis());
+      ZVAL_COPY(&rows->session, ZEND_THIS);
       single = nullptr;   /* ownership transferred via resource */
       return;
     }
@@ -670,8 +671,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
   HashTable* arguments = nullptr;
   CassConsistency consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
   int page_size = -1;
-  char* paging_state_token = nullptr;
-  size_t paging_state_token_size = 0;
+  zend_string* paging_state_token = nullptr;
   long serial_consistency = -1;
   CassRetryPolicy* retry_policy = nullptr;
   cass_int64_t timestamp = INT64_MIN;
@@ -703,11 +703,11 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
     }
   }
 
-  self = PHP_SCYLLADB_GET_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
   if (Z_TYPE_P(statement) == IS_STRING) {
     simple_statement.type = PHP_SCYLLADB_SIMPLE_STATEMENT;
-    simple_statement.data.simple.cql = Z_STRVAL_P(statement);
+    simple_statement.data.simple.cql = Z_STR_P(statement);
     simple_statement.idempotent = PHP_SCYLLADB_TRISTATE_UNSET;
     stmt = &simple_statement;
   } else if (Z_TYPE_P(statement) == IS_OBJECT &&
@@ -747,7 +747,6 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
 
     if (opts->paging_state_token) {
       paging_state_token = opts->paging_state_token;
-      paging_state_token_size = opts->paging_state_token_size;
     }
 
     if (opts->serial_consistency >= 0) serial_consistency = opts->serial_consistency;
@@ -768,7 +767,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
     case PHP_SCYLLADB_SIMPLE_STATEMENT:
     case PHP_SCYLLADB_PREPARED_STATEMENT:
       single = create_single(stmt, arguments, consistency, serial_consistency, page_size,
-                             paging_state_token, paging_state_token_size, retry_policy, timestamp,
+                             paging_state_token, retry_policy, timestamp,
                              idempotent);
 
       if (!single) return;
@@ -780,7 +779,7 @@ ZEND_METHOD(Cassandra_DefaultSession, executeAsync) {
 
       future_rows->statement = zend_register_resource(single, php_le_cass_statement());
       future_rows->future = cass_session_execute(self->session, single);
-      ZVAL_COPY(&future_rows->session, getThis());
+      ZVAL_COPY(&future_rows->session, ZEND_THIS);
       break;
     case PHP_SCYLLADB_BATCH_STATEMENT:
       batch = create_batch(stmt, consistency, retry_policy, timestamp, idempotent);
@@ -822,7 +821,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
     Z_PARAM_ZVAL_OR_NULL(options)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
   if (options) {
     if (Z_TYPE_P(options) != IS_ARRAY &&
@@ -849,7 +848,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
     cache_key = php_scylladb_cache_key_mix_ulong(php_scylladb_cache_key_init(), self->cache_key);
     cache_key = php_scylladb_cache_key_mix_bytes(cache_key, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
     cache_key = php_scylladb_cache_key_mix_cstr(cache_key, ":prepared_statement:");
-    cache_key = php_scylladb_cache_key_mix_cstr(cache_key, SAFE_STR(self->keyspace));
+    cache_key = php_scylladb_cache_key_mix_cstr(cache_key, SAFE_ZEND_STRING(self->keyspace));
 
     zval* le = zend_hash_index_find(&EG(persistent_list), cache_key);
     if (le != nullptr && Z_RES_P(le)->type == php_le_php_scylladb_prepared_statement()) {
@@ -907,7 +906,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepare) {
   if (cache_prepared) {
     zval resource;
     pprepared_statement =
-        (php_scylladb_pprepared_statement*)pecalloc(1, sizeof(php_scylladb_pprepared_statement), 1);
+        pecalloc(1, sizeof(php_scylladb_pprepared_statement), 1);
     /* No back-ref to the session: persistent_list cleanup is LIFO,
        so this entry is destroyed before the psession it depends on,
        and CassFuture holds an internal CassSession ref for safety. */
@@ -936,7 +935,7 @@ ZEND_METHOD(Cassandra_DefaultSession, prepareAsync) {
     Z_PARAM_ZVAL_OR_NULL(options)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
   future =
       cass_session_prepare_n(self->session, Z_STRVAL_P(cql), Z_STRLEN_P(cql));
@@ -957,7 +956,7 @@ ZEND_METHOD(Cassandra_DefaultSession, close) {
     Z_PARAM_ZVAL(timeout)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
   if (self->persist) return;
 
@@ -972,11 +971,9 @@ ZEND_METHOD(Cassandra_DefaultSession, closeAsync) {
   php_scylladb_session* self;
   php_scylladb_future_close* future = nullptr;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
   if (self->persist) {
     object_init_ex(return_value, php_scylladb_future_value_ce);
@@ -987,7 +984,7 @@ ZEND_METHOD(Cassandra_DefaultSession, closeAsync) {
   future = PHP_SCYLLADB_GET_FUTURE_CLOSE(return_value);
 
   future->future = cass_session_close(self->session);
-  ZVAL_COPY(&future->session, getThis());
+  ZVAL_COPY(&future->session, ZEND_THIS);
 }
 
 ZEND_METHOD(Cassandra_DefaultSession, metrics) {
@@ -995,40 +992,40 @@ ZEND_METHOD(Cassandra_DefaultSession, metrics) {
   zval requests;
   zval stats;
   zval errors;
-  auto self = PHP_SCYLLADB_GET_SESSION(getThis());
+  auto self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
-  if (zend_parse_parameters_none() == FAILURE) return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
   cass_session_get_metrics(self->session, &metrics);
 
   array_init(&requests);
-  add_assoc_long(&requests, "min", metrics.requests.min);
-  add_assoc_long(&requests, "max", metrics.requests.max);
-  add_assoc_long(&requests, "mean", metrics.requests.mean);
-  add_assoc_long(&requests, "stddev", metrics.requests.stddev);
-  add_assoc_long(&requests, "median", metrics.requests.median);
-  add_assoc_long(&requests, "p75", metrics.requests.percentile_75th);
-  add_assoc_long(&requests, "p95", metrics.requests.percentile_95th);
-  add_assoc_long(&requests, "p98", metrics.requests.percentile_98th);
-  add_assoc_long(&requests, "p99", metrics.requests.percentile_99th);
-  add_assoc_long(&requests, "p999", metrics.requests.percentile_999th);
+  add_assoc_long(&requests, "min", (zend_long)metrics.requests.min);
+  add_assoc_long(&requests, "max", (zend_long)metrics.requests.max);
+  add_assoc_long(&requests, "mean", (zend_long)metrics.requests.mean);
+  add_assoc_long(&requests, "stddev", (zend_long)metrics.requests.stddev);
+  add_assoc_long(&requests, "median", (zend_long)metrics.requests.median);
+  add_assoc_long(&requests, "p75", (zend_long)metrics.requests.percentile_75th);
+  add_assoc_long(&requests, "p95", (zend_long)metrics.requests.percentile_95th);
+  add_assoc_long(&requests, "p98", (zend_long)metrics.requests.percentile_98th);
+  add_assoc_long(&requests, "p99", (zend_long)metrics.requests.percentile_99th);
+  add_assoc_long(&requests, "p999", (zend_long)metrics.requests.percentile_999th);
   add_assoc_double(&requests, "mean_rate", metrics.requests.mean_rate);
   add_assoc_double(&requests, "m1_rate", metrics.requests.one_minute_rate);
   add_assoc_double(&requests, "m5_rate", metrics.requests.five_minute_rate);
   add_assoc_double(&requests, "m15_rate", metrics.requests.fifteen_minute_rate);
 
   array_init(&stats);
-  add_assoc_long(&stats, "total_connections", metrics.stats.total_connections);
-  add_assoc_long(&stats, "available_connections", metrics.stats.available_connections);
+  add_assoc_long(&stats, "total_connections", (zend_long)metrics.stats.total_connections);
+  add_assoc_long(&stats, "available_connections", (zend_long)metrics.stats.available_connections);
   add_assoc_long(&stats, "exceeded_pending_requests_water_mark",
-                 metrics.stats.exceeded_pending_requests_water_mark);
+                 (zend_long)metrics.stats.exceeded_pending_requests_water_mark);
   add_assoc_long(&stats, "exceeded_write_bytes_water_mark",
-                 metrics.stats.exceeded_write_bytes_water_mark);
+                 (zend_long)metrics.stats.exceeded_write_bytes_water_mark);
 
   array_init(&errors);
-  add_assoc_long(&errors, "connection_timeouts", metrics.errors.connection_timeouts);
-  add_assoc_long(&errors, "pending_request_timeouts", metrics.errors.pending_request_timeouts);
-  add_assoc_long(&errors, "request_timeouts", metrics.errors.request_timeouts);
+  add_assoc_long(&errors, "connection_timeouts", (zend_long)metrics.errors.connection_timeouts);
+  add_assoc_long(&errors, "pending_request_timeouts", (zend_long)metrics.errors.pending_request_timeouts);
+  add_assoc_long(&errors, "request_timeouts", (zend_long)metrics.errors.request_timeouts);
 
   array_init(return_value);
   add_assoc_zval(return_value, "stats", &stats);
@@ -1040,9 +1037,9 @@ ZEND_METHOD(Cassandra_DefaultSession, schema) {
   php_scylladb_session* self;
   php_scylladb_schema* schema;
 
-  if (zend_parse_parameters_none() == FAILURE) return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_SESSION(getThis());
+  self = PHP_SCYLLADB_GET_SESSION(ZEND_THIS);
 
   object_init_ex(return_value, php_scylladb_default_schema_ce);
   schema = PHP_SCYLLADB_GET_SCHEMA(return_value);
@@ -1057,11 +1054,21 @@ HashTable* php_scylladb_default_session_properties(zend_object* object) {
 }
 
 int php_scylladb_default_session_compare(zval* obj1, zval* obj2) {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
+HashTable *php_scylladb_default_session_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_session_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->default_timeout);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
+}
+
 
 void php_scylladb_default_session_free(zend_object* object) {
   auto self = php_scylladb_session_object_fetch(object);
@@ -1075,7 +1082,7 @@ void php_scylladb_default_session_free(zend_object* object) {
   zval_ptr_dtor(&self->default_timeout);
 
   if (self->keyspace) {
-    efree(self->keyspace);
+    zend_string_release(self->keyspace);
     self->keyspace = nullptr;
   }
 
@@ -1089,7 +1096,7 @@ zend_object* php_scylladb_default_session_new(zend_class_entry* ce) {
   self->session = nullptr;
   self->persist = cass_false;
   self->default_consistency = PHP_SCYLLADB_DEFAULT_CONSISTENCY;
-  self->default_page_size = 5000;
+  self->default_page_size = PHP_SCYLLADB_DEFAULT_PAGE_SIZE_N;
   self->keyspace = nullptr;
   self->cache_key = 0;
   ZVAL_UNDEF(&self->default_timeout);

@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 namespace Cassandra {
+    #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined aggregate metadata.', since: '1.6.0')]
     interface Aggregate {
         public function name(): string;
 

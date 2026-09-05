@@ -22,25 +22,24 @@
 extern zend_object_handlers php_scylladb_default_schema_handlers;
 ZEND_METHOD(Cassandra_DefaultSchema, keyspace)
 {
-  char *name;
-  size_t name_len;
+  zend_string *name = nullptr;
   php_scylladb_schema *self;
   php_scylladb_keyspace *keyspace;
   const CassKeyspaceMeta *meta;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_STR(name)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_SCHEMA(getThis());
-  meta = cass_schema_meta_keyspace_by_name_n(self->schema_meta, name, name_len);
+  self = PHP_SCYLLADB_GET_SCHEMA(ZEND_THIS);
+  meta = cass_schema_meta_keyspace_by_name_n(self->schema_meta, ZSTR_VAL(name), ZSTR_LEN(name));
   if (meta == nullptr) {
     RETURN_FALSE;
   }
 
   object_init_ex(return_value, php_scylladb_default_keyspace_ce);
   keyspace = PHP_SCYLLADB_GET_KEYSPACE(return_value);
-  ZVAL_COPY(&keyspace->schema, getThis());
+  ZVAL_COPY(&keyspace->schema, ZEND_THIS);
   keyspace->meta   = meta;
 }
 
@@ -49,10 +48,9 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
   php_scylladb_schema *self;
   CassIterator     *iterator;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self     = PHP_SCYLLADB_GET_SCHEMA(getThis());
+  self     = PHP_SCYLLADB_GET_SCHEMA(ZEND_THIS);
   iterator = cass_iterator_keyspaces_from_schema_meta(self->schema_meta);
 
   array_init(return_value);
@@ -74,7 +72,7 @@ ZEND_METHOD(Cassandra_DefaultSchema, keyspaces)
 
     object_init_ex(&zkeyspace, php_scylladb_default_keyspace_ce);
     keyspace = PHP_SCYLLADB_GET_KEYSPACE(&zkeyspace);
-    ZVAL_COPY(&keyspace->schema, getThis());
+    ZVAL_COPY(&keyspace->schema, ZEND_THIS);
     keyspace->meta   = meta;
     add_assoc_zval_ex(return_value, keyspace_name, keyspace_name_len, &zkeyspace);
   }
@@ -86,10 +84,9 @@ ZEND_METHOD(Cassandra_DefaultSchema, version)
 {
   php_scylladb_schema *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_SCHEMA(getThis());
+  self = PHP_SCYLLADB_GET_SCHEMA(ZEND_THIS);
   RETURN_LONG(cass_schema_meta_snapshot_version(self->schema_meta));
 }
 
@@ -104,7 +101,7 @@ php_scylladb_default_schema_properties(zend_object *object)
 int
 php_scylladb_default_schema_compare(zval *obj1, zval *obj2 )
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -133,7 +130,5 @@ php_scylladb_default_schema_new(zend_class_entry *ce )
 
   self->schema_meta = nullptr;
 
-  php_scylladb_default_schema_handlers.offset = offsetof(php_scylladb_schema, zendObject);
-  php_scylladb_default_schema_handlers.free_obj = php_scylladb_default_schema_free;
   return &self->zendObject;
 }

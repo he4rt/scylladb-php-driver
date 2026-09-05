@@ -77,11 +77,7 @@ HashTable *php_scylladb_cluster_builder_properties(zend_object *object)
     zval connectionHeartbeatInterval;
 
     auto self = php_scylladb_cluster_builder_object_fetch(object);
-    if (object->properties) {
-        zend_array_release(object->properties);
-    }
-    object->properties = zend_new_array(32);
-    HashTable *props = object->properties;
+    HashTable *props = php_scylladb_properties_rebuild(object, 32);
 
     ZVAL_STR_COPY(&contactPoints, self->contact_points);
 
@@ -452,17 +448,23 @@ zend_object *php_scylladb_cluster_builder_new(zend_class_entry *ce)
     php_scylladb_cluster_builder *self =
         PHP_SCYLLADB_OBJ_ALLOCATE(php_scylladb_cluster_builder, ce, &php_scylladb_cluster_builder_handlers);
 
-    const char *contact_points = PHP_SCYLLADB_G(contact_points);
-    if (contact_points == nullptr || *contact_points == '\0')
+    const zend_string *contact_points = PHP_SCYLLADB_G(contact_points);
+    if (contact_points == nullptr || ZSTR_LEN(contact_points) == 0)
     {
-        contact_points = PHP_SCYLLADB_DEFAULT_CONTACT_POINTS;
+        self->contact_points = zend_string_init(ZEND_STRL(PHP_SCYLLADB_DEFAULT_CONTACT_POINTS), 0);
+    }
+    else
+    {
+        self->contact_points = zend_string_init(ZSTR_VAL(contact_points), ZSTR_LEN(contact_points), 0);
     }
 
     /* Empty means "not set": the INI default is "" for each of these. */
-#define PHP_SCYLLADB_SEED_STR(field, ini)                                          \
-    do {                                                                           \
-        const char *v = PHP_SCYLLADB_G(ini);                                       \
-        self->field = (v != nullptr && *v != '\0') ? zend_string_init(v, strlen(v), 0) : nullptr; \
+#define PHP_SCYLLADB_SEED_STR(field, ini)                                                    \
+    do {                                                                                     \
+        const zend_string *v = PHP_SCYLLADB_G(ini);                                          \
+        self->field = (v != nullptr && ZSTR_LEN(v) > 0)                                      \
+                          ? zend_string_init(ZSTR_VAL(v), ZSTR_LEN(v), 0)                    \
+                          : nullptr;                                                         \
     } while (0)
 
     PHP_SCYLLADB_SEED_STR(local_dc, local_dc);
@@ -492,7 +494,7 @@ zend_object *php_scylladb_cluster_builder_new(zend_class_entry *ce)
 
     self->reconnect_policy =
         (PHP_SCYLLADB_G(reconnect_policy) != nullptr &&
-         strcasecmp(PHP_SCYLLADB_G(reconnect_policy), "exponential") == 0)
+         zend_string_equals_literal_ci(PHP_SCYLLADB_G(reconnect_policy), "exponential"))
             ? RECONNECT_POLICY_EXPONENTIAL
             : RECONNECT_POLICY_CONSTANT;
 
@@ -502,7 +504,6 @@ zend_object *php_scylladb_cluster_builder_new(zend_class_entry *ce)
     self->coalesce_delay = (int32_t)PHP_SCYLLADB_G(coalesce_delay);
     self->new_request_ratio = (int32_t)PHP_SCYLLADB_G(new_request_ratio);
 
-    self->contact_points = zend_string_init(contact_points, strlen(contact_points), 0);
     self->port = (uint16_t)PHP_SCYLLADB_G(port);
     self->used_hosts_per_remote_dc = 0;
     self->allow_remote_dcs_for_local_cl = cass_false;

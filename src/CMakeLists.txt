@@ -6,7 +6,6 @@ target_sources(src PRIVATE
         Blob.c
         Collection.c
         Core.c
-        Custom.c
         ExecutionOptions.c
         FuturePreparedStatement.c
         FutureRows.c
@@ -83,7 +82,7 @@ if (PHP_SCYLLADB_HAVE_POLL_API)
     message(STATUS "Io\\Poll integration: ON (Cassandra\\Async\\Poll, PollHandle)")
 endif ()
 
-php_scylladb_generate_arginfo(src
+set(_src_arginfo_stubs
         Async/Reactor.stub.php
         BatchStatement.stub.php
         Inet.stub.php
@@ -115,7 +114,7 @@ php_scylladb_generate_arginfo(src
         Type/Type.stub.php
 )
 
-php_scylladb_generate_descriptor(src
+set(_src_descriptor_stubs
         Async/Reactor.stub.php
         Type/Type.stub.php
         Value.stub.php
@@ -144,3 +143,11 @@ php_scylladb_generate_descriptor(src
         BatchStatement.stub.php
         ExecutionOptions.stub.php
 )
+
+if (PHP_SCYLLADB_ENABLE_CUSTOM_TYPE)
+    list(APPEND _src_arginfo_stubs    Custom.stub.php)
+    list(APPEND _src_descriptor_stubs Custom.stub.php)
+endif ()
+
+php_scylladb_generate_arginfo(src ${_src_arginfo_stubs})
+php_scylladb_generate_descriptor(src ${_src_descriptor_stubs})

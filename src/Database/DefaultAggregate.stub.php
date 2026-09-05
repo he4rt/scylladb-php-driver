@@ -8,8 +8,11 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @not-serializable
- * @scylladb-struct php_scylladb_aggregate
- */    final class DefaultAggregate implements \Cassandra\Aggregate {
+     * @scylladb-struct php_scylladb_aggregate
+     * @deprecated
+     */
+    #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined aggregate metadata.', since: '1.6.0')]
+    final class DefaultAggregate implements \Cassandra\Aggregate {
         public function name(): string {}
 
         public function simpleName(): string {}

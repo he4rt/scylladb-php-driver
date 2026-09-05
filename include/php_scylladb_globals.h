@@ -1,5 +1,4 @@
-#ifndef PHP_SCYLLADB_GLOBALS_H
-#define PHP_SCYLLADB_GLOBALS_H
+#pragma once
 
 BEGIN_EXTERN_C()
 
@@ -30,7 +29,7 @@ ZEND_BEGIN_MODULE_GLOBALS(php_scylladb)
   /* Cluster\Builder seed values (INI-backed). Every one of these is mixed
    * into the persistent-cluster cache key, so all are PHP_INI_SYSTEM: a
    * per-request ini_set() would mint a new CassCluster on every request. */
-  char         *contact_points;
+  zend_string  *contact_points;
   zend_long     port;
   zend_long     connect_timeout;
   zend_long     request_timeout;
@@ -51,21 +50,21 @@ ZEND_BEGIN_MODULE_GLOBALS(php_scylladb)
   bool          randomized_contact_points;
 
   /* ScyllaDB rack-aware routing. A non-empty local_rack selects it. */
-  char         *local_dc;
-  char         *local_rack;
+  zend_string  *local_dc;
+  zend_string  *local_rack;
 
   /* Reported in the server's system.clients table. */
-  char         *application_name;
-  char         *application_version;
+  zend_string  *application_name;
+  zend_string  *application_version;
 
-  char         *reconnect_policy;
+  zend_string  *reconnect_policy;
   zend_long     reconnect_max_interval;
   zend_long     speculative_execution_delay;
   zend_long     speculative_execution_max;
   zend_long     coalesce_delay;
   zend_long     new_request_ratio;
 
-  char         *local_address;
+  zend_string  *local_address;
   zend_long     connection_idle_timeout;
   zend_long     max_schema_wait_time;
   zend_long     resolve_timeout;
@@ -107,5 +106,4 @@ ZEND_END_MODULE_GLOBALS(php_scylladb)
 ZEND_EXTERN_MODULE_GLOBALS(php_scylladb)
 END_EXTERN_C()
 
-#endif /* PHP_SCYLLADB_GLOBALS_H */
 

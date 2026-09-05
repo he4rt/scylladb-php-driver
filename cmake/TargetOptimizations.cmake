@@ -10,6 +10,91 @@ if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     check_c_compiler_flag(-mavx2 _PHP_SCYLLADB_CC_SUPPORTS_AVX2)
 endif ()
 
+set(_PHP_SCYLLADB_WARNINGS
+        -Wall
+        -Wextra
+        -Wno-long-long
+        -Wno-deprecated-declarations
+        -Wno-unused-parameter
+        -Wno-unused-result
+        -Wno-variadic-macros
+        -Wno-format
+        $<$<C_COMPILER_ID:GNU>:-Wshadow=local>
+        $<$<NOT:$<C_COMPILER_ID:GNU>>:-Wshadow>
+        -Wpointer-arith
+        -Wwrite-strings
+        -Wundef
+        -Wvla
+        -Wredundant-decls
+        -Winit-self
+        -Wimplicit-fallthrough
+        -Walloca
+        -Wdate-time
+        -Wnull-dereference
+        -Wmissing-include-dirs
+        -Wstrict-aliasing=2
+        -Wcast-qual
+        -Wswitch-default
+        -Wswitch-enum
+        -Wfloat-equal
+        -Wdouble-promotion
+        -Wunreachable-code
+        -Wconversion
+        -Wsign-conversion
+        -Wpedantic
+        $<$<COMPILE_LANGUAGE:C>:-Wstrict-prototypes>
+        $<$<COMPILE_LANGUAGE:C>:-Wold-style-definition>
+        $<$<COMPILE_LANGUAGE:C>:-Wnested-externs>
+        $<$<COMPILE_LANGUAGE:C>:-Wjump-misses-init>
+        $<$<COMPILE_LANGUAGE:C>:-Wbad-function-cast>
+        $<$<C_COMPILER_ID:Clang,AppleClang>:-Wformat=2>
+        $<$<C_COMPILER_ID:Clang,AppleClang>:-Wnewline-eof>
+        $<$<C_COMPILER_ID:Clang,AppleClang>:-Wconditional-uninitialized>
+        $<$<C_COMPILER_ID:Clang,AppleClang>:-Wextra-semi-stmt>
+        $<$<C_COMPILER_ID:Clang,AppleClang>:-Wunreachable-code-return>
+        $<$<C_COMPILER_ID:Clang,AppleClang>:-Wtautological-type-limit-compare>
+)
+
+set(_PHP_SCYLLADB_PROBED_WARNINGS
+        -Wduplicated-cond
+        -Wduplicated-branches
+        -Wlogical-op
+        -Wtrampolines
+        -Walloc-zero
+        -Wuse-after-free=3
+        -Wdangling-pointer=2
+        -Wflex-array-member-not-at-end
+)
+
+set(_PHP_SCYLLADB_PROBED_HARDENING
+        -fstack-protector-strong
+        -fstack-clash-protection
+        -fcf-protection=full
+        -fno-delete-null-pointer-checks
+)
+
+function(_php_scylladb_probe_flags out_var)
+    set(_supported "")
+    set(CMAKE_REQUIRED_FLAGS "-Werror")
+    foreach (_flag IN LISTS ARGN)
+        string(MAKE_C_IDENTIFIER "_PHP_SCYLLADB_CC_HAS_${_flag}" _cache_var)
+        check_c_compiler_flag("${_flag}" ${_cache_var})
+        if (${_cache_var})
+            list(APPEND _supported "${_flag}")
+        endif ()
+    endforeach ()
+    set(${out_var} "${_supported}" PARENT_SCOPE)
+endfunction()
+
+_php_scylladb_probe_flags(_PHP_SCYLLADB_WARNINGS_PROBED ${_PHP_SCYLLADB_PROBED_WARNINGS})
+_php_scylladb_probe_flags(_PHP_SCYLLADB_HARDENING_PROBED ${_PHP_SCYLLADB_PROBED_HARDENING})
+
+if (NOT APPLE)
+    set(CMAKE_REQUIRED_FLAGS "-Werror -O2")
+    check_c_compiler_flag("-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3" _PHP_SCYLLADB_CC_HAS_FORTIFY_SOURCE_3)
+    unset(CMAKE_REQUIRED_FLAGS)
+endif ()
+
 check_ipo_supported(RESULT _PHP_SCYLLADB_LTO_SUPPORTED OUTPUT _PHP_SCYLLADB_LTO_MSG)
 if (NOT _PHP_SCYLLADB_LTO_SUPPORTED)
     message(STATUS "LTO not available: ${_PHP_SCYLLADB_LTO_MSG}")
@@ -53,17 +138,25 @@ function(scylladb_php_library target)
 
     # ── Compiler warnings ─────────────────────────────────────────────────────
     target_compile_options(${target} PRIVATE
-            -Wall
-            -Wextra
-            -Wno-long-long
-            -Wno-deprecated-declarations
-            -Wno-unused-parameter
-            -Wno-unused-result
-            -Wno-variadic-macros
-            -Wno-format
+            ${_PHP_SCYLLADB_WARNINGS}
+            ${_PHP_SCYLLADB_WARNINGS_PROBED}
             # -pthread is a no-op on macOS (pthreads always linked); Linux needs it
             $<$<NOT:$<PLATFORM_ID:Darwin>>:-pthread>
     )
+
+    if (PHP_SCYLLADB_WERROR)
+        target_compile_options(${target} PRIVATE -Werror)
+    endif ()
+
+    if (PHP_SCYLLADB_HARDENING)
+        target_compile_options(${target} PRIVATE ${_PHP_SCYLLADB_HARDENING_PROBED})
+
+        if (_PHP_SCYLLADB_CC_HAS_FORTIFY_SOURCE_3)
+            target_compile_options(${target} PRIVATE
+                    $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:-U_FORTIFY_SOURCE;-D_FORTIFY_SOURCE=3>
+            )
+        endif ()
+    endif ()
 
     # ── Build-type flags via generator expressions (multi-config safe) ────────
     target_compile_options(${target} PRIVATE
@@ -104,9 +197,34 @@ function(scylladb_php_library target)
 
     # ── Sanitizers ────────────────────────────────────────────────────────────
     if (ENABLE_SANITIZERS)
-        target_compile_options(${target} PRIVATE -fno-inline -fno-omit-frame-pointer)
-        add_sanitize_undefined(${target})
-        add_sanitize_address(${target})
+        set(_sanitizer_flags
+                -fno-inline
+                -fno-omit-frame-pointer
+                -fno-optimize-sibling-calls
+        )
+
+        if (SANITIZE_ADDRESS)
+            list(APPEND _sanitizer_flags -fsanitize=address -fsanitize-address-use-after-scope)
+        endif ()
+
+        if (SANITIZE_UNDEFINED)
+            list(APPEND _sanitizer_flags
+                    -fsanitize=undefined
+                    -fsanitize=float-divide-by-zero
+                    -fno-sanitize-recover=undefined
+            )
+        endif ()
+
+        if (SANITIZE_THREAD)
+            list(APPEND _sanitizer_flags -fsanitize=thread)
+        endif ()
+
+        if (SANITIZE_MEMORY)
+            list(APPEND _sanitizer_flags -fsanitize=memory -fsanitize-memory-track-origins=2)
+        endif ()
+
+        target_compile_options(${target} PRIVATE ${_sanitizer_flags})
+        target_link_options(${target} PRIVATE ${_sanitizer_flags})
     endif ()
 
     # ── LTO ───────────────────────────────────────────────────────────────────

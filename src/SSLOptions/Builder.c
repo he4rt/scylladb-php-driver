@@ -27,7 +27,8 @@ static zend_result file_get_contents(const zend_string *path, zend_string** out_
       php_stream_open_wrapper(ZSTR_VAL(path), "rb", USE_PATH | REPORT_ERRORS, nullptr);
   if (!stream) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
-                            "The path '%s' doesn't exist or is not readable", ZSTR_VAL(path));
+                            "The path '%.*s' doesn't exist or is not readable", (int)ZSTR_LEN(path),
+                            ZSTR_VAL(path));
     return FAILURE;
   }
 
@@ -53,7 +54,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
   if (ssl == nullptr) {
     zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0,
                             "Failed to initialize Cassandra\\SSLOptions");
-    return;
+    RETURN_THROWS();
   }
 
   const php_scylladb_ssl_builder *builder = Z_SCYLLADB_SSL_BUILDER_P(ZEND_THIS);
@@ -72,7 +73,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
 
       if (rc != CASS_OK) {
         zend_throw_exception_ex(exception_class(rc), rc, "%s", cass_error_desc(rc));
-        return;
+        RETURN_THROWS();
       }
     }
   }
@@ -87,7 +88,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
     zend_string_release(str);
     if (rc != CASS_OK) {
       zend_throw_exception_ex(exception_class(rc), rc, "%s", cass_error_desc(rc));
-      return;
+      RETURN_THROWS();
     }
   }
 
@@ -112,7 +113,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, build) {
 
 ZEND_METHOD(Cassandra_SSLOptions_Builder, withTrustedCerts) {
   zval *args = nullptr;
-  int argc = 0;
+  uint32_t argc = 0;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, -1)
@@ -120,9 +121,9 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withTrustedCerts) {
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
-  zend_string **certs = (zend_string **)ecalloc(argc, sizeof(zend_string *));
+  zend_string **certs = ecalloc(argc, sizeof(zend_string *));
 
-  for (int i = 0; i < argc; i++) {
+  for (uint32_t i = 0; i < argc; i++) {
     const zval *path = &args[i];
 
     if (Z_TYPE_P(path) != IS_STRING) {
@@ -154,14 +155,14 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withTrustedCerts) {
     efree(builder->trusted_certs);
   }
 
-  builder->trusted_certs_cnt = argc;
+  builder->trusted_certs_cnt = (size_t)argc;
   builder->trusted_certs = certs;
 
-  RETURN_ZVAL(getThis(), 1, 0);
+  RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_SSLOptions_Builder, withVerifyFlags) {
-  zend_long flags;
+  zend_long flags = 0;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -171,7 +172,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withVerifyFlags) {
 
   Z_SCYLLADB_SSL_BUILDER_P(ZEND_THIS)->flags = flags;
 
-  RETURN_ZVAL(getThis(), 1, 0);
+  RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_SSLOptions_Builder, withClientCert) {
@@ -190,7 +191,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withClientCert) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                             "The path '%s' doesn't exist or is not readable",
                             ZSTR_VAL(client_cert));
-    return;
+    RETURN_THROWS();
   }
 
   auto builder = Z_SCYLLADB_SSL_BUILDER_P(ZEND_THIS);
@@ -201,7 +202,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withClientCert) {
 
   builder->client_cert = zend_string_copy(client_cert);
 
-  RETURN_ZVAL(getThis(), 1, 0);
+  RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_SSLOptions_Builder, withPrivateKey) {
@@ -211,7 +212,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withPrivateKey) {
   ZEND_PARSE_PARAMETERS_START(1, 2)
     Z_PARAM_STR(private_key)
     Z_PARAM_OPTIONAL
-    Z_PARAM_STR(passphrase)
+    Z_PARAM_STR_OR_NULL(passphrase)
   ZEND_PARSE_PARAMETERS_END();
   // clang-format on
 
@@ -222,7 +223,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withPrivateKey) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
                             "The path '%s' doesn't exist or is not readable",
                             ZSTR_VAL(private_key));
-    return;
+    RETURN_THROWS();
   }
 
   php_scylladb_ssl_builder *builder = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_ssl_builder, Z_OBJ_P(ZEND_THIS));
@@ -242,7 +243,7 @@ ZEND_METHOD(Cassandra_SSLOptions_Builder, withPrivateKey) {
     builder->passphrase = zend_string_copy(passphrase);
   }
 
-  RETURN_ZVAL(getThis(), 1, 0);
+  RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 HashTable *php_scylladb_ssl_options_builder_properties(zend_object *object) {
@@ -252,7 +253,7 @@ HashTable *php_scylladb_ssl_options_builder_properties(zend_object *object) {
 }
 
 int php_scylladb_ssl_options_builder_compare(zval *obj1, zval *obj2) {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 

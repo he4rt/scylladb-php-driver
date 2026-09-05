@@ -49,9 +49,9 @@ php_scylladb_value_hash(zval* zvalue)
   case IS_FALSE:
     return 0;
   case IS_STRING:
-    return zend_inline_hash_func(Z_STRVAL_P(zvalue), Z_STRLEN_P(zvalue));
+    return (uint32_t)zend_inline_hash_func(Z_STRVAL_P(zvalue), Z_STRLEN_P(zvalue));
   case IS_OBJECT:
-    return ((php_scylladb_value_handlers*) Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue);
+    return ((const php_scylladb_value_handlers *)Z_OBJ_P(zvalue)->handlers)->hash_value(zvalue);
   default:
     return 0;
   }
@@ -121,7 +121,7 @@ uint32_t
 php_scylladb_mpz_hash(uint32_t seed, mpz_t n)
 {
   mp_size_t i;
-  mp_size_t size = mpz_size(n);
+  mp_size_t size = (mp_size_t)mpz_size(n);
   unsigned hashv = seed;
 #if GMP_LIMB_BITS == 32
   for (i = 0; i < size; ++i) {
@@ -129,7 +129,7 @@ php_scylladb_mpz_hash(uint32_t seed, mpz_t n)
   }
 #elif GMP_LIMB_BITS == 64
   for (i = 0; i < size; ++i) {
-    hashv = php_scylladb_combine_hash(hashv, php_scylladb_bigint_hash(mpz_getlimbn(n, i)));
+    hashv = php_scylladb_combine_hash(hashv, php_scylladb_bigint_hash((cass_int64_t)mpz_getlimbn(n, i)));
   }
 #else
 #error "Unexpected GMP limb bits size"

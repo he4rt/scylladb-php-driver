@@ -452,3 +452,43 @@ it('throws on underflow (too small)', function (string $class, $value) {
             );
     }
 })->with('lowOverflowValues');
+
+describe('numeric string parsing', function () {
+    $integerClasses = [
+        \Cassandra\Bigint::class,
+        \Cassandra\Varint::class,
+        \Cassandra\Smallint::class,
+        \Cassandra\Tinyint::class,
+    ];
+
+    it('rejects a sign that a second parse pass would consume', function (string $class, string $value) {
+        expect(fn () => new $class($value))
+            ->toThrow(InvalidArgumentException::class, "Invalid integer value: '" . $value . "'");
+    })->with(function () use ($integerClasses) {
+        foreach ($integerClasses as $class) {
+            foreach (['- 3', '--3', '-+3', '+-3', '+ 3'] as $value) {
+                yield [$class, $value];
+            }
+        }
+    });
+
+    it('rejects a value that stops at an embedded NUL byte', function (string $class) {
+        expect(fn () => new $class("3\0junk"))->toThrow(InvalidArgumentException::class);
+    })->with($integerClasses);
+
+    it('keeps accepting leading whitespace before the sign', function (string $class) {
+        expect((string) new $class(' -3'))->toBe('-3')
+            ->and((string) new $class("\t5"))->toBe('5');
+    })->with($integerClasses);
+
+    it('keeps accepting the bases the driver documents', function () {
+        expect((string) new \Cassandra\Bigint('0x1f'))->toBe('31')
+            ->and((string) new \Cassandra\Bigint('-0b101'))->toBe('-5')
+            ->and((string) new \Cassandra\Bigint('+3'))->toBe('3');
+    });
+
+    it('names the NUL byte instead of echoing a value the message would truncate', function () {
+        expect(fn () => new \Cassandra\Bigint("12\0abc"))
+            ->toThrow(InvalidArgumentException::class, 'Value of 6 bytes contains a NUL byte at offset 2');
+    });
+});

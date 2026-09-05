@@ -29,8 +29,7 @@ extern zend_object_handlers php_scylladb_default_cluster_handlers;
 
 ZEND_METHOD(Cassandra_DefaultCluster, connect)
 {
-    char *keyspace = nullptr;
-    size_t keyspace_len;
+    zend_string *keyspace = nullptr;
     zval *timeout = nullptr;
     php_scylladb_cluster *self;
     php_scylladb_session *session;
@@ -40,25 +39,25 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
     ZEND_PARSE_PARAMETERS_START(0, 2)
         Z_PARAM_OPTIONAL
-        Z_PARAM_STRING(keyspace, keyspace_len)
+        Z_PARAM_STR_OR_NULL(keyspace)
         Z_PARAM_ZVAL(timeout)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_SCYLLADB_GET_CLUSTER(getThis());
+    self = PHP_SCYLLADB_GET_CLUSTER(ZEND_THIS);
 
     object_init_ex(return_value, php_scylladb_default_session_ce);
     session = PHP_SCYLLADB_GET_SESSION(return_value);
 
     session->default_consistency = self->default_consistency;
-    session->default_page_size = self->default_page_size;
+    session->default_page_size = (int)self->default_page_size;
     session->persist = self->persist;
     /* Derive the session cache_key from the parent cluster + keyspace.
        Carrying just a uint64_t avoids string lifetime concerns when the
        cluster is dropped before this session. */
     session->cache_key = self->cache_key;
-    session->keyspace = keyspace ? estrndup(keyspace, keyspace_len) : nullptr;
+    session->keyspace = keyspace ? zend_string_copy(keyspace) : nullptr;
 
-    if (!Z_ISUNDEF(session->default_timeout))
+    if (!Z_ISUNDEF(self->default_timeout))
     {
         ZVAL_COPY(&session->default_timeout, &self->default_timeout);
     }
@@ -69,7 +68,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
            string. No allocation per call, even on cache hit. */
         cache_key = php_scylladb_cache_key_mix_ulong(php_scylladb_cache_key_init(), self->cache_key);
         cache_key = php_scylladb_cache_key_mix_cstr(cache_key, ":session:");
-        cache_key = php_scylladb_cache_key_mix_cstr(cache_key, SAFE_STR(keyspace));
+        cache_key = php_scylladb_cache_key_mix_cstr(cache_key, SAFE_ZEND_STRING(keyspace));
         session->cache_key = cache_key;
 
         zval *le = zend_hash_index_find(&EG(persistent_list), cache_key);
@@ -96,7 +95,8 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
         if (keyspace)
         {
-            future = cass_session_connect_keyspace(session->session, self->cluster, keyspace);
+            future = cass_session_connect_keyspace_n(session->session, self->cluster,
+                                                     ZSTR_VAL(keyspace), ZSTR_LEN(keyspace));
         }
         else
         {
@@ -105,7 +105,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
         if (session->persist)
         {
-            psession = (php_scylladb_psession *)pecalloc(1, sizeof(php_scylladb_psession), 1);
+            psession = pecalloc(1, sizeof(php_scylladb_psession), 1);
             psession->session = session->session;   /* psession becomes the owner */
             psession->future = future;
 
@@ -153,31 +153,38 @@ ZEND_METHOD(Cassandra_DefaultCluster, connect)
 
 ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
 {
-    char *keyspace = nullptr;
-    size_t keyspace_len;
+    zend_string *keyspace = nullptr;
     php_scylladb_cluster *self = nullptr;
     php_scylladb_future_session *future = nullptr;
 
     ZEND_PARSE_PARAMETERS_START(0, 1)
         Z_PARAM_OPTIONAL
-        Z_PARAM_STRING(keyspace, keyspace_len)
+        Z_PARAM_STR_OR_NULL(keyspace)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_SCYLLADB_GET_CLUSTER(getThis());
+    self = PHP_SCYLLADB_GET_CLUSTER(ZEND_THIS);
 
     object_init_ex(return_value, php_scylladb_future_session_ce);
     future = PHP_SCYLLADB_GET_FUTURE_SESSION(return_value);
 
+    future->default_consistency = self->default_consistency;
+    future->default_page_size = (int)self->default_page_size;
     future->persist = self->persist;
+    future->cache_key = self->cache_key;
+    future->session_keyspace = keyspace ? zend_string_copy(keyspace) : nullptr;
+
+    if (!Z_ISUNDEF(self->default_timeout))
+    {
+        ZVAL_COPY(&future->default_timeout, &self->default_timeout);
+    }
 
     if (self->persist)
     {
-        future->session_keyspace = keyspace ? estrndup(keyspace, keyspace_len) : nullptr;
         /* Same cache_key derivation as the sync connect path so a cache
            entry created via either API is found by both. */
         future->cache_key = php_scylladb_cache_key_mix_ulong(php_scylladb_cache_key_init(), self->cache_key);
         future->cache_key = php_scylladb_cache_key_mix_cstr(future->cache_key, ":session:");
-        future->cache_key = php_scylladb_cache_key_mix_cstr(future->cache_key, SAFE_STR(keyspace));
+        future->cache_key = php_scylladb_cache_key_mix_cstr(future->cache_key, SAFE_ZEND_STRING(keyspace));
 
         zval *le = zend_hash_index_find(&EG(persistent_list), future->cache_key);
         if (le != nullptr && Z_RES_P(le)->type == php_le_php_scylladb_session())
@@ -198,7 +205,8 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
 
     if (keyspace)
     {
-        future->future = cass_session_connect_keyspace(future->session, self->cluster, keyspace);
+        future->future = cass_session_connect_keyspace_n(future->session, self->cluster,
+                                                         ZSTR_VAL(keyspace), ZSTR_LEN(keyspace));
     }
     else
     {
@@ -208,7 +216,7 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
     if (future->persist)
     {
         zval resource;
-        php_scylladb_psession *psession = (php_scylladb_psession *)pecalloc(1, sizeof(php_scylladb_psession), 1);
+        php_scylladb_psession *psession = pecalloc(1, sizeof(php_scylladb_psession), 1);
         psession->session = future->session;   /* psession becomes the owner */
         psession->future = future->future;
 
@@ -216,4 +224,14 @@ ZEND_METHOD(Cassandra_DefaultCluster, connectAsync)
         (void)zend_hash_index_update(&EG(persistent_list), future->cache_key, &resource);
         PHP_SCYLLADB_G(persistent_sessions)++;
     }
+}
+
+HashTable *php_scylladb_default_cluster_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_cluster_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->default_timeout);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
 }

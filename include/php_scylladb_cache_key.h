@@ -58,7 +58,7 @@ static zend_always_inline zend_ulong php_scylladb_cache_key_mix_long(zend_ulong 
 }
 
 [[gnu::pure]]
-static zend_always_inline zend_ulong php_scylladb_cache_key_mix_int(zend_ulong h, int v) {
+static zend_always_inline zend_ulong php_scylladb_cache_key_mix_int(zend_ulong h, int64_t v) {
     return php_scylladb_cache_key_mix_bytes(h, &v, sizeof(v));
 }
 

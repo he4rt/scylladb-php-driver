@@ -135,8 +135,8 @@ ZEND_DLEXPORT zend_module_entry *get_module(void) { return &php_scylladb_module_
   STD_PHP_INI_ENTRY(PHP_SCYLLADB_NAME "." name, dflt, PHP_INI_SYSTEM, handler,   \
                     field, zend_php_scylladb_globals, php_scylladb_globals)
 
-#define PHP_SCYLLADB_INI_STR(name, dflt, field)                                       \
-  STD_PHP_INI_ENTRY(PHP_SCYLLADB_NAME "." name, dflt, PHP_INI_SYSTEM, OnUpdateString, \
+#define PHP_SCYLLADB_INI_STR(name, dflt, field)                                    \
+  STD_PHP_INI_ENTRY(PHP_SCYLLADB_NAME "." name, dflt, PHP_INI_SYSTEM, OnUpdateStr,  \
                     field, zend_php_scylladb_globals, php_scylladb_globals)
 
 /* Every entry here is PHP_INI_SYSTEM by design, not by oversight. The builder
@@ -164,7 +164,7 @@ PHP_INI_BEGIN()
 
   /* Cluster\Builder seeds. Each with*() method still overrides its seed. */
   STD_PHP_INI_ENTRY(PHP_SCYLLADB_NAME ".contact_points", PHP_SCYLLADB_DEFAULT_CONTACT_POINTS,
-                    PHP_INI_SYSTEM, OnUpdateString, contact_points, zend_php_scylladb_globals,
+                    PHP_INI_SYSTEM, OnUpdateStr, contact_points, zend_php_scylladb_globals,
                     php_scylladb_globals)
   PHP_SCYLLADB_INI_LONG("port", PHP_SCYLLADB_DEFAULT_PORT, OnUpdatePort, port)
   PHP_SCYLLADB_INI_LONG("connect_timeout", PHP_SCYLLADB_DEFAULT_CONNECT_TIMEOUT, OnUpdatePositiveLong,
@@ -360,6 +360,8 @@ static int php_scylladb_syslog_priority(CassLogLevel severity) {
     case CASS_LOG_DEBUG:
     case CASS_LOG_TRACE:
       return LOG_DEBUG;
+    case CASS_LOG_DISABLED:
+    case CASS_LOG_LAST_ENTRY:
     default:
       return LOG_NOTICE;
   }
@@ -379,7 +381,7 @@ static void php_scylladb_log(const CassLogMessage *message, void *data) {
   pthread_rwlock_rdlock(&log_lock);
   target = log_target;
   if (log_location) {
-    log_length = MIN(strlen(log_location), MAXPATHLEN);
+    log_length = (uint)MIN(strlen(log_location), MAXPATHLEN);
     memcpy(log, log_location, log_length);
   }
   pthread_rwlock_unlock(&log_lock);
@@ -407,7 +409,7 @@ static void php_scylladb_log(const CassLogMessage *message, void *data) {
       localtime_r(&log_time, &log_tm);
       strftime(log_time_str, sizeof(log_time_str), "%d-%m-%Y %H:%M:%S %Z", &log_tm);
 
-      needed = snprintf(nullptr, 0, "%s [%s] %s (%s:%d)\n", log_time_str,
+      needed = (size_t)snprintf(nullptr, 0, "%s [%s] %s (%s:%d)\n", log_time_str,
                         cass_log_level_string(message->severity), message->message, message->file,
                         message->line);
 
@@ -499,6 +501,25 @@ zend_class_entry *exception_class(CassError rc) {
       return php_scylladb_already_exists_exception_ce;
     case CASS_ERROR_SERVER_UNPREPARED:
       return php_scylladb_unprepared_exception_ce;
+    case CASS_ERROR_LIB_NO_PAGING_STATE:
+    case CASS_ERROR_LIB_PARAMETER_UNSET:
+    case CASS_OK:
+    case CASS_ERROR_LIB_INTERNAL_ERROR:
+    case CASS_ERROR_LIB_INVALID_ERROR_RESULT_TYPE:
+    case CASS_ERROR_LIB_INVALID_FUTURE_TYPE:
+    case CASS_ERROR_LIB_INVALID_CUSTOM_TYPE:
+    case CASS_ERROR_LIB_INVALID_DATA:
+    case CASS_ERROR_LIB_NOT_ENOUGH_DATA:
+    case CASS_ERROR_LIB_EXECUTION_PROFILE_INVALID:
+    case CASS_ERROR_LIB_INVALID_STATE:
+    case CASS_ERROR_LIB_NO_CUSTOM_PAYLOAD:
+    case CASS_ERROR_LIB_NO_TRACING_ID:
+    case CASS_ERROR_SERVER_FUNCTION_FAILURE:
+    case CASS_ERROR_SERVER_READ_FAILURE:
+    case CASS_ERROR_SERVER_WRITE_FAILURE:
+    case CASS_ERROR_SSL_CLOSED:
+    case CASS_ERROR_SSL_PROTOCOL_ERROR:
+    case CASS_ERROR_LAST_ENTRY:
     default:
       return php_scylladb_runtime_exception_ce;
   }
@@ -521,7 +542,8 @@ void throw_invalid_argument(const zval *object, const char *object_name, const c
     }
   } else if (Z_TYPE_P(object) == IS_STRING) {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
-                            "%s must be %s, %Z given", object_name, expected_type, object);
+                            "%s must be %s, '%.*s' given", object_name, expected_type,
+                            (int)Z_STRLEN_P(object), Z_STRVAL_P(object));
   } else {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "%s must be %s, %Z given",
                             object_name, expected_type, object);

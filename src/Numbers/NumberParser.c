@@ -24,98 +24,117 @@
 
 #include "Numbers/NumberParser.h"
 
-static int
-prepare_string_conversion(const char* in, int* pos, int* negative)
+static bool
+prepare_string_conversion(const char* in, int in_len, int* pos, int* negative, int* base)
 {
-  int base  = 0;
   int point = 0;
 
-  /* Advance the pointer; ignore sign */
-  if (in[point] == '+') {
+  *negative = 0;
+  *base     = 0;
+  *pos      = 0;
+
+  if (in_len < 0 || (size_t) in_len != strlen(in)) {
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
+                            "Value of %d bytes contains a NUL byte at offset %zu", in_len,
+                            strlen(in));
+    return false;
+  }
+
+  while (point < in_len && isspace((unsigned char) in[point])) {
     point++;
-  } else if (in[point] == '-') {
+  }
+
+  if (point < in_len && (in[point] == '+' || in[point] == '-')) {
+    *negative = in[point] == '-';
     point++;
-    if (negative) {
-      *negative = 1;
-    }
   }
 
   /* Handle special case for binary e.g. "0b0100" */
-  if (in[point] == '0' && in[point + 1] == 'b') {
-    base = 2;
+  if (point + 1 < in_len && in[point] == '0' && in[point + 1] == 'b') {
+    *base = 2;
     point += 2; /* Skip over "0b" */
   }
 
-  /* Assign the position */
-  if (pos) {
-    *pos = point;
-  }
+  *pos = point;
 
-  return base;
+  return point < in_len && isdigit((unsigned char) in[point]);
 }
 
-int
-php_scylladb_parse_float(char* in, int in_len, cass_float_t* number )
+bool
+php_scylladb_parse_float(const zend_string* zstr, cass_float_t* number )
 {
+  const char* in = ZSTR_VAL(zstr);
+  const int in_len = (int)ZSTR_LEN(zstr);
   char* end;
   errno = 0;
 
   *number = (cass_float_t) strtof(in, &end);
 
   if (errno == ERANGE) {
-    zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 , "Value is too small or too big for float: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 , "Value is too small or too big for float: '%.*s'", in_len, in);
+    return false;
   }
 
   if (errno || end == in) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid float value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid float value: '%.*s'", in_len, in);
+    return false;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%.*s'", in_len, in);
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
-int
-php_scylladb_parse_double(char* in, int in_len, cass_double_t* number )
+bool
+php_scylladb_parse_double(const zend_string* zstr, cass_double_t* number )
 {
+  const char* in = ZSTR_VAL(zstr);
+  const int in_len = (int)ZSTR_LEN(zstr);
   char* end;
   errno = 0;
 
   *number = (cass_double_t) strtod(in, &end);
 
   if (errno == ERANGE) {
-    zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 , "Value is too small or too big for double: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 , "Value is too small or too big for double: '%.*s'", in_len, in);
+    return false;
   }
 
   if (errno || end == in) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid double value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid double value: '%.*s'", in_len, in);
+    return false;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%.*s'", in_len, in);
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
-int
-php_scylladb_parse_int(char* in, int in_len, cass_int32_t* number )
+bool
+php_scylladb_parse_int(const zend_string* zstr, cass_int32_t* number )
 {
+  const char* in = ZSTR_VAL(zstr);
+  const int in_len = (int)ZSTR_LEN(zstr);
   char* end          = nullptr;
   int pos            = 0;
   int negative       = 0;
   cass_uint32_t temp = 0;
   int base           = 0;
 
-  base  = prepare_string_conversion(in, &pos, &negative);
+  if (!prepare_string_conversion(in, in_len, &pos, &negative, &base)) {
+    if (!EG(exception)) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
+                              "Invalid integer value: '%.*s'", in_len, in);
+    }
+    return false;
+  }
+
   errno = 0;
   temp  = (cass_uint32_t) strtoul(in + pos, &end, base);
 
@@ -133,7 +152,7 @@ php_scylladb_parse_int(char* in, int in_len, cass_int32_t* number )
       errno   = ERANGE;
       *number = INT_MAX;
     } else {
-      *number = temp;
+      *number = (cass_int32_t) temp;
     }
   }
 
@@ -143,32 +162,41 @@ php_scylladb_parse_int(char* in, int in_len, cass_int32_t* number )
      * narrower "must be between ..." range error; throwing here would both
      * report the wrong (32-bit) bounds and clobber errno via the exception
      * machinery before the caller can inspect it. */
-    return 0;
+    return false;
   }
 
   if (errno || end == &in[pos]) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid integer value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid integer value: '%.*s'", in_len, in);
+    return false;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%.*s'", in_len, in);
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
-int
-php_scylladb_parse_bigint(char* in, int in_len, cass_int64_t* number )
+bool
+php_scylladb_parse_bigint(const zend_string* zstr, cass_int64_t* number )
 {
+  const char* in = ZSTR_VAL(zstr);
+  const int in_len = (int)ZSTR_LEN(zstr);
   char* end          = nullptr;
   int pos            = 0;
   int negative       = 0;
   cass_uint64_t temp = 0;
   int base           = 0;
 
-  base  = prepare_string_conversion(in, &pos, &negative);
+  if (!prepare_string_conversion(in, in_len, &pos, &negative, &base)) {
+    if (!EG(exception)) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
+                              "Invalid integer value: '%.*s'", in_len, in);
+    }
+    return false;
+  }
+
   errno = 0;
   temp  = (cass_uint64_t) strtoull(in + pos, &end, base);
 
@@ -186,52 +214,58 @@ php_scylladb_parse_bigint(char* in, int in_len, cass_int64_t* number )
       errno   = ERANGE;
       *number = INT64_MAX;
     } else {
-      *number = temp;
+      *number = (cass_int64_t) temp;
     }
   }
 
   if (errno == ERANGE) {
     zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 ,
                             "value must be between %" PRId64 " and %" PRId64 ", %s given", INT64_MIN, INT64_MAX, in);
-    return 0;
+    return false;
   }
 
   if (errno || end == &in[pos]) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid integer value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid integer value: '%.*s'", in_len, in);
+    return false;
   }
 
   if (end != &in[in_len]) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%s'", in);
-    return 0;
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid characters were found in value: '%.*s'", in_len, in);
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
-int
-php_scylladb_parse_varint(char* in, int in_len, mpz_t* number )
+bool
+php_scylladb_parse_varint(const zend_string* zstr, mpz_t* number )
 {
+  const char* in = ZSTR_VAL(zstr);
+  const int in_len = (int)ZSTR_LEN(zstr);
   int pos      = 0;
   int negative = 0;
   int base     = 0;
 
-  base = prepare_string_conversion(in, &pos, &negative);
-
-  if (mpz_set_str(*number, &in[pos], base) == -1) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Invalid integer value: '%s'", in);
-    return 0;
+  if (!prepare_string_conversion(in, in_len, &pos, &negative, &base) ||
+      mpz_set_str(*number, &in[pos], base) == -1) {
+    if (!EG(exception)) {
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
+                              "Invalid integer value: '%.*s'", in_len, in);
+    }
+    return false;
   }
 
   if (negative)
     mpz_neg(*number, *number);
 
-  return 1;
+  return true;
 }
 
-int
-php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
+bool
+php_scylladb_parse_decimal(const zend_string* zstr, mpz_t* number, long* scale )
 {
+  const char* in = ZSTR_VAL(zstr);
+  const int in_len = (int)ZSTR_LEN(zstr);
   /*  start is the index into the char array where the significand starts */
   int start = 0;
   /*
@@ -299,7 +333,7 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
   /* Hex or binary */
   if (maybe_octal && (in[point + 1] == 'b' || in[point + 1] == 'x')) {
     *scale = 0;
-    return php_scylladb_parse_varint(in, in_len, number );
+    return php_scylladb_parse_varint(zstr, number );
   }
 
   /*
@@ -312,8 +346,8 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
     if (c == '.') {
       /* If dot != -1 then we've seen more than one decimal point. */
       if (dot != -1) {
-        zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Multiple '.' (dots) in the number '%s'", in);
-        return 0;
+        zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Multiple '.' (dots) in the number '%.*s'", in_len, in);
+        return false;
       }
 
       dot = point;
@@ -327,7 +361,7 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
      */
     else if (!isxdigit(c)) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Unrecognized character '%c' at position %d", c, point);
-      return 0;
+      return false;
     }
 
     point++;
@@ -336,10 +370,10 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
   /* Octal number */
   if (maybe_octal && dot == -1) {
     *scale = 0;
-    return php_scylladb_parse_varint(in, in_len, number );
+    return php_scylladb_parse_varint(zstr, number );
   }
 
-  out = (char*) ecalloc((in_len + 1), sizeof(char));
+  out = ecalloc((size_t)(in_len + 1), sizeof(char));
 
   /* Prepend a negative sign if necessary. */
   if (negative)
@@ -350,8 +384,8 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
      * If there was a decimal we must combine the two parts that
      * contain only digits and we must set the scale properly.
      */
-    memcpy(&out[negative], &in[start], dot - start);
-    memcpy(&out[negative + dot - start], &in[dot + 1], point - dot - 1);
+    memcpy(&out[negative], &in[start], (size_t)(dot - start));
+    memcpy(&out[negative + dot - start], &in[dot + 1], (size_t)(point - dot - 1));
 
     out_len = point - start + negative - 1;
     *scale  = point - 1 - dot;
@@ -360,21 +394,22 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
      * If there was no decimal then the unscaled value is just the number
      * formed from all the digits and the scale is zero.
      */
-    memcpy(&out[negative], &in[start], point - start);
+    memcpy(&out[negative], &in[start], (size_t)(point - start));
     out_len = point - start + negative;
     *scale  = 0;
   }
 
   if (out_len == 0) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "No digits seen in value: '%s'", in);
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "No digits seen in value: '%.*s'", in_len, in);
     efree(out);
-    return 0;
+    return false;
   }
 
   if (mpz_set_str(*number, out, 10) == -1) {
-    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Unable to extract integer part of decimal value: '%s', %s", in, out);
+    zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Unable to extract integer part of decimal value: '%.*s', %s",
+                            in_len, in, out);
     efree(out);
-    return 0;
+    return false;
   }
 
   efree(out);
@@ -398,42 +433,43 @@ php_scylladb_parse_decimal(char* in, int in_len, mpz_t* number, long* scale )
      * or 'E'.
      */
     if (point >= in_len) {
-      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "No exponent following e or E in value: '%s'", in);
-      return 0;
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "No exponent following e or E in value: '%.*s'", in_len, in);
+      return false;
     }
 
     /* strtol() skips leading whitespace and stops at the first character it
        cannot use. Reject anything it would silently accept or leave behind, so
        "1e 2" and "1e2foo" fail instead of parsing as 1e2. */
     if (in[point] != '-' && !isdigit((unsigned char) in[point])) {
-      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%s'", in);
-      return 0;
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%.*s'", in_len, in);
+      return false;
     }
 
     errno = 0;
     diff = strtol(&in[point], &exponent_end, 10);
     if (exponent_end != &in[in_len] || errno == ERANGE) {
-      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%s'", in);
-      return 0;
+      zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0 , "Malformed exponent in value: '%.*s'", in_len, in);
+      return false;
     }
 
     *scale = *scale - diff;
   }
 
-  return 1;
+  return true;
 }
 
-void
-php_scylladb_format_integer(mpz_t number, char** out, int* out_len)
+zend_string*
+php_scylladb_format_integer(mpz_t number)
 {
   /* Adding 2 ensures enough space for the null-terminator and negative sign */
-  *out = (char*) emalloc(mpz_sizeinbase(number, 10) + 2);
-  mpz_get_str(*out, 10, number);
-  *out_len = strlen(*out);
+  zend_string* out = zend_string_alloc(mpz_sizeinbase(number, 10) + 2, 0);
+  mpz_get_str(ZSTR_VAL(out), 10, number);
+
+  return zend_string_truncate(out, strlen(ZSTR_VAL(out)), 0);
 }
 
-void
-php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
+zend_string*
+php_scylladb_format_decimal(mpz_t number, long scale)
 {
   char* tmp    = nullptr;
   size_t total = 0;
@@ -444,8 +480,7 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
   bool plain   = false;
 
   if (scale == 0) {
-    php_scylladb_format_integer(number, out, out_len);
-    return;
+    return php_scylladb_format_integer(number);
   }
 
   if (mpz_sgn(number) < 0)
@@ -454,12 +489,12 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
   // GMP needs mpz_sizeinbase() + 2 bytes for the digits, the sign and the terminator.
   // mpz_sizeinbase() can overshoot by one, so the exact length is only known after
   // the conversion; the buffer is grown to the final size below.
-  tmp = (char*) emalloc(mpz_sizeinbase(number, 10) + 2);
+  tmp = emalloc(mpz_sizeinbase(number, 10) + 2);
   mpz_get_str(tmp, 10, number);
 
   // Update len to be the true length of the string representation of |number|.
   // NOTE: the length of the string includes the negative sign (if present); account for that.
-  len = strlen(tmp) - negative;
+  len = strlen(tmp) - (size_t)negative;
 
   point = (long) len - scale;
 
@@ -474,7 +509,7 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
     // digits, sign, decimal point, then "E" and a signed long exponent.
     need = len + (size_t) negative + 24;
   }
-  tmp = (char*) erealloc(tmp, need);
+  tmp = erealloc(tmp, need);
 
   if (plain) {
     if (point <= 0) {
@@ -501,12 +536,12 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
         point++;
       }
 
-      total      = i + len;
+      total      = (size_t)i + len;
       tmp[total] = '\0';
     } else {
       // e.g. 1.2, -1.2
       /* absolute length + negative sign + point sign */
-      total = len + negative + 1;
+      total = len + (size_t)negative + 1;
 
       // Insert the decimal point at the right location in the string.
 
@@ -514,7 +549,7 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
       // number. Move it to the right if we have a negative number.
       point += negative;
 
-      memmove(&(tmp[point + 1]), &(tmp[point]), total - point);
+      memmove(&(tmp[point + 1]), &(tmp[point]), total - (size_t)point);
 
       tmp[point] = '.';
       tmp[total] = '\0';
@@ -533,8 +568,9 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
     if (len == 1) {
       // Simple case; tmp is already leading with our number as we want it. Append E(exp) to it
       // and we're done.
-      written = sprintf(&(tmp[1 + negative]), "E%+ld", exponent);
-      total   = (size_t) (1 + negative) + (size_t) written;
+      const size_t at = (size_t) 1 + (size_t) negative;
+      written         = snprintf(&(tmp[at]), need - at, "E%+ld", exponent);
+      total           = at + (size_t) written;
     } else {
       // We have a more complex number. Insert a decimal point after the first digit.
       int dot = negative ? 2 : 1;
@@ -542,17 +578,20 @@ php_scylladb_format_decimal(mpz_t number, long scale, char** out, int* out_len)
       tmp[dot] = '.';
 
       // Now append the exponent to the end and we're done.
-      written = sprintf(&(tmp[dot + len]), "E%+ld", exponent);
-      total   = (size_t) dot + len + (size_t) written;
+      const size_t at = (size_t) dot + len;
+      written         = snprintf(&(tmp[at]), need - at, "E%+ld", exponent);
+      total           = at + (size_t) written;
     }
   }
 
-  *out     = tmp;
-  *out_len = total;
+  zend_string* out = zend_string_init(tmp, total, 0);
+  efree(tmp);
+
+  return out;
 }
 
 void
-import_twos_complement(cass_byte_t* data, size_t size, mpz_t* number)
+import_twos_complement(const cass_byte_t* data, size_t size, mpz_t* number)
 {
   mpz_import(*number, size, 1, sizeof(cass_byte_t), 1, 0, data);
 
@@ -577,7 +616,7 @@ export_twos_complement(mpz_t number, size_t* size)
 
   if (mpz_sgn(number) == 0) {
     /* mpz_export() returns nullptr for 0 */
-    bytes  = (cass_byte_t*) malloc(sizeof(cass_byte_t));
+    bytes  = (cass_byte_t*) pemalloc(sizeof(cass_byte_t), 1);
     *bytes = 0;
     *size  = 1;
   } else if (mpz_sgn(number) == -1) {
@@ -622,7 +661,7 @@ export_twos_complement(mpz_t number, size_t* size)
 
     /* round to the nearest byte and add space for a leading 0 byte */
     *size    = (mpz_sizeinbase(number, 2) + 7) / 8 + 1;
-    bytes    = (cass_byte_t*) malloc(*size);
+    bytes    = (cass_byte_t*) pemalloc(*size, 1);
     bytes[0] = 0;
     mpz_export(bytes + 1, nullptr, 1, sizeof(cass_byte_t), 1, 0, number);
   }

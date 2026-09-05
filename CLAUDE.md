@@ -222,17 +222,19 @@ php ./vendor/bin/pest
 
 ## Modules Status
 
-| Module | Status | Notes |
-|--------|--------|-------|
-| `src/Cluster` | Refactored | Reference implementation |
-| `src/RetryPolicy` | Partial | Has stubs, handlers need C port |
-| `src/DateTime` | Partial | Has stubs |
-| `src/SSLOptions` | Partial | Has stubs |
-| `src/Database` | Legacy | No stubs, old arg-info style |
-| `src/Type` | Legacy | No stubs |
-| `src/Exception` | Legacy | Thin wrappers, low priority |
-| `src/Numbers` | Legacy | |
-| `src/TimestampGenerator` | Legacy | |
+Every module declares its classes in a `*.stub.php`. The build generates
+`*_arginfo.h` and `*_descriptor.c` from it, and the descriptor publishes the class
+entry, the object handlers and the registry entry. Three places sit outside that
+flow:
+
+| Place | Reason |
+|-------|--------|
+| `src/Exception/exceptions.c` | One stub declares 18 exception classes; the descriptor generator emits one class per stub |
+| `src/Async/PollHandle.c` | The object layout is php-src's `php_poll_handle_object`, so the generated `zendObject` offset does not fit |
+| `src/Registry/Registry.c` | Registration infrastructure, not a PHP class |
+
+Object handlers live beside the class implementation. Only `src/Cluster` splits
+them into a separate `*Handlers.c`.
 
 ## Claude Code Skills
 

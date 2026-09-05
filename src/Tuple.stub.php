@@ -8,8 +8,11 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
- * @scylladb-struct php_scylladb_tuple
- */    final class Tuple implements Value, \Countable, \Iterator
+     * @scylladb-struct php_scylladb_tuple
+     * @deprecated
+     */
+    #[\Deprecated(message: 'Use a PHP array.', since: '1.6.0')]
+    final class Tuple implements Value, \Countable, \Iterator
     {
         public function __construct(array $types) {}
 

@@ -17,6 +17,8 @@ on:
       - 'tests/**'
       - 'CMakeLists.txt'
       - 'composer.json'
+      - '.clang-tidy'
+      - '.clang-format'
       - '.github/workflows/test.yml'
       - '.github/actions/**'
   pull_request:
@@ -35,6 +37,8 @@ on:
       - 'tests/**'
       - 'CMakeLists.txt'
       - 'composer.json'
+      - '.clang-tidy'
+      - '.clang-format'
       - '.github/workflows/test.yml'
       - '.github/actions/**'
   workflow_dispatch:
@@ -152,6 +156,269 @@ jobs:
           set -e
           xargs -a changed.txt -r -n1 -P"$(nproc)" \
             clang-tidy -p out/DebugPHP8.5NTS --quiet
+
+  lint-warnings:
+    name: "Lint: -Werror build (${{ matrix.compiler }})"
+    runs-on: ubuntu-26.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - gcc
+          - clang
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y --no-install-recommends clang
+          fi
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: "8.5"
+          ini-file: development
+          coverage: none
+          tools: php-config, phpize
+          extensions: mbstring, curl, intl
+        env:
+          phpts: nts
+          debug: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: warnings-${{ runner.os }}-${{ matrix.compiler }}
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - uses: ./.github/actions/build-extension
+        env:
+          CC: ${{ matrix.compiler == 'clang' && 'clang' || 'gcc' }}
+          CXX: ${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
+        with:
+          driver: scylladb
+          cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
+          use_system_driver: ${{ matrix.compiler == 'clang' && 'ON' || 'OFF' }}
+          werror: 'ON'
+
+  lint-cppcheck:
+    name: "Lint: cppcheck"
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev cppcheck
+          cppcheck --version
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: "8.5"
+          ini-file: development
+          coverage: none
+          tools: php-config, phpize
+          extensions: mbstring, curl, intl
+        env:
+          phpts: nts
+          debug: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: cppcheck-${{ runner.os }}-8.5-nts
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - name: Configure and generate sources
+        run: |
+          export PKG_CONFIG_PATH="${{ steps.driver.outputs.pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
+          cmake --preset DebugPHP8.5NTS \
+            -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
+            -DENABLE_SANITIZERS=OFF \
+            -DSANITIZE_ADDRESS=OFF \
+            -DSANITIZE_UNDEFINED=OFF \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --build out/DebugPHP8.5NTS --target ZendCPP || true
+          cmake --build out/DebugPHP8.5NTS --target generated-sources
+
+      - name: Extension translation units only
+        run: |
+          python3 - <<'PY'
+          import json, os
+          root = os.path.join(os.getcwd(), "src") + os.sep
+          db = json.load(open("out/DebugPHP8.5NTS/compile_commands.json"))
+          ours = [e for e in db if e["file"].startswith(root)]
+          json.dump(ours, open("cppcheck-db.json", "w"))
+          print(f"{len(ours)} of {len(db)} translation units")
+          PY
+
+      - name: Run cppcheck
+        run: |
+          cppcheck --project=cppcheck-db.json \
+            --enable=warning,performance,portability,style \
+            --check-level=exhaustive \
+            --std=c23 \
+            --inline-suppr \
+            --quiet \
+            -j"$(nproc)" \
+            -DPHP_VERSION_ID=80500 \
+            --suppress=unknownMacro \
+            --suppress=preprocessorErrorDirective \
+            --suppress=missingIncludeSystem \
+            --suppress='*:*_arginfo.h' \
+            --suppress='*:*_descriptor.c' \
+            --error-exitcode=1
+
+  lint-gcc-analyzer:
+    name: "Lint: GCC static analyzer"
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev
+          gcc --version
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: "8.5"
+          ini-file: development
+          coverage: none
+          tools: php-config, phpize
+          extensions: mbstring, curl, intl
+        env:
+          phpts: nts
+          debug: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: analyzer-${{ runner.os }}-8.5-nts
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - name: Configure and generate sources
+        run: |
+          export PKG_CONFIG_PATH="${{ steps.driver.outputs.pkg_config_path }}:$(pkg-config --variable pc_path pkg-config 2>/dev/null || true)"
+          cmake --preset DebugPHP8.5NTS \
+            -DCUSTOM_PHP_CONFIG="$(command -v php-config)" \
+            -DENABLE_SANITIZERS=OFF \
+            -DSANITIZE_ADDRESS=OFF \
+            -DSANITIZE_UNDEFINED=OFF \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --build out/DebugPHP8.5NTS --target ZendCPP || true
+          cmake --build out/DebugPHP8.5NTS --target generated-sources
+
+      - name: Determine files to analyze
+        id: files
+        run: |
+          set -e
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          git diff --name-only --diff-filter=AM "$BASE" "$HEAD" \
+            | grep -E '^src/.*\.c$' > changed.txt || true
+          grep -vE 'src/Async/(Poll|PollHandle)\.c$' changed.txt > changed.tmp || true
+          mv changed.tmp changed.txt
+          echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          cat changed.txt || true
+
+      - name: Run the GCC analyzer on changed sources
+        if: steps.files.outputs.count != '0'
+        run: |
+          xargs -a changed.txt -r python3 scripts/gcc-analyzer.py \
+            --compile-db out/DebugPHP8.5NTS/compile_commands.json \
+            --compiler gcc
+
+  lint-clang-format:
+    name: "Lint: clang-format (changed lines)"
+    runs-on: ubuntu-26.04
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends clang-format-19
+          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-19 100
+          sudo update-alternatives --install /usr/bin/git-clang-format git-clang-format /usr/bin/git-clang-format-19 100
+          clang-format --version
+
+      - name: Check the formatting of changed lines
+        run: |
+          set -e
+          BASE="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags --depth=1 origin "$BASE" || true
+          DIFF=$(git clang-format --diff --extensions c,cc,cpp,h,hpp "$BASE" -- src include || true)
+          case "$DIFF" in
+            ""|"no modified files to format"*|"clang-format did not modify any files"*)
+              echo "OK — changed lines match .clang-format."
+              ;;
+            *)
+              echo "$DIFF"
+              echo "::error::Changed lines are not formatted. Run: git clang-format $BASE -- src include"
+              exit 1
+              ;;
+          esac
 
   test:
     name: PHP ${{ matrix.php }}-${{ matrix.phpts }} / ${{ matrix.driver }}
@@ -436,6 +703,87 @@ jobs:
           LD_PRELOAD="${ASAN_RT}" \
           USE_ZEND_ALLOC=0 \
           ASAN_OPTIONS="detect_leaks=0:detect_odr_violation=0:verify_asan_link_order=0:abort_on_error=1:halt_on_error=1" \
+            php -d extension=cassandra ./vendor/bin/pest --colors=always
+        env:
+          SCYLLADB_HOSTS: "127.0.0.1"
+          SCYLLADB_PHP_BACKEND: ${{ steps.driver.outputs.backend }}
+
+  test-ubsan:
+    name: "UBSan: PHP 8.5-nts / scylladb (undefined-behaviour guard)"
+    runs-on: ubuntu-26.04
+
+    services:
+      scylladb:
+        image: scylladb/scylla:2026.1
+        options: >-
+          --health-cmd "cqlsh -e 'SELECT cluster_name FROM system.local' 2>/dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 60s
+        ports:
+          - 9042:9042
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config build-essential ninja-build libuv1-dev
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: "8.5"
+          ini-file: development
+          coverage: none
+          tools: composer, php-config, phpize
+          extensions: pcntl, mbstring, curl, intl
+        env:
+          phpts: nts
+          debug: true
+          fail-fast: true
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@0d6a7d60b009d01c9e7523be22153ff8f19460d3 # v2
+        with:
+          cmake-version: "3.30"
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        with:
+          key: ubsan-${{ runner.os }}-8.5-nts-scylladb
+          restore-keys: |
+            ubsan-${{ runner.os }}-8.5-nts-scylladb
+            ubsan-${{ runner.os }}-8.5-
+          max-size: 500M
+          append-timestamp: false
+
+      - uses: ./.github/actions/install-cpp-driver
+        id: driver
+        with:
+          driver: scylladb
+
+      - uses: ./.github/actions/build-extension
+        with:
+          driver: scylladb
+          cpp_driver_pkg_config_path: ${{ steps.driver.outputs.pkg_config_path }}
+          sanitize_undefined: 'ON'
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-ansi --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests under UndefinedBehaviorSanitizer
+        run: |
+          UBSAN_RT="$(gcc -print-file-name=libubsan.so)"
+          echo "UBSan runtime: ${UBSAN_RT}"
+          LD_PRELOAD="${UBSAN_RT}" \
+          UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1:report_error_type=1" \
             php -d extension=cassandra ./vendor/bin/pest --colors=always
         env:
           SCYLLADB_HOSTS: "127.0.0.1"

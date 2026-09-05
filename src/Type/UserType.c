@@ -25,18 +25,15 @@
 #include "UserType_arginfo.h"
 
 extern zend_object_handlers php_scylladb_type_user_type_handlers;
-int php_scylladb_type_user_type_add(php_scylladb_type *type,
-                                     const char *name, size_t name_length,
-                                     zval *zsub_type )
+bool php_scylladb_type_user_type_add(php_scylladb_type *type, zend_string *name, zval *zsub_type)
 {
   auto sub_type = PHP_SCYLLADB_GET_TYPE(zsub_type);
-  if (cass_data_type_add_sub_type_by_name_n(type->data_type,
-                                            name, name_length,
+  if (cass_data_type_add_sub_type_by_name_n(type->data_type, ZSTR_VAL(name), ZSTR_LEN(name),
                                             sub_type->data_type) != CASS_OK) {
-    return 0;
+    return false;
   }
-  (void)zend_hash_str_add(&type->data.udt.types, name, name_length, zsub_type);
-  return 1;
+  (void)zend_hash_add(&type->data.udt.types, name, zsub_type);
+  return true;
 }
 
 ZEND_METHOD(Cassandra_Type_UserType, __construct)
@@ -44,30 +41,31 @@ ZEND_METHOD(Cassandra_Type_UserType, __construct)
   zend_throw_exception_ex(php_scylladb_logic_exception_ce, 0 ,
     "Instantiation of a " PHP_SCYLLADB_NAMESPACE "\\Type\\UserType type is not supported."
   );
-  return;
+  RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Type_UserType, withName)
 {
-  char *name;
-  size_t name_len;
+  zend_string *name = nullptr;
   php_scylladb_type *self;
   php_scylladb_type *user_type;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(name, name_len)
+    Z_PARAM_STR(name)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   object_init_ex(return_value, php_scylladb_type_user_type_ce);
   user_type = PHP_SCYLLADB_GET_TYPE(return_value);
   user_type->data_type = cass_data_type_new_from_existing(self->data_type);
 
-  user_type->data.udt.type_name = estrndup(name, name_len);
+  user_type->data.udt.type_name = zend_string_copy(name);
+  ASSERT_SUCCESS(cass_data_type_set_type_name_n(user_type->data_type, ZSTR_VAL(name),
+                                                ZSTR_LEN(name)));
 
   if (self->data.udt.keyspace) {
-    user_type->data.udt.keyspace = estrdup(self->data.udt.keyspace);
+    user_type->data.udt.keyspace = zend_string_copy(self->data.udt.keyspace);
   }
 
   zend_hash_copy(&user_type->data.udt.types, &self->data.udt.types, (copy_ctor_func_t)zval_add_ref);
@@ -77,40 +75,39 @@ ZEND_METHOD(Cassandra_Type_UserType, name)
 {
   php_scylladb_type *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   if (!self->data.udt.type_name)
     RETURN_NULL();
 
-  RETVAL_STRING(self->data.udt.type_name);
+  RETVAL_STR_COPY(self->data.udt.type_name);
 }
 
 ZEND_METHOD(Cassandra_Type_UserType, withKeyspace)
 {
-  char *keyspace;
-  size_t keyspace_len;
+  zend_string *keyspace = nullptr;
   php_scylladb_type *self;
   php_scylladb_type *user_type;
 
   ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_STRING(keyspace, keyspace_len)
+    Z_PARAM_STR(keyspace)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   object_init_ex(return_value, php_scylladb_type_user_type_ce);
   user_type = PHP_SCYLLADB_GET_TYPE(return_value);
   user_type->data_type = cass_data_type_new_from_existing(self->data_type);
 
   if (self->data.udt.type_name) {
-    user_type->data.udt.type_name = estrdup(self->data.udt.type_name);
+    user_type->data.udt.type_name = zend_string_copy(self->data.udt.type_name);
   }
 
-  user_type->data.udt.keyspace = estrndup(keyspace, keyspace_len);
+  user_type->data.udt.keyspace = zend_string_copy(keyspace);
+  ASSERT_SUCCESS(cass_data_type_set_keyspace_n(user_type->data_type, ZSTR_VAL(keyspace),
+                                               ZSTR_LEN(keyspace)));
 
   zend_hash_copy(&user_type->data.udt.types, &self->data.udt.types, (copy_ctor_func_t)zval_add_ref);
 }
@@ -119,27 +116,23 @@ ZEND_METHOD(Cassandra_Type_UserType, keyspace)
 {
   php_scylladb_type *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   if (!self->data.udt.keyspace)
     RETURN_NULL();
 
-  RETVAL_STRING(self->data.udt.keyspace);
+  RETVAL_STR_COPY(self->data.udt.keyspace);
 }
 
 ZEND_METHOD(Cassandra_Type_UserType, types)
 {
   php_scylladb_type *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   array_init(return_value);
   zend_hash_copy(Z_ARRVAL_P(return_value), &self->data.udt.types, (copy_ctor_func_t)zval_add_ref);
@@ -150,11 +143,9 @@ ZEND_METHOD(Cassandra_Type_UserType, __toString)
   php_scylladb_type *self;
   smart_str string = {nullptr,0};
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   php_scylladb_type_string(self, &string );
   smart_str_0(&string);
@@ -168,18 +159,18 @@ ZEND_METHOD(Cassandra_Type_UserType, create)
   php_scylladb_type *self;
   php_scylladb_user_type_value *user_type_value;
   zval* args = nullptr;
-  int argc = 0, i;
+  uint32_t argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
     Z_PARAM_VARIADIC('*', args, argc)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   object_init_ex(return_value, php_scylladb_user_type_value_ce);
   user_type_value = PHP_SCYLLADB_GET_USER_TYPE_VALUE(return_value);
 
-  ZVAL_COPY(&user_type_value->type, getThis());
+  ZVAL_COPY(&user_type_value->type, ZEND_THIS);
 
   if (argc > 0) {
     if (argc % 2 == 1) {
@@ -214,9 +205,7 @@ ZEND_METHOD(Cassandra_Type_UserType, create)
 
         return;
       }
-      php_scylladb_user_type_value_set(user_type_value,
-                                     Z_STRVAL_P(name), Z_STRLEN_P(name),
-                                     value );
+      php_scylladb_user_type_value_set(user_type_value, Z_STR_P(name), value );
     }
 
   }
@@ -224,11 +213,7 @@ ZEND_METHOD(Cassandra_Type_UserType, create)
 
 HashTable *
 php_scylladb_type_user_type_gc(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object,
-#else
-        zendObject *object,
-#endif
         zval** table, int *n
 )
 {
@@ -244,25 +229,29 @@ php_scylladb_type_user_type_gc(
 
 HashTable *
 php_scylladb_type_user_type_properties(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object
-#else
-        zendObject *object
-#endif
 )
 {
+  zval keyspace;
+  zval name;
   zval types;
 
-#if PHP_MAJOR_VERSION >= 8
   auto self = php_scylladb_type_object_fetch(object);
-#else
-  auto self = PHP_SCYLLADB_GET_TYPE(object);
-#endif
-  if (object->properties) {
-    zend_array_release(object->properties);
+  HashTable *props = php_scylladb_properties_rebuild(object, 3);
+
+  if (self->data.udt.keyspace) {
+    ZVAL_STR_COPY(&keyspace, self->data.udt.keyspace);
+  } else {
+    ZVAL_NULL(&keyspace);
   }
-  object->properties = zend_new_array(1);
-  HashTable *props = object->properties;
+  (void)zend_hash_str_update(props, ZEND_STRL("keyspace"), &keyspace);
+
+  if (self->data.udt.type_name) {
+    ZVAL_STR_COPY(&name, self->data.udt.type_name);
+  } else {
+    ZVAL_NULL(&name);
+  }
+  (void)zend_hash_str_update(props, ZEND_STRL("name"), &name);
 
   array_init(&types);
   zend_hash_copy(Z_ARRVAL(types), &self->data.udt.types, (copy_ctor_func_t)zval_add_ref);
@@ -274,9 +263,7 @@ php_scylladb_type_user_type_properties(
 int
 php_scylladb_type_user_type_compare(zval *obj1, zval *obj2 )
 {
-#if PHP_MAJOR_VERSION >= 8
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
   auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
@@ -289,8 +276,8 @@ php_scylladb_type_user_type_free(zend_object *object )
   auto self = php_scylladb_type_object_fetch(object);
 
   if (self->data_type) cass_data_type_free(self->data_type);
-  if (self->data.udt.keyspace) efree(self->data.udt.keyspace);
-  if (self->data.udt.type_name) efree(self->data.udt.type_name);
+  if (self->data.udt.keyspace) zend_string_release(self->data.udt.keyspace);
+  if (self->data.udt.type_name) zend_string_release(self->data.udt.type_name);
   zend_hash_destroy(&self->data.udt.types);
 
   zend_object_std_dtor(&self->zendObject);
@@ -308,8 +295,6 @@ php_scylladb_type_user_type_new(zend_class_entry *ce )
   self->data.udt.keyspace = self->data.udt.type_name = nullptr;
   zend_hash_init(&self->data.udt.types, 0, nullptr, ZVAL_PTR_DTOR, 0);
 
-  php_scylladb_type_user_type_handlers.offset = offsetof(php_scylladb_type, zendObject);
-  php_scylladb_type_user_type_handlers.free_obj = php_scylladb_type_user_type_free;
   return &self->zendObject;
 }
 

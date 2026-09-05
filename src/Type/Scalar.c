@@ -39,11 +39,9 @@ ZEND_METHOD(Cassandra_Type_Scalar, name) {
   php_scylladb_type *self;
   const char *name;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
   name = php_scylladb_scalar_type_name(self->type);
   RETVAL_STRING(name);
 }
@@ -52,11 +50,9 @@ ZEND_METHOD(Cassandra_Type_Scalar, __toString) {
   php_scylladb_type *self;
   const char *name;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
   name = php_scylladb_scalar_type_name(self->type);
   RETVAL_STRING(name);
 }
@@ -76,11 +72,7 @@ HashTable *php_scylladb_type_scalar_gc(zend_object *object, zval **table,
 HashTable *php_scylladb_type_scalar_properties(zend_object *object) {
   zval name;
   auto self = php_scylladb_type_object_fetch(object);
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(1);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 1);
 
   /* Used for comparison and 'text' is just an alias for 'varchar' */
   CassValueType type =
@@ -93,7 +85,7 @@ HashTable *php_scylladb_type_scalar_properties(zend_object *object) {
 }
 
 int php_scylladb_type_scalar_compare(zval *obj1, zval *obj2) {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
   auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
@@ -116,8 +108,6 @@ zend_object* php_scylladb_type_scalar_new(zend_class_entry *ce) {
   self->type = CASS_VALUE_TYPE_UNKNOWN;
   self->data_type = nullptr;
 
-  php_scylladb_type_scalar_handlers.offset = offsetof(php_scylladb_type, zendObject);
-  php_scylladb_type_scalar_handlers.free_obj = php_scylladb_type_scalar_free;
   return &self->zendObject;
 }
 

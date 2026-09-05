@@ -65,20 +65,12 @@ describe('Cassandra\Duration', function () {
     })->throws(InvalidArgumentException::class, 'days must be between -2147483648 and 2147483647, -2147483649 given');
 
     it('rejects 32-bit long overflow on days', function () {
-        expect(fn () => new Duration(1, 8589934592, 2))
-            ->toThrow(
-                InvalidArgumentException::class,
-                '/days must be between -2147483648 and 2147483647, 8\\.?58993.* given/'
-            );
-    })->skip('matches /.../ regex pattern — see PHPUnit assertExceptionMessageMatches');
+        new Duration(1, 8589934592, 2);
+    })->throws(InvalidArgumentException::class, 'days must be between -2147483648 and 2147483647, 8589934592 given');
 
     it('rejects 32-bit long underflow on days', function () {
-        expect(fn () => new Duration(1, -8589934592, 2))
-            ->toThrow(
-                InvalidArgumentException::class,
-                '/days must be between -2147483648 and 2147483647, -8\\.?58993.* given/'
-            );
-    })->skip('matches /.../ regex pattern — see PHPUnit assertExceptionMessageMatches');
+        new Duration(1, -8589934592, 2);
+    })->throws(InvalidArgumentException::class, 'days must be between -2147483648 and 2147483647, -8589934592 given');
 
     it('rejects 32-bit double overflow on months', function () {
         new Duration(8589934592.5, 1, 2);

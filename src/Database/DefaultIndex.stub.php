@@ -8,8 +8,11 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @not-serializable
- * @scylladb-struct php_scylladb_index
- */    final class DefaultIndex implements \Cassandra\Index {
+     * @scylladb-struct php_scylladb_index
+     * @deprecated
+     */
+    #[\Deprecated(message: 'The Rust based C/C++ driver does not implement secondary index metadata.', since: '1.6.0')]
+    final class DefaultIndex implements \Cassandra\Index {
         public function name(): string {}
 
         public function kind(): string {}

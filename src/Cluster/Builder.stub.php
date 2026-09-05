@@ -136,6 +136,7 @@ namespace Cassandra\Cluster {
         {
         }
 
+        #[\Deprecated(message: 'The Rust based C/C++ driver does not implement hostname resolution.', since: '1.6.0')]
         public function withHostnameResolution(bool $enabled = true): static
         {
         }
@@ -194,6 +195,7 @@ namespace Cassandra\Cluster {
         }
 
         /** Splits IO thread time between new and outstanding requests, 1 to 100. */
+        #[\Deprecated(message: 'The Rust based C/C++ driver ignores the request ratio.', since: '1.6.0')]
         public function withNewRequestRatio(int $ratio): static
         {
         }

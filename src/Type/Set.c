@@ -29,14 +29,12 @@ ZEND_METHOD(Cassandra_Type_Set, __construct)
   zend_throw_exception_ex(php_scylladb_logic_exception_ce, 0 ,
     "Instantiation of a " PHP_SCYLLADB_NAMESPACE "\\Type\\Set type is not supported."
   );
-  return;
+  RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Type_Set, name)
 {
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
   RETVAL_STRING("set");
 }
@@ -45,11 +43,9 @@ ZEND_METHOD(Cassandra_Type_Set, valueType)
 {
   php_scylladb_type *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
   RETURN_ZVAL(&self->data.set.value_type, 1, 0);
 }
 
@@ -58,11 +54,9 @@ ZEND_METHOD(Cassandra_Type_Set, __toString)
   php_scylladb_type *self;
   smart_str string = {nullptr,0};
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   php_scylladb_type_string(self, &string );
   smart_str_0(&string);
@@ -75,7 +69,7 @@ ZEND_METHOD(Cassandra_Type_Set, create)
 {
   php_scylladb_set *set;
   zval* args = nullptr;
-  int argc = 0, i;
+  uint32_t argc = 0, i;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
     Z_PARAM_VARIADIC('*', args, argc)
@@ -84,7 +78,7 @@ ZEND_METHOD(Cassandra_Type_Set, create)
   object_init_ex(return_value, php_scylladb_set_ce);
   set = PHP_SCYLLADB_GET_SET(return_value);
 
-  ZVAL_COPY(&set->type, getThis());
+  ZVAL_COPY(&set->type, ZEND_THIS);
 
   if (argc > 0) {
     for (i = 0; i < argc; i++) {
@@ -101,11 +95,7 @@ ZEND_METHOD(Cassandra_Type_Set, create)
 
 HashTable *
 php_scylladb_type_set_gc(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object,
-#else
-        zendObject *object,
-#endif
         zval** table, int *n
 )
 {
@@ -118,23 +108,11 @@ php_scylladb_type_set_gc(
 
 HashTable *
 php_scylladb_type_set_properties(
-#if PHP_MAJOR_VERSION >= 8
         zend_object *object
-#else
-        zendObject *object
-#endif
 )
 {
-#if PHP_MAJOR_VERSION >= 8
   auto self = php_scylladb_type_object_fetch(object);
-#else
-  auto self = PHP_SCYLLADB_GET_TYPE(object);
-#endif
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(1);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 1);
 
   (void)zend_hash_str_update(props, ZEND_STRL("valueType"), &self->data.set.value_type);
   Z_ADDREF_P(&self->data.set.value_type);
@@ -145,9 +123,7 @@ php_scylladb_type_set_properties(
 int
 php_scylladb_type_set_compare(zval *obj1, zval *obj2 )
 {
-#if PHP_MAJOR_VERSION >= 8
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
   auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
@@ -176,8 +152,6 @@ php_scylladb_type_set_new(zend_class_entry *ce )
   self->data_type = cass_data_type_new(self->type);
   ZVAL_UNDEF(&self->data.set.value_type);
 
-  php_scylladb_type_set_handlers.offset = offsetof(php_scylladb_type, zendObject);
-  php_scylladb_type_set_handlers.free_obj = php_scylladb_type_set_free;
   return &self->zendObject;
 }
 

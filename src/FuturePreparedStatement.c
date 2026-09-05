@@ -32,7 +32,7 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, get)
   zval *timeout = nullptr;
   php_scylladb_statement *prepared_statement = nullptr;
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(ZEND_THIS);
 
   if (!Z_ISUNDEF(self->prepared_statement)) {
     RETURN_ZVAL(&self->prepared_statement, 1, 0);
@@ -64,9 +64,9 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, getResource)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(ZEND_THIS);
 
-  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(ZEND_THIS), self->reactor_reg)) {
     return;
   }
 
@@ -83,7 +83,7 @@ ZEND_METHOD(Cassandra_FuturePreparedStatement, isReady)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_PREPARED_STATEMENT(ZEND_THIS);
   RETURN_BOOL(!Z_ISUNDEF(self->prepared_statement) || php_scylladb_future_is_ready(self->future));
 }
 
@@ -96,12 +96,23 @@ HashTable *php_scylladb_future_prepared_statement_properties(zend_object *object
 
 int php_scylladb_future_prepared_statement_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
   return (Z_OBJ_HANDLE_P(obj1) < Z_OBJ_HANDLE_P(obj2)) ? -1 : (Z_OBJ_HANDLE_P(obj1) > Z_OBJ_HANDLE_P(obj2));
 }
+HashTable *php_scylladb_future_prepared_statement_gc(zend_object *object, zval **table, int *n)
+{
+    auto self = php_scylladb_future_prepared_statement_object_fetch(object);
+    zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+    zend_get_gc_buffer_add_zval(buffer, &self->prepared_statement);
+    zend_get_gc_buffer_add_zval(buffer, &self->notify_stream);
+    zend_get_gc_buffer_use(buffer, table, n);
+
+    return nullptr;
+}
+
 
 void php_scylladb_future_prepared_statement_free(zend_object *object)
 {

@@ -132,8 +132,7 @@ it('throws on UDT get invalid name', function () {
 it('throws on UDT invalid value type', function () {
     $udt = new UserTypeValue(['name1' => Type::int()]);
     $udt->set('name1', 'text');
-})->throws(InvalidArgumentException::class, "argument must be an int, 'text' given")
-  ->skip('Extension exception class/message shape differs; un-skip after verifying actual behavior');
+})->throws(InvalidArgumentException::class, "argument must be an int, 'text' given");
 
 it('compares equal UDTs as equal', function ($value1, $value2) {
     expect($value2)->toEqual($value1)

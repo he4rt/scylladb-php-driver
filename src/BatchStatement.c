@@ -42,7 +42,7 @@ ZEND_METHOD(Cassandra_BatchStatement, __construct)
         Z_PARAM_LONG(type)
     ZEND_PARSE_PARAMETERS_END();
 
-    self = PHP_SCYLLADB_GET_STATEMENT(getThis());
+    self = PHP_SCYLLADB_GET_STATEMENT(ZEND_THIS);
 
     switch (type)
     {
@@ -55,7 +55,7 @@ ZEND_METHOD(Cassandra_BatchStatement, __construct)
         zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
             "type must be one of " PHP_SCYLLADB_NAMESPACE "::BATCH_LOGGED, "
             PHP_SCYLLADB_NAMESPACE "::BATCH_UNLOGGED or " PHP_SCYLLADB_NAMESPACE "::BATCH_COUNTER");
-        return;
+        RETURN_THROWS();
     }
 }
 
@@ -82,9 +82,9 @@ ZEND_METHOD(Cassandra_BatchStatement, add)
                                     "\\SimpleStatement or an instance of " PHP_SCYLLADB_NAMESPACE "\\PreparedStatement");
     }
 
-    self = PHP_SCYLLADB_GET_STATEMENT(getThis());
+    self = PHP_SCYLLADB_GET_STATEMENT(ZEND_THIS);
 
-    batch_statement_entry = (php_scylladb_batch_statement_entry *)ecalloc(1, sizeof(php_scylladb_batch_statement_entry));
+    batch_statement_entry = ecalloc(1, sizeof(php_scylladb_batch_statement_entry));
 
     ZVAL_COPY(&batch_statement_entry->statement, statement);
 
@@ -96,7 +96,7 @@ ZEND_METHOD(Cassandra_BatchStatement, add)
     ZVAL_PTR(&entry, batch_statement_entry);
     zend_hash_next_index_insert(&self->data.batch.statements, &entry);
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 PHP_SCYLLADB_DEFINE_IDEMPOTENCE_METHODS(Cassandra_BatchStatement)
@@ -110,7 +110,7 @@ HashTable *php_scylladb_batch_statement_properties(zend_object *object)
 
 int php_scylladb_batch_statement_compare(zval *obj1, zval *obj2)
 {
-    ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+    PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
         return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 

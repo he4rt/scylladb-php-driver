@@ -23,7 +23,7 @@
 
 zval php_scylladb_type_from_data_type(const CassDataType* data_type);
 
-int php_scylladb_type_validate(zval* object, const char* object_name);
+[[nodiscard]] bool php_scylladb_type_validate(zval* object, const char* object_name);
 int php_scylladb_type_compare(php_scylladb_type* type1, php_scylladb_type* type2);
 void php_scylladb_type_string(php_scylladb_type* type, smart_str* smart);
 
@@ -46,7 +46,7 @@ zval php_scylladb_type_user_type();
 
 zval php_scylladb_type_custom(const char* name, size_t name_length);
 
-int php_scylladb_parse_column_type(const char* validator, size_t validator_len,
+[[nodiscard]] zend_result php_scylladb_parse_column_type(const char* validator, size_t validator_len,
                                  int* reversed_out, int* frozen_out,
                                  zval* type_out);
 

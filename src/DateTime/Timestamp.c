@@ -130,7 +130,7 @@ ZEND_METHOD(Cassandra_Timestamp, __construct) {
   // clang-format on
 
   php_scylladb_timestamp *self =
-      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(getThis()));
+      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(ZEND_THIS));
 
   if (datetime != nullptr) {
     if (ZEND_NUM_ARGS() > 1) {
@@ -163,13 +163,13 @@ ZEND_METHOD(Cassandra_Timestamp, type) {
 
 ZEND_METHOD(Cassandra_Timestamp, time) {
   php_scylladb_timestamp *self =
-      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(getThis()));
+      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(ZEND_THIS));
 
   RETURN_LONG(self->timestamp / 1000);
 }
 
 ZEND_METHOD(Cassandra_Timestamp, microtime) {
-  zend_bool get_as_float = false;
+  bool get_as_float = false;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(0, 1)
@@ -179,7 +179,7 @@ ZEND_METHOD(Cassandra_Timestamp, microtime) {
   // clang-format on
 
   php_scylladb_timestamp *self =
-      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(getThis()));
+      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(ZEND_THIS));
 
   if (get_as_float) {
     RETURN_DOUBLE((double)self->timestamp / 1000.00);
@@ -190,7 +190,7 @@ ZEND_METHOD(Cassandra_Timestamp, microtime) {
 
   char ret[128];
   memset(ret, 0, sizeof(ret));
-  size_t len = snprintf(ret, sizeof(ret) - 1, "%.8F %" PRId64, usec, (int64_t)sec);
+  size_t len = (size_t)snprintf(ret, sizeof(ret) - 1, "%.8F %" PRId64, usec, (int64_t)sec);
   RETURN_STRINGL_FAST(ret, len);
 }
 
@@ -215,7 +215,7 @@ ZEND_METHOD(Cassandra_Timestamp, toDateTime) {
   ZEND_PARSE_PARAMETERS_NONE();
 
   php_scylladb_timestamp *self =
-      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(getThis()));
+      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(ZEND_THIS));
 
   timestamp_to_datetime_ctx_t ctx = { .self = self };
   zval datetime;
@@ -231,7 +231,7 @@ ZEND_METHOD(Cassandra_Timestamp, toDateTime) {
 }
 
 ZEND_METHOD(Cassandra_Timestamp, fromDateTime) {
-  zval *datetime;
+  zval *datetime = nullptr;
 
   // clang-format off
   ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -278,11 +278,11 @@ ZEND_METHOD(Cassandra_Timestamp, __toString) {
   ZEND_PARSE_PARAMETERS_NONE();
 
   php_scylladb_timestamp *self =
-      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(getThis()));
+      PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, Z_OBJ_P(ZEND_THIS));
 
   char ret[32];
   memset(ret, 0, sizeof(ret));
-  size_t len = snprintf(ret, sizeof(ret), "%" PRId64, (int64_t)self->timestamp);
+  size_t len = (size_t)snprintf(ret, sizeof(ret), "%" PRId64, (int64_t)self->timestamp);
   RETURN_STRINGL_FAST(ret, len);
 }
 
@@ -294,11 +294,7 @@ HashTable *php_scylladb_timestamp_gc(zend_object *object, zval **table, int *n) 
 }
 HashTable *php_scylladb_timestamp_properties(zend_object *object) {
   php_scylladb_timestamp *self = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_timestamp, object);
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(3);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 3);
 
   long sec = (long)(self->timestamp / 1000);
   long usec = (long)((self->timestamp - (sec * 1000)) * 1000);
@@ -318,7 +314,7 @@ HashTable *php_scylladb_timestamp_properties(zend_object *object) {
 }
 
 int php_scylladb_timestamp_compare(zval *obj1, zval *obj2) {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2)
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
 
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2)) return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 

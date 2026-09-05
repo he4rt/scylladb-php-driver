@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 namespace Cassandra {
+    #[\Deprecated(message: 'The Rust based C/C++ driver does not implement secondary index metadata.', since: '1.6.0')]
     interface Index {
         public function name(): string;
 

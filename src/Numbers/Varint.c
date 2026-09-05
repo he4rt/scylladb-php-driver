@@ -64,19 +64,14 @@ static zend_result to_long(zval *result, php_scylladb_numeric *varint )
 
 static zend_result to_string(zval *result, php_scylladb_numeric *varint )
 {
-    char *string;
-    int string_len;
-    php_scylladb_format_integer(varint->data.varint.value, &string, &string_len);
-
-    ZVAL_STRINGL(result, string, string_len);
-    efree(string);
+    ZVAL_STR(result, php_scylladb_format_integer(varint->data.varint.value));
 
     return SUCCESS;
 }
 
 void php_scylladb_varint_init(INTERNAL_FUNCTION_PARAMETERS)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *self;
 
     // clang-format off
@@ -105,7 +100,7 @@ void php_scylladb_varint_init(INTERNAL_FUNCTION_PARAMETERS)
     }
     else if (Z_TYPE_P(num) == IS_STRING)
     {
-        php_scylladb_parse_varint(Z_STRVAL_P(num), Z_STRLEN_P(num), &self->data.varint.value );
+        php_scylladb_parse_varint(Z_STR_P(num), &self->data.varint.value );
     }
     else if (Z_TYPE_P(num) == IS_OBJECT && instanceof_function(Z_OBJCE_P(num), php_scylladb_varint_ce ))
     {
@@ -146,19 +141,14 @@ ZEND_METHOD(Cassandra_Varint, value)
 {
     auto self = PHP_SCYLLADB_GET_NUMERIC(ZEND_THIS);
 
-    char *string;
-    int string_len;
-    php_scylladb_format_integer(self->data.varint.value, &string, &string_len);
-
-    RETVAL_STRINGL(string, string_len);
-    efree(string);
+    RETVAL_STR(php_scylladb_format_integer(self->data.varint.value));
 }
 /* }}} */
 
 /* {{{ Varint::add() */
 ZEND_METHOD(Cassandra_Varint, add)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -187,7 +177,7 @@ ZEND_METHOD(Cassandra_Varint, add)
 /* {{{ Varint::sub() */
 ZEND_METHOD(Cassandra_Varint, sub)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -216,7 +206,7 @@ ZEND_METHOD(Cassandra_Varint, sub)
 /* {{{ Varint::mul() */
 ZEND_METHOD(Cassandra_Varint, mul)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -245,7 +235,7 @@ ZEND_METHOD(Cassandra_Varint, mul)
 /* {{{ Varint::div() */
 ZEND_METHOD(Cassandra_Varint, div)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -280,7 +270,7 @@ ZEND_METHOD(Cassandra_Varint, div)
 /* {{{ Varint::mod() */
 ZEND_METHOD(Cassandra_Varint, mod)
 {
-    zval *num;
+    zval *num = nullptr;
     php_scylladb_numeric *result = nullptr;
 
     // clang-format off
@@ -348,7 +338,7 @@ ZEND_METHOD(Cassandra_Varint, sqrt)
     {
         zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 ,
                                 "Cannot take a square root of a negative number");
-        return;
+        RETURN_THROWS();
     }
 
     object_init_ex(return_value, php_scylladb_varint_ce);
@@ -379,11 +369,7 @@ ZEND_METHOD(Cassandra_Varint, toDouble)
 
 
 HashTable *php_scylladb_varint_gc(
-#if PHP_MAJOR_VERSION >= 8
     zend_object *object,
-#else
-    zendObject *object,
-#endif
     zval** table, int *n )
 {
     /* Holds no zvals (mpz_t only). Report no roots directly instead of going
@@ -396,37 +382,19 @@ HashTable *php_scylladb_varint_gc(
 }
 
 HashTable *php_scylladb_varint_properties(
-#if PHP_MAJOR_VERSION >= 8
     zend_object *object
-#else
-    zendObject *object
-#endif
 )
 {
-    char *string;
-    int string_len;
     zval type;
     zval value;
 
-#if PHP_MAJOR_VERSION >= 8
     auto self = php_scylladb_numeric_object_fetch(object);
-#else
-    auto self = PHP_SCYLLADB_GET_NUMERIC(object);
-#endif
-    if (object->properties) {
-        zend_array_release(object->properties);
-    }
-    object->properties = zend_new_array(2);
-    HashTable *props = object->properties;
-
-    php_scylladb_format_integer(self->data.varint.value, &string, &string_len);
+    HashTable *props = php_scylladb_properties_rebuild(object, 2);
 
     type = php_scylladb_type_scalar(CASS_VALUE_TYPE_VARINT );
     (void)zend_hash_str_update(props, ZEND_STRL("type"), &type);
 
-
-    ZVAL_STRINGL(&value, string, string_len);
-    efree(string);
+    ZVAL_STR(&value, php_scylladb_format_integer(self->data.varint.value));
     (void)zend_hash_str_update(props, ZEND_STRL("value"), &value);
 
     return props;
@@ -434,9 +402,7 @@ HashTable *php_scylladb_varint_properties(
 
 int php_scylladb_varint_compare(zval *obj1, zval *obj2 )
 {
-#if PHP_MAJOR_VERSION >= 8
-    ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
+    PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
     php_scylladb_numeric *varint1 = nullptr;
     php_scylladb_numeric *varint2 = nullptr;
 
@@ -457,11 +423,7 @@ unsigned php_scylladb_varint_hash_value(zval *obj )
 
 zend_result php_scylladb_varint_cast(zend_object *object, zval *retval, int type )
 {
-#if PHP_MAJOR_VERSION >= 8
     auto self = php_scylladb_numeric_object_fetch(object);
-#else
-    auto self = PHP_SCYLLADB_GET_NUMERIC(object);
-#endif
 
     switch (type)
     {
@@ -474,8 +436,6 @@ zend_result php_scylladb_varint_cast(zend_object *object, zval *retval, int type
     default:
         return FAILURE;
     }
-
-    return SUCCESS;
 }
 
 void php_scylladb_varint_free(zend_object *object )

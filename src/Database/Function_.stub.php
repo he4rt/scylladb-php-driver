@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 namespace Cassandra {
+    #[\Deprecated(message: 'The Rust based C/C++ driver does not implement user defined function metadata.', since: '1.6.0')]
     interface Function_ {
         public function name(): string;
 

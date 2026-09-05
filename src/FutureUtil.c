@@ -20,7 +20,7 @@
 
 #include "FutureUtil.h"
 
-int
+zend_result
 php_scylladb_future_wait_timed(CassFuture* future, zval* timeout)
 {
   cass_duration_t timeout_us;
@@ -40,23 +40,24 @@ php_scylladb_future_wait_timed(CassFuture* future, zval* timeout)
   }
 
   if ((Z_TYPE_P(timeout) == IS_LONG && Z_LVAL_P(timeout) > 0)) {
-    timeout_us = Z_LVAL_P(timeout) * 1000000;
+    timeout_us = (cass_duration_t)Z_LVAL_P(timeout) * 1000000;
   } else if ((Z_TYPE_P(timeout) == IS_DOUBLE && Z_DVAL_P(timeout) > 0)) {
-    timeout_us = ceil(Z_DVAL_P(timeout) * 1000000);
+    const double timeout_micros = ceil(Z_DVAL_P(timeout) * 1000000);
+    timeout_us = (cass_duration_t)timeout_micros;
   } else {
     INVALID_ARGUMENT_VALUE(timeout, "an positive number of seconds or null", FAILURE);
   }
 
   if (!cass_future_wait_timed(future, timeout_us)) {
     zend_throw_exception_ex(php_scylladb_timeout_exception_ce, 0,
-                            "Future hasn't resolved within %f seconds", timeout_us / 1000000.0);
+                            "Future hasn't resolved within %f seconds", (double)timeout_us / 1000000.0);
     return FAILURE;
   }
 
   return SUCCESS;
 }
 
-int
+zend_result
 php_scylladb_future_is_error(CassFuture* future)
 {
   if (future == nullptr) {

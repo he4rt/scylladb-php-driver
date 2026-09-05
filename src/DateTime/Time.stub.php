@@ -1,8 +1,8 @@
 <?php
 
 /**
-* @generate-class-entries
-*/
+ * @generate-class-entries
+ */
 
 declare(strict_types=1);
 
@@ -10,8 +10,11 @@ namespace Cassandra {
     /**
      * @strict-properties
      * @scylladb-value-handlers
- * @scylladb-struct php_scylladb_time
- */    final class Time implements Value {
+     * @scylladb-struct php_scylladb_time
+     * @deprecated
+     */
+    #[\Deprecated(message: 'Use a PHP DateTimeImmutable.', since: '1.6.0')]
+    final class Time implements Value {
         public function __construct(int|string $nanoseconds = UNKNOWN) {}
 
         public function type(): Type {}

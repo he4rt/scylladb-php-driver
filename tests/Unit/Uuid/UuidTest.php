@@ -116,4 +116,9 @@ describe('Cassandra\Uuid', function () {
 
         expect(count(array_unique($uuids)))->toEqual($numProcesses);
     });
+
+    it('rejects a UUID that would parse only up to an embedded NUL byte', function () {
+        expect(fn () => new Uuid("65f9e722-036a-4029-b03b-a9046b23b4c9\0junk"))
+            ->toThrow(InvalidArgumentException::class);
+    });
 });

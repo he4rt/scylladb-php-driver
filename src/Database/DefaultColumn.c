@@ -74,7 +74,7 @@ php_scylladb_create_column(zval *schema,
       column->type = php_scylladb_type_from_data_type(data_type );
 
 #if CURRENT_CPP_DRIVER_VERSION > CPP_DRIVER_VERSION(2, 2, 0)
-      column->frozen = cass_data_type_is_frozen(data_type);
+      column->frozen = cass_data_type_is_frozen(data_type) == cass_true;
 #else
       column->frozen = 0;
 #endif
@@ -108,11 +108,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, name)
 {
   php_scylladb_column *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_COLUMN(getThis());
+  self = PHP_SCYLLADB_GET_COLUMN(ZEND_THIS);
 
   RETURN_ZVAL(&self->name, 1, 0);
 }
@@ -121,11 +119,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, type)
 {
   php_scylladb_column *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_COLUMN(getThis());
+  self = PHP_SCYLLADB_GET_COLUMN(ZEND_THIS);
 
   if (Z_ISUNDEF(self->type)) {
     RETURN_NULL();
@@ -138,11 +134,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, isReversed)
 {
   php_scylladb_column *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_COLUMN(getThis());
+  self = PHP_SCYLLADB_GET_COLUMN(ZEND_THIS);
 
   RETURN_BOOL(self->reversed);
 }
@@ -151,11 +145,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, isStatic)
 {
   php_scylladb_column *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self  = PHP_SCYLLADB_GET_COLUMN(getThis());
+  self  = PHP_SCYLLADB_GET_COLUMN(ZEND_THIS);
 
   RETURN_BOOL(cass_column_meta_type(self->meta) == CASS_COLUMN_TYPE_STATIC);
 }
@@ -164,11 +156,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, isFrozen)
 {
   php_scylladb_column *self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_COLUMN(getThis());
+  self = PHP_SCYLLADB_GET_COLUMN(ZEND_THIS);
 
   RETURN_BOOL(self->frozen);
 }
@@ -178,11 +168,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, indexName)
   php_scylladb_column *self;
   zval value;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_COLUMN(getThis());
+  self = PHP_SCYLLADB_GET_COLUMN(ZEND_THIS);
 
   php_scylladb_get_column_field(self->meta, "index_name", &value );
   RETURN_ZVAL(&value, 0, 1);
@@ -193,11 +181,9 @@ ZEND_METHOD(Cassandra_DefaultColumn, indexOptions)
   php_scylladb_column *self;
   zval value;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_COLUMN(getThis());
+  self = PHP_SCYLLADB_GET_COLUMN(ZEND_THIS);
 
   php_scylladb_get_column_field(self->meta, "index_options", &value );
   RETURN_ZVAL(&value, 0, 1);
@@ -206,8 +192,13 @@ ZEND_METHOD(Cassandra_DefaultColumn, indexOptions)
 HashTable *
 php_scylladb_default_column_gc(zend_object *object, zval** table, int *n)
 {
-  *table = nullptr;
-  *n = 0;
+  auto self = php_scylladb_column_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zend_get_gc_buffer_add_zval(buffer, &self->name);
+  zend_get_gc_buffer_add_zval(buffer, &self->type);
+  zend_get_gc_buffer_add_zval(buffer, &self->schema);
+  zend_get_gc_buffer_use(buffer, table, n);
+
   return nullptr;
 }
 
@@ -222,7 +213,7 @@ php_scylladb_default_column_properties(zend_object *object)
 int
 php_scylladb_default_column_compare(zval *obj1, zval *obj2 )
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -260,7 +251,5 @@ php_scylladb_default_column_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->name);
   ZVAL_UNDEF(&self->type);
 
-  php_scylladb_default_column_handlers.offset = offsetof(php_scylladb_column, zendObject);
-  php_scylladb_default_column_handlers.free_obj = php_scylladb_default_column_free;
   return &self->zendObject;
 }

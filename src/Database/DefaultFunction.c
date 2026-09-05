@@ -52,10 +52,9 @@ ZEND_METHOD(Cassandra_DefaultFunction, name)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
 
   RETURN_ZVAL(&self->signature, 1, 0);
 }
@@ -64,10 +63,9 @@ ZEND_METHOD(Cassandra_DefaultFunction, simpleName)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
   if (Z_ISUNDEF(self->simple_name)) {
     const char *name;
     size_t name_length;
@@ -83,10 +81,9 @@ ZEND_METHOD(Cassandra_DefaultFunction, arguments)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
   if (Z_ISUNDEF(self->arguments)) {
     size_t i, count = cass_function_meta_argument_count(self->meta);
 
@@ -111,10 +108,9 @@ ZEND_METHOD(Cassandra_DefaultFunction, returnType)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
   if (Z_ISUNDEF(self->return_type)) {
     const CassDataType* data_type = cass_function_meta_return_type(self->meta);
     if (!data_type) {
@@ -130,10 +126,9 @@ ZEND_METHOD(Cassandra_DefaultFunction, signature)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
   RETURN_ZVAL(&self->signature, 1, 0);
 }
 
@@ -141,10 +136,9 @@ ZEND_METHOD(Cassandra_DefaultFunction, language)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
   if (Z_ISUNDEF(self->language)) {
     const char *language;
     size_t language_length;
@@ -160,10 +154,9 @@ ZEND_METHOD(Cassandra_DefaultFunction, body)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
   if (Z_ISUNDEF(self->body)) {
     const char *body;
     size_t body_length;
@@ -179,18 +172,26 @@ ZEND_METHOD(Cassandra_DefaultFunction, isCalledOnNullInput)
 {
   php_scylladb_function *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_FUNCTION(getThis());
-  RETURN_BOOL((int)cass_function_meta_called_on_null_input(self->meta));
+  self = PHP_SCYLLADB_GET_FUNCTION(ZEND_THIS);
+  RETURN_BOOL(cass_function_meta_called_on_null_input(self->meta) == cass_true);
 }
 
 HashTable *
 php_scylladb_default_function_gc(zend_object *object, zval** table, int *n)
 {
-  *table = nullptr;
-  *n = 0;
+  auto self = php_scylladb_function_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zend_get_gc_buffer_add_zval(buffer, &self->simple_name);
+  zend_get_gc_buffer_add_zval(buffer, &self->arguments);
+  zend_get_gc_buffer_add_zval(buffer, &self->return_type);
+  zend_get_gc_buffer_add_zval(buffer, &self->signature);
+  zend_get_gc_buffer_add_zval(buffer, &self->language);
+  zend_get_gc_buffer_add_zval(buffer, &self->body);
+  zend_get_gc_buffer_add_zval(buffer, &self->schema);
+  zend_get_gc_buffer_use(buffer, table, n);
+
   return nullptr;
 }
 
@@ -205,7 +206,7 @@ php_scylladb_default_function_properties(zend_object *object)
 int
 php_scylladb_default_function_compare(zval *obj1, zval *obj2 )
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -250,7 +251,5 @@ php_scylladb_default_function_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->schema);
   self->meta = nullptr;
 
-  php_scylladb_default_function_handlers.offset = offsetof(php_scylladb_function, zendObject);
-  php_scylladb_default_function_handlers.free_obj = php_scylladb_default_function_free;
   return &self->zendObject;
 }

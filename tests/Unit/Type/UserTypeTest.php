@@ -136,3 +136,28 @@ it('compares not-equal user types', function ($type1, $type2) {
         ],
     ];
 });
+
+it('treats two named user types with different names as different types', function () {
+    $base = Type::userType('a', Type::int());
+
+    expect($base->withName('x')->withKeyspace('ks') == $base->withName('y')->withKeyspace('ks'))->toBeFalse()
+        ->and($base->withName('x')->withKeyspace('ks') == $base->withName('x')->withKeyspace('other'))->toBeFalse()
+        ->and($base->withName('x')->withKeyspace('ks') == $base->withName('x')->withKeyspace('ks'))->toBeTrue();
+});
+
+it('lets an unnamed user type match a named one with the same layout', function () {
+    $base  = Type::userType('a', Type::int());
+    $named = $base->withName('x')->withKeyspace('ks');
+
+    expect($base == $named)->toBeTrue()
+        ->and($base == Type::userType('a', Type::text())->withName('x'))->toBeFalse();
+});
+
+it('shows the keyspace and name alongside the field types', function () {
+    $named = Type::userType('a', Type::int())->withName('x')->withKeyspace('ks');
+
+    expect((array) $named)->toHaveKeys(['keyspace', 'name', 'types'])
+        ->and(((array) $named)['keyspace'])->toBe('ks')
+        ->and(((array) $named)['name'])->toBe('x')
+        ->and(((array) Type::userType('a', Type::int()))['name'])->toBeNull();
+});

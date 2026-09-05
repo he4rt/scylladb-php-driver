@@ -37,7 +37,7 @@ ZEND_METHOD(Cassandra_FutureClose, get)
     Z_PARAM_ZVAL(timeout)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_FUTURE_CLOSE(getThis());
+  self = PHP_SCYLLADB_GET_FUTURE_CLOSE(ZEND_THIS);
 
   if (php_scylladb_future_wait_coro(self->future, &self->notifier, self->reactor_reg, timeout) ==
       FAILURE)
@@ -51,9 +51,9 @@ ZEND_METHOD(Cassandra_FutureClose, getResource)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_CLOSE(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_CLOSE(ZEND_THIS);
 
-  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(getThis()), self->reactor_reg)) {
+  if (!php_scylladb_future_claim_notifier(Z_OBJ_P(ZEND_THIS), self->reactor_reg)) {
     return;
   }
 
@@ -64,7 +64,7 @@ ZEND_METHOD(Cassandra_FutureClose, isReady)
 {
   ZEND_PARSE_PARAMETERS_NONE();
 
-  auto self = PHP_SCYLLADB_GET_FUTURE_CLOSE(getThis());
+  auto self = PHP_SCYLLADB_GET_FUTURE_CLOSE(ZEND_THIS);
   RETURN_BOOL(php_scylladb_future_is_ready(self->future));
 }
 
@@ -77,7 +77,7 @@ HashTable *php_scylladb_future_close_properties(zend_object *object)
 
 int php_scylladb_future_close_compare(zval *obj1, zval *obj2)
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 

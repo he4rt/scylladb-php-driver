@@ -72,16 +72,16 @@ int php_scylladb_notifier_fd(const php_scylladb_notifier* notifier);
 /* Create the notifier for `future` (into *notifier_slot) and register the driver
  * completion callback, without publishing a php_stream. No-op when the slot is
  * already populated. Returns SUCCESS or FAILURE (thrown). */
-int php_scylladb_future_ensure_notifier(CassFuture*             future,
+[[nodiscard]] zend_result php_scylladb_future_ensure_notifier(CassFuture*             future,
                                         php_scylladb_notifier** notifier_slot);
 
 /* Same, for an already-resolved future with no CassFuture (FutureValue): creates
  * an eagerly-readable notifier. Returns SUCCESS or FAILURE (thrown). */
-int php_scylladb_future_ensure_ready_notifier(php_scylladb_notifier** notifier_slot);
+[[nodiscard]] zend_result php_scylladb_future_ensure_ready_notifier(php_scylladb_notifier** notifier_slot);
 
 /* Wrap the notifier's read end in a cached, unbuffered php_stream resource
  * (its own dup of the fd) and return it. Returns SUCCESS or FAILURE (thrown). */
-int php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
+[[nodiscard]] zend_result php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
                                   zval*                  stream_slot,
                                   zval*                  return_value);
 
@@ -100,7 +100,7 @@ int php_scylladb_notifier_publish(php_scylladb_notifier* notifier,
  *
  * Returns SUCCESS or FAILURE (with a thrown exception).
  */
-int php_scylladb_future_get_resource(CassFuture* future,
+[[nodiscard]] zend_result php_scylladb_future_get_resource(CassFuture* future,
                                      php_scylladb_notifier** notifier_slot,
                                      zval* stream_slot,
                                      zval* return_value);
@@ -110,12 +110,12 @@ int php_scylladb_future_get_resource(CassFuture* future,
  * (e.g. FutureValue): returns an eagerly-readable stream so userland can treat
  * every Future subtype through one "on readable -> get()" code path.
  */
-int php_scylladb_future_get_ready_resource(php_scylladb_notifier** notifier_slot,
+[[nodiscard]] zend_result php_scylladb_future_get_ready_resource(php_scylladb_notifier** notifier_slot,
                                            zval* stream_slot,
                                            zval* return_value);
 
 /* Wraps cass_future_ready(); false when still pending. */
-bool php_scylladb_future_is_ready(CassFuture* future);
+[[nodiscard]] bool php_scylladb_future_is_ready(CassFuture* future);
 
 /*
  * Wait for `future` to resolve, cooperating with a running (Open)Swoole
@@ -131,7 +131,7 @@ bool php_scylladb_future_is_ready(CassFuture* future);
  *
  * Returns SUCCESS or FAILURE (with a thrown exception).
  */
-int php_scylladb_future_wait_coro(CassFuture*             future,
+[[nodiscard]] zend_result php_scylladb_future_wait_coro(CassFuture*             future,
                                   php_scylladb_notifier** notifier_slot,
                                   const php_scylladb_reg* reactor_reg,
                                   zval*                   timeout);
@@ -158,12 +158,12 @@ typedef struct
 /* Resolve `future_zv`'s slots. Returns false with a thrown exception when the
  * class is not one of the concrete futures. The _try form reports the same
  * failure without touching EG(exception), for callers that already carry one. */
-bool php_scylladb_future_slots_get(zval* future_zv, php_scylladb_future_slots* out);
-bool php_scylladb_future_slots_try(zval* future_zv, php_scylladb_future_slots* out);
+[[nodiscard]] bool php_scylladb_future_slots_get(zval* future_zv, php_scylladb_future_slots* out);
+[[nodiscard]] bool php_scylladb_future_slots_try(zval* future_zv, php_scylladb_future_slots* out);
 
 /* Guards against binding one future to both async models. Each returns false
  * with a thrown exception when the future is already spoken for. */
-bool php_scylladb_future_claim_notifier(zend_object* obj, const php_scylladb_reg* reactor_reg);
-bool php_scylladb_future_claim_reactor(zend_object*                 obj,
+[[nodiscard]] bool php_scylladb_future_claim_notifier(zend_object* obj, const php_scylladb_reg* reactor_reg);
+[[nodiscard]] bool php_scylladb_future_claim_reactor(zend_object*                 obj,
                                        const php_scylladb_reg*      reactor_reg,
                                        const php_scylladb_notifier* notifier);

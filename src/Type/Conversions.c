@@ -35,7 +35,7 @@
 
 #define CHECK_ERROR(rc) ASSERT_SUCCESS_BLOCK(rc, result = 0;)
 
-int php_scylladb_validate_object(zval* object, zval* ztype) {
+bool php_scylladb_validate_object(zval* object, zval* ztype) {
   php_scylladb_type* type;
 
   if (Z_TYPE_P(object) == IS_NULL) return 1;
@@ -214,6 +214,9 @@ int php_scylladb_validate_object(zval* object, zval* ztype) {
       }
 
       return 1;
+    case CASS_VALUE_TYPE_CUSTOM:
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
       EXPECTING_VALUE("a simple " PHP_SCYLLADB_NAMESPACE " value");
 
@@ -221,56 +224,56 @@ int php_scylladb_validate_object(zval* object, zval* ztype) {
   }
 }
 
-int php_scylladb_value_type(char* type, CassValueType* value_type) {
-  if (strcmp("ascii", type) == 0) {
+bool php_scylladb_value_type(const zend_string* type, CassValueType* value_type) {
+  if (zend_string_equals_literal(type, "ascii")) {
     *value_type = CASS_VALUE_TYPE_ASCII;
-  } else if (strcmp("bigint", type) == 0) {
+  } else if (zend_string_equals_literal(type, "bigint")) {
     *value_type = CASS_VALUE_TYPE_BIGINT;
-  } else if (strcmp("smallint", type) == 0) {
+  } else if (zend_string_equals_literal(type, "smallint")) {
     *value_type = CASS_VALUE_TYPE_SMALL_INT;
-  } else if (strcmp("tinyint", type) == 0) {
+  } else if (zend_string_equals_literal(type, "tinyint")) {
     *value_type = CASS_VALUE_TYPE_TINY_INT;
-  } else if (strcmp("blob", type) == 0) {
+  } else if (zend_string_equals_literal(type, "blob")) {
     *value_type = CASS_VALUE_TYPE_BLOB;
-  } else if (strcmp("boolean", type) == 0) {
+  } else if (zend_string_equals_literal(type, "boolean")) {
     *value_type = CASS_VALUE_TYPE_BOOLEAN;
-  } else if (strcmp("counter", type) == 0) {
+  } else if (zend_string_equals_literal(type, "counter")) {
     *value_type = CASS_VALUE_TYPE_COUNTER;
-  } else if (strcmp("decimal", type) == 0) {
+  } else if (zend_string_equals_literal(type, "decimal")) {
     *value_type = CASS_VALUE_TYPE_DECIMAL;
-  } else if (strcmp("duration", type) == 0) {
+  } else if (zend_string_equals_literal(type, "duration")) {
     *value_type = CASS_VALUE_TYPE_DURATION;
-  } else if (strcmp("double", type) == 0) {
+  } else if (zend_string_equals_literal(type, "double")) {
     *value_type = CASS_VALUE_TYPE_DOUBLE;
-  } else if (strcmp("float", type) == 0) {
+  } else if (zend_string_equals_literal(type, "float")) {
     *value_type = CASS_VALUE_TYPE_FLOAT;
-  } else if (strcmp("int", type) == 0) {
+  } else if (zend_string_equals_literal(type, "int")) {
     *value_type = CASS_VALUE_TYPE_INT;
-  } else if (strcmp("text", type) == 0) {
+  } else if (zend_string_equals_literal(type, "text")) {
     *value_type = CASS_VALUE_TYPE_TEXT;
-  } else if (strcmp("timestamp", type) == 0) {
+  } else if (zend_string_equals_literal(type, "timestamp")) {
     *value_type = CASS_VALUE_TYPE_TIMESTAMP;
-  } else if (strcmp("date", type) == 0) {
+  } else if (zend_string_equals_literal(type, "date")) {
     *value_type = CASS_VALUE_TYPE_DATE;
-  } else if (strcmp("time", type) == 0) {
+  } else if (zend_string_equals_literal(type, "time")) {
     *value_type = CASS_VALUE_TYPE_TIME;
-  } else if (strcmp("uuid", type) == 0) {
+  } else if (zend_string_equals_literal(type, "uuid")) {
     *value_type = CASS_VALUE_TYPE_UUID;
-  } else if (strcmp("varchar", type) == 0) {
+  } else if (zend_string_equals_literal(type, "varchar")) {
     *value_type = CASS_VALUE_TYPE_VARCHAR;
-  } else if (strcmp("varint", type) == 0) {
+  } else if (zend_string_equals_literal(type, "varint")) {
     *value_type = CASS_VALUE_TYPE_VARINT;
-  } else if (strcmp("timeuuid", type) == 0) {
+  } else if (zend_string_equals_literal(type, "timeuuid")) {
     *value_type = CASS_VALUE_TYPE_TIMEUUID;
-  } else if (strcmp("inet", type) == 0) {
+  } else if (zend_string_equals_literal(type, "inet")) {
     *value_type = CASS_VALUE_TYPE_INET;
   } else {
     zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0, "Unsupported type '%s'",
-                            type);
-    return 0;
+                            ZSTR_VAL(type));
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 static int php_scylladb_collection_append(CassCollection* collection, zval* value,
@@ -320,12 +323,8 @@ static int php_scylladb_collection_append(CassCollection* collection, zval* valu
       CHECK_ERROR(cass_collection_append_bytes(collection, blob->data, blob->size));
       break;
     case CASS_VALUE_TYPE_BOOLEAN:
-#if PHP_MAJOR_VERSION >= 7
       CHECK_ERROR(cass_collection_append_bool(collection,
                                               Z_TYPE_P(value) == IS_TRUE ? cass_true : cass_false));
-#else
-      CHECK_ERROR(cass_collection_append_bool(collection, Z_BVAL_P(value)));
-#endif
       break;
     case CASS_VALUE_TYPE_DOUBLE:
       CHECK_ERROR(cass_collection_append_double(collection, Z_DVAL_P(value)));
@@ -335,7 +334,7 @@ static int php_scylladb_collection_append(CassCollection* collection, zval* valu
       CHECK_ERROR(cass_collection_append_float(collection, numeric->data.floating.value));
       break;
     case CASS_VALUE_TYPE_INT:
-      CHECK_ERROR(cass_collection_append_int32(collection, Z_LVAL_P(value)));
+      CHECK_ERROR(cass_collection_append_int32(collection, (cass_int32_t)Z_LVAL_P(value)));
       break;
     case CASS_VALUE_TYPE_TIMESTAMP:
       timestamp = Z_SCYLLADB_TIMESTAMP_P(value);
@@ -364,7 +363,7 @@ static int php_scylladb_collection_append(CassCollection* collection, zval* valu
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(
-          cass_collection_append_decimal(collection, data, size, numeric->data.decimal.scale));
+          cass_collection_append_decimal(collection, data, size, (cass_int32_t)numeric->data.decimal.scale));
       free(data);
       break;
     case CASS_VALUE_TYPE_DURATION:
@@ -406,6 +405,9 @@ static int php_scylladb_collection_append(CassCollection* collection, zval* valu
       CHECK_ERROR(cass_collection_append_user_type(collection, sub_ut));
       cass_user_type_free(sub_ut);
       break;
+    case CASS_VALUE_TYPE_CUSTOM:
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
       zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported collection type");
       return 0;
@@ -465,12 +467,8 @@ static int php_scylladb_tuple_set(CassTuple* tuple, zend_ulong index, zval* valu
       CHECK_ERROR(cass_tuple_set_bytes(tuple, index, blob->data, blob->size));
       break;
     case CASS_VALUE_TYPE_BOOLEAN:
-#if PHP_MAJOR_VERSION >= 7
       CHECK_ERROR(
           cass_tuple_set_bool(tuple, index, Z_TYPE_P(value) == IS_TRUE ? cass_true : cass_false));
-#else
-      CHECK_ERROR(cass_tuple_set_bool(tuple, index, Z_BVAL_P(value)));
-#endif
       break;
     case CASS_VALUE_TYPE_DOUBLE:
       CHECK_ERROR(cass_tuple_set_double(tuple, index, Z_DVAL_P(value)));
@@ -480,7 +478,7 @@ static int php_scylladb_tuple_set(CassTuple* tuple, zend_ulong index, zval* valu
       CHECK_ERROR(cass_tuple_set_float(tuple, index, numeric->data.floating.value));
       break;
     case CASS_VALUE_TYPE_INT:
-      CHECK_ERROR(cass_tuple_set_int32(tuple, index, Z_LVAL_P(value)));
+      CHECK_ERROR(cass_tuple_set_int32(tuple, index, (cass_int32_t)Z_LVAL_P(value)));
       break;
     case CASS_VALUE_TYPE_TIMESTAMP:
       timestamp = Z_SCYLLADB_TIMESTAMP_P(value);
@@ -508,7 +506,7 @@ static int php_scylladb_tuple_set(CassTuple* tuple, zend_ulong index, zval* valu
     case CASS_VALUE_TYPE_DECIMAL:
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = export_twos_complement(numeric->data.decimal.value, &size);
-      CHECK_ERROR(cass_tuple_set_decimal(tuple, index, data, size, numeric->data.decimal.scale));
+      CHECK_ERROR(cass_tuple_set_decimal(tuple, index, data, size, (cass_int32_t)numeric->data.decimal.scale));
       free(data);
       break;
     case CASS_VALUE_TYPE_DURATION:
@@ -550,6 +548,9 @@ static int php_scylladb_tuple_set(CassTuple* tuple, zend_ulong index, zval* valu
       CHECK_ERROR(cass_tuple_set_user_type(tuple, index, sub_ut));
       cass_user_type_free(sub_ut);
       break;
+    case CASS_VALUE_TYPE_CUSTOM:
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
       zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported collection type");
       return 0;
@@ -609,12 +610,8 @@ static int php_scylladb_user_type_set(CassUserType* ut, const char* name, zval* 
       CHECK_ERROR(cass_user_type_set_bytes_by_name(ut, name, blob->data, blob->size));
       break;
     case CASS_VALUE_TYPE_BOOLEAN:
-#if PHP_MAJOR_VERSION >= 7
       CHECK_ERROR(cass_user_type_set_bool_by_name(
           ut, name, Z_TYPE_P(value) == IS_TRUE ? cass_true : cass_false));
-#else
-      CHECK_ERROR(cass_user_type_set_bool_by_name(ut, name, Z_BVAL_P(value)));
-#endif
       break;
     case CASS_VALUE_TYPE_DOUBLE:
       CHECK_ERROR(cass_user_type_set_double_by_name(ut, name, Z_DVAL_P(value)));
@@ -624,7 +621,7 @@ static int php_scylladb_user_type_set(CassUserType* ut, const char* name, zval* 
       CHECK_ERROR(cass_user_type_set_float_by_name(ut, name, numeric->data.floating.value));
       break;
     case CASS_VALUE_TYPE_INT:
-      CHECK_ERROR(cass_user_type_set_int32_by_name(ut, name, Z_LVAL_P(value)));
+      CHECK_ERROR(cass_user_type_set_int32_by_name(ut, name, (cass_int32_t)Z_LVAL_P(value)));
       break;
     case CASS_VALUE_TYPE_TIMESTAMP:
       timestamp = Z_SCYLLADB_TIMESTAMP_P(value);
@@ -653,7 +650,7 @@ static int php_scylladb_user_type_set(CassUserType* ut, const char* name, zval* 
       numeric = PHP_SCYLLADB_GET_NUMERIC(value);
       data = export_twos_complement(numeric->data.decimal.value, &size);
       CHECK_ERROR(
-          cass_user_type_set_decimal_by_name(ut, name, data, size, numeric->data.decimal.scale));
+          cass_user_type_set_decimal_by_name(ut, name, data, size, (cass_int32_t)numeric->data.decimal.scale));
       free(data);
       break;
     case CASS_VALUE_TYPE_DURATION:
@@ -695,6 +692,9 @@ static int php_scylladb_user_type_set(CassUserType* ut, const char* name, zval* 
       CHECK_ERROR(cass_user_type_set_user_type_by_name(ut, name, sub_ut));
       cass_user_type_free(sub_ut);
       break;
+    case CASS_VALUE_TYPE_CUSTOM:
+    case CASS_VALUE_TYPE_LAST_ENTRY:
+    case CASS_VALUE_TYPE_UNKNOWN:
     default:
       zend_throw_exception_ex(php_scylladb_runtime_exception_ce, 0, "Unsupported collection type");
       return 0;
@@ -703,7 +703,7 @@ static int php_scylladb_user_type_set(CassUserType* ut, const char* name, zval* 
   return result;
 }
 
-int php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** collection_ptr) {
+bool php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** collection_ptr) {
   int result = 1;
   CassCollection* collection = nullptr;
   php_scylladb_type* type;
@@ -734,7 +734,7 @@ int php_scylladb_collection_from_set(php_scylladb_set* set, CassCollection** col
   return result;
 }
 
-int php_scylladb_collection_from_collection(php_scylladb_collection* coll,
+bool php_scylladb_collection_from_collection(php_scylladb_collection* coll,
                                           CassCollection** collection_ptr) {
   int result = 1;
   zval* current;
@@ -768,7 +768,7 @@ int php_scylladb_collection_from_collection(php_scylladb_collection* coll,
   return result;
 }
 
-int php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** collection_ptr) {
+bool php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** collection_ptr) {
   int result = 1;
   CassCollection* collection;
   php_scylladb_type* type;
@@ -804,7 +804,7 @@ int php_scylladb_collection_from_map(php_scylladb_map* map, CassCollection** col
   return result;
 }
 
-int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output) {
+bool php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output) {
   int result = 1;
   zend_ulong num_key;
   zval* current;
@@ -843,7 +843,7 @@ int php_scylladb_tuple_from_tuple(php_scylladb_tuple* tuple, CassTuple** output)
   return result;
 }
 
-int php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* user_type_value,
+bool php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* user_type_value,
                                               CassUserType** output) {
   int result = 1;
   zend_string* name;
@@ -862,7 +862,7 @@ int php_scylladb_user_type_from_user_type_value(php_scylladb_user_type_value* us
   ZEND_HASH_FOREACH_STR_KEY_VAL(&user_type_value->values, name, current) {
     zval* zsub_type;
     php_scylladb_type* sub_type;
-    if ((zsub_type = zend_hash_str_find(&type->data.udt.types, ZSTR_VAL(name), (size_t)(ZSTR_LEN(name) + 1 - 1))) == nullptr ||
+    if ((zsub_type = zend_hash_find(&type->data.udt.types, name)) == nullptr ||
         !php_scylladb_validate_object((current), (zsub_type))) {
       result = 0;
       break;

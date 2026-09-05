@@ -28,10 +28,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, name)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
 
   RETURN_ZVAL(&self->signature, 1, 0);
 }
@@ -40,10 +39,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, simpleName)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   if (Z_ISUNDEF(self->simple_name)) {
     const char *name;
     size_t name_length;
@@ -59,10 +57,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, argumentTypes)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   if (Z_ISUNDEF(self->argument_types)) {
     size_t i, count = cass_aggregate_meta_argument_count(self->meta);
 
@@ -86,10 +83,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, stateFunction)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   if (Z_ISUNDEF(self->state_function)) {
     const CassFunctionMeta* function = cass_aggregate_meta_state_func(self->meta);
     if (!function) {
@@ -106,10 +102,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, finalFunction)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   if (Z_ISUNDEF(self->final_function)) {
     const CassFunctionMeta* function = cass_aggregate_meta_final_func(self->meta);
     if (!function) {
@@ -126,10 +121,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, initialCondition)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   if (Z_ISUNDEF(self->initial_condition)) {
     const CassValue *value = cass_aggregate_meta_init_cond(self->meta);
     const CassDataType *data_type = nullptr;
@@ -150,10 +144,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, stateType)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   if (Z_ISUNDEF(self->state_type)) {
     const CassDataType* data_type = cass_aggregate_meta_state_type(self->meta);
     if (!data_type) {
@@ -169,10 +162,9 @@ ZEND_METHOD(Cassandra_DefaultAggregate, returnType)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   if (Z_ISUNDEF(self->return_type)) {
     const CassDataType* data_type = cass_aggregate_meta_return_type(self->meta);
     if (!data_type) {
@@ -188,18 +180,28 @@ ZEND_METHOD(Cassandra_DefaultAggregate, signature)
 {
   php_scylladb_aggregate *self;
 
-  if (zend_parse_parameters_none() == FAILURE)
-    return;
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_AGGREGATE(getThis());
+  self = PHP_SCYLLADB_GET_AGGREGATE(ZEND_THIS);
   RETURN_ZVAL(&self->signature, 1, 0);
 }
 
 HashTable *
 php_scylladb_default_aggregate_gc(zend_object *object, zval** table, int *n)
 {
-  *table = nullptr;
-  *n = 0;
+  auto self = php_scylladb_aggregate_object_fetch(object);
+  zend_get_gc_buffer *buffer = zend_get_gc_buffer_create();
+  zend_get_gc_buffer_add_zval(buffer, &self->simple_name);
+  zend_get_gc_buffer_add_zval(buffer, &self->argument_types);
+  zend_get_gc_buffer_add_zval(buffer, &self->state_function);
+  zend_get_gc_buffer_add_zval(buffer, &self->final_function);
+  zend_get_gc_buffer_add_zval(buffer, &self->initial_condition);
+  zend_get_gc_buffer_add_zval(buffer, &self->state_type);
+  zend_get_gc_buffer_add_zval(buffer, &self->return_type);
+  zend_get_gc_buffer_add_zval(buffer, &self->signature);
+  zend_get_gc_buffer_add_zval(buffer, &self->schema);
+  zend_get_gc_buffer_use(buffer, table, n);
+
   return nullptr;
 }
 
@@ -214,7 +216,7 @@ php_scylladb_default_aggregate_properties(zend_object *object)
 int
 php_scylladb_default_aggregate_compare(zval *obj1, zval *obj2 )
 {
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   if (Z_OBJCE_P(obj1) != Z_OBJCE_P(obj2))
     return strcmp(ZSTR_VAL(Z_OBJCE_P(obj1)->name), ZSTR_VAL(Z_OBJCE_P(obj2)->name)); /* different classes */
 
@@ -263,7 +265,5 @@ php_scylladb_default_aggregate_new(zend_class_entry *ce )
   ZVAL_UNDEF(&self->schema);
   self->meta = nullptr;
 
-  php_scylladb_default_aggregate_handlers.offset = offsetof(php_scylladb_aggregate, zendObject);
-  php_scylladb_default_aggregate_handlers.free_obj = php_scylladb_default_aggregate_free;
   return &self->zendObject;
 }

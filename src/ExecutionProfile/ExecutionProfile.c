@@ -68,13 +68,13 @@ static zend_always_inline void php_scylladb_profile_filter(INTERNAL_FUNCTION_PAR
                                                            CassError (*apply)(CassExecProfile *, const char *))
 {
     zval *args = nullptr;
-    int argc = 0;
+    uint32_t argc = 0;
 
     ZEND_PARSE_PARAMETERS_START(1, -1)
     Z_PARAM_VARIADIC('+', args, argc)
     ZEND_PARSE_PARAMETERS_END();
 
-    zend_string *joined = php_scylladb_profile_join(args, argc);
+    zend_string *joined = php_scylladb_profile_join(args, (size_t)argc);
 
     if (joined == nullptr)
     {
@@ -82,7 +82,7 @@ static zend_always_inline void php_scylladb_profile_filter(INTERNAL_FUNCTION_PAR
         return;
     }
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), tag);
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, tag);
     self->config_hash = php_scylladb_cache_key_mix_zstr(self->config_hash, joined);
 
     const CassError rc = apply(self->profile, ZSTR_VAL(joined));
@@ -90,7 +90,7 @@ static zend_always_inline void php_scylladb_profile_filter(INTERNAL_FUNCTION_PAR
 
     ASSERT_SUCCESS(rc);
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, __construct) { ZEND_PARSE_PARAMETERS_NONE(); }
@@ -111,12 +111,12 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withConsistency)
         return;
     }
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "consistency");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "consistency");
     PHP_SCYLLADB_PROFILE_MIX_INT(self, consistency);
 
     ASSERT_SUCCESS(cass_execution_profile_set_consistency(self->profile, (CassConsistency)consistency));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withSerialConsistency)
@@ -137,12 +137,12 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withSerialConsistency)
         return;
     }
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "serial_consistency");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "serial_consistency");
     PHP_SCYLLADB_PROFILE_MIX_INT(self, consistency);
 
     ASSERT_SUCCESS(cass_execution_profile_set_serial_consistency(self->profile, (CassConsistency)consistency));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withRequestTimeout)
@@ -161,13 +161,14 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withRequestTimeout)
         return;
     }
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "request_timeout");
-    const cass_uint64_t timeout_ms = (cass_uint64_t)ceil(timeout * 1000);
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "request_timeout");
+    const double timeout_scaled = ceil(timeout * 1000);
+    const cass_uint64_t timeout_ms = (cass_uint64_t)timeout_scaled;
     PHP_SCYLLADB_PROFILE_MIX_INT(self, timeout_ms);
 
     ASSERT_SUCCESS(cass_execution_profile_set_request_timeout(self->profile, timeout_ms));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withRetryPolicy)
@@ -178,7 +179,7 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withRetryPolicy)
     Z_PARAM_OBJECT_OF_CLASS(policy, php_scylladb_retry_policy_ce)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "retry_policy");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "retry_policy");
     php_scylladb_retry_policy *rp = PHP_SCYLLADB_OBJ_FETCH(php_scylladb_retry_policy, Z_OBJ_P(policy));
 
     /* The profile borrows the CassRetryPolicy, so hold a reference to the PHP
@@ -194,18 +195,18 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withRetryPolicy)
 
     ASSERT_SUCCESS(cass_execution_profile_set_retry_policy(self->profile, rp->policy));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withRoundRobinLoadBalancingPolicy)
 {
     ZEND_PARSE_PARAMETERS_NONE();
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "lb_round_robin");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "lb_round_robin");
 
     ASSERT_SUCCESS(cass_execution_profile_set_load_balance_round_robin(self->profile));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withDatacenterAwareRoundRobinLoadBalancingPolicy)
@@ -228,7 +229,7 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withDatacenterAwareRoundRobinLoadBalanci
         return;
     }
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "lb_dc_aware");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "lb_dc_aware");
     self->config_hash = php_scylladb_cache_key_mix_zstr(self->config_hash, local_dc);
     PHP_SCYLLADB_PROFILE_MIX_INT(self, hosts_per_remote_dc);
     PHP_SCYLLADB_PROFILE_MIX_INT(self, allow_remote_for_local);
@@ -237,7 +238,7 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withDatacenterAwareRoundRobinLoadBalanci
         self->profile, ZSTR_VAL(local_dc), ZSTR_LEN(local_dc), (unsigned)hosts_per_remote_dc,
         allow_remote_for_local ? cass_true : cass_false));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withTokenAwareRouting)
@@ -249,13 +250,13 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withTokenAwareRouting)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "token_aware");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "token_aware");
     PHP_SCYLLADB_PROFILE_MIX_INT(self, enabled);
 
     ASSERT_SUCCESS(
         cass_execution_profile_set_token_aware_routing(self->profile, enabled ? cass_true : cass_false));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withTokenAwareRoutingShuffleReplicas)
@@ -267,13 +268,13 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withTokenAwareRoutingShuffleReplicas)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "shuffle_replicas");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "shuffle_replicas");
     PHP_SCYLLADB_PROFILE_MIX_INT(self, enabled);
 
     ASSERT_SUCCESS(cass_execution_profile_set_token_aware_routing_shuffle_replicas(
         self->profile, enabled ? cass_true : cass_false));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withLatencyAwareRouting)
@@ -285,13 +286,13 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withLatencyAwareRouting)
     Z_PARAM_BOOL(enabled)
     ZEND_PARSE_PARAMETERS_END();
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "latency_aware");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "latency_aware");
     PHP_SCYLLADB_PROFILE_MIX_INT(self, enabled);
 
     ASSERT_SUCCESS(
         cass_execution_profile_set_latency_aware_routing(self->profile, enabled ? cass_true : cass_false));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withLatencyAwareRoutingSettings)
@@ -318,10 +319,13 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withLatencyAwareRoutingSettings)
         return;
     }
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "latency_aware_settings");
-    const cass_uint64_t scale_ms = (cass_uint64_t)ceil(scale * 1000);
-    const cass_uint64_t retry_period_ms = (cass_uint64_t)ceil(retry_period * 1000);
-    const cass_uint64_t update_rate_ms = (cass_uint64_t)ceil(update_rate * 1000);
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "latency_aware_settings");
+    const double scale_scaled = ceil(scale * 1000);
+    const double retry_period_scaled = ceil(retry_period * 1000);
+    const double update_rate_scaled = ceil(update_rate * 1000);
+    const cass_uint64_t scale_ms = (cass_uint64_t)scale_scaled;
+    const cass_uint64_t retry_period_ms = (cass_uint64_t)retry_period_scaled;
+    const cass_uint64_t update_rate_ms = (cass_uint64_t)update_rate_scaled;
 
     PHP_SCYLLADB_PROFILE_MIX_INT(self, (int)(exclusion_threshold * 1000));
     PHP_SCYLLADB_PROFILE_MIX_INT(self, scale_ms);
@@ -338,7 +342,7 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withLatencyAwareRoutingSettings)
         self->profile, exclusion_threshold, scale_ms, retry_period_ms, update_rate_ms,
         (cass_uint64_t)min_measured);
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withConstantSpeculativeExecutionPolicy)
@@ -368,26 +372,27 @@ ZEND_METHOD(Cassandra_ExecutionProfile, withConstantSpeculativeExecutionPolicy)
         return;
     }
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "speculative");
-    const cass_int64_t delay_ms = (cass_int64_t)ceil(delay * 1000);
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "speculative");
+    const double delay_scaled = ceil(delay * 1000);
+    const cass_int64_t delay_ms = (cass_int64_t)delay_scaled;
     PHP_SCYLLADB_PROFILE_MIX_INT(self, delay_ms);
     PHP_SCYLLADB_PROFILE_MIX_INT(self, max_executions);
 
     ASSERT_SUCCESS(cass_execution_profile_set_constant_speculative_execution_policy(self->profile, delay_ms,
                                                                                    (int)max_executions));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withNoSpeculativeExecutionPolicy)
 {
     ZEND_PARSE_PARAMETERS_NONE();
 
-    php_scylladb_execution_profile *self = php_scylladb_profile_this(getThis(), "no_speculative");
+    php_scylladb_execution_profile *self = php_scylladb_profile_this(ZEND_THIS, "no_speculative");
 
     ASSERT_SUCCESS(cass_execution_profile_set_no_speculative_execution_policy(self->profile));
 
-    RETURN_ZVAL(getThis(), 1, 0);
+    RETURN_ZVAL(ZEND_THIS, 1, 0);
 }
 
 ZEND_METHOD(Cassandra_ExecutionProfile, withWhiteListHosts)

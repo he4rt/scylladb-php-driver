@@ -18,5 +18,5 @@
 
 BEGIN_EXTERN_C()
 zend_result php_scylladb_timeuuid_init(zval *returnValueOrThis, zend_string *str,
-                                       zend_long timestamp);
+                                       zend_long timestamp, bool provided);
 END_EXTERN_C()

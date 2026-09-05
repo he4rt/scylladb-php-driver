@@ -30,6 +30,6 @@ extern zend_class_entry* php_scylladb_async_poll_handle_ce;
 /* Materialise `future_zv`'s notification descriptor as a PollHandle in
  * `return_value`. Shared with Async/Poll.c, which registers it with a context on
  * the caller's behalf. Returns SUCCESS or FAILURE (thrown). */
-int php_scylladb_poll_handle_for_future(zval* future_zv, zval* return_value);
+[[nodiscard]] int php_scylladb_poll_handle_for_future(zval* future_zv, zval* return_value);
 
 #endif

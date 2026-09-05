@@ -136,6 +136,21 @@
 
 ### Changed
 
+- An exception message that reports a rejected string now quotes it, so
+  `argument must be an int, 'text' given` no longer reads the same as an integer argument.
+  Every message that carries a string from PHP is also bounded by its real length.
+
+- Casting a `Cassandra\Type\UserType` to an array now gives a `keyspace` and a `name` key
+  beside `types`. Both are `null` for a user type that names neither, and two user types with
+  different names no longer print the same.
+
+- The driver calls take the length-aware `_n` form for contact points, credentials, the host and
+  datacenter allow and deny lists, the local address and UUID parsing.
+
+- A `create_object` handler no longer writes to the shared object handler table. The generated
+  class descriptor fills that table once at registration, and 19 handlers repeated two of those
+  writes on every object allocation. Those writes did nothing and were a data race under ZTS.
+
 - Casting a `Cluster\Builder` to an array now gives a `Cassandra\ProtocolVersion` case for the
   `protocolVersion` key, was an integer. A value that no case names stays an integer.
 - The `scylla-cpp` backend now builds the vendored driver in `third-party/cpp-driver` and links
@@ -143,8 +158,132 @@
   the extension and gets fixed here. A checkout builds with no C/C++ driver installed. To link a
   driver installed on the system, pass `-DPHP_SCYLLADB_USE_SYSTEM_DRIVER=ON`. The `cassandra` and
   `scylla-rust` backends are unchanged and still come from the system.
+- The C sources drop the last PHP 7 compatibility branches (54 `#if PHP_MAJOR_VERSION`
+  blocks whose fallback referenced a type that no longer exists), spell object fetches with
+  `offsetof` through `PHP_SCYLLADB_OBJ_FETCH` instead of a hand-rolled null-pointer offset,
+  and give every status-returning internal function a real type: `bool` for a predicate,
+  `zend_result` for a `SUCCESS`/`FAILURE` outcome, both marked `[[nodiscard]]`.
+
+- `Cassandra\Custom` is registered from its stub like every other class. Its hand-written
+  `INIT_CLASS_ENTRY` registration and the empty method table are gone.
+
+- String results are built as a `zend_string` in one allocation. The `spprintf` into a `char *`,
+  copy into a zval, then `efree` sequence is gone from `__toString()`, `value()` and the
+  property handlers, and `php_scylladb_format_integer()` / `php_scylladb_format_decimal()`
+  return a `zend_string *` instead of a buffer with an `int` length.
+
+- The C sources use the current Zend spellings: `ZEND_THIS` (376 sites), `ZEND_METHOD`,
+  `ZEND_PARSE_PARAMETERS_NONE()` (132 sites) and `RETURN_THROWS()` where the method has not
+  yet written its return value.
+
+- Strings are `zend_string` throughout the extension, not a `char *` plus a length. That covers
+  the parameter macros (`Z_PARAM_STR`), the fields that hold a string (a simple statement's CQL,
+  the paging state token, a session's keyspace, a user type's keyspace and name, a custom type's
+  class name, the row decoder's column names) and the internal functions that take or return one.
+  Lookups keyed by such a string use `zend_hash_find()` / `zend_symtable_update()` and the
+  string's cached hash instead of re-hashing the characters, a statement's CQL is now shared by
+  reference rather than copied on every construction, and the driver calls take the length-aware
+  `_n` form, so a name that contains a NUL byte no longer resolves as its truncated prefix. The
+  string INI entries (`contact_points`, `local_dc`, `local_rack`, `application_name`,
+  `application_version`, `reconnect_policy`, `local_address`) are read with `OnUpdateStr`.
+
+- The build enables a much wider warning set and `src/` compiles clean under it on GCC and on
+  Clang: every implicit conversion is explicit, every switch over a driver enumeration handles
+  every enumerator, and shadowing, pointer arithmetic, redundant declarations, variable length
+  arrays, qualifier casts and float comparisons are all diagnosed. GCC adds its duplicated
+  branch, dangling pointer and use-after-free checks. Optimized builds also get stack protection
+  and `_FORTIFY_SOURCE=3`. `PHP_SCYLLADB_WERROR` makes every warning an error, and
+  `PHP_SCYLLADB_HARDENING` (on by default) controls the hardening flags.
 
 ### Fixed
+
+- A `foreach` over any driver value ran forever when the loop body read the same object again.
+  Every one of the 27 property handlers released the object property table and allocated a new
+  one on each call. The engine keys an iterator position on the table address, so a new table
+  put the loop back at the first element. `foreach ($uuid as $k => $v) { $a = (array) $uuid; }`
+  never reached the end. A handler now empties the table it already owns, which also drops one
+  array allocation per property read.
+
+- `new Cassandra\Time(-1)` returned the current time of day. The constructors of `Time`, `Date`
+  and `Timeuuid` used `-1` both as the "no argument" marker and as a value, so a caller could
+  not tell the driver to reject it. Each constructor now reads the argument count.
+
+- `new Cassandra\Time('86400000000000')` and `new Cassandra\Time('-1')` were accepted. The range
+  check ran only on the integer argument, so a string skipped it and stored a time outside the
+  day. The check now runs on both argument types.
+
+- `Time` and `Timeuuid` hid the reason a value was rejected. Both constructors threw
+  `Cannot create X from invalid value` on top of the precise exception the initializer had
+  already raised, so `UUID must be of type 1, type 4 given` never reached the caller.
+
+- The numeric string parser read `'- 3'` and `'-+3'` as `-3`. The driver scans a sign, then
+  `strtoull()` and `mpz_set_str()` scan a sign and leading space of their own. `'--3'`, `'+-3'`
+  and `' -3'` reported a `RangeException` about a value that was never a number. A digit must
+  now follow the sign. This covers `Bigint`, `Varint`, `Smallint`, `Tinyint`, `Time` and `Date`.
+
+- A value that carried a NUL byte was parsed as the part before it and reported as valid.
+  `new Cassandra\Inet("127.0.0.1\0garbage")` built `127.0.0.1`, and the same held for
+  `Uuid`, `Timeuuid` and every numeric string. An application that validated user input this
+  way stored a different value from the one it checked. Such a value is now rejected, and the
+  message names the offset of the NUL, because the message itself stops there too.
+
+- `new Cassandra\Date('12abc')` was accepted as `12`. The hand-written `strtol()` check rejected
+  trailing characters only when the parsed value was `0`, `LONG_MIN` or `LONG_MAX`. `Date` now
+  uses the same parser as the other numeric types.
+
+- Two user types with different names compared equal. `Type\UserType` compared only the field
+  names and field types, so `ks.x == ks.y` was true and a `Set` of type objects collapsed them.
+  A named user type now also compares its keyspace and its name. A user type with no name stays
+  structural and still matches a named type with the same fields, which is how a value built by
+  `Type::userType()` binds to a schema column.
+
+- An IPv6 address that produced too many bytes formatted the 16-byte binary address buffer with
+  `%s`, which read past the array until it met a zero byte. The message names the address now.
+
+- `ENABLE_SANITIZERS=ON` produced an extension with no sanitizer instrumentation. The vendored
+  helper reads the flags from the sources of the target it is given, and the module targets get
+  their sources after the call, so it applied nothing. The sanitizer flags now go on the target
+  directly. An undefined-behaviour build also stops on the first report.
+
+- Fifteen classes hid their references from the cycle collector, so any cycle through one of
+  them leaked. `DefaultCluster`, `DefaultSession`, `Rows`, `ExecutionOptions` and the four
+  `Future*` classes had no `get_gc` handler at all, and the seven schema classes (`DefaultTable`,
+  `DefaultColumn`, `DefaultIndex`, `DefaultKeyspace`, `DefaultMaterializedView`,
+  `DefaultFunction`, `DefaultAggregate`) had one that reported nothing. Every one of them now
+  publishes the zvals it owns. Two thousand `ExecutionOptions` cycles held 1.6 MB after
+  `gc_collect_cycles()` before this and are fully reclaimed after it.
+
+- `export_twos_complement()` wrote to the result of `malloc()` without checking it, so an
+  allocation failure while binding a varint or a decimal dereferenced a null pointer. It now
+  allocates with `pemalloc()`, which reports the failure the way the rest of the extension does.
+
+- A session built by `connectAsync()->get()` ignored every cluster-level default. The future
+  carried the connection but not the seeds, so the session fell back to the built-in values: the
+  page size was 5000 whatever `withDefaultPageSize()` said, the consistency was `LOCAL_QUORUM`
+  whatever `withDefaultConsistency()` said, and the keyspace and cache key were empty, which put
+  every asynchronously connected session in the same slot of the persistent prepared-statement
+  cache. `connectAsync()` now records the seeds on the future and `get()` copies them, so both
+  connect paths produce the same session.
+
+- `withDefaultTimeout()` never reached any session. The copy in `DefaultCluster::connect()` was
+  guarded on the destination zval, which the session constructor had just set to undefined, so
+  the condition was never true and every query waited without a deadline. **A cluster that sets
+  a default timeout now applies it**, which can surface as a `TimeoutException` on a query that
+  used to block.
+
+- `DefaultCluster::connect(null)` and `connectAsync(null)` connected with an empty keyspace name
+  instead of no keyspace, and `SSLOptions\Builder::withPrivateKey($path, null)` stored an empty
+  passphrase. Each signature declares `?string`, so the parameter is now read with
+  `Z_PARAM_STR_OR_NULL` and an explicit null behaves like an omitted argument.
+
+- `Duration` accepted a float argument that is exactly 2^63 and then cast it to a 64-bit integer,
+  which is undefined behaviour. The bound check rounds up to 2^63 when it converts `INT64_MAX` to
+  a double, so the value passed. Such a float is now rejected like any other out-of-range value.
+
+- `Bigint::sqrt()`, `Smallint::sqrt()` and `Float::sqrt()` threw a `RangeException` for a negative
+  value and then took the root anyway. The square root of a negative double is NaN, and the cast of
+  NaN to a 64-bit or 16-bit integer is undefined behaviour. The three methods now return where they
+  throw, like `Tinyint::sqrt()` and `Varint::sqrt()` already did.
 
 - `Session::closeAsync()` still aborted the process with `pure virtual method called`, on the one
   path the driver-side backport below does not cover. `FutureClose` held the driver future but no

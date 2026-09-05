@@ -94,14 +94,50 @@ All rules live in [`CLAUDE.md`](CLAUDE.md). The essentials:
   (see [`.clang-format`](.clang-format) / [`.clang-tidy`](.clang-tidy)).
   Format your changes before committing.
 
-### PHP-visible API changes (stubs)
+### Static analysis
 
-The PHP-facing API is defined in `*.stub.php` files, which generate
-`*_arginfo.h`. **Never edit the generated header by hand.** After changing a
-stub, regenerate and commit both files:
+CI runs five checks over `src/`. Run them before you push:
 
 ```bash
-php php/8.4-debug-nts/src/build/gen_stub.php src/MyModule/MyClass.stub.php
+cmake --preset DebugPHP8.5NTS -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build out/DebugPHP8.5NTS --target generated-sources
+
+clang-tidy -p out/DebugPHP8.5NTS src/MyModule/MyClass.c
+python3 scripts/gcc-analyzer.py --compile-db out/DebugPHP8.5NTS/compile_commands.json src/MyModule/MyClass.c
+cppcheck --project=out/DebugPHP8.5NTS/compile_commands.json --enable=warning,performance,portability,style --check-level=exhaustive --std=c23 --error-exitcode=1
+git clang-format origin/trunk -- src include
+```
+
+A build with `-DPHP_SCYLLADB_WERROR=ON` must stay clean on GCC and on Clang. The default
+warning set includes the conversion, cast-qualifier, switch, float and shadowing checks, so a
+new implicit conversion or an unhandled enumerator fails the build.
+
+Sanitizer builds need `-DENABLE_SANITIZERS=ON` plus `-DSANITIZE_ADDRESS=ON` or
+`-DSANITIZE_UNDEFINED=ON`. The undefined-behaviour build stops on the first report. On Linux,
+preload the runtime because PHP loads the extension with `dlopen`:
+
+```bash
+LD_PRELOAD="$(gcc -print-file-name=libasan.so)" USE_ZEND_ALLOC=0 \
+  ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0:halt_on_error=1 \
+  php -d extension=cassandra ./vendor/bin/pest
+```
+
+### PHP-visible API changes (stubs)
+
+The PHP-facing API is defined in `*.stub.php` files. The build generates
+`*_arginfo.h` and `*_descriptor.c` from each stub, and both are gitignored.
+**Never edit a generated file by hand, and commit the stub only.** A plain build
+regenerates whatever changed:
+
+```bash
+cmake --build out/DebugPHP8.5NTS
+```
+
+To run the generator outside a build, call the wrapper, not `gen_stub.php` — the
+upstream tool fails on `declare(strict_types=1);`:
+
+```bash
+tools/gen_stub/gen_arginfo.sh src/MyModule/MyClass.stub.php php path/to/build/gen_stub.php
 ```
 
 ### Tests

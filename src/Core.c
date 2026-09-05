@@ -34,8 +34,9 @@ void php_scylladb_core_post_register(zend_class_entry *ce)
      * CPP_DRIVER_VERSION still needs runtime composition because
      * CASS_VERSION_SUFFIX may be empty and we don't want a trailing dash. */
     char buf[64];
-    snprintf(buf, sizeof(buf), "%d.%d.%d%s",
+    const char *suffix = CASS_VERSION_SUFFIX;
+    snprintf(buf, sizeof(buf), "%d.%d.%d%s%s",
              CASS_VERSION_MAJOR, CASS_VERSION_MINOR, CASS_VERSION_PATCH,
-             strlen(CASS_VERSION_SUFFIX) > 0 ? "-" CASS_VERSION_SUFFIX : "");
+             suffix[0] == '\0' ? "" : "-", suffix);
     override_class_constant_string(ce, "CPP_DRIVER_VERSION", buf);
 }

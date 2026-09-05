@@ -43,14 +43,12 @@ ZEND_METHOD(Cassandra_Type_Tuple, __construct)
 {
   zend_throw_exception_ex(php_scylladb_logic_exception_ce, 0 ,
                           "Instantiation of a " PHP_SCYLLADB_NAMESPACE "\\Type\\Tuple type is not supported.");
-  return;
+  RETURN_THROWS();
 }
 
 ZEND_METHOD(Cassandra_Type_Tuple, name)
 {
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
   RETVAL_STRING("tuple");
 }
@@ -59,11 +57,9 @@ ZEND_METHOD(Cassandra_Type_Tuple, types)
 {
   php_scylladb_type* self;
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   array_init(return_value);
   zend_hash_copy(Z_ARRVAL_P(return_value), &self->data.tuple.types, (copy_ctor_func_t)zval_add_ref);
@@ -74,11 +70,9 @@ ZEND_METHOD(Cassandra_Type_Tuple, __toString)
   php_scylladb_type* self;
   smart_str string = {nullptr,0};
 
-  if (zend_parse_parameters_none() == FAILURE) {
-    return;
-  }
+  ZEND_PARSE_PARAMETERS_NONE();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   php_scylladb_type_string(self, &string );
   smart_str_0(&string);
@@ -92,18 +86,19 @@ ZEND_METHOD(Cassandra_Type_Tuple, create)
   php_scylladb_type* self;
   php_scylladb_tuple* tuple;
   zval* args = nullptr;
-  int argc               = 0, i, num_types;
+  uint32_t argc          = 0, i;
+  uint32_t num_types;
 
   ZEND_PARSE_PARAMETERS_START(0, -1)
     Z_PARAM_VARIADIC('*', args, argc)
   ZEND_PARSE_PARAMETERS_END();
 
-  self = PHP_SCYLLADB_GET_TYPE(getThis());
+  self = PHP_SCYLLADB_GET_TYPE(ZEND_THIS);
 
   object_init_ex(return_value, php_scylladb_tuple_ce);
   tuple = PHP_SCYLLADB_GET_TUPLE(return_value);
 
-  ZVAL_COPY(&tuple->type, getThis());
+  ZVAL_COPY(&tuple->type, ZEND_THIS);
 
   num_types = zend_hash_num_elements(&self->data.tuple.types);
 
@@ -125,7 +120,7 @@ ZEND_METHOD(Cassandra_Type_Tuple, create)
         return;
       }
 
-      php_scylladb_tuple_set(tuple, i, &args[i] );
+      php_scylladb_tuple_set(tuple, (zend_ulong)i, &args[i] );
     }
 
   }
@@ -133,11 +128,7 @@ ZEND_METHOD(Cassandra_Type_Tuple, create)
 
 HashTable*
 php_scylladb_type_tuple_gc(
-#if PHP_MAJOR_VERSION >= 8
   zend_object* object,
-#else
-  zendObject* object,
-#endif
   zval** table,
   int* n )
 {
@@ -157,24 +148,12 @@ php_scylladb_type_tuple_gc(
 
 HashTable*
 php_scylladb_type_tuple_properties(
-#if PHP_MAJOR_VERSION >= 8
   zend_object* object
-#else
-  zendObject* object
-#endif
 )
 {
   zval types;
-#if PHP_MAJOR_VERSION >= 8
   auto self = php_scylladb_type_object_fetch(object);
-#else
-  auto self = PHP_SCYLLADB_GET_TYPE(object);
-#endif
-  if (object->properties) {
-    zend_array_release(object->properties);
-  }
-  object->properties = zend_new_array(1);
-  HashTable *props = object->properties;
+  HashTable *props = php_scylladb_properties_rebuild(object, 1);
 
   array_init(&types);
   zend_hash_copy(Z_ARRVAL(types), &self->data.tuple.types, (copy_ctor_func_t)zval_add_ref);
@@ -186,9 +165,7 @@ php_scylladb_type_tuple_properties(
 int
 php_scylladb_type_tuple_compare(zval* obj1, zval* obj2 )
 {
-#if PHP_MAJOR_VERSION >= 8
-  ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
+  PHP_SCYLLADB_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
   auto type1 = PHP_SCYLLADB_GET_TYPE(obj1);
   auto type2 = PHP_SCYLLADB_GET_TYPE(obj2);
 
@@ -218,8 +195,6 @@ php_scylladb_type_tuple_new(zend_class_entry* ce )
   self->data_type = cass_data_type_new(self->type);
   zend_hash_init(&self->data.tuple.types, 0, nullptr, ZVAL_PTR_DTOR, 0);
 
-  php_scylladb_type_tuple_handlers.offset = offsetof(php_scylladb_type, zendObject);
-  php_scylladb_type_tuple_handlers.free_obj = php_scylladb_type_tuple_free;
   return &self->zendObject;
 }
 
