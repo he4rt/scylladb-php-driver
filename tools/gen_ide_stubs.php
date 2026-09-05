@@ -248,14 +248,18 @@ function findStubs(string $dir): array
 
 function autoloader(string $root): string
 {
-    $vendored = $root . '/tools/gen_stub/PHP-Parser-5.6.1/lib/PhpParser/Internal/TokenStream.php';
-    if (file_exists($vendored)) {
-        spl_autoload_register(static function (string $class) use ($root): void {
+    $vendored = glob($root . '/tools/gen_stub/PHP-Parser-*/lib/PhpParser', GLOB_ONLYDIR) ?: [];
+    usort($vendored, static fn (string $a, string $b): int => version_compare(
+        basename(dirname($a, 2)),
+        basename(dirname($b, 2)),
+    ));
+    if ($vendored !== []) {
+        $lib = dirname(end($vendored));
+        spl_autoload_register(static function (string $class) use ($lib): void {
             if (!str_starts_with($class, 'PhpParser\\')) {
                 return;
             }
-            $path = $root . '/tools/gen_stub/PHP-Parser-5.6.1/lib/'
-                . str_replace('\\', '/', $class) . '.php';
+            $path = $lib . '/' . str_replace('\\', '/', $class) . '.php';
             if (file_exists($path)) {
                 require_once $path;
             }

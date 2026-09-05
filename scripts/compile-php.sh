@@ -8,6 +8,7 @@ ENABLE_DEBUG="no"
 ENABLE_SANITIZERS="no"
 WITH_VERSION="yes"
 KEEP_SRC="no"
+DEPS_ONLY="no"
 
 print_usage() {
     cat <<EOF
@@ -21,6 +22,7 @@ Options:
   -d           Compile in debug mode
   -s           Enable AddressSanitizer + UndefinedSanitizer
   -k           Keep PHP source after install
+  -D           Install the system dependencies and exit
   -a           Install without version suffix in output path
   -h           Show this help
 
@@ -34,7 +36,7 @@ EOF
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
-while getopts "v:o:zsdkah" opt; do
+while getopts "v:o:zsdkaDh" opt; do
     case "$opt" in
         v) PHP_VERSION="$OPTARG" ;;
         o) OUTPUT="$OPTARG" ;;
@@ -43,6 +45,7 @@ while getopts "v:o:zsdkah" opt; do
         s) ENABLE_SANITIZERS="yes" ;;
         k) KEEP_SRC="yes" ;;
         a) WITH_VERSION="no" ;;
+        D) DEPS_ONLY="yes" ;;
         h) print_usage; exit 0 ;;
         *) print_usage; exit 1 ;;
     esac
@@ -120,7 +123,7 @@ install_system_deps() {
                         openssl-devel sqlite-devel zlib-devel libcurl-devel \
                         readline-devel libffi-devel oniguruma-devel libxml2-devel \
                         libsodium-devel gmp-devel libicu-devel libzip-devel
-                    install_re2c_from_source
+                    [[ "$DEPS_ONLY" == "yes" ]] || install_re2c_from_source
                     ;;
                 *)
                     echo "WARN: Unknown distro '${ID:-}', skipping automatic dep install" >&2
@@ -175,6 +178,10 @@ build_output_path() {
 }
 
 install_system_deps
+
+if [[ "$DEPS_ONLY" == "yes" ]]; then
+    exit 0
+fi
 
 command -v curl  >/dev/null 2>&1 || die "curl not found in PATH"
 command -v jq    >/dev/null 2>&1 || die "jq not found in PATH"
