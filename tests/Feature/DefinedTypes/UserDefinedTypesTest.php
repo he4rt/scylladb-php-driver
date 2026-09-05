@@ -144,6 +144,10 @@ it('Using Cassandra user defined types from schema metadata', function () use($k
 });
 
 it('binds a hand-built user type that names its keyspace and type', function () use ($keyspace, $table) {
+    if (isScyllaRustBackend()) {
+        $this->markTestSkipped('cpp-rs-driver rejects a user type built without schema metadata');
+    }
+
     $session = scyllaDbConnection($keyspace);
 
     $addressType = \Cassandra\Type::userType(

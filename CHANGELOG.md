@@ -347,6 +347,11 @@
   `cassandra.no_compact`, `cassandra.tracing_consistency`, `cassandra.tracing_max_wait_time`
   and `cassandra.tracing_retry_wait_time`. Each keeps its driver default there. Every other
   directive, including execution profiles and rack-aware routing, works on all three backends.
+- A user type built by hand cannot be bound. `Type::userType(...)->withName()->withKeyspace()`
+  produces a value the driver rejects with `Invalid value type`, because it names the type
+  without the schema metadata the Rust driver reads it from. Take the type from
+  `$session->schema()->keyspace($ks)->userType($name)` instead. An unnamed user type binds on
+  every backend.
 - Schema introspection of column clustering order, keyspace metadata via name, and
   table/materialized-view options will return empty values or throw — the upstream
   declarations of `cass_*_meta_field_by_name` and `cass_iterator_fields_from_*` are
