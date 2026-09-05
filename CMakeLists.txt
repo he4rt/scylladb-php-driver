@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 project(php-ext-scylladb
-        VERSION     1.5.1
+        VERSION     1.5.2
         DESCRIPTION "ScyllaDB/Cassandra PHP extension"
         HOMEPAGE_URL "https://github.com/he4rt/scylladb-php-driver"
         LANGUAGES   C
