@@ -487,6 +487,13 @@ describe('numeric string parsing', function () {
             ->and((string) new \Cassandra\Bigint('+3'))->toBe('3');
     });
 
+    it('does not report a range error left over from an earlier overflow', function (string $class) {
+        expect(fn () => new $class('999999999999999999999'))->toThrow(\RangeException::class);
+
+        expect(fn () => new $class('- 3'))
+            ->toThrow(InvalidArgumentException::class, "Invalid integer value: '- 3'");
+    })->with([\Cassandra\Smallint::class, \Cassandra\Tinyint::class]);
+
     it('names the NUL byte instead of echoing a value the message would truncate', function () {
         expect(fn () => new \Cassandra\Bigint("12\0abc"))
             ->toThrow(InvalidArgumentException::class, 'Value of 6 bytes contains a NUL byte at offset 2');

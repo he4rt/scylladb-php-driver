@@ -111,7 +111,7 @@ void php_scylladb_smallint_init(INTERNAL_FUNCTION_PARAMETERS)
                 // narrower range error here. Any other failure already carries its
                 // own exception.
 
-                if (errno == ERANGE)
+                if (errno == ERANGE && !EG(exception))
                 {
                     zend_throw_exception_ex(php_scylladb_range_exception_ce, 0 ,
                                             "value must be between -32768 and 32767, %s given", Z_STRVAL_P(value));

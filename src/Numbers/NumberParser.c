@@ -127,6 +127,8 @@ php_scylladb_parse_int(const zend_string* zstr, cass_int32_t* number )
   cass_uint32_t temp = 0;
   int base           = 0;
 
+  errno = 0;
+
   if (!prepare_string_conversion(in, in_len, &pos, &negative, &base)) {
     if (!EG(exception)) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
@@ -135,7 +137,6 @@ php_scylladb_parse_int(const zend_string* zstr, cass_int32_t* number )
     return false;
   }
 
-  errno = 0;
   temp  = (cass_uint32_t) strtoul(in + pos, &end, base);
 
   if (negative) {
@@ -189,6 +190,8 @@ php_scylladb_parse_bigint(const zend_string* zstr, cass_int64_t* number )
   cass_uint64_t temp = 0;
   int base           = 0;
 
+  errno = 0;
+
   if (!prepare_string_conversion(in, in_len, &pos, &negative, &base)) {
     if (!EG(exception)) {
       zend_throw_exception_ex(php_scylladb_invalid_argument_exception_ce, 0,
@@ -197,7 +200,6 @@ php_scylladb_parse_bigint(const zend_string* zstr, cass_int64_t* number )
     return false;
   }
 
-  errno = 0;
   temp  = (cass_uint64_t) strtoull(in + pos, &end, base);
 
   if (negative) {
@@ -245,6 +247,8 @@ php_scylladb_parse_varint(const zend_string* zstr, mpz_t* number )
   int pos      = 0;
   int negative = 0;
   int base     = 0;
+
+  errno = 0;
 
   if (!prepare_string_conversion(in, in_len, &pos, &negative, &base) ||
       mpz_set_str(*number, &in[pos], base) == -1) {

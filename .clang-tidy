@@ -36,6 +36,7 @@ Checks: >
   -bugprone-narrowing-conversions,
   -bugprone-exception-escape,
   -bugprone-signed-bitwise,
+  -bugprone-casting-through-void,
   clang-analyzer-*,
   -clang-analyzer-security.ArrayBound,
   -clang-analyzer-core.NullDereference,

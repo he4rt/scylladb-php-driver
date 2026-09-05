@@ -197,6 +197,12 @@
 
 ### Fixed
 
+- `new Cassandra\Smallint('- 3')` reported a range error left over from an earlier value.
+  The parser signals a 32-bit overflow to `Smallint` and `Tinyint` through `errno`, and the
+  validation path added above returned before the parser cleared it. The two callers also threw
+  their range error on top of the exception the parser had already raised. The parser clears
+  `errno` first now, and neither caller throws over a pending exception.
+
 - A `foreach` over any driver value ran forever when the loop body read the same object again.
   Every one of the 27 property handlers released the object property table and allocated a new
   one on each call. The engine keys an iterator position on the table address, so a new table

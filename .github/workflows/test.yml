@@ -13,7 +13,6 @@ on:
       - 'include/**'
       - 'packages/**'
       - 'util/**'
-      - 'ZendCPP/**'
       - 'tests/**'
       - 'CMakeLists.txt'
       - 'composer.json'
@@ -33,7 +32,6 @@ on:
       - 'include/**'
       - 'packages/**'
       - 'util/**'
-      - 'ZendCPP/**'
       - 'tests/**'
       - 'CMakeLists.txt'
       - 'composer.json'
@@ -126,7 +124,6 @@ jobs:
         # every generated file from cmake/GenStubs.cmake, so a new module is
         # covered without an edit here.
         run: |
-          cmake --build out/DebugPHP8.5NTS --target ZendCPP || true
           cmake --build out/DebugPHP8.5NTS --target generated-sources
 
       - name: Determine files to lint
@@ -137,15 +134,15 @@ jobs:
             BASE="${{ github.event.pull_request.base.sha }}"
             HEAD="${{ github.event.pull_request.head.sha }}"
             git diff --name-only --diff-filter=AM "$BASE" "$HEAD" \
-              | grep -E '^src/.*\.(c|cc|cpp)$' > changed.txt || true
+              | grep -E '^src/.*\.(c|cc|cpp)$' > candidates.txt || true
           else
-            find src -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) > changed.txt
+            find src -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' \) > candidates.txt
           fi
-          # Sources this PHP 8.5 lint build cannot parse:
-          #   SwooleBridge.cc needs the swoole build flag + (open)swoole headers.
-          #   Poll.c / PollHandle.c need main/php_poll.h, which only PHP >= 8.6 ships.
-          grep -vE 'src/Async/(SwooleBridge\.cc|Poll\.c|PollHandle\.c)$' changed.txt > changed.tmp || true
-          mv changed.tmp changed.txt
+
+          jq -r '.[].file' out/DebugPHP8.5NTS/compile_commands.json \
+            | sed "s|^$PWD/||" | sort -u > built.txt
+          sort -u candidates.txt > wanted.txt
+          comm -12 wanted.txt built.txt > changed.txt
           echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "Files to lint:"
           cat changed.txt || true
@@ -274,7 +271,6 @@ jobs:
             -DSANITIZE_ADDRESS=OFF \
             -DSANITIZE_UNDEFINED=OFF \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          cmake --build out/DebugPHP8.5NTS --target ZendCPP || true
           cmake --build out/DebugPHP8.5NTS --target generated-sources
 
       - name: Extension translation units only
@@ -358,7 +354,6 @@ jobs:
             -DSANITIZE_ADDRESS=OFF \
             -DSANITIZE_UNDEFINED=OFF \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          cmake --build out/DebugPHP8.5NTS --target ZendCPP || true
           cmake --build out/DebugPHP8.5NTS --target generated-sources
 
       - name: Determine files to analyze
