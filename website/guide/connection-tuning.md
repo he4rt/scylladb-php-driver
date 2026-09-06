@@ -85,7 +85,7 @@ covers almost every such case.
 Up to 1.4.x, `withConnectionHeartbeatInterval()` and `withTCPKeepalive()` passed a value 1000 times
 too large to the C driver, so `withConnectionHeartbeatInterval(30.0)` asked for 30000 seconds and
 heartbeats effectively stopped. Both now take seconds, as documented. If you divided by 1000 to work
-around the old behaviour, remove that workaround.
+around the old behaviour, remove that workaround. See [upgrading from 1.4.x](/guide/upgrading).
 :::
 
 The heartbeat sends a lightweight request on an idle connection. It has two jobs: it detects a
@@ -113,7 +113,8 @@ the same failure at the protocol level. Turn it on when a network device drops i
 protocol layer.
 
 `withTCPKeepalive()` takes seconds, and `null` disables it. See the note under
-[heartbeats and reconnection](#heartbeats-and-reconnection) if you are upgrading from 1.4.x.
+[heartbeats and reconnection](#heartbeats-and-reconnection) and
+[upgrading from 1.4.x](/guide/upgrading).
 
 ## Protocol version
 

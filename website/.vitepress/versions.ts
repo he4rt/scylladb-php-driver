@@ -23,6 +23,7 @@ export function sidebar(base = '') {
           { text: 'Installation', link: `${base}/guide/installation` },
           { text: 'Quick start', link: `${base}/guide/quickstart` },
           { text: 'php.ini configuration', link: `${base}/guide/configuration` },
+          { text: 'Upgrading from 1.4.x', link: `${base}/guide/upgrading` },
         ],
       },
       {

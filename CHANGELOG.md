@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## [v1.5.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.5.1) (2026-09-05)
+
+The `v1.5.0` tag has no release. Its build failed, and every change below ships in
+`v1.5.1`.
+
 ### Changed (breaking)
 
 - The per-worker persistent caches are now bounded by default: 16 clusters, 16 sessions and
@@ -108,13 +113,6 @@
   startup naming the value that was dropped. `ini_get()` and `phpinfo()` report that default, so
   what they show is always what the driver uses.
 - New guide page: [php.ini configuration](website/guide/configuration.md).
-- Experimental support for [scylladb/cpp-rs-driver](https://github.com/scylladb/cpp-rs-driver)
-  as a third backend, selectable at build time via the new `PHP_DRIVER_BACKEND` CMake
-  cache variable (`cassandra | scylla-cpp | scylla-rust`). Install the Rust-backed
-  driver with `scripts/compile-cpp-rs-driver.sh --prefix <path>`, then configure with
-  `cmake -DPHP_DRIVER_BACKEND=scylla-rust` (or use a `*ScyllaRust` preset).
-- New CMake presets `*PHP*<ver><ts>ScyllaRust` covering the third backend across PHP
-  versions and build types.
 
 ### Dependencies
 
@@ -332,11 +330,6 @@
   contract. The compiled default of 30 seconds was always correct, because it never went
   through the setter.
 
-### Deprecated
-
-- `USE_LIBCASSANDRA` CMake option is now an alias for `PHP_DRIVER_BACKEND=cassandra`
-  and will be removed in a future release. Use `PHP_DRIVER_BACKEND` explicitly.
-
 ### Known limitations (scylla-rust backend)
 
 - `Cassandra\Cluster\Builder::withMaxConnectionsPerHost()` is a no-op (removed upstream).
@@ -358,6 +351,71 @@
   intentionally no-ops in the Rust driver (see upstream "Functions intentionally not
   implemented" docs). Our call sites null-check the returned pointer/iterator so the
   extension keeps working; affected PHP-level operations just yield empty results.
+
+## [v1.4.2](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.4.2) (2026-08-08)
+
+### Added
+
+- `cassandra.expose_credentials`, a `PHP_INI_SYSTEM` switch that puts the real password
+  back into the `Cluster\Builder` properties table. It is off by default. A request cannot
+  call `ini_set()` to turn the redaction off, so only the operator can unredact the value.
+
+### Fixed
+
+- The `Cluster\Builder` properties table held the password in clear text. Every read of the
+  object properties printed it: `var_dump()`, `print_r()`, `get_object_vars()`, an `(array)`
+  cast and the debug renderer of any framework. The table now holds `***`. The clear-text
+  value defeated the `#[\SensitiveParameter]` attribute on `withCredentials()`, which only
+  redacts the password in a stack trace.
+
+### Changed
+
+- Release builds run on Ubuntu 26.04 and add arm64 artifacts.
+
+## [v1.4.1](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.4.1) (2026-08-04)
+
+### Added
+
+- PHP 8.6 support. `XtOffsetOf()` becomes `offsetof()` and `zend_binary_zval_strcmp()`
+  becomes `zend_binary_strcmp()`, because 8.6 removes both. The new spellings also compile
+  on 8.3 to 8.5, so the code needs no version guard. New presets cover 8.6.
+
+### Fixed
+
+- The extension no longer bundles libuv (#106). Every preset set `LINK_LIBUV_STATIC=ON`,
+  which put a private copy of libuv inside `cassandra.so`. On Linux the flat ELF namespace
+  then made the shared C/C++ driver resolve its own `uv_*` references against that copy,
+  and not against the `libuv.so.1` it was compiled against. The driver ran a different
+  libuv build than its headers described, which corrupted memory around its event loop and
+  aborted in `RetryPolicy::dec_ref` during session connect. The extension used libuv for
+  one rwlock over the `cassandra.log` INI value. That lock is now a `pthread_rwlock_t`.
+- `php_scylladb_retry_policy_*_instantiate()` leaked a `CassRetryPolicy` and built the wrong
+  object. `object_init_ex()` runs `create_object`, which already assigns the policy, and the
+  helper then overwrote it with a second one. `DowngradingConsistency`, `Fallthrough` and
+  `Logging` also passed the `DefaultPolicy` class entry, so each produced a `DefaultPolicy`
+  object over a policy of another kind.
+- A static build now links zlib. With `PHP_SCYLLADB_STATIC=ON` the module referenced
+  `inflate`, `inflateEnd`, `inflateInit2_` and `crc32` with no `libz` in `DT_NEEDED`,
+  because `scylla-cpp-driver_static.pc` declares neither `Libs.private` nor zlib. It
+  resolved silently wherever another library in the process already provided zlib. On musl
+  it failed at `dlopen`.
+
+## [v1.4.0](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.4.0) (2026-07-13)
+
+### Added
+
+- Experimental support for [scylladb/cpp-rs-driver](https://github.com/scylladb/cpp-rs-driver)
+  as a third backend, selectable at build time via the new `PHP_DRIVER_BACKEND` CMake
+  cache variable (`cassandra | scylla-cpp | scylla-rust`). Install the Rust-backed
+  driver with `scripts/compile-cpp-rs-driver.sh --prefix <path>`, then configure with
+  `cmake -DPHP_DRIVER_BACKEND=scylla-rust` (or use a `*ScyllaRust` preset).
+- New CMake presets `*PHP*<ver><ts>ScyllaRust` covering the third backend across PHP
+  versions and build types.
+
+### Deprecated
+
+- `USE_LIBCASSANDRA` CMake option is now an alias for `PHP_DRIVER_BACKEND=cassandra`
+  and will be removed in a future release. Use `PHP_DRIVER_BACKEND` explicitly.
 
 ## [v1.3.17](https://github.com/he4rt/scylladb-php-driver/releases/tag/v1.3.17) (2026-04-25)
 
