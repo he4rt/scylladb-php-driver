@@ -5,7 +5,7 @@ All constants live on the global `Cassandra` class.
 ## Version
 
 ```php
-Cassandra::VERSION;              // the extension version, for example '1.4.1'
+Cassandra::VERSION;              // the extension version, for example '1.5.1'
 Cassandra::CPP_DRIVER_VERSION;   // the linked C/C++ driver version, resolved at runtime
 ```
 

@@ -32,7 +32,7 @@ website/
 │   ├── versions.ts         # version list, sidebar generator
 │   └── theme/
 │       ├── index.ts        # extends the default theme
-│       ├── VersionBanner.vue  # "you are reading the 1.4 docs" bar
+│       ├── VersionBanner.vue  # "you are reading the 1.5 docs" bar
 │       └── style.css       # palette and layout overrides
 ├── scripts/version.mjs     # cuts a new version
 ├── versions.json           # which version the root is, which are archived
@@ -40,7 +40,7 @@ website/
 ├── index.md                # home page
 ├── guide/                  # task-oriented pages, the latest version
 ├── reference/              # API reference pages, the latest version
-└── 1.4/                    # an archived version, once one exists
+└── 1.5/                    # an archived version, once one exists
     ├── guide/
     └── reference/
 ```
@@ -60,7 +60,7 @@ version dropdown in the nav.
 
 ```json
 {
-  "latest": "1.4",
+  "latest": "1.5",
   "archived": []
 }
 ```
@@ -71,15 +71,15 @@ Run this when you START writing the docs for a release, not when you finish.
 The root content has to be copied away before you change it.
 
 ```bash
-npm run docs:version 1.5
+npm run docs:version 1.6
 ```
 
 That does three things:
 
-1. Copies `guide/`, `reference/`, and `index.md` into `website/1.4/`.
-2. Rewrites every `/guide/` and `/reference/` link in the copy to `/1.4/guide/`
-   and `/1.4/reference/`, so an archived page links inside its own version.
-3. Sets `latest` to `1.5` and adds `1.4` to `archived`.
+1. Copies `guide/`, `reference/`, and `index.md` into `website/1.5/`.
+2. Rewrites every `/guide/` and `/reference/` link in the copy to `/1.5/guide/`
+   and `/1.5/reference/`, so an archived page links inside its own version.
+3. Sets `latest` to `1.6` and adds `1.5` to `archived`.
 
 Then:
 
@@ -87,8 +87,8 @@ Then:
 npm run build     # confirms every rewritten link still resolves
 ```
 
-Now edit `guide/` and `reference/` for 1.5. Remove any "Known defect in 1.4.x"
-note that 1.5 fixes. The 1.4 copy keeps the old text.
+Now edit `guide/` and `reference/` for 1.6. Remove any "Known defect in 1.5.x"
+note that 1.6 fixes. The 1.5 copy keeps the old text.
 
 ### What an archived version gets
 
