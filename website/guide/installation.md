@@ -120,6 +120,29 @@ After you add a new PHP version, regenerate the presets:
 php generate-presets.php
 ```
 
+#### Optional build features
+
+A preset covers the PHP version, the build type and the thread model. Everything else is a CMake
+cache variable you pass on the configure line.
+
+| Variable | Default | What it adds |
+| --- | --- | --- |
+| `PHP_SCYLLADB_ENABLE_POLL_API` | `OFF` | `Cassandra\Async\Poll` and `Cassandra\Async\PollHandle` over PHP 8.6 `Io\Poll`. `AUTO` enables it when the PHP provides `main/php_poll.h`, `ON` requires that header. |
+| `PHP_SCYLLADB_ENABLE_SWOOLE` | `OFF` | Coroutine-aware `Future::get()` under Swoole. Needs `PHP_SCYLLADB_SWOOLE_SRC`. |
+| `PHP_SCYLLADB_ENABLE_OPENSWOOLE` | `OFF` | The same for OpenSwoole. |
+| `PHP_SCYLLADB_SWOOLE_SRC` | empty | Path to the `(open)swoole-src` tree that provides `swoole.h`. |
+| `PHP_SCYLLADB_ENABLE_LEGACY_SCHEMA_META` | `OFF` | `Cassandra\Function_`, `Aggregate` and `Index`. The Rust backend leaves the matching `cass_*_meta_*` calls unimplemented. |
+| `PHP_SCYLLADB_ENABLE_CUSTOM_TYPE` | `OFF` | `Cassandra\Custom` and `Cassandra\Type\Custom`. The Rust backend does not plan to implement `cass_*_bind_custom`. |
+| `PHP_SCYLLADB_BACKEND` | `scylla-cpp` | `cassandra`, `scylla-cpp` or `scylla-rust`. |
+| `PHP_SCYLLADB_STATIC` | `OFF` | Link the C/C++ driver statically. |
+
+```bash
+cmake --preset ReleasePHP8.6NTS -DPHP_SCYLLADB_ENABLE_POLL_API=AUTO
+cmake --build out/ReleasePHP8.6NTS
+```
+
+See [event loops](/guide/event-loops) for what the async options give you.
+
 ### With phpize
 
 ```bash

@@ -89,7 +89,8 @@ while (Reactor::pending() > 0) {
 
 ## `Cassandra\Async\Poll`
 
-A loop over PHP 8.6's `Io\Poll\Context`. Present only in a build with `--enable-poll-api`.
+A loop over PHP 8.6's `Io\Poll\Context`. Present only in a build with
+`-DPHP_SCYLLADB_ENABLE_POLL_API=ON` or `=AUTO`.
 
 ```php
 final class Poll
@@ -135,7 +136,7 @@ $loop->run();
 ## `Cassandra\Async\PollHandle`
 
 A driver descriptor as a native `Io\Poll\Handle`, for a loop you drive yourself. Present only in a
-build with `--enable-poll-api`.
+build with `-DPHP_SCYLLADB_ENABLE_POLL_API=ON` or `=AUTO`.
 
 ```php
 final class PollHandle implements \Io\Poll\Handle

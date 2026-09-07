@@ -174,8 +174,8 @@ so the loop takes the remainder on the next tick and everything else gets a turn
 
 ## Native polling on PHP 8.6
 
-PHP 8.6 added `Io\Poll` — epoll, kqueue or event ports behind one API. When the extension is built
-with `--enable-poll-api`, two more classes appear.
+PHP 8.6 added `Io\Poll` — epoll, kqueue or event ports behind one API. Two more classes appear when
+the extension is built with `-DPHP_SCYLLADB_ENABLE_POLL_API=ON`:
 
 `Cassandra\Async\Poll` is a ready-made loop:
 
@@ -209,10 +209,18 @@ build asks for them. Guard with `Cassandra\Async\Poll::isSupported()` or
 `class_exists(Cassandra\Async\PollHandle::class)`.
 :::
 
+```bash
+cmake --preset ReleasePHP8.6NTS -DPHP_SCYLLADB_ENABLE_POLL_API=ON
+```
+
+The option takes three values. `OFF` is the default. `AUTO` turns the classes on when the PHP you
+build against provides `main/php_poll.h`. `ON` does the same and fails the configure step when that
+header is missing.
+
 ## Native Swoole coroutines
 
-Built with `--enable-swoole` (or `--enable-openswoole`), `Future::get()` becomes coroutine-aware on
-its own: inside a coroutine it suspends only that coroutine, and the scheduler keeps running
+Built with `-DPHP_SCYLLADB_ENABLE_SWOOLE=ON` (or `-DPHP_SCYLLADB_ENABLE_OPENSWOOLE=ON`),
+`Future::get()` becomes coroutine-aware on its own: inside a coroutine it suspends only that coroutine, and the scheduler keeps running
 everything else. No adapter and no code change:
 
 ```php
@@ -221,7 +229,15 @@ Swoole\Coroutine\run(function () use ($session, $cql) {
 });
 ```
 
-Outside a coroutine, and in a build without the flag, `get()` blocks exactly as before.
+Outside a coroutine, and in a build without the option, `get()` blocks exactly as before.
+
+The build compiles one C++ shim against the Swoole headers, so it needs the matching source tree:
+
+```bash
+cmake --preset ReleasePHP8.4NTS \
+  -DPHP_SCYLLADB_ENABLE_SWOOLE=ON \
+  -DPHP_SCYLLADB_SWOOLE_SRC=/path/to/swoole-src
+```
 
 ## Choosing
 
@@ -231,7 +247,7 @@ Outside a coroutine, and in a build without the flag, `get()` blocks exactly as 
 | Revolt, AMPHP or ReactPHP | The adapter for that framework |
 | Hundreds or thousands in flight | `Cassandra\Async\Reactor` |
 | Swoole or OpenSwoole | A native build, then plain `get()` |
-| PHP 8.6 with `--enable-poll-api` | `Cassandra\Async\Poll` |
+| PHP 8.6 built with `PHP_SCYLLADB_ENABLE_POLL_API` | `Cassandra\Async\Poll` |
 
 ## Limits
 

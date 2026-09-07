@@ -62,6 +62,60 @@ foreach ($result as $row) {
 
 ---
 
+## Async and Event Loops
+
+`executeAsync()`, `prepareAsync()`, `connectAsync()` and `closeAsync()` return a `Cassandra\Future`
+that resolves on the driver's own IO threads. Every future exposes a completion descriptor, so a PHP
+event loop can await a query without blocking the thread.
+
+```php
+$future = $session->executeAsync('SELECT * FROM users');
+
+$read = [$future->getResource()];
+$write = $except = [];
+stream_select($read, $write, $except, 5);
+
+foreach ($future->get() as $row) {
+    printf("User: %s\n", $row['name']);
+}
+```
+
+For hundreds of queries in flight, `Cassandra\Async\Reactor` folds every completion onto one
+descriptor, so the file descriptor count stays flat:
+
+```php
+use Cassandra\Async\Reactor;
+
+foreach ($ids as $id) {
+    Reactor::add($session->executeAsync($prepared, ['arguments' => [$id]]));
+}
+
+$resource = Reactor::resource();
+
+while (Reactor::pending() > 0) {
+    $read = [$resource];
+    $write = $except = [];
+    stream_select($read, $write, $except, 5);
+
+    foreach (Reactor::poll(64) as $future) {
+        $rows = $future->get();
+    }
+}
+```
+
+| You use | Reach for |
+|---|---|
+| No framework, tens of futures | `Future::getResource()` with `stream_select()` |
+| Revolt, AMPHP or ReactPHP | [`codelieutenant/scylla-driver-async-adapters`](packages/async-adapters) |
+| Hundreds or thousands in flight | `Cassandra\Async\Reactor` |
+| Swoole or OpenSwoole | A build with `PHP_SCYLLADB_ENABLE_SWOOLE`, then plain `get()` |
+| PHP 8.6 | A build with `PHP_SCYLLADB_ENABLE_POLL_API`, then `Cassandra\Async\Poll` |
+
+Read [asynchronous queries](https://he4rt.github.io/scylladb-php-driver/guide/async) and
+[event loops](https://he4rt.github.io/scylladb-php-driver/guide/event-loops) for the full picture.
+
+---
+
 ## Installation
 
 ### Via PIE (recommended)
